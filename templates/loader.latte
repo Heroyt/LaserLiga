@@ -1,0 +1,41 @@
+{define loader}
+	<div class="modal fade" id="loader-modal" data-backdrop="static">
+		<div class="modal-dialog">
+			<div class="loader"></div>
+			<svg class="successAnimation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70">
+				<circle id="successAnimationCircle" cx="35" cy="35" r="24" stroke="#979797" stroke-width="2"
+						stroke-linecap="round" fill="transparent"></circle>
+				<polyline id="successAnimationCheck" stroke="#979797" stroke-width="2" points="23 34 34 43 47 27"
+						  fill="transparent"></polyline>
+			</svg>
+			<svg class="errorAnimation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70">
+				<path class="works-check-icon-first" d="M 25 25 L 45 45" stroke-dasharray="71" stroke-width="3"
+					  stroke="#fa625a"></path>
+				<path class="works-check-icon-last" d="M 45 25 L 25 45" stroke-dasharray="71" stroke-width="3"
+					  stroke="#fa625a"></path>
+				<circle id="errorAnimationCircle" cx="35" cy="35" r="24" stroke="#fa625a" stroke-width="2"
+						stroke-linecap="round" fill="transparent"></circle>
+			</svg>
+		</div>
+	</div>
+{/define}
+
+{define smallLoader}
+	<div id="smallLoader" class="d-none">
+		<div class="loader"></div>
+		<svg class="successAnimation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70">
+			<circle id="successAnimationCircle" cx="35" cy="35" r="24" stroke="#979797" stroke-width="2"
+					stroke-linecap="round" fill="transparent"></circle>
+			<polyline id="successAnimationCheck" stroke="#979797" stroke-width="2" points="23 34 34 43 47 27"
+					  fill="transparent"></polyline>
+		</svg>
+		<svg class="errorAnimation" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70">
+			<path class="works-check-icon-first" d="M 25 25 L 45 45" stroke-dasharray="71" stroke-width="3"
+				  stroke="#fa625a"></path>
+			<path class="works-check-icon-last" d="M 45 25 L 25 45" stroke-dasharray="71" stroke-width="3"
+				  stroke="#fa625a"></path>
+			<circle id="errorAnimationCircle" cx="35" cy="35" r="24" stroke="#fa625a" stroke-width="2"
+					stroke-linecap="round" fill="transparent"></circle>
+		</svg>
+	</div>
+{/define}

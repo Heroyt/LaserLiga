@@ -1,0 +1,14 @@
+<h1>{lang 'Translations', context: 'debugPanel'}</h1>
+<div class="tracy-inner">
+	<div class="tracy-inner-container">
+		<p><strong>{lang 'Translated strings', context: 'debugPanel'}
+				:</strong> {App\Logging\Tracy\TranslationTracyPanel::$translations}</p>
+		<div class="p-3 my-2 rounded border" n:foreach="\App\Logging\Tracy\TranslationTracyPanel::$events as $event">
+			<h5 class="my-1 fs-5">{lang 'Added a new string', context: 'debugPanel'}:</h5>
+			<p>{lang 'String', context: 'debugPanel'}: {$event->message}</p>
+			<p n:if="!empty($event->plural)">{lang 'Plural', context: 'debugPanel'}: {$event->plural}</p>
+			<p n:if="!empty($event->context)">{lang 'Context', context: 'debugPanel'}: {$event->context}</p>
+			<div class="p-1 rounded bg-secondary text-light w-100">{$event->source}</div>
+		</div>
+	</div>
+</div>

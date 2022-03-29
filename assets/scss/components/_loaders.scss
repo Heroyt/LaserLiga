@@ -1,0 +1,90 @@
+#smallLoader {
+	height: 50px;
+	position: fixed;
+	right: 10px;
+	top: 10px;
+	width: 50px;
+	z-index: 2000;
+
+	.loader {
+		border: 6px solid var(--light);
+		border-top: 6px solid var(--grey);
+		height: 50px;
+		margin: 0;
+		width: 50px;
+	}
+
+	.successAnimation,
+	.errorAnimation {
+		height: 50px;
+		margin: 0;
+		width: 50px;
+	}
+}
+
+#loader-modal {
+	background-color: rgba(var(--black), .4);
+	z-index: 2000;
+
+	.modal-dialog {
+		left: 50%;
+		position: fixed;
+		top: 50%;
+		transform: translate(-50%, -50%);
+	}
+}
+
+.loader {
+	animation: spin 2s cubic-bezier(.14, .74, .83, .29) infinite;
+	border: 16px solid var(--light);
+	border-radius: 50%;
+	border-top: 16px solid var(--grey);
+	height: 120px;
+	margin: 30px auto;
+	width: 120px;
+}
+
+.successAnimation,
+.errorAnimation {
+	display: none;
+	height: 120px;
+	margin: 30px auto;
+	width: 120px;
+
+	&.animated {
+		display: block;
+
+		.successAnimationCircle,
+		.errorAnimationCircle {
+			animation: 1s cubic-bezier(.77, 0, .175, 1) 0s 1 both drawCircle, .3s linear .9s 1 both fadeOut;
+		}
+
+		.works-check-icon-first,
+		.works-check-icon-last {
+			animation: 1s cubic-bezier(.77, 0, .175, 1) 0s 1 both drawCross, .3s linear .9s 1 both fadeOut;
+		}
+
+		.successAnimationCheck {
+			animation: 1s cubic-bezier(.77, 0, .175, 1) 0s 1 both drawCheck, .3s linear .9s 1 both fadeOut;
+		}
+
+	}
+}
+
+.successAnimation * {
+	stroke: var(--bs-success);
+}
+
+.errorAnimation .works-check-icon-first,
+.errorAnimation .works-check-icon-last {
+	stroke-dashoffset: 71px;
+}
+
+.successAnimationCircle,
+.errorAnimationCircle {
+	stroke-dasharray: 151px 151px;
+}
+
+.errorAnimation path, .errorAnimation circle {
+	stroke: var(--bs-danger);
+}

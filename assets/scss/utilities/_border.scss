@@ -1,0 +1,29 @@
+.border-rounded {
+	border: 1px solid var(--dark);
+	border-radius: 15px;
+	display: inline-block;
+	font-size: 10px;
+	font-weight: bold;
+	margin-top: 5px;
+	padding: 5px 15px;
+}
+
+.border-dashed {
+	border-style: dashed;
+}
+
+.rounded-4 {
+	border-radius: 4px;
+}
+
+.rounded-8 {
+	border-radius: 8px;
+}
+
+.rounded-13 {
+	border-radius: 13px;
+}
+
+.border-none {
+	border: none;
+}

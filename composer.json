@@ -1,0 +1,47 @@
+{
+	"name": "heroyt/my-php-framework",
+	"version": "1.2.2",
+	"minimum-stability": "dev",
+	"scripts": {
+		"install-app": "composer build && php install.php",
+		"serve": "php -S localhost:8000 index.php",
+		"test": "./vendor/bin/phpunit",
+		"docs": "doxygen",
+		"build-production": "composer update --no-dev && composer dump-autoload --no-dev && npm install && npm run build && npm prune --production",
+		"build": "composer update && composer dump-autoload && npm install && npm run buildDev"
+	},
+	"require": {
+		"tracy/tracy": "^2.8",
+		"dibi/dibi": "^4.2",
+		"latte/latte": "^2.10",
+		"nette/utils": "^3.2",
+		"psr/log": "^1.1",
+		"nette/security": "^3.1",
+		"ext-zip": "*",
+		"php": "^8.0",
+		"nette/http": "^3.1",
+		"ext-gettext": "*",
+		"nette/di": "^3.0",
+		"ext-mbstring": "*",
+		"ext-fileinfo": "*"
+	},
+	"require-dev": {
+		"roave/security-advisories": "dev-latest",
+		"phpunit/phpunit": "^9.5",
+		"gettext/gettext": "^5.5"
+	},
+	"autoload": {
+		"psr-4": {
+			"App\\": "src/"
+		},
+		"files": [
+			"include/functions.php"
+		]
+	},
+	"authors": [
+		{
+			"name": "Tomáš Vojík",
+			"email": "vojik@wboy.cz"
+		}
+	]
+}

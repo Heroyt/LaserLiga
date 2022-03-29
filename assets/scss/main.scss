@@ -1,0 +1,74 @@
+// File: main.scss
+// Author: Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>
+// Main stylesheet that is compiled into /dist/main.css
+
+@import '~bootstrap/scss/functions';
+@import 'variables/customVariables';
+@import '~bootstrap/scss/variables';
+
+@import 'custom';
+
+// BS Configuration
+@import '~bootstrap/scss/mixins';
+
+@import 'maps';
+
+// Utilities
+//@import '~bootstrap/scss/utilities';
+
+// BS Layout & components
+@import '~bootstrap/scss/root';
+@import '~bootstrap/scss/reboot';
+@import '~bootstrap/scss/type';
+@import '~bootstrap/scss/images';
+@import '~bootstrap/scss/containers';
+@import '~bootstrap/scss/grid';
+@import '~bootstrap/scss/tables';
+@import '~bootstrap/scss/forms';
+@import '~bootstrap/scss/buttons';
+@import '~bootstrap/scss/transitions';
+@import '~bootstrap/scss/dropdown';
+@import '~bootstrap/scss/button-group';
+@import '~bootstrap/scss/nav';
+@import '~bootstrap/scss/navbar';
+@import '~bootstrap/scss/card';
+@import '~bootstrap/scss/accordion';
+@import '~bootstrap/scss/breadcrumb';
+@import '~bootstrap/scss/pagination';
+@import '~bootstrap/scss/badge';
+@import '~bootstrap/scss/alert';
+@import '~bootstrap/scss/progress';
+@import '~bootstrap/scss/list-group';
+@import '~bootstrap/scss/close';
+@import '~bootstrap/scss/toasts';
+@import '~bootstrap/scss/modal';
+@import '~bootstrap/scss/tooltip';
+@import '~bootstrap/scss/popover';
+@import '~bootstrap/scss/carousel';
+@import '~bootstrap/scss/spinners';
+@import '~bootstrap/scss/offcanvas';
+@import '~bootstrap/scss/placeholders';
+
+// BS Helpers
+@import '~bootstrap/scss/helpers';
+
+// BS Utilities
+@import '~bootstrap/scss/utilities/api';
+
+// Core items
+@import 'animations';
+
+// Utilities
+@import 'utilities/background';
+@import 'utilities/filling';
+@import 'utilities/headings';
+
+// Components
+@import 'components/notices';
+@import '~flatpickr';
+@import 'components/datepicker';
+@import 'components/inputs';
+@import 'components/tip';
+@import 'components/loaders';
+
+// Pages

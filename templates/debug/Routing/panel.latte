@@ -1,0 +1,34 @@
+{varType App\Core\Routing\Route|null $route}
+{varType array $request}
+{varType array $params}
+{varType array $path}
+{varType array $routes}
+
+<h1>Routing</h1>
+<div class="tracy-inner">
+	<div class="tracy-inner-container">
+		<div class="p-3 my-2 rounded border">
+			<h5 class="fs-5">Request</h5>
+			{tracyDump $request}
+		</div>
+		<div class="p-3 my-2 rounded border">
+			<h5 class="fs-5">Path</h5>
+			{tracyDump $path}
+		</div>
+		<div class="p-3 my-2 rounded border">
+			<h5 class="fs-5">Parameters</h5>
+			{tracyDump $params}
+		</div>
+		{ifset $route}
+			<div class="p-3 my-2 rounded border">
+				<h5 class="fs-5">Route</h5>
+				<p><strong>Name:</strong> {$route->getRouteName()}</p>
+				<p><strong>Path:</strong> {if empty($route->path)}/{else}{$route->path|implode:'/'}{/if}</p>
+			</div>
+		{/ifset}
+		<div class="p-3 my-2 rounded border">
+			<h5 class="fs-5">Available routes</h5>
+			{tracyDump $routes}
+		</div>
+	</div>
+</div>

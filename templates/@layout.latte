@@ -1,0 +1,78 @@
+{import 'header.latte'}
+{import 'footer.latte'}
+{import 'loader.latte'}
+{import 'symbols.latte'}
+
+{varType \App\Core\Controller $page}
+{varType string[] $errors}
+
+{define containerClasses}
+	py-5
+{/define}
+{define content}
+{/define}
+{define addHead}
+{/define}
+{define errors}
+	{foreach $errors as $error}
+		{alertDanger $error}
+	{/foreach}
+{/define}
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+		  content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<!-- Favicon -->
+	<link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/icon/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/icon/android-chrome-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="{getUrl}assets/icon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="{getUrl}assets/icon/favicon-16x16.png">
+	<link rel="icon" href="{getUrl}assets/icon/favicon.ico">
+	<link rel="manifest" href="{getUrl}assets/icon/site.webmanifest">
+	<meta name="theme-color" content="#ffffff">
+	<!-- Font Awesome -->
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css"/>
+	<!-- Google Fonts Montserrat -->
+	<link rel="stylesheet"
+		  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
+	{\App\Core\App::getCss()|noescape}
+	<title>{$page->getTitle()}</title>
+	{\Tracy\Debugger::renderLoader()|noescape}
+	{include addHead}
+</head>
+<body>
+{include header}
+
+{include smallLoader}
+
+
+<main class="container {include containerClasses|trim}">
+	{include errors}
+		{include content}
+</main>
+
+{include footer}
+{include loader}
+
+<div class="toast-container position-absolute bottom-0 end-0 p-3" id="toasts"></div>
+
+<script>
+	const page = {\App\Core\App::getRequest()};
+	const prettyUrl = {\App\Core\App::isPrettyUrl()};
+</script>
+{\App\Core\App::getJs()|noescape}
+
+
+<script src="{getUrl}node_modules/flatpickr/dist/l10n/{\App\Core\App::getShortLanguageCode()}.js"></script>
+
+
+<script>
+	flatpickr.localize(flatpickr.l10ns.{\App\Core\App::getShortLanguageCode()|noescape});
+</script>
+{include svgSymbols}
+</body>
+</html>

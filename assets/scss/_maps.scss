@@ -1,0 +1,45 @@
+@use 'variables/colors' as *;
+@use 'sass:map';
+
+$custom-font-sizes: (
+	'hero': 54px,
+	'default': 1rem,
+	'xs': 11px,
+	'12': 12px,
+	'14': 14px,
+	's': 15px,
+	'm': 16px,
+	'18': 18px,
+	'x': 25px,
+	'xl': 32px
+);
+
+$custom-colors: ();
+
+@each $name, $values in $custom-colors {
+	@each $weight, $color in $values {
+		@if type-of($color) == 'map' {
+			$custom-colors: map.merge($custom-colors, ('dtp-#{map.get($color, "alias")}': map.get($color, 'color')));
+		}
+	}
+}
+
+// Letter spacing sizes
+$letter-spacings: (
+	'0': 0,
+	'1': 1px,
+	'2': 1.5px,
+	'3': 2px
+);
+
+$custom-widths: (
+	'9': 9%,
+	'10': 10em,
+	'18': 18%,
+	'22': 22%,
+	'33': 33%,
+	'80': 80%,
+);
+
+$font-sizes: map.merge($font-sizes, $custom-font-sizes);
+$theme-colors: map.merge($theme-colors, $custom-colors);

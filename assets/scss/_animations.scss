@@ -1,0 +1,58 @@
+@keyframes shake {
+	0% {
+		transform: translateX(0);
+	}
+
+	25% {
+		transform: translateX(-2%);
+	}
+
+	75% {
+		transform: translateX(2%);
+	}
+
+	100% {
+		transform: translateX(0);
+	}
+
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes drawCircle {
+	0% {
+		stroke-dashoffset: 151px;
+	}
+
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+
+@keyframes drawCheck {
+	0% {
+		stroke-dashoffset: 36px;
+	}
+
+	100% {
+		stroke-dashoffset: 0;
+	}
+}
+
+@keyframes drawCross {
+	0% {
+		stroke-dashoffset: 71px;
+	}
+
+	100% {
+		stroke-dashoffset: 0;
+	}
+}

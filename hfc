@@ -1,0 +1,10 @@
+#!php
+<?php
+
+// Make sure that this file is called from a command line
+if (PHP_SAPI !== 'cli') {
+	exit;
+}
+
+// Include the index bootstrap
+require_once __DIR__.'/index.php';

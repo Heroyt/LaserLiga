@@ -1,0 +1,12 @@
+<h1>DB</h1>
+<div class="tracy-inner">
+	<div class="tracy-inner-container">
+		<div class="p-3 my-2 rounded border" n:foreach="\App\Logging\Tracy\DbTracyPanel::$events as $event">
+			<h5 class="text-{if $event->status === \App\Logging\Tracy\Events\DbEvent::ERROR}danger{else}success{/if} my-1 fs-5">{$event->status}</h5>
+			{$event->sql|noescape}
+			<p>{lang 'Rows', context: 'debugPanel'}: {$event->count}</p>
+			<p>{lang 'Takes', context: 'debugPanel'}: {$event->time|number:3,',',''} ms</p>
+			<div class="p-1 rounded bg-secondary text-light w-100">{$event->source}</div>
+		</div>
+	</div>
+</div>

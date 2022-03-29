@@ -1,0 +1,12 @@
+{varType App\Core\Auth\User|null $user}
+
+<h1>User</h1>
+<div class="tracy-inner">
+	<div class="tracy-inner-container">
+		{ifset $user}
+			{tracyDump $user}
+		{else}
+			<h2>Logged out</h2>
+		{/ifset}
+	</div>
+</div>

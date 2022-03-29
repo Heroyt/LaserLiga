@@ -1,0 +1,16 @@
+.country-select-input {
+	display: none;
+
+	&:checked + label {
+		outline: 2px solid var(--primary);
+	}
+}
+
+.country-select {
+	border-radius: 10%;
+
+	img {
+		height: var(--size, 30px);
+		width: var(--size, 30px);
+	}
+}

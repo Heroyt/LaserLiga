@@ -1,0 +1,33 @@
+{define header}
+	<header class="navbar navbar-expand-lg navbar-light bg-light">
+		<div class="container-fluid">
+			<a href="" class="navbar-brand">My PHP Framework</a>
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navBarContent"
+					aria-controls="navBarContent" aria-expanded="false" aria-label="{lang 'Toggle navigation'}">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navBarContent">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+					{foreach App\Core\App::getMenu() as $key => $menuItem}
+						<li class="nav-item{if count($menuItem->children) > 0} dropdown{/if}">
+							{if count($menuItem->children) > 0}
+								<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown{$key}" role="button"
+								   data-bs-toggle="dropdown" aria-expanded="false">
+									{$menuItem->name}
+									<ul class="dropdown-menu" aria-labelledby="navbarDropdown{$key}">
+										<li n:foreach="$menuItem->children as $child"><a class="dropdown-item"
+																						 href="{$child->url}">{$child->name}</a>
+										</li>
+									</ul>
+								</a>
+							{else}
+								<a class="nav-link{if $menuItem->active} active{/if}" aria-current="page"
+								   href="{$menuItem->url}">{$menuItem->name}</a>
+							{/if}
+						</li>
+					{/foreach}
+				</ul>
+			</div>
+		</div>
+	</header>
+{/define}

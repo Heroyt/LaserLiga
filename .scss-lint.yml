@@ -1,0 +1,23 @@
+scss_files:
+    - 'assets/css/*.scss'
+    - 'node_modules/bootstrap/scss/*.scss'
+linters:
+    NestingDepth:
+        enabled: true
+        max_depth: 4
+
+    BorderZero:
+        enabled: false
+
+    Indentation:
+        character: tab
+        width: 1
+
+    PseudoElement:
+        enabled: false
+
+    SelectorFormat:
+        enabled: false
+
+    IdSelector:
+        enabled: false

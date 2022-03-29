@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="tests/bootstrap.php" colors="true"
+		 verbose="true" stopOnFailure="false" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+	<coverage>
+		<include>
+			<directory>./src</directory>
+			<directory>./build</directory>
+		</include>
+		<report>
+			<clover outputFile="build/coverage.xml"/>
+			<html outputDirectory="build/coverage"/>
+			<php outputFile="build/coverage.serialized"/>
+		</report>
+	</coverage>
+	<testsuites>
+		<testsuite name="PHP Framework">
+			<directory>tests</directory>
+		</testsuite>
+	</testsuites>
+	<logging/>
+</phpunit>

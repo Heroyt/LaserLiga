@@ -1,0 +1,87 @@
+@use "sass:map";
+
+.ml--1e {
+	margin-left: -1em;
+}
+
+.mb-half {
+	margin-bottom: .5rem;
+}
+
+.mt--2 {
+	margin-top: -2px;
+}
+
+.min-h-144 {
+	min-height: 144px;
+}
+
+.w-fill {
+	left: calc((100% - 100vw) / 2);
+	//overflow: hidden !important;
+	position: relative;
+	width: 100vw;
+
+	/*.container {
+		max-width: 1140px !important;
+	}*/
+}
+
+.flex-fill-same {
+	flex: 1 1 0 !important;
+}
+
+// TODO: Recreate using BS flex (grid is not necessary)
+.grid-3 {
+	display: grid;
+	grid-gap: 1.5em;
+	text-align: left;
+}
+
+@include media-breakpoint-up(md) {
+	.grid-3 {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+@include media-breakpoint-down(sm) {
+	.row {
+		max-width: 100%;
+		margin-left: 0;
+		margin-right: 0;
+	}
+}
+
+@each $name, $value in $custom-widths {
+	.w-#{$name} {
+		width: $value !important;
+	}
+}
+
+
+@each $breakpoint, $window in $grid-breakpoints {
+	@include media-breakpoint-up($breakpoint) {
+
+		.flex-#{$breakpoint}-fill-same {
+			flex: 1 1 0 !important;
+		}
+
+		@each $name, $size in $custom-widths {
+			.w-#{$breakpoint}-#{$name} {
+				width: $size !important;
+			}
+		}
+
+		@each $key, $utility in map_get-multiple($utilities, ("width", "max-width", "viewport-width", "min-viewport-width", "height", "max-height", "viewport-height", "min-viewport-height")) {
+			@if type-of($utility) == "map" {
+				$class: map.get($utility, "class");
+				$property: map.get($utility, "property");
+				@each $name, $value in map.get($utility, "values") {
+					.#{$class}-#{$breakpoint}-#{$name} {
+						#{$property}: $value !important;
+					}
+				}
+			}
+		}
+	}
+}

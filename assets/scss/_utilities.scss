@@ -1,0 +1,40 @@
+// File: _utilities.scss
+// Author: Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>
+// Utility classes for general or common entities.
+
+:root {
+	--header-height: 52px;
+	--body-min-height: calc(100vh - var(--header-height));
+}
+
+header {
+	height: var(--header-height);
+}
+
+main.container,
+main.container-fluid {
+	min-height: var(--body-min-height);
+
+	&.my-5 {
+		min-height: calc(100vh - (#{$spacer} * 9));
+	}
+}
+
+.container,
+.container-fluid {
+	position: relative;
+}
+
+.w-full {
+	left: calc((100% - 100vw) / 2);
+	overflow-x: hidden;
+	position: relative;
+	width: 100vw;
+}
+
+table {
+	th,
+	td {
+		vertical-align: middle;
+	}
+}

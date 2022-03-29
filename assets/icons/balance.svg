@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="512" height="512" x="0" y="0" viewBox="0 0 512.012 512.012"
+	 style="enable-background:new 0 0 512 512" xml:space="preserve" class="">
+	<g>
+		<path xmlns="http://www.w3.org/2000/svg"
+			  d="m180.946 222.94v-9.61h-180.94v9.61c0 49.885 40.585 90.47 90.47 90.47 49.885-.001 90.47-40.586 90.47-90.47z"
+			  fill="#000000" data-original="#000000" class=""></path>
+		<path xmlns="http://www.w3.org/2000/svg"
+			  d="m331.066 213.329v9.61c0 49.885 40.585 90.47 90.471 90.47 49.885 0 90.47-40.585 90.47-90.47v-9.61z"
+			  fill="#000000"
+			  data-original="#000000" class=""></path>
+		<path xmlns="http://www.w3.org/2000/svg"
+			  d="m90.476 126.098 20.528 57.231h31.871l-31.083-86.659h114.19v265.246h60.048v-265.246h114.19l-31.084 86.659h31.871l20.528-57.231 20.528 57.231h31.872l-41.843-116.659h-146.062v-36.646c0-16.582-13.442-30.024-30.024-30.024s-30.024 13.442-30.024 30.024v36.646h-146.062l-41.844 116.659h31.872z"
+			  fill="#000000" data-original="#000000" class=""></path>
+		<path
+			xmlns="http://www.w3.org/2000/svg" d="m80.878 466.964h350.256v45.048h-350.256z" fill="#000000"
+			data-original="#000000" class=""></path>
+		<path xmlns="http://www.w3.org/2000/svg"
+			  d="m110.902 391.916h290.207v45.048h-290.207z" fill="#000000"
+			  data-original="#000000" class=""></path>
+	</g>
+</svg>

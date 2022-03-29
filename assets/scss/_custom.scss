@@ -1,0 +1,95 @@
+// File: _custom.scss
+// Author: Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>
+// Bootstrap customizations.
+
+@use 'variables/colors' as *;
+@use 'sass:map';
+@use 'functions';
+
+$utilityColors: functions.getUtilityColors($custom-colors);
+$theme-colors: map.merge($theme-colors, functions.getThemeColors($custom-colors));
+
+:root {
+	@each $name, $values in $custom-colors {
+		@each $weight, $color in $values {
+			$separator: '-';
+			@if $weight == '' {
+				$separator: '';
+			}
+			@if type-of($color) == 'map' {
+				--#{map.get($color, 'alias')}: #{map.get($color, 'color')};
+				--#{$name}#{$separator}#{$weight}: #{map.get($color, 'color')};
+			} @else {
+				--#{$name}#{$separator}#{$weight}: #{$color};
+			}
+		}
+	}
+}
+
+$utilities-bg-colors: map.merge($utilities-bg-colors, $utilityColors);
+$utilities-text-colors: map.merge($utilities-text-colors, $utilityColors);
+
+$font-sizes: map.merge(
+		$font-sizes,
+		(
+			brand: $font-size-base * 4,
+		)
+);
+
+@import '~bootstrap/scss/utilities';
+@import '~bootstrap/scss/mixins';
+
+html,
+body {
+	width: 100%;
+	height: 100%;
+}
+
+$card-bg: map.get($theme-colors, 'dark');
+
+$utilities: map.deep-merge(
+		$utilities,
+		(
+			'border-color': (
+				values: $utilityColors
+			),
+			'min-width': (
+				property: min-width,
+				class: minw,
+				responsive: true,
+				print: true,
+				values: map.merge(
+						$grid-breakpoints,
+						(
+							50: 50%,
+							100: 100%,
+							200: 200px,
+							300: 300px,
+							xs: 50px,
+						)
+				),
+			),
+			'font-size': (
+				values: (
+					sm: .8rem,
+				),
+			),
+			"min-viewport-height": (
+				values: (
+					25: 25vh,
+					50: 50vh,
+					60: 60vh,
+					75: 75vh,
+				),
+			),
+			"line-height": (
+				values: (
+					20: 20px,
+					25: 25px,
+					30: 30px,
+					35: 35px,
+					size: var(--size, 1),
+				),
+			),
+		),
+);

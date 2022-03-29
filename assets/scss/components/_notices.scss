@@ -1,0 +1,16 @@
+// File: _notices.scss
+// Author: Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>
+// A small component - Display request notices in the bottom right corner.
+
+.notices {
+	bottom: 4rem;
+	opacity: 1;
+	position: fixed;
+	right: 4rem;
+	transition: opacity 1s;
+	z-index: 9999;
+
+	&.fade-out {
+		opacity: 0;
+	}
+}
