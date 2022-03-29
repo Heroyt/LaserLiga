@@ -2,7 +2,6 @@
 
 namespace App\Core\Interfaces;
 
-use App\Core\AbstractModel;
 use Dibi\Row;
 
 interface InsertExtendInterface
@@ -11,12 +10,11 @@ interface InsertExtendInterface
 	/**
 	 * Parse data from DB into the object
 	 *
-	 * @param Row                $row Row from DB
-	 * @param AbstractModel|null $model
+	 * @param Row $row Row from DB
 	 *
 	 * @return InsertExtendInterface|null
 	 */
-	public static function parseRow(Row $row, ?AbstractModel $model = null) : ?InsertExtendInterface;
+	public static function parseRow(Row $row) : ?InsertExtendInterface;
 
 	/**
 	 * Add data from the object into the data array for DB INSERT/UPDATE
