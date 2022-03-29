@@ -23,7 +23,8 @@
 		"ext-gettext": "*",
 		"nette/di": "^3.0",
 		"ext-mbstring": "*",
-		"ext-fileinfo": "*"
+		"ext-fileinfo": "*",
+		"ext-csprng": "*"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

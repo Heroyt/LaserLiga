@@ -24,9 +24,8 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	public const TABLE       = '';
 	public const PRIMARY_KEY = 'id';
 
-	public const DEFINITION = [
-
-	];
+	/** @var array{validators:array, class: string, initialize: bool}[] Model's fields definition */
+	public const DEFINITION = [];
 
 	/** @var AbstractModel[][] */
 	protected static array $instances = [];

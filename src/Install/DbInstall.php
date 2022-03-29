@@ -9,6 +9,7 @@ use App\GameModels\Game\Evo5\Game;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Evo5\Team;
 use App\GameModels\Game\GameModes\AbstractMode;
+use App\Models\Arena;
 use App\Models\Auth\UserType;
 use Dibi\DriverException;
 use Dibi\Exception;
@@ -16,6 +17,7 @@ use Dibi\Exception;
 class DbInstall implements InstallInterface
 {
 
+	/** @var array{definition:string, modifications:array}[] */
 	public const TABLES = [
 		'page_info'         => [
 			'definition'    => "(
@@ -71,8 +73,33 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		AbstractMode::TABLE => [
+		Arena::TABLE        => [
 			'definition'    => "(
+				`id_arena` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				`name` varchar(50) NOT NULL DEFAULT '',
+				`lat` double DEFAULT NULL,
+				`lng` double DEFAULT NULL,
+				PRIMARY KEY (`id_arena`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+			'modifications' => [],
+		],
+		'api_keys'          => [
+			'definition'    => "(
+				`id_key` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				`id_arena` int(11) unsigned NOT NULL,
+				`key` varchar(50) NOT NULL DEFAULT '',
+				`name` varchar(50) DEFAULT NULL,
+				`valid` tinyint(1) NOT NULL DEFAULT 1,
+				PRIMARY KEY (`id_key`),
+				UNIQUE KEY `key` (`key`),
+				KEY `id_arena` (`id_arena`),
+				KEY `valid` (`valid`),
+				CONSTRAINT `api_keys_ibfk_1` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+			'modifications' => [],
+		],
+		AbstractMode::TABLE => [
+			'definition' => "(
 				`id_mode` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`system` varchar(10) DEFAULT NULL,
 				`name` varchar(50) DEFAULT NULL,
@@ -129,6 +156,7 @@ class DbInstall implements InstallInterface
 			'definition'    => "(
 				`id_game` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_mode` int(11) unsigned DEFAULT NULL,
+				`id_arena` int(11) unsigned DEFAULT NULL,
 				`mode_name` varchar(100) DEFAULT NULL,
 				`file_time` datetime DEFAULT NULL,
 				`start` datetime DEFAULT NULL,
@@ -153,9 +181,14 @@ class DbInstall implements InstallInterface
 				`ammo` int(10) unsigned DEFAULT NULL,
 				PRIMARY KEY (`id_game`),
 				KEY `id_mode` (`id_mode`),
-				CONSTRAINT `evo5_games_ibfk_1` FOREIGN KEY (`id_mode`) REFERENCES `game_modes` (`id_mode`) ON DELETE SET NULL ON UPDATE CASCADE
+				CONSTRAINT `evo5_games_ibfk_1` FOREIGN KEY (`id_mode`) REFERENCES `game_modes` (`id_mode`) ON DELETE SET NULL ON UPDATE CASCADE,
+				CONSTRAINT `evo5_games_ibfk_2` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE SET NULL ON UPDATE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [
+				'0.1' => [
+					"ADD `id_arena` INT(11)  UNSIGNED  DEFAULT NULL AFTER `id_mode`",
+					"ADD FOREIGN KEY (`id_arena`) REFERENCES `".Arena::TABLE."` (`id_arena`) ON DELETE SET NULL ON UPDATE CASCADE"
+				]
 			],
 		],
 		Team::TABLE         => [
