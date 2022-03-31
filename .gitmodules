@@ -1,3 +1,4 @@
 [submodule "src/GameModels"]
 	path = src/GameModels
 	url = https://github.com/Heroyt/LACModels
+	branch = liga
