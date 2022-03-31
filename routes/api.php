@@ -1,2 +1,14 @@
 <?php
-// TODO: Add any API routes here
+
+use App\Controllers\Api\Games;
+use App\Core\Middleware\ApiToken;
+use App\Core\Routing\Route;
+
+$apiToken = new ApiToken();
+
+Route::get('api/games', [Games::class, 'listGames'])
+		 ->middleware($apiToken);
+Route::get('api/games/{code}', [Games::class, 'getGame'])
+		 ->middleware($apiToken);
+Route::post('api/games', [Games::class, 'import'])
+		 ->middleware($apiToken);

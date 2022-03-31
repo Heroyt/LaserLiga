@@ -54,3 +54,6 @@ msgstr ""
 msgctxt "pageTitles"
 msgid "Games list"
 msgstr ""
+
+msgid "Dashboard"
+msgstr ""

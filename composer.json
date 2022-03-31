@@ -24,7 +24,8 @@
 		"nette/di": "^3.0",
 		"ext-mbstring": "*",
 		"ext-fileinfo": "*",
-		"ext-csprng": "*"
+		"ext-csprng": "*",
+		"ext-apache": "*"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",
