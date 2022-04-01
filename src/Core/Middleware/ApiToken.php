@@ -45,7 +45,7 @@ class ApiToken implements Middleware
 		if (empty($headers['Authorization'])) {
 			http_response_code(401);
 			header('Content-type: application/json');
-			echo json_encode(['error' => 'Missing Authorization header'], JSON_THROW_ON_ERROR);
+			echo json_encode(['error' => 'Missing Authorization header'], JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
 			exit;
 		}
 
