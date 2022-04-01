@@ -13,6 +13,10 @@ const ROOT = __DIR__.'/';
 /** Visiting site normally */
 const INDEX = true;
 
+if (!isset($argv) && PHP_SAPI !== 'cli') {
+	$argv = $_GET ?? [];
+}
+
 array_unshift($argv, 'install');
 
 require_once ROOT."include/load.php";
