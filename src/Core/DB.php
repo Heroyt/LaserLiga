@@ -12,6 +12,7 @@
 namespace App\Core;
 
 use App\Logging\Logger;
+use DateTimeInterface;
 use dibi;
 use Dibi\Connection;
 use Dibi\Exception;
@@ -193,17 +194,6 @@ class DB
 	}
 
 	/**
-	 * Gets the number of affected rows by the last INSERT, UPDATE or DELETE query
-	 *
-	 * @return int
-	 * @throws Exception
-	 * @since 1.0
-	 */
-	public static function getAffectedRows() : int {
-		return self::$db->getAffectedRows();
-	}
-
-	/**
 	 * Start query select
 	 *
 	 * @param array|string $table
@@ -227,6 +217,69 @@ class DB
 			throw new InvalidArgumentException('Invalid `$table` argument type: '.gettype($table).'. Expected string or array');
 		}
 		return $query;
+	}
+
+	/**
+	 * @param string        $table
+	 * @param array[]|array $values
+	 *
+	 * @return int
+	 * @throws Exception
+	 */
+	public static function replace(string $table, array $values) : int {
+		$args = [];
+		$valueArgs = [];
+		$queryKeys = [];
+		$rows = [];
+		$row = [];
+		foreach ($values as $key => $data) {
+			if (is_array($data)) {
+				$row = [];
+				foreach ($data as $key2 => $val) {
+					$queryKeys[$key2] = '%n';
+					$args[$key2] = $key2;
+					$row[$key2] = self::getEscapeType($val);
+					$valueArgs[] = $val;
+				}
+				$rows[] = '('.implode(', ', $row).')';
+				continue;
+			}
+			$queryKeys[$key] = '%n';
+			$args[$key] = $key;
+			$row[$key] = self::getEscapeType($data);
+			$valueArgs[] = $data;
+			$rows[] = '('.implode(', ', $row).')';
+		}
+		$args = array_merge($args, $valueArgs);
+		$result = self::$db->query("REPLACE INTO %n (".implode(', ', $queryKeys).") VALUES ".implode(', ', $rows).";", $table, ...array_values($args));
+		return self::getAffectedRows();
+	}
+
+	private static function getEscapeType(mixed $value) : string {
+		if (is_int($value)) {
+			return '%i';
+		}
+		if (is_float($value)) {
+			return '%f';
+		}
+		if (is_string($value)) {
+			return '%s';
+		}
+		if ($value instanceof DateTimeInterface) {
+			return '%dt';
+		}
+		return '%s';
+	}
+
+	/**
+	 * Gets the number of affected rows by the last INSERT, UPDATE or DELETE query
+	 *
+	 * @return int
+	 * @throws Exception
+	 * @since 1.0
+	 */
+	public static function getAffectedRows() : int {
+		return self::$db->getAffectedRows();
 	}
 
 	/**
