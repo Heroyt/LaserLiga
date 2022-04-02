@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_2" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+	 width="243.333px" height="121.334px" viewBox="0 0 243.333 121.334" enable-background="new 0 0 243.333 121.334"
+	 xml:space="preserve">
+<g id="gun">
+	<path stroke="#FFFFFF" stroke-miterlimit="10" d="M33.064,36.028l8.72,6.084l30.357-5.405l4.046-10.847l6.538-0.887l2.177,1.659
+		l18.669-2.991l-0.258-1.448l27.893-4.966l1.223,6.866l19.311-3.438l3.314,18.616l-16.256,2.894l-0.268,0.047l1.211,6.801
+		l6.021-1.072l5.639,3.935l2.516,14.136l-4.166,5.97l-6.436,1.146l-4.615-3.22l-35.723,6.36l-3.347-2.336l-17.609,3.134
+		l4.591,25.789l-2.589,3.71l-22.341,3.978l-5.086-3.549c0,0-1.299-7.295-2.206-12.391s2.881-19.054,2.881-19.054l-0.834-4.688
+		l-3.752-2.617l-36.81,6.554l-2.669-1.864l-3.033-17.032l-2.117-1.477L5.652,40.909L33.064,36.028z"/>
+	<path stroke="#FFFFFF" stroke-miterlimit="10" d="M58.268,34.054c2.014-0.358,4.032,1.512,4.506,4.178l-7.293,1.299
+		C55.006,36.864,56.253,34.413,58.268,34.054z"/>
+</g>
+	<rect id="laser" x="152.979" y="19.917" transform="matrix(0.9845 -0.1752 0.1752 0.9845 -0.7314 34.2163)"
+		  fill="#ED1C24" width="80.817" height="2.667"/>
+</svg>
