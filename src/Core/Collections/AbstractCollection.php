@@ -30,20 +30,6 @@ abstract class AbstractCollection implements CollectionInterface
 		return $collection;
 	}
 
-	public function getFirst() : ?AbstractModel {
-		if (count($this->data) === 0) {
-			return null;
-		}
-		return $this->data[0];
-	}
-
-	public function getLast() : ?AbstractModel {
-		if (count($this->data) === 0) {
-			return null;
-		}
-		return $this->data[count($this->data) - 1];
-	}
-
 	/**
 	 * Get all collection's data as an array
 	 *
@@ -115,6 +101,32 @@ abstract class AbstractCollection implements CollectionInterface
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Get first object in collection
+	 *
+	 * @return AbstractModel|null
+	 */
+	public function first() : ?AbstractModel {
+		/** @noinspection LoopWhichDoesNotLoopInspection */
+		foreach ($this->data as $object) {
+			return $object;
+		}
+		return null;
+	}
+
+	/**
+	 * Get last object in collection
+	 *
+	 * @return AbstractModel|null
+	 */
+	public function last() : ?AbstractModel {
+		/** @noinspection LoopWhichDoesNotLoopInspection */
+		foreach (array_reverse($this->data) as $object) {
+			return $object;
+		}
+		return null;
 	}
 
 	/**
@@ -310,7 +322,8 @@ abstract class AbstractCollection implements CollectionInterface
 	 * @return string
 	 */
 	public function getType() : string {
-		return $this->type;
+		$first = $this->first();
+		return isset($first) ? get_class($first) : $this->type;
 	}
 
 	/**

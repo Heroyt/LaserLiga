@@ -31,16 +31,18 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 * @return AbstractModel|null|mixed
 	 */
 	public function first() : mixed {
-		$data = $this->get();
+		$data = array_values($this->get(true));
 		return $data[0] ?? null;
 	}
 
 	/**
 	 * Get the result of the query
 	 *
+	 * @param bool $returnArray
+	 *
 	 * @return CollectionInterface|array
 	 */
-	public function get() : CollectionInterface|array {
+	public function get(bool $returnArray = false) : CollectionInterface|array {
 		$collection = clone $this->collection;
 		$this
 			->applyFilters($collection)
@@ -48,6 +50,9 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 		if (isset($this->mapCallback)) {
 			$data = $collection->getAll();
 			return array_map($this->mapCallback, $data);
+		}
+		if ($returnArray) {
+			return $collection->getAll();
 		}
 		return $collection;
 	}
@@ -179,6 +184,26 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 */
 	public function map(callable $callback) : CollectionQueryInterface {
 		$this->mapCallback = $callback;
+		return $this;
+	}
+
+	/**
+	 * Set sort direction in ascending order
+	 *
+	 * @return CollectionQueryInterface
+	 */
+	public function asc() : CollectionQueryInterface {
+		$this->sortDirection = Constants::SORT_ASC;
+		return $this;
+	}
+
+	/**
+	 * Set sort direction in descending order
+	 *
+	 * @return CollectionQueryInterface
+	 */
+	public function desc() : CollectionQueryInterface {
+		$this->sortDirection = Constants::SORT_DESC;
 		return $this;
 	}
 
