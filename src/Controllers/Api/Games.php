@@ -10,7 +10,9 @@ use App\Exceptions\GameModeNotFoundException;
 use App\Exceptions\ValidationException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
+use App\Logging\Logger;
 use App\Models\Arena;
+use App\Services\Timer;
 use App\Tools\Strings;
 use DateTime;
 use Exception;
@@ -87,6 +89,7 @@ class Games extends ApiController
 	 * @return void
 	 */
 	public function import(Request $request) : void {
+		$logger = new Logger(LOG_DIR, 'api-import');
 		$system = $request->post['system'] ?? '';
 		$supported = GameFactory::getSupportedSystems();
 		/** @var Game $gameClass */
@@ -96,13 +99,17 @@ class Games extends ApiController
 		}
 
 		$imported = 0;
-		foreach ($request->post['games'] ?? [] as $gameInfo) {
+		$games = $request->post['games'] ?? [];
+		$logger->info('Importing '.$system.' system - '.count($games).' games.');
+		foreach ($games as $gameInfo) {
+			$start = microtime(true);
 			try {
 				$game = $gameClass::fromJson($gameInfo);
 				$game->arena = $this->arena;
 			} catch (GameModeNotFoundException $e) {
 				$this->respond(['error' => 'Invalid game mode', 'exception' => $e->getMessage()], 400);
 			}
+			$parseTime = microtime(true) - $start;
 			try {
 				if ($game->save() === false) {
 					$this->respond(['error' => 'Failed saving the game'], 500);
@@ -110,6 +117,11 @@ class Games extends ApiController
 				$imported++;
 			} catch (ValidationException $e) {
 				$this->respond(['error' => 'Invalid game data', 'exception' => $e->getMessage()], 400);
+			}
+			$dbTime = microtime(true) - $start - $parseTime;
+			$logger->debug('Game '.$game->code.' imported in '.(microtime(true) - $start).'s - parse: '.$parseTime.'s, save: '.$dbTime.'s');
+			foreach (Timer::$timers as $key => $times) {
+				$logger->debug($key.': '.Timer::get($key).'s');
 			}
 		}
 		$this->respond(['success' => true, 'imported' => $imported]);

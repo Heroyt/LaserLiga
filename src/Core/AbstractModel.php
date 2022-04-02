@@ -7,6 +7,7 @@ use App\Exceptions\ModelNotFoundException;
 use App\Exceptions\ValidationException;
 use App\Logging\DirectoryCreationException;
 use App\Logging\Logger;
+use App\Services\Timer;
 use App\Tools\Strings;
 use ArrayAccess;
 use BackedEnum;
@@ -161,7 +162,10 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	public function update() : bool {
 		$this->logger->info('Updating model - '.$this->id);
 		try {
-			DB::update($this::TABLE, $this->getQueryData(), ['%n = %i', $this::PRIMARY_KEY, $this->id]);
+			$data = $this->getQueryData();
+			Timer::start('model.'.$this::TABLE.'.update');
+			DB::update($this::TABLE, $data, ['%n = %i', $this::PRIMARY_KEY, $this->id]);
+			Timer::stop('model.'.$this::TABLE.'.update');
 		} catch (Exception $e) {
 			$this->logger->error('Error running update query: '.$e->getMessage());
 			$this->logger->debug('Query: '.$e->getSql());
@@ -178,6 +182,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	 * @throws ValidationException
 	 */
 	public function getQueryData() : array {
+		Timer::start('model.'.$this::TABLE.'.getData');
 		$data = [];
 		foreach ($this::DEFINITION as $property => $definition) {
 			$validators = $definition['validators'] ?? [];
@@ -200,6 +205,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 				$data[Strings::toSnakeCase($property)] = $this->$property;
 			}
 		}
+		Timer::stop('model.'.$this::TABLE.'.getData');
 		return $data;
 	}
 
@@ -210,7 +216,10 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	public function insert() : bool {
 		$this->logger->info('Inserting new model');
 		try {
-			DB::insert($this::TABLE, $this->getQueryData());
+			$data = $this->getQueryData();
+			Timer::start('model.'.$this::TABLE.'.insert');
+			DB::insert($this::TABLE, $data);
+			Timer::stop('model.'.$this::TABLE.'.insert');
 			$this->id = DB::getInsertId();
 		} catch (Exception $e) {
 			$this->logger->error('Error running insert query: '.$e->getMessage());
