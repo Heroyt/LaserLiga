@@ -1,0 +1,856 @@
+msgid ""
+msgstr ""
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: sk_SK\n"
+"Language-Team: \n"
+"Last-Translator: Tomáš Vojík <vojik@wboy.cz>\n"
+"MIME-Version: 1.0\n"
+"PO-Revision-Date: 2021-12-01 12:06+0100\n"
+"POT-Creation-Date: 2021-12-01 12:06+0100\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
+"Project-Id-Version: \n"
+"X-Generator: Poedit 2.3\n"
+"X-Poedit-Basepath: .\n"
+
+msgctxt "pageTitles"
+msgid "Games list"
+msgstr ""
+
+msgid "Toggle navigation"
+msgstr ""
+
+msgid "New game"
+msgstr ""
+
+msgid "Games"
+msgstr ""
+
+msgid "Print"
+msgstr ""
+
+msgid "Games list"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Time"
+msgstr ""
+
+msgid "Game mode"
+msgstr ""
+
+msgid "Players"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "%s score"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Rows"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Takes"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Translations"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Language"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "HTTP header"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Translated strings"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Added a new string"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "String"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Context"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "404"
+msgstr ""
+
+msgctxt "errors"
+msgid "stránka nenalezena"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Results"
+msgstr ""
+
+msgctxt "results.info"
+msgid "Datum"
+msgstr ""
+
+msgctxt "results.info"
+msgid "Herní mód"
+msgstr ""
+
+msgctxt "gameModes"
+msgid "Základny"
+msgstr ""
+
+msgctxt "results.info"
+msgid "Počet hráčů"
+msgstr ""
+
+msgctxt "results.info"
+msgid "Počet týmů"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Zásah protihráče"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Zasažen protihráčem"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Zásah spoluhráče"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Zasažen spouhráčem"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Zasažen minou"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Body za výstřel"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Samopal"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Neviditelnost"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Agent"
+msgstr ""
+
+msgctxt "results.scoring"
+msgid "Štít"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Jméno"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Tým"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Skóre"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Počet výstřelů"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Počet střel do prázdna"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Úspěšnost"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Hráči"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Zásahy"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Smrti"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Týmy"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Soupeř"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Vlastní"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Umístění dne"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Jméno"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Denní pořadí podle"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Skóre"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Přesnosti"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Zásahů"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Smrtí"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Dnes odehráno"
+msgstr ""
+
+msgctxt "results.today"
+msgid "%d hra"
+msgid_plural "%d her"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgctxt "results.today"
+msgid "%d tým"
+msgid_plural "%d týmů"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgctxt "results.today"
+msgid "%d hráč"
+msgid_plural "%d hráčů"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgctxt "results.hits"
+msgid "Zásahy hráčů"
+msgstr ""
+
+msgctxt "results.hits"
+msgid "Zasáhl si hráče"
+msgstr ""
+
+msgctxt "results.team"
+msgid "Výsledky týmů"
+msgstr ""
+
+msgctxt "results.team"
+msgid "Tým"
+msgstr ""
+
+msgctxt "results.team"
+msgid "Zásahů"
+msgstr ""
+
+msgctxt "results.team"
+msgid "Skóre"
+msgstr ""
+
+msgctxt "results.team"
+msgid "Úspěšnost"
+msgstr ""
+
+msgctxt "results.team"
+msgid "Výstřelů"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Ti nej..."
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Největší terminátor"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Objekt největšího zájmu"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Absolutní vítěz"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Hráč s nejlepší muškou"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Nejúspornější střelec"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Největší mimoň"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Zabiják vlastního týmu"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Největší vlastňák"
+msgstr ""
+
+msgctxt "debugPanel"
+msgid "Plural"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Dashboard"
+msgstr ""
+
+msgid "No games had been played on this date."
+msgstr ""
+
+msgctxt "gameModes"
+msgid "CSGO"
+msgstr ""
+
+msgctxt "gameModes"
+msgid "Team deathmach"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Drtič min"
+msgstr ""
+
+msgctxt "gameModes"
+msgid "Deathmach"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgctxt "print"
+msgid "In color:"
+msgstr ""
+
+msgctxt "print"
+msgid "In color"
+msgstr ""
+
+msgctxt "print"
+msgid "Black & white"
+msgstr ""
+
+msgid "Game"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Style"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Základní"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Čerti"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Zima"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Valentýn"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Vánoce"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Nový rok"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Template"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Default"
+msgstr ""
+
+msgctxt "results.player"
+msgid "K:D"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Nejoblíbenější cíl"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Největší zabiják"
+msgstr ""
+
+msgctxt "results"
+msgid "Vítězství"
+msgstr ""
+
+msgctxt "results"
+msgid "Remíza"
+msgstr ""
+
+msgctxt "results.team"
+msgid "Ztráty základny"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Zbývá životů"
+msgstr ""
+
+msgctxt "tips"
+msgid "Jak se v aréně střílí, tak se v aréně umírá..."
+msgstr ""
+
+msgctxt "tips"
+msgid "Trénink se vyplácí!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Tip #%d"
+msgstr ""
+
+msgctxt "tips"
+msgid "Střílíme v Písku už od 31.12.2013!!!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Ve hře vždy sleduj svoje okolí!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Čidlo na zbrani, ač nenápadné, se dá velmi dobře trefit."
+msgstr ""
+
+msgctxt "tips"
+msgid "Zkušení hráči hrajou týmově!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Pro vyřízení osobních sporů je aréna ideální."
+msgstr ""
+
+msgctxt "tips"
+msgid "Dobití protihráče pažbou, vám žádné body nepřidá."
+msgstr ""
+
+msgctxt "tips"
+msgid "Zabiják vlastního týmu, či největší vlasťnák... To je oč tu běží!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Vestu si oblečte vždy zbraní dobředu."
+msgstr ""
+
+msgctxt "tips"
+msgid "Při týmové hře není výhodné střílet do hráčů se stejnou barvou."
+msgstr ""
+
+msgctxt "tips"
+msgid "Jen Chuck Norris vás může zastřelit baterkou na svém mobilu."
+msgstr ""
+
+msgctxt "tips"
+msgid "Nejlepší výherní taktika je strílet do protihráčů."
+msgstr ""
+
+msgctxt "tips"
+msgid "Nemá cenu umírat na tom samém místě. Když to nejde, uteč jinam!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Všechny bonusy, kromě štítu, trvají 30s."
+msgstr ""
+
+msgctxt "tips"
+msgid "Držení zbraně v obou rukách je přesnější."
+msgstr ""
+
+msgctxt "tips"
+msgid "Měl bys radši hrát laser game a být úžasný!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Spoluhráč je nejlepší cíl. Neutíká."
+msgstr ""
+
+msgctxt "tips"
+msgid "#laserarenapísek"
+msgstr ""
+
+msgctxt "tips"
+msgid "Zabití: 100 bodů, Smrt: -50 bodů, Zabití vlastního hráče: -25 bodů"
+msgstr ""
+
+msgctxt "tips"
+msgid "Go, go, go, go..."
+msgstr ""
+
+msgctxt "tips"
+msgid "Ramenní čidla se trefují nejlépe, zádová nejhůř."
+msgstr ""
+
+msgctxt "tips"
+msgid "Pohyblivý cíl je vždycky těžší trefit."
+msgstr ""
+
+msgctxt "tips"
+msgid "Na displeji vesty po zásahu vidíte kdo vás zasáhl do jakého čidla. To pomáhá při orientaci."
+msgstr ""
+
+msgctxt "tips"
+msgid "Při výstupu z arény vždy připni zbraň k vestě."
+msgstr ""
+
+msgctxt "tips"
+msgid "LASER TAG - SUIT UP!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Když tě bolí nohy, kempi!"
+msgstr ""
+
+msgctxt "tips"
+msgid "Nikdy nejsi příliš starý na laser game."
+msgstr ""
+
+msgctxt "tips"
+msgid "Nezapomeň každý květen a listopad registrovat svůj tým na turnaj!"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Game modes"
+msgstr ""
+
+msgid "General"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Settings"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Name"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Primary color"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Dark color"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Light color"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Background"
+msgstr ""
+
+msgid "Print styles"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Print styles"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Add style"
+msgstr ""
+
+msgctxt "actions"
+msgid "Send"
+msgstr ""
+
+msgctxt "actions"
+msgid "Delete"
+msgstr ""
+
+msgctxt "results.style"
+msgid "Test"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Style"
+msgstr ""
+
+msgctxt "dates"
+msgid "Date from"
+msgstr ""
+
+msgctxt "dates"
+msgid "to"
+msgstr ""
+
+msgctxt "actions"
+msgid "Add"
+msgstr ""
+
+msgctxt "dates"
+msgid "Date"
+msgstr ""
+
+msgctxt "dates"
+msgid "Dates"
+msgstr ""
+
+msgid "No games have been played yet."
+msgstr ""
+
+msgctxt "results.style"
+msgid "Graphical"
+msgstr ""
+
+msgctxt "tips"
+msgid "Oživení trvá 5 sekund."
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Nedotknutelný"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Sniper"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Hráč"
+msgstr ""
+
+msgctxt "results"
+msgid "Výsledky hráčů"
+msgstr ""
+
+msgctxt "results.player"
+msgid "Výstřely"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Vyrovnaný"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Poloviční sniper"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Zabiják"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Nula"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Potahal tým"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Občas se i trefí"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Zasedlý"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Pronásledovaný"
+msgstr ""
+
+msgctxt "results"
+msgid "%d zabití"
+msgstr ""
+
+msgctxt "results"
+msgid "%d smrt"
+msgid_plural "%d smrtí"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgctxt "results.bests"
+msgid "Tahoun týmu"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Ďábel"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Skóre nenalezeno"
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Výstřely nenalezeny"
+msgstr ""
+
+msgctxt "results.info"
+msgid "Kód hry"
+msgstr ""
+
+msgid "Zobrazit na Gate"
+msgstr ""
+
+msgctxt "results"
+msgid "Sniper"
+msgstr ""
+
+msgctxt "results"
+msgid "Mega střelec"
+msgstr ""
+
+msgctxt "results"
+msgid "Predátor"
+msgstr ""
+
+msgctxt "results"
+msgid "Cíl"
+msgstr ""
+
+msgctxt "gate"
+msgid "Nejlepší skóre dne"
+msgstr ""
+
+msgctxt "gate"
+msgid "Výsledky dne"
+msgstr ""
+
+msgctxt "results"
+msgid "%d shot"
+msgid_plural "%d shots"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgctxt "results"
+msgid "%d hit"
+msgid_plural "%d hits"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgctxt "results"
+msgid "%d death"
+msgid_plural "%d deaths"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgctxt "results.style.settings"
+msgid "Print styles dates"
+msgstr ""
+
+msgctxt "actions"
+msgid "Add date"
+msgstr ""
+
+msgid "Last saved:"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Landscape background"
+msgstr ""
+
+msgctxt "errors"
+msgid "Uploaded file is too large"
+msgstr ""
+
+msgctxt "errors"
+msgid "Database error occurred."
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Print defaults"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Default print style"
+msgstr ""
+
+msgctxt "results.style.settings"
+msgid "Default template"
+msgstr ""
+
+msgctxt "cli.messages"
+msgid "Description"
+msgstr ""
+
+msgctxt "cli.messages"
+msgid "Usage"
+msgstr ""
+
+msgctxt "cli.messages"
+msgid "Arguments"
+msgstr ""
+
+msgctxt "cli.help.arguments"
+msgid "A command to get information about."
+msgstr ""
+
+msgctxt "cli.messages"
+msgid "Examples"
+msgstr ""
+
+msgctxt "cli.help.arguments"
+msgid "A valid results directory"
+msgstr ""
+
+msgctxt "cli.messages"
+msgid "Information"
+msgstr ""
+
+msgctxt "cli.help.arguments"
+msgid "Optional filter for command groups."
+msgstr ""
+
+msgctxt "cli.help.arguments"
+msgid "Optional filter for command groups"
+msgstr ""
