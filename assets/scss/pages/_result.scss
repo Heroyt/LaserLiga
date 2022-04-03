@@ -287,8 +287,15 @@
 			grid-area: today;
 			text-align: center;
 
+			.categories {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: space-evenly;
+			}
+
 			.today-category {
 				padding: .2rem;
+				min-width: 7em;
 			}
 
 			.label {
@@ -337,6 +344,20 @@
 	}
 }
 
+@include media-breakpoint-up(sm) {
+	.game-results {
+		.player-body {
+			grid-template-columns: 1fr 1fr;
+			grid-template-areas:
+					'accuracy shots'
+					'hits hits'
+					'favourites hitsPlayers'
+					'mines hitsPlayers'
+					'today today';
+		}
+	}
+}
+
 @include media-breakpoint-up(md) {
 	.game-results {
 		grid-template-columns: 1fr 7rem;
@@ -370,19 +391,6 @@
 					'accuracy mines shots'
 					'favourites hits hits'
 					'today today today';
-		}
-
-		.player-today {
-
-			.categories {
-				display: flex;
-				flex-wrap: wrap;
-				justify-content: space-between;
-
-				.today-category {
-					min-width: 5em;
-				}
-			}
 		}
 	}
 }

@@ -151,16 +151,13 @@
 {/define}
 
 {define playerToday}
-	<div class="player-today">
+	<div class="player-today mt-4">
 		<h4 class="caption">
 			<i class="fa-solid fa-calendar"></i><br>
 			{lang 'Dnešní pořadí podle', context: 'results.today'}:
 		</h4>
 		<div class="categories">
 			{var int $order = $today->getPlayerOrder($player,'score')}
-
-
-
 			<div class="today-category {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
@@ -180,9 +177,6 @@
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'accuracy')}
-
-
-
 			<div class="today-category {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
@@ -202,9 +196,6 @@
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'hits')}
-
-
-
 			<div class="today-category {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
@@ -233,10 +224,29 @@
 					{svgIcon 'skull', '2em'}<br>
 					{lang 'Smrtí', context: 'results.today'}:
 				</div>
+					<div class="position">
+						{$order}.
+						<button type="button" class="btn btn-light btn-sm show-leaderboard"
+								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths']}">
+							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
+							<i class="fa-solid fa-list-ol"></i>
+						</button>
+					</div>
+			</div>
+			{do $order = $today->getPlayerOrder($player,'shots')}
+			<div class="today-category {switch $order}
+			{case 1} text-gold
+			{case 2} text-dark-silver
+			{case 3} text-bronze
+		   {/switch}">
+				<div class="label">
+					{svgIcon 'bullets', '2em'}<br>
+					{lang 'Výstřelů', context: 'results.today'}:
+				</div>
 				<div class="position">
 					{$order}.
 					<button type="button" class="btn btn-light btn-sm show-leaderboard"
-							data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths']}">
+							data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'shots']}">
 						{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
 						<i class="fa-solid fa-list-ol"></i>
 					</button>
@@ -338,7 +348,7 @@
 						</div>
 					</div>
 					<div class="kills-own" n:if="$game->mode->settings->playerPlayersTeams && $game->mode->isTeam()"
-						 style="width: {($player->hitsOwn / ($total > 0 ? $total : 1))|noescape}%;">
+						 style="width: {100*($player->hitsOwn / ($total > 0 ? $total : 1))|noescape}%;">
 						<div class="main">
 							<div class="icon">
 								{svgIcon 'dead', '', '1rem'}
@@ -366,7 +376,7 @@
 						</div>
 					</div>
 					<div class="deaths-own" n:if="$game->mode->settings->playerPlayersTeams && $game->mode->isTeam()"
-						 style="width: {($player->deathsOwn / ($total > 0 ? $total : 1))|noescape}%;">
+						 style="width: {100*($player->deathsOwn / ($total > 0 ? $total : 1))|noescape}%;">
 						<div class="main">
 							<div class="icon">
 								{svgIcon 'dead', '', '1rem'}
@@ -421,7 +431,7 @@
 	<div n:if="$game->mode->settings->playerFavourites" class="player-favourites text-center">
 		<div n:if="isset($favourite)" class="favourite-target">
 			<strong>{lang 'Nejoblíbenější cíl', context: 'results.player'}:</strong>
-			<div class="text-team-{$game->mode->isSolo() ? 2 : $favourite->getTeamColor()}">
+			<div class="text-uppercase text-team-{$game->mode->isSolo() ? 2 : $favourite->getTeamColor()}">
 				{$favourite->name}
 			</div>
 			<div class="number">
@@ -431,7 +441,7 @@
 		</div>
 		<div n:if="isset($favouriteOf)" class="favourite-target-of">
 			<strong>{lang 'Největší zabiják', context: 'results.player'}:</strong>
-			<div class="text-team-{$game->mode->isSolo() ? 2 : $favouriteOf->getTeamColor()}">
+			<div class="text-uppercase text-team-{$game->mode->isSolo() ? 2 : $favouriteOf->getTeamColor()}">
 				{$favouriteOf->name}
 			</div>
 			<div class="number">

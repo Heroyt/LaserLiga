@@ -4,7 +4,7 @@
 {var array $icons = ['Score' => 'star', 'Accuracy' => 'target', 'Shots' => 'bullets', 'Hits' => 'kill', 'Deaths' => 'skull']}
 {var array $units = ['Score' => '', 'Accuracy' => '%', 'Shots' => '', 'Hits' => '', 'Deaths' => '']}
 
-<table class="table table-striped">
+<table class="table table-striped align-middle">
 	<thead>
 	<tr>
 		<th></th>
@@ -21,7 +21,7 @@
 		<td class="text-center">{lang $player->mode, context: 'gameModes'}</td>
 		<td class="text-center">{$player->date->format('H:i')}</td>
 		<td class="text-end">
-			{$player->value}{$units[$property] ?? ''}
+			{$player->value|number:0,',','&nbsp;'|noescape}{$units[$property] ?? ''}
 			{svgIcon $icons[$property] ?? 'star', '', '1em'}
 		</td>
 	</tr>
