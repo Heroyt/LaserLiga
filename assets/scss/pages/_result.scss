@@ -1,0 +1,388 @@
+.game-results {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-gap: 1rem;
+	grid-template-areas:
+		'head'
+		'win'
+		'teams'
+		'players'
+		'hits';
+
+	&.solo {
+		grid-template-areas:
+		 'head'
+		 'win'
+		 'players'
+		 'hits';
+	}
+
+	path, circle, rect {
+		fill: currentColor;
+	}
+
+	.results-win {
+		grid-area: win;
+	}
+
+	.results-header {
+		grid-area: head;
+	}
+
+	.results-players {
+		grid-area: players;
+
+		.player-head {
+			align-items: center;
+			border-radius: 10px;
+			display: flex;
+			margin: .1rem 0;
+			width: 100%;
+			cursor: pointer;
+
+			> div {
+				flex: 1;
+			}
+
+			svg {
+				display: inline-block;
+				margin: 0 auto;
+				position: relative;
+			}
+
+			.position {
+				max-width: 2rem;
+			}
+
+			.player-rank {
+				height: 1rem;
+				line-height: 1;
+
+				.rank-name {
+					display: inline-block;
+					font-size: calc(var(--font-size) * .9);
+				}
+			}
+
+			.player-name {
+
+				.name {
+					font-size: calc(var(--font-size) * 1.3);
+					font-weight: bold;
+					text-transform: uppercase;
+				}
+			}
+
+			.score {
+				text-align: right;
+				max-width: 5rem;
+			}
+
+			.collapse-indicator {
+				text-align: center;
+				max-width: 2rem;
+			}
+
+			.collapse-indicator-collapsed {
+				display: none;
+			}
+
+			.collapse-indicator-not-collapsed {
+				display: inline-block;
+			}
+
+			&.collapsed {
+				.collapse-indicator-collapsed {
+					display: inline-block;
+				}
+
+				.collapse-indicator-not-collapsed {
+					display: none;
+				}
+			}
+		}
+
+		.player_mines {
+			grid-area: mines;
+
+			svg {
+				display: block;
+				position: relative;
+				margin: 0 auto;
+			}
+
+			.bonus {
+				width: 100%;
+				display: flex;
+
+				div {
+					flex: 1;
+					padding: .2rem;
+					text-align: center;
+				}
+			}
+		}
+
+		.player-hits {
+			grid-area: hits;
+		}
+
+		.hits {
+			display: flex;
+			flex-direction: column;
+			position: relative;
+			text-align: center;
+			width: 100%;
+			height: 6rem;
+
+			.label {
+				width: 4rem;
+				height: 100%;
+				line-height: 3rem;
+			}
+
+			.kills-row, .deaths-row {
+				display: flex;
+				align-items: center;
+				justify-content: flex-start;
+				width: 100%;
+
+				.graph {
+					flex: 1;
+					display: flex;
+					align-items: center;
+					justify-content: flex-start;
+					background-color: #eee;
+				}
+			}
+
+			.kills {
+				background-color: #55EA6A;
+			}
+
+			.kills-own {
+				background-color: #49cc5b;
+			}
+
+			.deaths {
+				background-color: #EA5555;
+			}
+
+			.deaths-own {
+				background-color: #cc4949;
+			}
+
+			.kills,
+			.deaths,
+			.kills-own,
+			.deaths-own {
+				display: flex;
+				min-width: 2rem;
+				padding: .2rem 0;
+				height: 3rem;
+
+				.main {
+					align-items: center;
+					display: flex;
+					flex-direction: column;
+					height: 100%;
+					justify-content: center;
+					padding: 0 .3rem;
+					flex: 1;
+				}
+
+				.side {
+					display: flex;
+					flex-direction: column;
+					height: 100%;
+					max-width: 20%;
+
+					.other {
+						background-color: rgba(255, 255, 255, .5);
+					}
+
+					.own {
+						background-color: rgba(105, 0, 0, 0.6);
+						color: #fff;
+					}
+
+					.own,
+					.other {
+						padding: 0 .2rem;
+						align-items: center;
+						display: flex;
+						justify-content: center;
+						min-height: 1.5em;
+					}
+				}
+
+				.icon {
+					display: flex;
+					justify-content: center;
+				}
+
+				.number {
+				}
+			}
+		}
+
+		svg.accuracy {
+			grid-area: accuracy;
+			--color: rgb(72, 196, 255);
+			max-width: 9rem;
+			display: block;
+			margin: 0 auto;
+			position: relative;
+
+			* {
+				font-size: 64pt;
+			}
+
+			path,
+			rect,
+			text {
+				fill: var(--color);
+			}
+
+			.fill-circle {
+				opacity: .4;
+				stroke: var(--color);
+				transform: rotate(-90deg);
+				transform-origin: center;
+				fill: transparent;
+			}
+		}
+
+		.player-shots {
+			grid-area: shots;
+			text-align: center;
+			align-self: center;
+
+			.number svg {
+				display: inline-block;
+				width: auto;
+			}
+
+			svg {
+				max-height: 3rem;
+				width: 100%;
+
+				.empty path {
+					fill: transparent;
+					stroke: #000;
+					stroke-width: 2px;
+				}
+			}
+		}
+
+		.player-favourites {
+			grid-area: favourites;
+		}
+
+		.player-hits-player {
+			grid-area: hitsPlayers;
+		}
+
+		.player-today {
+			grid-area: today;
+			text-align: center;
+
+			.today-category {
+				padding: .2rem;
+			}
+
+			.label {
+				font-weight: bold;
+			}
+		}
+	}
+
+	.results-teams {
+		grid-area: teams;
+		display: flex;
+		flex-direction: row;
+		height: 8rem;
+		width: 100%;
+
+		.team-score {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			width: var(--size);
+			min-width: 5rem;
+			min-height: 5rem;
+			height: 100%;
+		}
+	}
+
+	.results-hits {
+		grid-area: hits;
+	}
+
+	.player-body {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			'accuracy'
+			'shots'
+			'favourites'
+			'hits'
+			'hitsPlayers'
+			'mines'
+		  'today';
+
+		&.show, &.collapsing {
+			display: grid;
+		}
+	}
+}
+
+@include media-breakpoint-up(md) {
+	.game-results {
+		grid-template-columns: 1fr 7rem;
+		grid-template-areas:
+		'head head'
+		'win win'
+		'players teams'
+		'hits hits';
+
+		&.solo {
+			grid-template-areas:
+		 'head head'
+		 'win win'
+		 'players players'
+		 'hits hits';
+		}
+
+		.results-teams {
+			flex-direction: column;
+			height: 100%;
+
+			.team-score {
+				height: var(--size);
+				width: 100%;
+			}
+		}
+
+		.player-body {
+			grid-template-columns: 1fr 1fr 1fr;
+			grid-template-areas:
+					'accuracy mines shots'
+					'favourites hits hits'
+					'today today today';
+		}
+
+		.player-today {
+
+			.categories {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: space-between;
+
+				.today-category {
+					min-width: 5em;
+				}
+			}
+		}
+	}
+}

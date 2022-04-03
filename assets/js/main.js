@@ -1,6 +1,7 @@
 import {formatPhoneNumber, initAutoSaveForm, initTooltips} from './functions.js';
 import axios from 'axios';
 import flatpickr from "flatpickr";
+import initResults from "./pages/results";
 
 axios.defaults.headers.post['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.get['X-Requested-With'] = 'XMLHttpRequest';
@@ -104,4 +105,9 @@ window.addEventListener("load", () => {
 			element.findParentElement("form").submit();
 		});
 	});
+
+	// Pages
+	if (page.routeName && (page.routeName === 'game' || page.routeName === 'game-alias')) {
+		initResults();
+	}
 });

@@ -1,0 +1,29 @@
+{varType string $property}
+{varType Dibi\Row[] $players}
+
+{var array $icons = ['Score' => 'star', 'Accuracy' => 'target', 'Shots' => 'bullets', 'Hits' => 'kill', 'Deaths' => 'skull']}
+{var array $units = ['Score' => '', 'Accuracy' => '%', 'Shots' => '', 'Hits' => '', 'Deaths' => '']}
+
+<table class="table table-striped">
+	<thead>
+	<tr>
+		<th></th>
+		<th class="text-center">{lang 'Hráč', context: 'leaderboard'}</th>
+		<th class="text-center">{lang 'Mód', context: 'leaderboard'}</th>
+		<th class="text-center">{lang 'Čas', context: 'leaderboard'}</th>
+		<th class="text-end">{lang $property, context: 'leaderboard'}</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr n:foreach="$players as $player">
+		<td>{$iterator->counter}.</td>
+		<th scope="col" class="text-center text-uppercase">{$player->name}</th>
+		<td class="text-center">{lang $player->mode, context: 'gameModes'}</td>
+		<td class="text-center">{$player->date->format('H:i')}</td>
+		<td class="text-end">
+			{$player->value}{$units[$property] ?? ''}
+			{svgIcon $icons[$property] ?? 'star', '', '1em'}
+		</td>
+	</tr>
+	</tbody>
+</table>

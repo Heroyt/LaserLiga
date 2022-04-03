@@ -54,7 +54,10 @@ if ((!file_exists(LOG_DIR) || !is_dir(LOG_DIR)) && !mkdir(LOG_DIR) && !is_dir(LO
 }
 
 Debugger::enable(PRODUCTION ? Debugger::PRODUCTION : Debugger::DEVELOPMENT, LOG_DIR);
-Debugger::getBar()->addPanel(new DbTracyPanel())->addPanel(new TranslationTracyPanel())->addPanel(new RoutingTracyPanel());
+Debugger::getBar()
+				->addPanel(new DbTracyPanel())
+				->addPanel(new TranslationTracyPanel())
+				->addPanel(new RoutingTracyPanel());
 
 Loader::init();
 

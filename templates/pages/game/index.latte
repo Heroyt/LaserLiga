@@ -1,6 +1,7 @@
 {layout '../../@layout.latte'}
 
 {varType App\GameModels\Game\Game $game}
+{varType App\GameModels\Game\Today $today}
 
 {define teamColor}
 	{default int $teamColor = 0}
@@ -8,7 +9,36 @@
 {/define}
 
 {define containerClasses}
-	game-results {if $game->mode->isSolo()}solo{/if}
+	game-results {if $game->mode->isSolo()}solo{/if} py-5
+{/define}
+
+{define addHead}
+	{ifset $game}
+		<style>
+			:root {
+			{foreach $game->getTeamColors() as $key => $color} {var string $varName1 = '--team-'.$key} {var string $varName2 = '--team-'.$key.'-text'} {$varName1}: {$color|noescape};
+			{$varName2}:{\App\Tools\Color::getFontColor($color)|noescape};
+			{/foreach}
+			}
+
+			{foreach $game->getTeamColors() as $key => $color}
+			.bg-team-{$key} {
+				--bg-color: var(--team-{$key});
+				--text-color: var(--team-{$key}-text);
+				background-color: var(--team-{$key});
+				color: var(--team-{$key}-text);
+			}
+
+			.text-team-{$key} {
+				color: var(--team-{$key});
+			}
+
+			{/foreach}
+		</style>
+	{/ifset}
+	{ifset $style}
+		{$style->getCssClasses()|noescape}
+	{/ifset}
 {/define}
 
 {define content}
@@ -19,9 +49,23 @@
 	{if $game->mode->settings->partPlayers}
 		{include resultsPlayers}
 	{/if}
-	{if $game->mode->settings->partHits && count($game->getPlayers()) < 7}
+	{if $game->mode->settings->partHits}
 		{include resultsHits}
 	{/if}
+
+	<div class="modal fade" id="leaderboard-modal" tabindex="-1">
+		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">{lang 'Dnešní pořadí podle', context: 'results.today'}:</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+							aria-label="{lang 'Close', context: 'actions'}"></button>
+				</div>
+				<div class="modal-body">
+				</div>
+			</div>
+		</div>
+	</div>
 {/define}
 
 {define resultsWin}
@@ -44,7 +88,7 @@
 {/define}
 
 {define resultsHeader}
-	<div class="results-header text-white text-start">
+	<div class="results-header text-start">
 		<div class="my-1">
 			<strong>{lang 'Kód hry', context: 'results.info'}:</strong>
 			{$game->code}
@@ -61,44 +105,154 @@
 {/define}
 
 {define resultsPlayers}
-	{var int $maxScore = $game->getMaxScore()}
-	{var int $minScore = $game->getMinScore()}
 	{var int $maxShots = $game->getPlayers()->query()->sortBy('shots')->desc()->first()->shots}
-	{var int $totalHeight = $maxScore - ($minScore < 0 ? $minScore : 0)}
 	{var int $count = count($game->getPlayers())}
-	<section class="results-players" style="grid-template-columns: repeat({$count}, 1fr)">
-		{foreach $game->getPlayersSorted() as $player}
-			<div class="results-player rounded p-2 bg-white flex-fill">
-				<div class="player-head">
-					{var array $rank = $player->getBestAt()}
-					{svgIcon $rank['icon'], '', 15}
-					<div class="player-name text-center text-team-{$player->getTeamColor()}">
-						{$player->name}
+	<section class="results-players">
+		{foreach $game->getPlayersSorted() as $key => $player}
+			<div class="results-player rounded my-2 bg-white flex-fill shadow">
+				<div class="player-head collapsed bg-team-{$player->getTeamColor()} p-2" data-bs-toggle="collapse"
+					 data-bs-target="#player-body-{$key}">
+					<div class="position">
+						{$iterator->counter}.
 					</div>
-					<div class="player-rank">
-						<div class="rank-name fs-sm">{$rank['name']}</div>
+
+					<div class="player-name">
+						<div class="name">
+							{$player->name}
+						</div>
+						<div class="player-rank">
+							{var array $rank = $player->getBestAt()}
+						{svgIcon $rank['icon'], '', 15}
+							<div class="rank-name fs-sm">{$rank['name']}</div>
+						</div>
+					</div>
+
+					{include playerScore}
+
+					<div class="collapse-indicator">
+						<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+						<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
 					</div>
 				</div>
-				{include playerScore}
-				{include playerAccuracy}
-				{include playerShots}
-				{include playerHits}
-				{include playerFavourites}
-				{if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode->settings->playerMines}
-					{include playerMines}
-				{/if}
+				<div class="player-body rounded-bottom collapse bg-white p-3" id="player-body-{$key}">
+					{include playerAccuracy}
+					{include playerShots}
+					{include playerHits}
+					{include playerFavourites}
+					{include playerHitsPlayers}
+					{if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode->settings->playerMines}
+						{include playerMines}
+					{/if}
+					{include playerToday}
+				</div>
 			</div>
 		{/foreach}
 	</section>
 {/define}
 
+{define playerToday}
+	<div class="player-today">
+		<h4 class="caption">
+			<i class="fa-solid fa-calendar"></i><br>
+			{lang 'Dnešní pořadí podle', context: 'results.today'}:
+		</h4>
+		<div class="categories">
+			{var int $order = $today->getPlayerOrder($player,'score')}
+
+
+
+			<div class="today-category {switch $order}
+			{case 1} text-gold
+			{case 2} text-dark-silver
+			{case 3} text-bronze
+		   {/switch}">
+					<div class="label">
+						{svgIcon 'star', '2em'}<br>
+					{lang 'Skóre', context: 'results.today'}:
+					</div>
+					<div class="position">
+						{$order}.
+						<button type="button" class="btn btn-light btn-sm show-leaderboard"
+								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score']}">
+							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
+							<i class="fa-solid fa-list-ol"></i>
+						</button>
+					</div>
+			</div>
+			{do $order = $today->getPlayerOrder($player,'accuracy')}
+
+
+
+			<div class="today-category {switch $order}
+			{case 1} text-gold
+			{case 2} text-dark-silver
+			{case 3} text-bronze
+		   {/switch}">
+					<div class="label">
+						{svgIcon 'target', '2em'}<br>
+					{lang 'Přesnosti', context: 'results.today'}:
+					</div>
+					<div class="position">
+						{$order}.
+						<button type="button" class="btn btn-light btn-sm show-leaderboard"
+								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy']}">
+							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
+							<i class="fa-solid fa-list-ol"></i>
+						</button>
+					</div>
+			</div>
+			{do $order = $today->getPlayerOrder($player,'hits')}
+
+
+
+			<div class="today-category {switch $order}
+			{case 1} text-gold
+			{case 2} text-dark-silver
+			{case 3} text-bronze
+		   {/switch}">
+					<div class="label">
+						{svgIcon 'kill', '3em'}<br>
+					{lang 'Zásahů', context: 'results.today'}:
+					</div>
+					<div class="position">
+						{$order}.
+						<button type="button" class="btn btn-light btn-sm show-leaderboard"
+								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits']}">
+							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
+							<i class="fa-solid fa-list-ol"></i>
+						</button>
+					</div>
+			</div>
+			{do $order = $today->getPlayerOrder($player,'deaths')}
+			<div class="today-category {switch $order}
+			{case 1} text-gold
+			{case 2} text-dark-silver
+			{case 3} text-bronze
+		   {/switch}">
+				<div class="label">
+					{svgIcon 'skull', '2em'}<br>
+					{lang 'Smrtí', context: 'results.today'}:
+				</div>
+				<div class="position">
+					{$order}.
+					<button type="button" class="btn btn-light btn-sm show-leaderboard"
+							data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths']}">
+						{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
+						<i class="fa-solid fa-list-ol"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{/define}
+
 {define playerMines}
 	{varType App\GameModels\Game\Evo5\Player $player}
 	<div class="player_mines mt-2">
-		{svgIcon 'base_2', '2rem'}
+		{svgIcon 'base_2', '3rem'}
 		<div class="bonus">
 			<div n:foreach="$player->bonus->getArray() as $name => $value" class="{$name}">
-				{svgIcon $name}
+				{svgIcon $name, '2rem'}
 				{$value}
 			</div>
 		</div>
@@ -116,6 +270,14 @@
 						  style="fill-rule:nonzero;"/>
 					<path d="M184.656,159.478L318.951,159.478C323.593,159.478 327.344,155.726 327.344,151.085L327.344,142.692C327.344,87.514 300.98,34.803 256.839,1.682C253.851,-0.559 249.755,-0.559 246.767,1.682C202.626,34.803 176.262,87.513 176.262,142.692L176.262,151.085C176.263,155.726 180.014,159.478 184.656,159.478Z"
 						  style="fill-rule:nonzero;"/>
+				</g>
+			</g>
+			<g class="empty" n:for="; $i < 10; $i++" transform="translate({172*$i})">
+				<g transform="matrix(1,0,0,1,-167,0)">
+					<path d="M335.738,436.459L335.738,184.656C335.738,180.014 331.986,176.263 327.345,176.263L176.263,176.263C171.621,176.263 167.87,180.015 167.87,184.656L167.87,436.459C167.87,441.101 171.622,444.852 176.263,444.852L176.263,453.245C171.621,453.245 167.87,456.997 167.87,461.638L167.87,495.212C167.87,499.854 171.622,503.605 176.263,503.605L327.345,503.605C331.987,503.605 335.738,499.853 335.738,495.212L335.738,461.64C335.738,456.998 331.986,453.247 327.345,453.247L327.345,444.854C331.986,444.853 335.738,441.101 335.738,436.459Z"
+						  fill="transparent" stroke="#000"/>
+					<path d="M184.656,159.478L318.951,159.478C323.593,159.478 327.344,155.726 327.344,151.085L327.344,142.692C327.344,87.514 300.98,34.803 256.839,1.682C253.851,-0.559 249.755,-0.559 246.767,1.682C202.626,34.803 176.262,87.513 176.262,142.692L176.262,151.085C176.263,155.726 180.014,159.478 184.656,159.478Z"
+						  fill="transparent" stroke="#000"/>
 				</g>
 			</g>
 		</svg>
@@ -155,64 +317,101 @@
 {/define}
 
 {define playerHits}
-	<h4 class="mt-2 mb-0">{lang 'Zásahy', context: 'results.player'}:</h4>
-	{var int $total = $player->hits + $player->deaths}
-	<div n:if="$game->mode->settings->playerPlayers" class="hits mt-1 mb-2">
-		<div class="kills" style="height:{100*$player->hits / ($total > 0 ? $total : 1)|noescape}%">
-			<div class="main">
-				<div class="icon">
-					{svgIcon 'kill', '', '1rem'}
+	<div class="player-hits">
+		{var int $total = $player->hits + $player->deaths}
+		<div n:if="$game->mode->settings->playerPlayers" class="hits mt-1 mb-2">
+			<div class="kills-row">
+				<div class="label">
+					{lang 'Zásahy', context:'results.player'}:
 				</div>
-				<div class="number">
-					{$player->hits}
+				<div class="graph">
+					{var int $hits = $game->mode->isTeam() ? $player->hitsOther : $player->hits}
+				{var int $deaths = $game->mode->isTeam() ? $player->deathsOther : $player->deaths}
+					<div class="kills" style="width:{100*$hits / ($total > 0 ? $total : 1)|noescape}%">
+						<div class="main">
+							<div class="icon">
+								{svgIcon 'kill', '', '1rem'}
+							</div>
+							<div class="number">
+								{$hits}
+							</div>
+						</div>
+					</div>
+					<div class="kills-own" n:if="$game->mode->settings->playerPlayersTeams && $game->mode->isTeam()"
+						 style="width: {($player->hitsOwn / ($total > 0 ? $total : 1))|noescape}%;">
+						<div class="main">
+							<div class="icon">
+								{svgIcon 'dead', '', '1rem'}
+							</div>
+							<div class="number">
+								{$player->hitsOwn}
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
-			<div n:if="$game->mode->settings->playerPlayersTeams && $game->mode->isTeam()" class="side">
-				<div class="other"
-					 style="height: {$player->hits === 0 ? 0 : (100 * $player->hitsOther / $player->hits)|noescape}%;">
-					<div class="number">{$player->hitsOther}</div>
+			<div class="deaths-row">
+				<div class="label">
+					{lang 'Smrti', context:'results.player'}:
 				</div>
-				<div class="own bg-team-{$player->getTeamColor()}"
-					 style="height: {$player->hits === 0 ? 0 : (100 * $player->hitsOwn / $player->hits)|noescape}%;">
-					<div class="number">{$player->hitsOwn}</div>
+				<div class="graph">
+					<div class="deaths" style="width:{100*$deaths / ($total > 0 ? $total : 1)|noescape}%">
+						<div class="main">
+							<div class="icon">
+								{svgIcon 'skull', '', '1rem'}
+							</div>
+							<div class="number">
+								{$deaths}
+							</div>
+						</div>
+					</div>
+					<div class="deaths-own" n:if="$game->mode->settings->playerPlayersTeams && $game->mode->isTeam()"
+						 style="width: {($player->deathsOwn / ($total > 0 ? $total : 1))|noescape}%;">
+						<div class="main">
+							<div class="icon">
+								{svgIcon 'dead', '', '1rem'}
+							</div>
+							<div class="number">
+								{$player->deathsOwn}
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="deaths" style="height:{100*$player->deaths / ($total > 0 ? $total : 1)|noescape}%">
-			<div class="main">
-				<div class="icon">
-					{svgIcon 'skull', '', '1rem'}
-				</div>
-				<div class="number">
-					{$player->deaths}
-				</div>
+		<p class="kd">
+			<strong>
+				{lang 'K:D', context: 'results.player'}
+				({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'})
+			</strong>
+			{ratio($player->hits, $player->deaths, 0)}:{ratio($player->hits, $player->deaths, 1)}
+			({($player->hits / ($player->deaths === 0 ? 1 : $player->deaths))|number:2,',',''})
+		</p>
+	</div>
+{/define}
+
+{define playerHitsPlayers}
+	<div n:if="$game->mode->settings->partHits" class="player-hits-player d-block d-md-none mt-3">
+		<h4 class="caption">
+			{svgIcon 'kill', '', '1rem'}
+			{lang 'Zásahy hráčů', context: 'results.hits'}
+		</h4>
+		<div n:foreach="$game->getPlayersSorted()->getAll() as $player2"
+				class="text-center px-1 {if $player->getFavouriteTarget()?->id === $player2->id}fw-bold text-print-primary{/if}">
+			{continueIf $player->id === $player2->id}
+			<div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if}">
+				{$player2->name}
 			</div>
-			<div n:if="$game->mode->settings->playerPlayersTeams && $game->mode->isTeam()" class="side">
-				<div class="other"
-					 style="height: {$player->deaths === 0 ? 0 : (100 * $player->deathsOther / $player->deaths)|noescape}%;">
-					<div class="number">{$player->deathsOther}</div>
-				</div>
-				<div class="own bg-team-{$player->getTeamColor()}"
-					 style="height: {$player->deaths === 0 ? 0 : (100 * $player->deathsOwn / $player->deaths)|noescape}%;">
-					<div class="number">{$player->deathsOwn}</div>
-				</div>
+			<div class="">
+				{$player->getHitsPlayer($player2)}
 			</div>
 		</div>
 	</div>
 {/define}
 
 {define playerScore}
-	{var float $height = 100 * abs($player->score) / ($totalHeight > 0 ? $totalHeight : 1)}
-	{var float $bottom = $player->score < 0 ? 0 : 100 * abs($minScore) / ($totalHeight > 0 ? $totalHeight : 1)}
-	<div n:if="$game->mode->settings->playerScore" class="score-shadow mb-1 rounded">
-		<div class="score">
-			<div class="score-number" style="bottom: {$height+$bottom|noescape}%">
-				<i class="fas fa-star"></i> {$player->score|number:0,',','&nbsp;'|noescape}
-			</div>
-			<div class="inner bg-team-{$player->getTeamColor()}"
-				 style="height: {$height|noescape}%;bottom:{$bottom|noescape}%;"></div>
-			<div class="line" style="bottom:{($player->score < 0 ? $height : $bottom)|noescape}%;"></div>
-		</div>
+	<div n:if="$game->mode->settings->playerScore" class="score">
+		<i class="fa-solid fa-star"></i> {$player->score|number:0,',','&nbsp;'|noescape}
 	</div>
 {/define}
 
@@ -248,23 +447,23 @@
 	{var App\GameModels\Game\Team|null $win = $game->mode->getWin($game)}
 	<div class="results-teams">
 		<div n:foreach="$game->getTeamsSorted() as $team" class="team-score rounded bg-team-{$team->color}"
-														  style="width:{100*($team->score > 0 ? $team->score : 0) / ($totalScore > 0 ? $totalScore : 1)|noescape}%;">
-			{if is_null($win) || $win->id_team === $team->id_team}{svgIcon 'crown', '1rem'}{/if}
+														  style="--size:{100*($team->score > 0 ? $team->score : 0) / ($totalScore > 0 ? $totalScore : 1)|noescape}%;">
+			{if is_null($win) || $win->id_team === $team->id_team}{svgIcon 'crown', '2rem'}{/if}
 			<div class="name">{$team->name}</div>
-			<div class="score"><i class="fas fa-star"></i> {$team->score|number:0,',','&nbsp;'|noescape}</div>
+			<div class="score"><i class="fa-solid fa-star"></i> {$team->score|number:0,',','&nbsp;'|noescape}</div>
 		</div>
 	</div>
 {/define}
 
 {define resultsHits}
 	{var float $width = 87.5 / count($game->getPlayers())}
-	<section class="results-hits align-self-end">
+	<section class="results-hits align-self-end d-none d-md-block">
 		<h4 class="caption">
 			{svgIcon 'kill', '', '1rem'}
 			{lang 'Zásahy hráčů', context: 'results.hits'}
 		</h4>
 		<div n:foreach="$game->getPlayersSorted() as $player"
-				class="player-hits w-100 bg-white rounded px-1 py-2 d-flex mt-1 align-items-center">
+				class="player-hits w-100 bg-white rounded px-1 py-2 d-flex mt-1 align-items-center shadow">
 			<div class="player pe-1 border-end" style="width: 17.5%;">
 				<div class="text-uppercase fw-bold text-team-{$player->getTeamColor()}">
 					{$player->name}

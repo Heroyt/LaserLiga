@@ -249,3 +249,26 @@ function trailingSlashIt(string $string) : string {
 	}
 	return $string;
 }
+
+/**
+ * Gets simplified ratio of two numbers
+ *
+ * @param int      $var1   First number
+ * @param int      $var2   Second number
+ * @param int|null $return Index of what number to return to - null to return whole array
+ *
+ * @return int|array One simplified number or the whole ratio as an array
+ */
+function ratio(int $var1, int $var2, int $return = null) : array|int {
+	for ($x = $var1; $x > 1; $x--) {
+		if (($var1 % $x) === 0 && ($var2 % $x) === 0) {
+			$var1 /= $x;
+			$var2 /= $x;
+		}
+	}
+	$arr = [$var1, $var2];
+	if (!isset($return)) {
+		return $arr;
+	}
+	return $arr[$return] ?? 0;
+}

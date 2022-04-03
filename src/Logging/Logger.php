@@ -185,6 +185,8 @@ class Logger extends AbstractLogger
 
 			// Log to file
 			$this->error($message);
+			$this->debug($logEvent->sql);
+			$this->debug($logEvent->source);
 		}
 		DbTracyPanel::logEvent($logEvent);
 	}

@@ -93,8 +93,9 @@ abstract class Controller implements ControllerInterface
 	/**
 	 * @param mixed $data Serializable data
 	 */
-	protected function ajaxJson(mixed $data) : never {
+	protected function ajaxJson(mixed $data, int $responseCode = 200) : never {
 		header('Content-Type: application/json');
+		http_response_code($responseCode);
 		echo json_encode($data, JSON_THROW_ON_ERROR);
 		exit();
 	}
