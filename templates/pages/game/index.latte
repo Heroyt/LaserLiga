@@ -66,6 +66,32 @@
 			</div>
 		</div>
 	</div>
+
+	<div class="modal fade" id="trophy-modal" tabindex="-1">
+		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">{lang 'Dostupné trofeje', context: 'results.bests'}:</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"
+							aria-label="{lang 'Close', context: 'actions'}"></button>
+				</div>
+				<div class="modal-body">
+					<ul class="list-group">
+						<li n:foreach="\App\GameModels\Game\PlayerTrophy::getFields() as $field"
+								class="list-group-item d-flex align-items-center">
+							<div style="width: 5rem;">
+								{svgIcon $field['icon'], '', '2rem'}
+							</div>
+							<div>
+								<div class="fw-bold">{$field['name']}</div>
+								<div class="fs-sm">{$field['description']}</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
 {/define}
 
 {define resultsWin}
@@ -88,18 +114,68 @@
 {/define}
 
 {define resultsHeader}
-	<div class="results-header text-start">
-		<div class="my-1">
-			<strong>{lang 'Kód hry', context: 'results.info'}:</strong>
-			{$game->code}
+	<div class="results-header text-start row">
+		<div class="col-md-4">
+			<div class="my-1">
+				<strong>{lang 'Kód hry', context: 'results.info'}:</strong>
+				{$game->code}
+			</div>
+			<div class="my-1">
+				<strong>{lang 'Datum', context: 'results.info'}:</strong>
+				{$game->start->format('d.m.Y H:i:s')}
+			</div>
+			<div>
+				<strong>{lang 'Herní mód', context: 'results.info'}:</strong>
+				{lang $game->mode->name, context: 'gameModes'}
+			</div>
 		</div>
-		<div class="my-1">
-			<strong>{lang 'Datum', context: 'results.info'}:</strong>
-			{$game->start->format('d.m.Y H:i:s')}
-		</div>
-		<div>
-			<strong>{lang 'Herní mód', context: 'results.info'}:</strong>
-			{lang $game->mode->name, context: 'gameModes'}
+		<div class="col-md-8 d-flex flex-wrap justify-content-evenly">
+			<div class="my-1 col-12 col-md-6">
+				<strong>{lang 'Body za zásah', context: 'results.info'}:</strong>
+				{$game->scoring->hitOther} {svgIcon 'star', '1em'}
+			</div>
+			<div class="my-1 col-12 col-md-6">
+				<strong>{lang 'Body za smrt', context: 'results.info'}:</strong>
+				{$game->scoring->deathOther} {svgIcon 'star', '1em'}
+			</div>
+			<div class="my-1 col-12 col-md-6">
+				<strong>{lang 'Body za zásah vlastního', context: 'results.info'}:</strong>
+				{$game->scoring->hitOwn} {svgIcon 'star', '1em'}
+			</div>
+			<div class="my-1 col-12 col-md-6">
+				<strong>{lang 'Body za smrt od vlastního hráče', context: 'results.info'}:</strong>
+				{$game->scoring->deathOwn} {svgIcon 'star', '1em'}
+			</div>
+			<div class="my-1" n:if="$game->scoring->shot !== 0">
+				<strong>{lang 'Body za výstřel', context: 'results.info'}:</strong>
+				{$game->scoring->shot} {svgIcon 'star', '1em'}
+			</div>
+			{if method_exists($game, 'isMinesOn') && $game->isMinesOn()}
+				<div class="my-1 col-12 col-md-6">
+					<strong>{lang 'Body smrt od miny', context: 'results.info'}:</strong>
+					{$game->scoring->hitPod} {svgIcon 'star', '1em'}
+				</div>
+				<div class="my-1 col-12 col-md-6">
+					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'agent', context: 'results.bonus'}
+						:</strong>
+					{$game->scoring->agent} {svgIcon 'star', '1em'}
+				</div>
+				<div class="my-1 col-12 col-md-6">
+					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'neviditelnost', context: 'results.bonus'}
+						:</strong>
+					{$game->scoring->invisibility} {svgIcon 'star', '1em'}
+				</div>
+				<div class="my-1 col-12 col-md-6">
+					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'samopal', context: 'results.bonus'}
+						:</strong>
+					{$game->scoring->machineGun} {svgIcon 'star', '1em'}
+				</div>
+				<div class="my-1 col-12 col-md-6">
+					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'štít', context: 'results.bonus'}
+						:</strong>
+					{$game->scoring->shield} {svgIcon 'star', '1em'}
+				</div>
+			{/if}
 		</div>
 	</div>
 {/define}
@@ -135,6 +211,7 @@
 					</div>
 				</div>
 				<div class="player-body rounded-bottom collapse bg-white p-3" id="player-body-{$key}">
+					{include playerTrophies}
 					{include playerAccuracy}
 					{include playerShots}
 					{include playerHits}
@@ -150,6 +227,31 @@
 	</section>
 {/define}
 
+{define playerTrophies}
+	{var array $trophies = $player->getAllBestAt()}
+	<div class="player-trophies mb-3">
+		<h4 class="caption">
+			<i class="fa-solid fa-award"></i>
+			{lang 'Získané trofeje', context: 'results.bests'} ({$trophies|length}):
+			<button type="button" class="btn btn-info rounded-circle" data-toggle="tooltip"
+					title="{lang 'Zobrazit dostupné trofeje', context: 'results.bests'}" data-bs-toggle="modal"
+					data-bs-target="#trophy-modal" style="line-height: 1; width: 2em; height: 2em;">
+				<i class="fa-solid fa-info"></i>
+			</button>
+		</h4>
+		<div class="trophies">
+			{foreach $trophies as $name => $trophy}
+				<div class="trophy trophy-{$name} mx-2">
+					{svgIcon $trophy['icon'], '', 15}
+					<div class="rank-name fs-sm">{$trophy['name']}</div>
+				</div>
+			{else}
+				{lang 'Bohužel tady nic není...'}
+			{/foreach}
+		</div>
+	</div>
+{/define}
+
 {define playerToday}
 	<div class="player-today mt-4">
 		<h4 class="caption">
@@ -158,95 +260,115 @@
 		</h4>
 		<div class="categories">
 			{var int $order = $today->getPlayerOrder($player,'score')}
-			<div class="today-category {switch $order}
+
+
+
+
+
+			<div class="today-category show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
-		   {/switch}">
+		   {/switch}"
+				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score', 'highlight' => $player->id]}">
 					<div class="label">
 						{svgIcon 'star', '2em'}<br>
 					{lang 'Skóre', context: 'results.today'}:
 					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm show-leaderboard"
-								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score']}">
+						<button type="button" class="btn btn-light btn-sm">
 							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
 							<i class="fa-solid fa-list-ol"></i>
 						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'accuracy')}
-			<div class="today-category {switch $order}
+
+
+
+
+
+			<div class="today-category show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
-		   {/switch}">
+		   {/switch}"
+				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy', 'highlight' => $player->id]}">
 					<div class="label">
 						{svgIcon 'target', '2em'}<br>
 					{lang 'Přesnosti', context: 'results.today'}:
 					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm show-leaderboard"
-								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy']}">
+						<button type="button" class="btn btn-light btn-sm">
 							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
 							<i class="fa-solid fa-list-ol"></i>
 						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'hits')}
-			<div class="today-category {switch $order}
+
+
+
+
+
+			<div class="today-category show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
-		   {/switch}">
+		   {/switch}"
+				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits', 'highlight' => $player->id]}">
 					<div class="label">
 						{svgIcon 'kill', '3em'}<br>
 					{lang 'Zásahů', context: 'results.today'}:
 					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm show-leaderboard"
-								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits']}">
+						<button type="button" class="btn btn-light btn-sm">
 							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
 							<i class="fa-solid fa-list-ol"></i>
 						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'deaths')}
-			<div class="today-category {switch $order}
+
+
+
+
+
+			<div class="today-category show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
-		   {/switch}">
-				<div class="label">
-					{svgIcon 'skull', '2em'}<br>
+		   {/switch}"
+				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths', 'highlight' => $player->id]}">
+					<div class="label">
+						{svgIcon 'skull', '2em'}<br>
 					{lang 'Smrtí', context: 'results.today'}:
-				</div>
+					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm show-leaderboard"
-								data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths']}">
+						<button type="button" class="btn btn-light btn-sm">
 							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
 							<i class="fa-solid fa-list-ol"></i>
 						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'shots')}
-			<div class="today-category {switch $order}
+			<div class="today-category show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
-		   {/switch}">
+		   {/switch}"
+				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'shots', 'highlight' => $player->id]}">
 				<div class="label">
 					{svgIcon 'bullets', '2em'}<br>
 					{lang 'Výstřelů', context: 'results.today'}:
 				</div>
 				<div class="position">
 					{$order}.
-					<button type="button" class="btn btn-light btn-sm show-leaderboard"
-							data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'shots']}">
+					<button type="button" class="btn btn-light btn-sm">
 						{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
 						<i class="fa-solid fa-list-ol"></i>
 					</button>
@@ -291,7 +413,8 @@
 				</g>
 			</g>
 		</svg>
-		<div class="number">{svgIcon 'bullets', '', '1em'} {$player->shots|number:0,',','&nbsp;'|noescape}</div>
+		<div class="number">{lang 'Výstřely', context: 'results'}: {svgIcon 'bullets', '', '1em'} {$player->shots|number:0,',','&nbsp;'|noescape}</div>
+		<div class="number">{lang 'Střely do prázdna', context: 'results'}: {svgIcon 'bullet_2', '', '1em'} {$player->getMiss()|number:0,',','&nbsp;'|noescape}</div>
 	</div>
 {/define}
 
@@ -401,19 +524,38 @@
 {/define}
 
 {define playerHitsPlayers}
-	<div n:if="$game->mode->settings->partHits" class="player-hits-player d-block d-md-none mt-3">
-		<h4 class="caption">
-			{svgIcon 'kill', '', '1rem'}
-			{lang 'Zásahy hráčů', context: 'results.hits'}
-		</h4>
-		<div n:foreach="$game->getPlayersSorted()->getAll() as $player2"
-				class="text-center px-1 {if $player->getFavouriteTarget()?->id === $player2->id}fw-bold text-print-primary{/if}">
-			{continueIf $player->id === $player2->id}
-			<div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if}">
-				{$player2->name}
+	<div n:if="$game->mode->settings->partHits"
+			class="player-hits-player d-block d-md-none mt-3 d-flex flex-wrap justify-content-center align-items-start">
+		<div class="hits-my mx-2">
+			<h4 class="caption">
+				{svgIcon 'kill', '', '1rem'}
+			{lang 'Zásahy do hráčů', context: 'results.hits'}
+			</h4>
+			<div n:foreach="$game->getPlayersSorted()->getAll() as $player2"
+					class="text-center px-1 {if $player->getFavouriteTarget()?->id === $player2->id}fw-bold text-print-primary{/if}">
+				{continueIf $player->id === $player2->id}
+				<div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if}">
+					{$player2->name}
+				</div>
+				<div class="">
+					{$player->getHitsPlayer($player2)}
+				</div>
 			</div>
-			<div class="">
-				{$player->getHitsPlayer($player2)}
+		</div>
+		<div class="deaths-my mx-2">
+			<h4 class="caption">
+				{svgIcon 'skull', '', '1rem'}
+			{lang 'Smrti od hráčů', context: 'results.hits'}
+			</h4>
+			<div n:foreach="$game->getPlayersSorted()->getAll() as $player2"
+					class="text-center px-1 {if $player2->getFavouriteTarget()?->id === $player->id}fw-bold text-print-primary{/if}">
+				{continueIf $player->id === $player2->id}
+				<div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if}">
+					{$player2->name}
+				</div>
+				<div class="">
+					{$player2->getHitsPlayer($player)}
+				</div>
 			</div>
 		</div>
 	</div>

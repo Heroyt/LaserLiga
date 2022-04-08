@@ -296,6 +296,7 @@
 			.today-category {
 				padding: .2rem;
 				min-width: 7em;
+				cursor: pointer;
 			}
 
 			.label {
@@ -329,7 +330,9 @@
 
 	.player-body {
 		grid-template-columns: 1fr;
+		align-items: center;
 		grid-template-areas:
+			'trophy'
 			'accuracy'
 			'shots'
 			'favourites'
@@ -342,6 +345,21 @@
 			display: grid;
 		}
 	}
+
+	.player-trophies {
+		grid-area: trophy;
+
+		.trophies {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-evenly;
+			align-items: center;
+		}
+
+		.trophy {
+			text-align: center;
+		}
+	}
 }
 
 @include media-breakpoint-up(sm) {
@@ -349,10 +367,12 @@
 		.player-body {
 			grid-template-columns: 1fr 1fr;
 			grid-template-areas:
+					'trophy trophy'
 					'accuracy shots'
 					'hits hits'
-					'favourites hitsPlayers'
-					'mines hitsPlayers'
+					'favourites favourites'
+					'hitsPlayers hitsPlayers'
+					'mines mines'
 					'today today';
 		}
 	}
@@ -388,6 +408,7 @@
 		.player-body {
 			grid-template-columns: 1fr 1fr 1fr;
 			grid-template-areas:
+					'trophy trophy trophy'
 					'accuracy mines shots'
 					'favourites hits hits'
 					'today today today';
