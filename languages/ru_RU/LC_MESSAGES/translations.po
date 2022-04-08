@@ -854,3 +854,51 @@ msgstr ""
 msgctxt "cli.help.arguments"
 msgid "Optional filter for command groups"
 msgstr ""
+
+msgctxt "results.today"
+msgid "Dnešní pořadí podle"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Výstřelů"
+msgstr ""
+
+msgctxt "actions"
+msgid "Close"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Hráč"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Mód"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Čas"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Score"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Accuracy"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Hits"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Deaths"
+msgstr ""
+
+msgctxt "leaderboard"
+msgid "Shots"
+msgstr ""
+
+msgctxt "gameModes"
+msgid "100 nábojů"
+msgstr ""

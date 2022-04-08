@@ -912,3 +912,115 @@ msgstr "Smrti"
 msgctxt "leaderboard"
 msgid "Shots"
 msgstr "Výstřely"
+
+msgctxt "gameModes"
+msgid "100 nábojů"
+msgstr "100 nábojů"
+
+msgctxt "results.bests"
+msgid "Férový hráč"
+msgstr "Férový hráč"
+
+msgctxt "results.bests"
+msgid "Terč"
+msgstr "Terč"
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem s největším skóre hry."
+msgstr "Staň se hráčem s největším skóre hry."
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem s největším počtem zásahů hry."
+msgstr "Staň se hráčem s největším počtem zásahů hry."
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem s největším počtem smrtí hry."
+msgstr "Staň se hráčem s největším počtem smrtí hry."
+
+msgctxt "results.bests.description"
+msgid "Staň se nejpřesnějším hráčem hry."
+msgstr "Staň se nejpřesnějším hráčem hry."
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem s nejméně výstřely z celé hry."
+msgstr "Staň se hráčem s nejméně výstřely z celé hry."
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem, který se nejvícekrát netrefil."
+msgstr "Staň se hráčem, který se nejvícekrát netrefil."
+
+msgctxt "results.bests.description"
+msgid "Staň se hrářem, který nejvíckát zasáhnul spoluhráče."
+msgstr "Staň se hráčem, který nejvíckát zasáhnul spoluhráče."
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem, kterého nejvíckrát trefili spoluhráči."
+msgstr "Staň se hráčem, kterého nejvíckrát trefili spoluhráči."
+
+msgctxt "results.bests.description"
+msgid "Získej nejvíce bonusů za hru."
+msgstr "Získej nejvíce bonusů za hru."
+
+msgctxt "results.bests.description"
+msgid "Zemři méně než 10krát za hru."
+msgstr "Zemři méně než 10krát za hru."
+
+msgctxt "results.bests.description"
+msgid "Získej přesnost alespoň 95% za hru."
+msgstr "Získej přesnost alespoň 95% za hru."
+
+msgctxt "results.bests.description"
+msgid "Získej přesnost alespoň 50% za hru."
+msgstr "Získej přesnost alespoň 50% za hru."
+
+msgctxt "results.bests.description"
+msgid "Získej přesnost maximálně 5% za hru."
+msgstr "Získej přesnost maximálně 5% za hru."
+
+msgctxt "results.bests.description"
+msgid "Měj téměř stejně zásahů a smrtí."
+msgstr "Měj téměř stejně zásahů a smrtí."
+
+msgctxt "results.bests.description"
+msgid "Měj alespoň 2x tolik zásahů co smrtí."
+msgstr "Měj alespoň 2x tolik zásahů co smrtí."
+
+msgctxt "results.bests.description"
+msgid "Měl alespoň přibližně 2x tolik smrtí co zásahů."
+msgstr "Měl alespoň přibližně 2x tolik smrtí co zásahů."
+
+msgctxt "results.bests.description"
+msgid "Měj 0 skóre."
+msgstr "Měj 0 skóre."
+
+msgctxt "results.bests.description"
+msgid "Získej alespoň přibližně polovinu skóre celého tvého týmu."
+msgstr "Získej alespoň přibližně polovinu skóre celého tvého týmu."
+
+msgctxt "results.bests.description"
+msgid "Alespoň přibližně polovina všech tvých zásahů je jen jeden hráč."
+msgstr "Alespoň přibližně polovina všech tvých zásahů je jen jeden hráč."
+
+msgctxt "results.bests.description"
+msgid "Alespoň přibližně polovina všech tvých smrtí je jen jeden hráč."
+msgstr "Alespoň přibližně polovina všech tvých smrtí je jen jeden hráč."
+
+msgctxt "results.bests.description"
+msgid "Získej 666 skóre nebo výstřelů."
+msgstr "Získej 666 skóre nebo výstřelů."
+
+msgctxt "results.bests.description"
+msgid "Získej 404, 4040, nebo 40400 skóre."
+msgstr "Získej 404, 4040, nebo 40400 skóre."
+
+msgctxt "results.bests.description"
+msgid "Vystřel 404krát."
+msgstr "Vystřel 404krát."
+
+msgctxt "results.bests.description"
+msgid "Zasáhni všechny své nepřátele stejněkrát (přibližně)."
+msgstr "Zasáhni všechny své nepřátele stejněkrát (přibližně)."
+
+msgctxt "results.bests.description"
+msgid "Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí."
+msgstr "Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí."
