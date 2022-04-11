@@ -149,6 +149,10 @@ function lang(?string $msg = null, ?string $plural = null, int $num = 1, ?string
 		$msg = $context."\004".$msg;
 	}
 
+	if ($context === 'leaderboard') {
+		bdump($msg);
+	}
+
 	// If in development - add translation to po file if not exist
 	if (!PRODUCTION && CHECK_TRANSLATIONS) {
 		$logged = false;
@@ -192,6 +196,10 @@ function lang(?string $msg = null, ?string $plural = null, int $num = 1, ?string
 		else {
 			$translated = ngettext($split[1], $plural, $num);
 		}
+	}
+
+	if ($context === 'leaderboard') {
+		bdump($translated);
 	}
 	TranslationTracyPanel::incrementTranslations();
 	return $translated;

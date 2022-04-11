@@ -10,7 +10,6 @@
 		<th></th>
 		<th class="text-center">{lang 'Hráč', context: 'leaderboard'}</th>
 		<th class="text-center">{lang 'Mód', context: 'leaderboard'}</th>
-		<th class="text-center">{lang 'Čas', context: 'leaderboard'}</th>
 		<th class="text-end">{lang $property, context: 'leaderboard'}</th>
 	</tr>
 	</thead>
@@ -19,7 +18,6 @@
 		<td>{$iterator->counter}.</td>
 		<th scope="col" class="text-center text-uppercase">{$player->name}</th>
 		<td class="text-center">{lang $player->mode, context: 'gameModes'}</td>
-		<td class="text-center">{$player->date->format('H:i')}</td>
 		<td class="text-end">
 			{$player->value|number:0,',','&nbsp;'|noescape}{$units[$property] ?? ''}
 			{svgIcon $icons[$property] ?? 'star', '', '1em'}

@@ -103,9 +103,9 @@ class App
 			putenv('LANG='.self::$activeLanguageCode);
 			putenv('LC_ALL='.self::$activeLanguageCode);
 			setlocale(LC_ALL, [self::$activeLanguageCode.'.UTF-8', self::$activeLanguageCode, self::$language->name]);
-			bindtextdomain("LAC", substr(LANGUAGE_DIR, 0, -1));
-			textdomain('LAC');
-			bind_textdomain_codeset('LAC', "UTF-8");
+			bdump(bindtextdomain("translations", substr(LANGUAGE_DIR, 0, -1)));
+			bdump(textdomain('translations'));
+			bind_textdomain_codeset('translations', "UTF-8");
 		}
 
 		self::setupLatte();

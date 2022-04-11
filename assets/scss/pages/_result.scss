@@ -51,16 +51,16 @@
 			}
 
 			.position {
-				max-width: 2rem;
+				max-width: 1.5rem;
 			}
 
 			.player-rank {
 				height: 1rem;
-				line-height: 1;
+				line-height: 1em;
 
 				.rank-name {
 					display: inline-block;
-					font-size: calc(var(--font-size) * .9);
+					font-size: .6em;
 				}
 			}
 
@@ -80,7 +80,7 @@
 
 			.collapse-indicator {
 				text-align: center;
-				max-width: 2rem;
+				max-width: 1.5rem;
 			}
 
 			.collapse-indicator-collapsed {

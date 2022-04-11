@@ -29,6 +29,7 @@ class Games extends Controller
 			return;
 		}
 		$this->params['today'] = new Today($this->params['game'], new ($this->params['game']->playerClass), new ($this->params['game']->teamClass));
+		bdump($this->params);
 		$this->view('pages/game/index');
 	}
 

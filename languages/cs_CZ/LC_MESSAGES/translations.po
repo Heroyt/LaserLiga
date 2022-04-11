@@ -1024,3 +1024,50 @@ msgstr "Zasáhni všechny své nepřátele stejněkrát (přibližně)."
 msgctxt "results.bests.description"
 msgid "Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí."
 msgstr "Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí."
+
+msgctxt "results.info"
+msgid "Body za zásah"
+msgstr "Body za zásah"
+
+msgctxt "results.info"
+msgid "Body za smrt"
+msgstr "Body za smrt"
+
+msgctxt "results.info"
+msgid "Body za zásah vlastního"
+msgstr "Body za zásah vlastního"
+
+msgctxt "results.info"
+msgid "Body za smrt od vlastního hráče"
+msgstr "Body za smrt od vlastního hráče"
+
+msgctxt "results.bests"
+msgid "Získané trofeje"
+msgstr "Získané trofeje"
+
+msgctxt "results.bests"
+msgid "Zobrazit dostupné trofeje"
+msgstr "Zobrazit dostupné trofeje"
+
+msgctxt "results"
+msgid "Výstřely"
+msgstr "Výstřely"
+
+msgctxt "results"
+msgid "Střely do prázdna"
+msgstr "Střely do prázdna"
+
+msgctxt "results.hits"
+msgid "Zásahy do hráčů"
+msgstr "Zásahy do hráčů"
+
+msgctxt "results.hits"
+msgid "Smrti od hráčů"
+msgstr "Smrti od hráčů"
+
+msgid "Bohužel tady nic není..."
+msgstr "Bohužel tady nic není..."
+
+msgctxt "results.bests"
+msgid "Dostupné trofeje"
+msgstr "Dostupné trofeje"

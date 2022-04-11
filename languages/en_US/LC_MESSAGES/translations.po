@@ -1014,3 +1014,50 @@ msgstr "Hit all your enemies the same number of times (approximately)."
 msgctxt "results.bests.description"
 msgid "Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí."
 msgstr "Average player. Unfortunately, no trophy is suited for you."
+
+msgctxt "results.info"
+msgid "Body za zásah"
+msgstr "Points per hit"
+
+msgctxt "results.info"
+msgid "Body za smrt"
+msgstr "Points per deaths"
+
+msgctxt "results.info"
+msgid "Body za zásah vlastního"
+msgstr "Points per teammate hit"
+
+msgctxt "results.info"
+msgid "Body za smrt od vlastního hráče"
+msgstr "Points per death by teammate"
+
+msgctxt "results.bests"
+msgid "Získané trofeje"
+msgstr "Acquired trophies"
+
+msgctxt "results.bests"
+msgid "Zobrazit dostupné trofeje"
+msgstr "Show available trophies"
+
+msgctxt "results"
+msgid "Výstřely"
+msgstr "Shots"
+
+msgctxt "results"
+msgid "Střely do prázdna"
+msgstr "Missed shots"
+
+msgctxt "results.hits"
+msgid "Zásahy do hráčů"
+msgstr "Player hits"
+
+msgctxt "results.hits"
+msgid "Smrti od hráčů"
+msgstr "Deaths by players"
+
+msgid "Bohužel tady nic není..."
+msgstr "Unfortunately there is nothing to see here…"
+
+msgctxt "results.bests"
+msgid "Dostupné trofeje"
+msgstr "Available trophies"

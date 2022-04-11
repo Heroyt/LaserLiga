@@ -14,3 +14,7 @@ Route::get('players/leaderboard', [Games::class, 'todayLeaderboard']);
 Route::get('players/leaderboard/{system}', [Games::class, 'todayLeaderboard']);
 Route::get('players/leaderboard/{system}/{date}', [Games::class, 'todayLeaderboard']);
 Route::get('players/leaderboard/{system}/{date}/{property}', [Games::class, 'todayLeaderboard'])->name('today-leaderboard');
+
+Route::get('/lang/{lang}', static function(\App\Core\Request $request) {
+	$_SESSION['lang'] = $request->params['lang'];
+});

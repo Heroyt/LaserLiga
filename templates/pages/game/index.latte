@@ -199,7 +199,7 @@
 						<div class="player-rank">
 							{var array $rank = $player->getBestAt()}
 						{svgIcon $rank['icon'], '', 15}
-							<div class="rank-name fs-sm">{$rank['name']}</div>
+							<div class="rank-name">{$rank['name']}</div>
 						</div>
 					</div>
 
@@ -229,15 +229,10 @@
 
 {define playerTrophies}
 	{var array $trophies = $player->getAllBestAt()}
-	<div class="player-trophies mb-3">
+	<div class="player-trophies text-center mb-3">
 		<h4 class="caption">
-			<i class="fa-solid fa-award"></i>
+			<i class="fa-solid fa-trophy"></i>
 			{lang 'Získané trofeje', context: 'results.bests'} ({$trophies|length}):
-			<button type="button" class="btn btn-info rounded-circle" data-toggle="tooltip"
-					title="{lang 'Zobrazit dostupné trofeje', context: 'results.bests'}" data-bs-toggle="modal"
-					data-bs-target="#trophy-modal" style="line-height: 1; width: 2em; height: 2em;">
-				<i class="fa-solid fa-info"></i>
-			</button>
 		</h4>
 		<div class="trophies">
 			{foreach $trophies as $name => $trophy}
@@ -246,9 +241,14 @@
 					<div class="rank-name fs-sm">{$trophy['name']}</div>
 				</div>
 			{else}
-				{lang 'Bohužel tady nic není...'}
+				{lang 'Bohužel na tebe nesedí žádná z trofejí...', context: 'results.bests'}
 			{/foreach}
 		</div>
+		<button type="button" class="btn btn-info mt-2 shadow-sm" data-toggle="tooltip"
+				title="{lang 'Zobrazit dostupné trofeje', context: 'results.bests'}" data-bs-toggle="modal"
+				data-bs-target="#trophy-modal">
+			<i class="fa-solid fa-info"></i> {lang 'Všechny trofeje', context: 'results.bests'}
+		</button>
 	</div>
 {/define}
 
@@ -261,11 +261,8 @@
 		<div class="categories">
 			{var int $order = $today->getPlayerOrder($player,'score')}
 
-
-
-
-
-			<div class="today-category show-leaderboard {switch $order}
+			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
@@ -277,19 +274,12 @@
 					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm">
-							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
-							<i class="fa-solid fa-list-ol"></i>
-						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'accuracy')}
 
-
-
-
-
-			<div class="today-category show-leaderboard {switch $order}
+			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
@@ -301,19 +291,12 @@
 					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm">
-							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
-							<i class="fa-solid fa-list-ol"></i>
-						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'hits')}
 
-
-
-
-
-			<div class="today-category show-leaderboard {switch $order}
+			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
@@ -325,19 +308,12 @@
 					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm">
-							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
-							<i class="fa-solid fa-list-ol"></i>
-						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'deaths')}
 
-
-
-
-
-			<div class="today-category show-leaderboard {switch $order}
+			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
@@ -349,14 +325,11 @@
 					</div>
 					<div class="position">
 						{$order}.
-						<button type="button" class="btn btn-light btn-sm">
-							{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
-							<i class="fa-solid fa-list-ol"></i>
-						</button>
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'shots')}
-			<div class="today-category show-leaderboard {switch $order}
+			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
@@ -368,10 +341,6 @@
 				</div>
 				<div class="position">
 					{$order}.
-					<button type="button" class="btn btn-light btn-sm">
-						{*{lang 'Zobrazit tabulku', context: 'results.today'}*}
-						<i class="fa-solid fa-list-ol"></i>
-					</button>
 				</div>
 			</div>
 		</div>
