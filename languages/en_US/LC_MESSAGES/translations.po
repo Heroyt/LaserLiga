@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
-"Content-Transfer-Encoding: 8bit\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Language: en_US\n"
-"Language-Team: \n"
-"Last-Translator: Tomáš Vojík <vojik@wboy.cz>\n"
-"MIME-Version: 1.0\n"
-"PO-Revision-Date: \n"
-"POT-Creation-Date: \n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Tomáš Vojík <vojik@wboy.cz>\n"
+"Language-Team: \n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.0.1\n"
 
 msgctxt "pageTitles"
@@ -449,7 +449,7 @@ msgstr "Lives left"
 
 msgctxt "tips"
 msgid "Jak se v aréně střílí, tak se v aréně umírá..."
-msgstr ""
+msgstr "A game a day keeps the improvements coming your way…"
 
 msgctxt "tips"
 msgid "Trénink se vyplácí!"
@@ -485,7 +485,7 @@ msgstr "Melee hits do not add any score."
 
 msgctxt "tips"
 msgid "Zabiják vlastního týmu, či největší vlasťnák... To je oč tu běží!"
-msgstr ""
+msgstr "Hit or be hit, there is no other way!"
 
 msgctxt "tips"
 msgid "Vestu si oblečte vždy zbraní dobředu."
@@ -1062,189 +1062,605 @@ msgctxt "results.bests"
 msgid "Dostupné trofeje"
 msgstr "Available trophies"
 
-msgctxt "questionnaire"
-msgid "Dotazník"
-msgstr ""
+msgctxt "results.info"
+msgid "Body smrt od miny"
+msgstr "Points for death by pod"
+
+msgctxt "results.info"
+msgid "Body za bonus"
+msgstr "Points for power"
+
+msgctxt "results.bonus"
+msgid "agent"
+msgstr "spy"
+
+msgctxt "results.bonus"
+msgid "neviditelnost"
+msgstr "invisibility"
+
+msgctxt "results.bonus"
+msgid "samopal"
+msgstr "machine gun"
+
+msgctxt "results.bonus"
+msgid "štít"
+msgstr "shield"
 
 msgid "Legenda"
-msgstr ""
+msgstr "Legend"
 
 msgctxt "results"
 msgid "Skóre"
-msgstr ""
+msgstr "Score"
 
 msgctxt "results"
 msgid "Zásahy"
-msgstr ""
+msgstr "Hits"
 
 msgctxt "results"
 msgid "Smrti"
-msgstr ""
+msgstr "Deaths"
 
 msgctxt "results"
 msgid "Zásahy od/do spoluhráčů"
-msgstr ""
+msgstr "Hits from/to teammates"
 
 msgctxt "results.bests.description"
 msgid "Staň se hráčem s největším skóre."
-msgstr ""
+msgstr "Become a player with the most score."
 
 msgctxt "results.bests.description"
 msgid "Staň se hráčem s největším počtem zásahů."
-msgstr ""
+msgstr "Become a player with the most hits."
 
 msgctxt "results.bests.description"
 msgid "Staň se hráčem s největším počtem smrtí."
-msgstr ""
+msgstr "Become a player with the most deaths."
 
 msgctxt "results.bests.description"
 msgid "Staň se nejpřesnějším hráčem."
-msgstr ""
+msgstr "Become the most accurate player."
 
 msgctxt "results.bests"
 msgid "Zobrazit všechny trofeje"
-msgstr ""
+msgstr "Show all trophies"
 
 msgctxt "results.today"
 msgid "Klikněte níže na okénko pro zobrazení tabulky dnešního pořadí."
-msgstr ""
+msgstr "Click on the box below to show today’s leaderboard."
 
 msgctxt "results.today"
 msgid "Zobrazit dnešní pořadí"
-msgstr ""
+msgstr "Show today’s leaderboard"
+
+msgctxt "questionnaire"
+msgid "Dotazník"
+msgstr "Questionnaire"
 
 msgctxt "questionnaire"
 msgid "Víte, že tyto výsledky jsou vytvářeny v rámci bakalářské práce?"
-msgstr ""
+msgstr "Did you know that these results are created as a part of a bachelor’s thesis?"
 
 msgctxt "questionnaire"
 msgid "Prosím Vás tedy o vyplnění krátkého dotazníku týkající se tištěných i on-line výsledků ze hry laser game."
-msgstr ""
+msgstr "Please, fill out this short questionnaire regarding printed results, online results and result board for lasergame."
 
 msgctxt "questionnaire"
 msgid "K dispozici jsou 2 varianty dotazníku. Krátká a dlouhá. Nemusíte vyplňovat obě varianty, všechny otázky z krátké jsou zahrnuté v dlouhé."
-msgstr ""
+msgstr "There are 2 variants of the questionnaire. Short and long. You don’t have to fill out both variants, all questions from the short are also in the long."
 
 msgctxt "questionnaire"
 msgid "Krátký dotazník"
-msgstr ""
+msgstr "Short questionnaire"
 
 msgctxt "actions"
 msgid "Začít"
-msgstr ""
+msgstr "Begin"
 
 msgctxt "questionnaire"
 msgid "Dlouhý dotazník"
-msgstr ""
+msgstr "Long questionnaire"
 
 msgctxt "actions"
 msgid "Zavřít"
-msgstr ""
+msgstr "Close"
 
 msgctxt "action"
 msgid "Zobrazit později"
-msgstr ""
+msgstr "Show later"
 
 msgctxt "action"
 msgid "Nezobrazovat"
-msgstr ""
+msgstr "Don’t show again"
 
-msgctxt "actions"
-msgid "Načítání"
-msgstr ""
+msgctxt "results.bests"
+msgid "Bohužel na tebe nesedí žádná z trofejí..."
+msgstr "Unfortunately, there is no trophy for you…"
 
 msgctxt "actions"
 msgid "Předchozí"
-msgstr ""
+msgstr "Previous"
 
 msgctxt "action"
 msgid "Další"
-msgstr ""
+msgstr "Next"
+
+msgctxt "questionnaire.errors"
+msgid "Questionnaire is empty."
+msgstr "The questionnaire is empty."
+
+msgctxt "actions"
+msgid "Načítání"
+msgstr "Loading"
+
+msgctxt "results"
+msgid "Bonusy"
+msgstr "Powers"
+
+msgctxt "results.bonus"
+msgid "Agent"
+msgstr "Spy"
+
+msgctxt "results.bonus"
+msgid "Neviditelnost"
+msgstr "Invisibility"
+
+msgctxt "results.bonus"
+msgid "Samopal"
+msgstr "Machine gun"
+
+msgctxt "results.bonus"
+msgid "Štít"
+msgstr "Shield"
 
 msgctxt "questionnaire"
 msgid "A"
-msgstr ""
+msgstr "A"
 
 msgctxt "questionnaire"
 msgid "B"
-msgstr ""
+msgstr "B"
 
 msgctxt "questionnaire"
 msgid "C"
-msgstr ""
+msgstr "C"
 
 msgctxt "questionnaire"
 msgid "Vlastní odpověď"
-msgstr ""
-
-msgctxt "questionnaire"
-msgid "Jako známkování ve škole. (1 = nejlepší, 5 = nejhorší)"
-msgstr ""
-
-msgctxt "form.errors"
-msgid "Toto pole je povinné"
-msgstr ""
-
-msgctxt "action"
-msgid "Dokončit"
-msgstr ""
-
-msgctxt "action"
-msgid "Zavřít"
-msgstr ""
-
-msgctxt "questionnaire"
-msgid "Děkuji, Váš formulář byl úspěšně zaznamenán."
-msgstr ""
+msgstr "Custom answer"
 
 msgctxt "questionnaire"
 msgid "Dotazník je anonymní a neuchovává žádné citlivé údaje. Vyplnění dotazníku je zcela dobrovolné. Své odpovědi můžete změnit po dobu 30ti dnů ze zařízení, na kterém jste dotazník vyplnili. Stačí dotazník otevřít znovu pomocí tlačítka na začátku výsledků."
-msgstr ""
+msgstr "The questionnaire is anonymous and does not store any sensitive information. Filling out the questionnaire is completely voluntary. Your answers can be modified for 30 days on the device that you filled the questionnaire out. You only need to open the questionnaire again using the button on the beginning of the page."
+
+msgctxt "action"
+msgid "Dokončit"
+msgstr "Finish"
+
+msgctxt "action"
+msgid "Zavřít"
+msgstr "Close"
 
 msgctxt "questionnaire.question"
-msgid "Test"
-msgstr ""
+msgid "<h4>O Vás</h4>"
+msgstr "<h4>About you</h4>"
 
 msgctxt "questionnaire.question"
-msgid "Multistep otázka"
-msgstr ""
+msgid "Do jaké věkové skupiny patříte?"
+msgstr "To which group do you fit?"
+
+msgctxt "questionnaire"
+msgid "Méně než 18 let"
+msgstr "Less than 18 years old"
+
+msgctxt "questionnaire"
+msgid "18-30 let"
+msgstr "18-30 years"
+
+msgctxt "questionnaire"
+msgid "31-50 let"
+msgstr "31-50 years"
+
+msgctxt "questionnaire"
+msgid "Více než 50 let"
+msgstr "More than 50 years old"
 
 msgctxt "questionnaire.question"
-msgid "Step 1"
+msgid ""
+"<h4>O Vás</h4>\n"
+"<p>Pro začátek prosím vyplňte základní údaje o Vás a vašem hraní laser game.</p>"
 msgstr ""
+"<h4>About you</h4>\n"
+"<p>At first, please fill out some basic information about you and your laser game experience.</p>"
+
+msgctxt "questionnaire"
+msgid "Děkuji, Váše odpovědi byly úspěšně zaznamenány."
+msgstr "Thank you, your answers have been saved."
 
 msgctxt "questionnaire.question"
-msgid "Step 2"
-msgstr ""
+msgid "Jak často hrajete laser game?"
+msgstr "How often do you play laser game?"
+
+msgctxt "questionnaire"
+msgid "Nikdy jsem nehrál/a"
+msgstr "I have never played"
+
+msgctxt "questionnaire"
+msgid "Jen párkrát za celou dobu"
+msgstr "Only a few times"
+
+msgctxt "questionnaire"
+msgid "Maximálně 4&times; do roka"
+msgstr "At most 4 times a year"
+
+msgctxt "questionnaire"
+msgid "Alespoň jednou ročně"
+msgstr "At least once a year"
+
+msgctxt "questionnaire"
+msgid "Alespoň jednou měsíčně"
+msgstr "At least once a month"
+
+msgctxt "questionnaire"
+msgid "Alespoň jednou týdně"
+msgstr "At least once a week"
 
 msgctxt "questionnaire.question"
-msgid "Step 3"
-msgstr ""
+msgid "Hráli jste někdy i v jiné aréně?"
+msgstr "Have you ever played in a different arena?"
+
+msgctxt "questionnaire"
+msgid "Ano"
+msgstr "Yes"
+
+msgctxt "questionnaire"
+msgid "Ne"
+msgstr "No"
 
 msgctxt "questionnaire.question"
-msgid "Range"
-msgstr ""
+msgid "Hrál/a jste někdy i v jiné aréně?"
+msgstr "Have you ever played in a different arena?"
+
+msgctxt "questionnaire"
+msgid "Pokud jste si on-line výsledky otevřeli poprvé, nejprve si je v klidu projděte a k dotazníku se můžete vrátit později."
+msgstr "If you have never seen any results, look through them first and you can return to the questionnaire later."
+
+msgctxt "questionnaire"
+msgid "Pokud jste on-line výsledky ještě nikdy neviděli, nejprve si je v klidu projděte a k dotazníku se můžete vrátit později."
+msgstr "If you have never seen any results, look through them first and you can return to the questionnaire later."
+
+msgctxt "questionnaire"
+msgid "Jen jednou"
+msgstr "Only once"
 
 msgctxt "questionnaire.question"
-msgid "Range + custom"
-msgstr ""
+msgid "<h4>Výsledky obecně</h4><p>V této části prosím vypňte jak moc Vás zajímají jednotlivé statistiky z výsledků.</p><p class=\"text-muted\">(1 = Potřebuju to vědět, 5 = Vůbec mě to nezajímá)</p>"
+msgstr "<h4>Results generaly</h4><p>In this part, please rate how much are you interested in each game statistic.</p><p class=\"text-muted\">(1 = I need to know, 5 = Not interested at all)</p>"
 
 msgctxt "questionnaire.question"
-msgid "Range - multistep"
-msgstr ""
+msgid "Moje skóre a celkové pořadí (individuální)"
+msgstr "My score and rank"
+
+msgctxt "questionnaire"
+msgid "Jako známkování ve škole. (1 = nejlepší, 5 = nejhorší)"
+msgstr "(1 = the best, 5 = the worst)"
 
 msgctxt "questionnaire.question"
-msgid "Step 4"
-msgstr ""
+msgid "Skóre a pořadí týmů"
+msgstr "Team score and order"
+
+msgctxt "questionnaire.question"
+msgid "Moje přesnost střelby"
+msgstr "My accuracy"
+
+msgctxt "questionnaire.question"
+msgid "Můj počet výstřelů"
+msgstr "My shots"
+
+msgctxt "questionnaire.question"
+msgid "Můj počet střel do prázdna"
+msgstr "My misses"
+
+msgctxt "questionnaire.question"
+msgid "Můj celkový počet zásahů a smrtí"
+msgstr "My hits and deaths"
+
+msgctxt "questionnaire.question"
+msgid "Trofeje (= tabulka \"Ti nej\")"
+msgstr "Trophies (=„The best” table)"
+
+msgctxt "questionnaire.question"
+msgid "Můj nejoblíbenější cíl a největší zabiják"
+msgstr "My favourite target and my biggest killer"
+
+msgctxt "questionnaire.question"
+msgid "Můj poměr zásahů a smrtí (K:D)"
+msgstr "My kills to deaths ratio (K:D)"
+
+msgctxt "questionnaire.question"
+msgid "Moje dnešní umístění"
+msgstr "My today’s rank"
+
+msgctxt "questionnaire.question"
+msgid "Zásahy do jednotlivých hráčů"
+msgstr "Hits to each player"
 
 msgctxt "questionnaire"
 msgid "Vlastní odpověď (chcete něco dodat?)"
+msgstr "Custom answer (do you have anything to add?)"
+
+msgctxt "questionnaire.question"
+msgid "<h4>Papírové výsledky</h4><p>V této části prosím o zhodnocení výsledků, které se tisknou na papír.</p>"
+msgstr "<h4>Printed results</h4><p>In this part, please rate the paper printed results.</p>"
+
+msgctxt "questionnaire.question"
+msgid "Můj pohled na tiskuté výsledky"
+msgstr "My view on the printed results"
+
+msgctxt "questionnaire"
+msgid "Výsledky si vždycky rád projdu"
+msgstr "I always like to look through the results"
+
+msgctxt "questionnaire"
+msgid "Výsledky si procházím, jen když mě opravdu něco zajímá"
+msgstr "I only look through results if I am interested in something"
+
+msgctxt "questionnaire"
+msgid "Radši si procházím výsledky on-line"
+msgstr "A rather look at online scores"
+
+msgctxt "questionnaire"
+msgid "Výsledky mě většinou vůbec nezajímají (stačí mi skóre z tabule)"
+msgstr "Usually, I am not that interested in results (the result board is enough)"
+
+msgctxt "questionnaire.question"
+msgid "Detailnost výsledků"
+msgstr "Result’s details"
+
+msgctxt "questionnaire"
+msgid "Tisknuté výsledky jsou dostatečně detailní"
+msgstr "Printed results are detailed enough"
+
+msgctxt "questionnaire"
+msgid "Tiskuté výsledky jsou málo detailní"
+msgstr "Printed scores are too little detailed"
+
+msgctxt "questionnaire"
+msgid "Na výsledcích je detailů až moc"
+msgstr "The results are too detailed"
+
+msgctxt "questionnaire.question"
+msgid "Ohodnoťte vizuální stránku výsledků"
+msgstr "Rate the visual of the results"
+
+msgctxt "questionnaire.question"
+msgid "Ohodnoťte aktuální vzhled výsledků"
+msgstr "Rate the current visual of the results"
+
+msgctxt "questionnaire.question"
+msgid ""
+"<h4>Papírové výsledky - srozumitelnost</h4>\n"
+"<p>V této části budete hodnotit jednotlivé části tisknutch výsledků a jejich srozumitelnost.</p>\n"
+"<p class=\"text-muted\">(1 = Nemám problém s pochopením, 5 = Vůbec tomu nerozumím / nevím, že tam něco takového je)</p> "
 msgstr ""
+"<h4>Printed results - clarity</h4>\n"
+"<p>In this part, you will rate each part of printed results and their clarity.</p>\n"
+"<p class=”text-muted”>(1 = I understand everything, 5 = I don’t understand it at all / I didn’t even know there is something like that)</p> "
+
+msgctxt "questionnaire.question"
+msgid "Týmové skóre"
+msgstr "Team score"
+
+msgctxt "questionnaire.question"
+msgid "Individuální skóre"
+msgstr "Personal score"
+
+msgctxt "questionnaire.question"
+msgid "Trofeje"
+msgstr "Trophies"
+
+msgctxt "questionnaire.question"
+msgid "Přesnost"
+msgstr "Accuracy"
+
+msgctxt "questionnaire.question"
+msgid "Výstřely"
+msgstr "Shots"
+
+msgctxt "questionnaire.question"
+msgid "Zásahy a smrti"
+msgstr "Hits and deaths"
+
+msgctxt "questionnaire.question"
+msgid "Nejoblíbenější cíl / Největší zabiják"
+msgstr "Favourite target / The biggest killer"
+
+msgctxt "questionnaire.question"
+msgid "Bonusy (ve hře s minami)"
+msgstr "Powers (If you haven’t played with powers, chose option 3)"
+
+msgctxt "questionnaire.question"
+msgid "Bonusy (ve hře s minami - pokud jste nehrál/a s minami, vyberte možnost 3)"
+msgstr "Powers (If you haven’t played with powers, chose option 3)"
+
+msgctxt "questionnaire.question"
+msgid ""
+"<h4>Papírové výsledky - vzhled</h4>\n"
+"<p>V této části budete hodnotit jednotlivé části tisknutch výsledků a jejich vzhled.</p>\n"
+"<p class=\"text-muted\">(1 = Moc se mi to líbí, 5 = Nelíbí se mi to)</p> "
+msgstr ""
+"<h4>Printed results - visual</h4>\n"
+"<p>In this part, you will rate each part of printed results and their visual.</p>\n"
+"<p class=”text-muted”>(1 = I like it a lot, 5 = I don’t like it)</p> "
+
+msgctxt "questionnaire.question"
+msgid "<h4>On-line výsledky</h4><p>V této části prosím o zhodnocení detailních výsledků, které jsou pod QR kódem.</p>"
+msgstr "<h4>Online results</h4><p>In this part, please rate the detailed results which can be found under the QR code.</p>"
+
+msgctxt "questionnaire.question"
+msgid "Můj pohled na online výsledky"
+msgstr "My view on the online results"
+
+msgctxt "questionnaire"
+msgid "On-line výsledky upřednostňuji před tisknutými"
+msgstr "I prefer online results over the printed ones"
+
+msgctxt "questionnaire"
+msgid "On-line výsledky si otevírám, jen když chci vědět nějaký detail hry"
+msgstr "I only open online results when I want to see only a specific detail of the game"
+
+msgctxt "questionnaire"
+msgid "On-line výsledky nikdy neotevírám"
+msgstr "I never open the on-line results"
+
+msgctxt "questionnaire"
+msgid "On-line výsledky jsou dostatečně detailní"
+msgstr "Online results are detailed enough"
+
+msgctxt "questionnaire"
+msgid "On-line výsledky jsou málo detailní"
+msgstr "Online results are too little detailed"
+
+msgctxt "questionnaire.question"
+msgid ""
+"<h4>On-line výsledky - srozumitelnost</h4>\n"
+"<p>V této části budete hodnotit jednotlivé části on-line výsledků a jejich srozumitelnost.</p>\n"
+"<p class=\"text-muted\">(1 = Nemám problém s pochopením, 5 = Vůbec tomu nerozumím / nevím, že tam něco takového je)</p> "
+msgstr ""
+"<h4>Online results - clarity</h4>\n"
+"<p>In this part, you will rate each part of online results and their clarity.</p>\n"
+"<p class=\"text-muted\">(1 = I understand everything, 5 = I don’t understand it at all / I didn’t even know there is something like that)</p> "
+
+msgctxt "questionnaire.question"
+msgid "Zásahy hráčů"
+msgstr "Player hits"
+
+msgctxt "questionnaire.question"
+msgid "Dnešní pořadí podle"
+msgstr "Today’s leaderboard"
+
+msgctxt "questionnaire.question"
+msgid ""
+"<h4>On-line výsledky - vzhled</h4>\n"
+"<p>V této části budete hodnotit jednotlivé části on-line výsledků a jejich vzhled.</p>\n"
+"<p class=\"text-muted\">(1 = Moc se mi to líbí, 5 = Nelíbí se mi to)</p> "
+msgstr ""
+"<h4>Online results - visual</h4>\n"
+"<p>In this part, you will rate each part of online results and their visual.</p>\n"
+"<p class=”text-muted”>(1 = I like it a lot, 5 = I don’t like it)</p> "
+
+msgctxt "questionnaire.question"
+msgid "<h4>Výsledková tabule</h4><p>V této části prosím o zhodnocení výsledků, které se zobrazují při východu z arény na výsledkové tabuli.</p>"
+msgstr "<h4>Result board</h4><p>In this part, please rate the result board that shows your score right after you finish the game.</p>"
+
+msgctxt "questionnaire"
+msgid "Výsledková tabule je dostatečně detailní"
+msgstr "Result board is detailed enough"
+
+msgctxt "questionnaire"
+msgid "Výsledková tabule jsou málo detailní"
+msgstr "Result board has too little detail"
+
+msgctxt "questionnaire"
+msgid "Na výsledkové tabuli je detailů až moc"
+msgstr "The result board is too detailed"
+
+msgctxt "questionnaire.question"
+msgid ""
+"<h4>Výsledková tabule - srozumitelnost</h4>\n"
+"<p>V této části budete hodnotit jednotlivé části výsledkové tabule a jejich srozumitelnost.</p>\n"
+"<p class=\"text-muted\">(1 = Nemám problém s pochopením, 5 = Vůbec tomu nerozumím / nevím, že tam něco takového je)</p> "
+msgstr ""
+"<h4>Result board - clarity</h4>\n"
+"<p>In this part, you will rate each part of result board and their clarity.</p>\n"
+"<p class=”text-muted”>(1 = I understand everything, 5 = I don’t understand it at all / I didn’t even know there is something like that)</p> "
+
+msgctxt "questionnaire.question"
+msgid ""
+"<h4>Budoucnost</h4>\n"
+"<p>V této části se budeme zabývat budoucím stavem. Zde budou Vaše odpovědi pomáhat určivat prioritu implementace nových funkcí do výsledků.</p>\n"
+"<p>Známkujte jednotlivé podotázky podle toho, jak moc se vám daná funkce libí a jak moc byste chtěli funkci využívat</p>\n"
+"<p class=\"text-muted\">(1 = nemůžu se dočkat, 5 = vůbec mě to neláká)</p>"
+msgstr ""
+"<h4>Future</h4>\n"
+"<p>In this part we will focus on the possible future. Your answers here will help prioritize new features.</p>\n"
+"<p>Rate the features based on your personal opinion how much would you like to use the feature.</p>\n"
+"<p class=\"text-muted\">(1 = can’t wait, 5 = not interested at all)</p>"
+
+msgctxt "questionnaire.question"
+msgid "Vlastní účet hráče, na který sbírám výsledky a vidím statistiky hromadně (i z více arén, které využívají stejný systém výsledků)"
+msgstr "Player profile where I collect all my results and see all my statistics (even from different arenas which use the same result system)"
+
+msgctxt "questionnaire.question"
+msgid "Globální žebříček, kde by byli všichni hráči ze všech podporovaných arén"
+msgstr "Global leaderboard where all players from the supported arenas would compete"
+
+msgctxt "questionnaire.question"
+msgid "Možnost přidávání přátel, zakládání týmů (skupin) v rámci přihlášení"
+msgstr "Possibility to add friends and create teams (groups)"
+
+msgctxt "questionnaire.question"
+msgid "Úroveň hráče - s odehranými hrami získávat zkušenosti a posouvat se do nových úrovní"
+msgstr "Player level - gain experience with each played game and advance to new levels"
+
+msgctxt "questionnaire.question"
+msgid "Nové trofeje - takové, které by se získavali průběžně (např. zahraj si alespoň ve dvou arénách, dosáhni alespoň 50% přesnosti,...)"
+msgstr "New trophies - gained continually (for example: play in at least two arenas, achieve at least 50% accuracy,…)"
+
+msgctxt "questionnaire.question"
+msgid "Organizace a registrace na turnaje pomocí mého přihlášení"
+msgstr "Organization and registration to tournaments using my login"
+
+msgctxt "questionnaire.question"
+msgid ""
+"<h4>Je něco co byste chtěl/a dodat? (nepovinné)</h4>\n"
+"<p>V této části nám prosím napište jakoukoliv další kritiku, kterou chcete sdělit.</p>\n"
+"<p>Budu rád za jakékoliv další nápady na změny, připomínky, problémy, ale i pochvaly.</p>"
+msgstr ""
+"<h4>Is there something you would like to add? (optional)</h4>\n"
+"<p>Please write any other critique that you want to share.</p>\n"
+"<p>I will be happy for any ideas for the future, problems, even praises.</p>"
+
+msgctxt "form.errors"
+msgid "Toto pole je povinné"
+msgstr "This field is required"
+
+msgctxt "questionnaire"
+msgid "<p>7 částí</p>"
+msgstr "<p>7 parts</p>"
+
+msgctxt "questionnaire"
+msgid "<p>12 kroků</p>"
+msgstr "<p>12 parts</p>"
+
+msgctxt "questionnaire"
+msgid "<p>7 částí</p><p>Asi 6 minut</p>"
+msgstr "<p>7 parts</p><p>Approximately 6 minutes</p>"
+
+msgctxt "questionnaire"
+msgid "<p>12 částí</p><p>Asi 10 minut</p>"
+msgstr "<p>12 parts</p><p>Approximately 10 minutes</p>"
+
+msgctxt "questionnaire"
+msgid "<p>7 částí<br>Asi 6 minut</p>"
+msgstr "<p>7 parts<br>Approximately 6 minutes</p>"
+
+msgctxt "questionnaire"
+msgid "<p>12 částí<br>Asi 10 minut</p>"
+msgstr "<p>12 parts<br>Approximately 10 minutes</p>"
+
+msgctxt "questionnaire"
+msgid "Výsledky dotazníku"
+msgstr "Questionnaire results"
 
 msgctxt "questionnaire"
 msgid "Prosím Vás o vyplnění krátkého dotazníku týkající se tištěných výsledků, on-line výsledků a výsledkové tabule ze hry laser game."
-msgstr ""
+msgstr "Please, fill out this short questionnaire regarding printed results, online results and result board for lasergame."
 
 msgctxt "questionnaire"
 msgid "Pokud jste žádné výsledky ještě nikdy neviděli, nejprve si je v klidu projděte a k dotazníku se můžete vrátit později."
-msgstr ""
+msgstr "If you have never seen any results, look through them first and you can return to the questionnaire later."
+
+msgctxt "gameModes"
+msgid "Barvičky"
+msgstr "Color madness"
