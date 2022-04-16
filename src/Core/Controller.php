@@ -90,6 +90,10 @@ abstract class Controller implements ControllerInterface
 		view($template, $this->params);
 	}
 
+	protected function viewGet(string $template) : string {
+		return view($template, $this->params, true);
+	}
+
 	/**
 	 * @param mixed $data Serializable data
 	 */
