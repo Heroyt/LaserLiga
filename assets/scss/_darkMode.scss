@@ -4,6 +4,10 @@
 
 $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-colors-dark));
 
+.bg-white path[fill="white"] {
+	fill: var(--not-so-dark);
+}
+
 @media (prefers-color-scheme: dark) {
 	:root {
 		@each $name, $values in $custom-colors-dark {

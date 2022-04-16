@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Core\AbstractModel;
+use App\Core\App;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\ModelNotFoundException;
@@ -112,5 +113,57 @@ class Arena extends AbstractModel implements InsertExtendInterface
 	 */
 	public function addQueryData(array &$data) : void {
 		$data[self::PRIMARY_KEY] = $this->id;
+	}
+
+	/**
+	 * Checks there exists an image of the arena
+	 *
+	 * The image must be either SVG or PNG. If no logo image exists, returns empty string;
+	 *
+	 * @return string Full path to image
+	 */
+	public function getLogoFileName() : string {
+		$imageBase = ASSETS_DIR.'arena-logo/arena-'.$this->id;
+		if (file_exists($imageBase.'.svg')) {
+			return $imageBase.'.svg';
+		}
+		if (file_exists($imageBase.'.png')) {
+			return $imageBase.'.png';
+		}
+		return '';
+	}
+
+	/**
+	 * Checks there exists an image of the arena
+	 *
+	 * The image must be either SVG or PNG. If no logo image exists, returns empty string;
+	 *
+	 * @return string URL of the image
+	 */
+	public function getLogoUrl() : string {
+		$image = $this->getLogoFileName();
+		if (empty($image)) {
+			return '';
+		}
+		return str_replace(ROOT, App::getUrl(), $image);
+	}
+
+	/**
+	 * Gets HTML for displaying the arena image
+	 *
+	 * For SVG images, it returns the SVG XML, for other formats, it returns the <img> tag.
+	 *
+	 * @return string HTML or empty string if no logo exists
+	 */
+	public function getLogoHtml() : string {
+		$image = $this->getLogoFileName();
+		if (empty($image)) {
+			return '';
+		}
+		$type = pathinfo($image, PATHINFO_EXTENSION);
+		if ($type === 'svg') {
+			return file_get_contents($image);
+		}
+		return '<img src="'.str_replace(ROOT, App::getUrl(), $image).'" class="img-fluid arena-logo" alt="'.$this->name.' - Logo" id="arena-logo-'.$this->id.'" />';
 	}
 }

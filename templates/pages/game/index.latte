@@ -127,111 +127,140 @@
 				{lang 'Dotazník', context: 'questionnaire'}
 			</button>
 		</div>
-		<div class="col-md-4">
-			<div class="my-1">
-				<strong>{lang 'Kód hry', context: 'results.info'}:</strong>
-				{$game->code}
-			</div>
-			<div class="my-1">
-				<strong>{lang 'Datum', context: 'results.info'}:</strong>
-				{$game->start->format('d.m.Y H:i:s')}
-			</div>
-			<div>
-				<strong>{lang 'Herní mód', context: 'results.info'}:</strong>
-				{lang $game->mode->name, context: 'gameModes'}
-			</div>
-		</div>
-		<div class="col-md-8 d-flex flex-wrap justify-content-evenly">
-			<div class="my-1 col-12 col-md-6">
-				<strong>{lang 'Body za zásah', context: 'results.info'}:</strong>
-				{$game->scoring->hitOther} {svgIcon 'star', '1em'}
-			</div>
-			<div class="my-1 col-12 col-md-6">
-				<strong>{lang 'Body za smrt', context: 'results.info'}:</strong>
-				{$game->scoring->deathOther} {svgIcon 'star', '1em'}
-			</div>
-			<div class="my-1 col-12 col-md-6">
-				<strong>{lang 'Body za zásah vlastního', context: 'results.info'}:</strong>
-				{$game->scoring->hitOwn} {svgIcon 'star', '1em'}
-			</div>
-			<div class="my-1 col-12 col-md-6">
-				<strong>{lang 'Body za smrt od vlastního hráče', context: 'results.info'}:</strong>
-				{$game->scoring->deathOwn} {svgIcon 'star', '1em'}
-			</div>
-			<div class="my-1" n:if="$game->scoring->shot !== 0">
-				<strong>{lang 'Body za výstřel', context: 'results.info'}:</strong>
-				{$game->scoring->shot} {svgIcon 'star', '1em'}
-			</div>
-			{if method_exists($game, 'isMinesOn') && $game->isMinesOn()}
-				<div class="my-1 col-12 col-md-6">
-					<strong>{lang 'Body smrt od miny', context: 'results.info'}:</strong>
-					{$game->scoring->hitPod} {svgIcon 'star', '1em'}
+		<div class="col-12 mt-2 game-head">
+			<div class="game-info py-3 rounded-10 shadow bg-white text-center d-flex flex-column justify-content-center align-items-center">
+				{$game->arena->getLogoHtml()|noescape}
+				<div class="my-1">
+					<strong>{lang 'Kód hry', context: 'results.info'}:</strong>
+					{$game->code}
 				</div>
-				<div class="my-1 col-12 col-md-6">
-					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'agent', context: 'results.bonus'}
-						:</strong>
-					{$game->scoring->agent} {svgIcon 'star', '1em'}
+				<div class="my-1">
+					<strong>{lang 'Datum', context: 'results.info'}:</strong>
+					{$game->start->format('d.m.Y H:i:s')}
 				</div>
-				<div class="my-1 col-12 col-md-6">
-					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'neviditelnost', context: 'results.bonus'}
-						:</strong>
-					{$game->scoring->invisibility} {svgIcon 'star', '1em'}
-				</div>
-				<div class="my-1 col-12 col-md-6">
-					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'samopal', context: 'results.bonus'}
-						:</strong>
-					{$game->scoring->machineGun} {svgIcon 'star', '1em'}
-				</div>
-				<div class="my-1 col-12 col-md-6">
-					<strong>{lang 'Body za bonus', context: 'results.info'} - {lang 'štít', context: 'results.bonus'}
-						:</strong>
-					{$game->scoring->shield} {svgIcon 'star', '1em'}
-				</div>
-			{/if}
-		</div>
-		<div class="col-12 p-0">
-			<div class="rounded-10 bg-info text-dark d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
-				 data-bs-toggle="collapse"
-				 data-bs-target="#legend">
-				<h5 class="m-0"><i class="fas fa-info-circle"></i> {lang 'Legenda'}</h5>
-				<div class="collapse-indicator">
-					<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-					<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+				<div>
+					<strong>{lang 'Herní mód', context: 'results.info'}:</strong>
+					{lang $game->mode->name, context: 'gameModes'}
 				</div>
 			</div>
-			<div class="card-body collapse shadow rounded-bottom-10 text-center" id="legend">
-				<div class="legend my-3">
-					{svgIcon 'star', '', '1em'} - {lang 'Skóre', context: 'results'}
-				</div>
-				<div class="legend my-3">
-					{svgIcon 'bullets', '', '1em'} - {lang 'Výstřely', context: 'results'}
-				</div>
-				<div class="legend my-3">
-					{svgIcon 'kill', '', '1em'} - {lang 'Zásahy', context: 'results'}
-				</div>
-				<div class="legend my-3">
-					{svgIcon 'skull', '', '1em'} - {lang 'Smrti', context: 'results'}
-				</div>
-				<div class="legend my-3">
-					{svgIcon 'dead', '', '1em'} - {lang 'Zásahy od/do spoluhráčů', context: 'results'}
-				</div>
-				{if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode->settings->playerMines}
-					<div class="legend my-3">
-						{svgIcon 'base_2', '', '1em'} - {lang 'Bonusy', context: 'results'}
+			<div class="scoring p-3 rounded-10 shadow bg-white">
+				<h4>{lang 'Bodování', context: 'results'}</h4>
+				<div class="d-flex flex-wrap justify-content-evenly">
+					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+						<strong class="d-block w-50">
+							{lang 'Body za zásah', context: 'results.info'}:
+						</strong>
+						<div class="w-50 text-end">{$game->scoring->hitOther} {svgIcon 'star', '1em'}</div>
 					</div>
-					<div class="legend my-3">
-						{svgIcon 'agent', '', '1em'} - {lang 'Agent', context: 'results.bonus'}
+					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+						<strong class="d-block w-50">
+							{lang 'Body za smrt', context: 'results.info'}:
+						</strong>
+						<div class="w-50 text-end">{$game->scoring->deathOther} {svgIcon 'star', '1em'}</div>
 					</div>
-					<div class="legend my-3">
-						{svgIcon 'invisibility', '', '1em'} - {lang 'Neviditelnost', context: 'results.bonus'}
+					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+						<strong class="d-block w-50">
+							{lang 'Body za zásah vlastního', context: 'results.info'}:
+						</strong>
+						<div class="w-50 text-end">{$game->scoring->hitOwn} {svgIcon 'star', '1em'}</div>
 					</div>
-					<div class="legend my-3">
-						{svgIcon 'machine_gun', '', '1em'} - {lang 'Samopal', context: 'results.bonus'}
+					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+						<strong class="d-block w-50">
+							{lang 'Body za smrt od vlastního hráče', context: 'results.info'}:
+						</strong>
+						<div class="w-50 text-end">{$game->scoring->deathOwn} {svgIcon 'star', '1em'}</div>
 					</div>
-					<div class="legend my-3">
-						{svgIcon 'shield', '', '1em'} - {lang 'Štít', context: 'results.bonus'}
+					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom" n:if="$game->scoring->shot !== 0">
+						<strong class="d-block w-50">
+							{lang 'Body za výstřel', context: 'results.info'}:
+						</strong>
+						<div class="w-50 text-end">{$game->scoring->shot} {svgIcon 'star', '1em'}</div>
 					</div>
-				{/if}
+					{if method_exists($game, 'isMinesOn') && $game->isMinesOn()}
+						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+							<strong class="d-block w-50">
+								{lang 'Body smrt od miny', context: 'results.info'}:
+							</strong>
+							<div class="w-50 text-end">{$game->scoring->hitPod} {svgIcon 'star', '1em'}</div>
+						</div>
+						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+							<strong class="d-block w-50">
+								{lang 'Body za bonus', context: 'results.info'} - {lang 'agent', context: 'results.bonus'}
+								:
+							</strong>
+							<div class="w-50 text-end">{$game->scoring->agent} {svgIcon 'star', '1em'}</div>
+						</div>
+						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+							<strong class="d-block w-50">
+								{lang 'Body za bonus', context: 'results.info'} - {lang 'neviditelnost', context: 'results.bonus'}
+								:
+							</strong>
+							<div class="w-50 text-end">{$game->scoring->invisibility} {svgIcon 'star', '1em'}</div>
+						</div>
+						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+							<strong class="d-block w-50">
+								{lang 'Body za bonus', context: 'results.info'} - {lang 'samopal', context: 'results.bonus'}
+								:
+							</strong>
+							<div class="w-50 text-end">{$game->scoring->machineGun} {svgIcon 'star', '1em'}</div>
+						</div>
+						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+							<strong class="d-block w-50">
+								{lang 'Body za bonus', context: 'results.info'} - {lang 'štít', context: 'results.bonus'}
+								:
+							</strong>
+							<div class="w-50 text-end">{$game->scoring->shield} {svgIcon 'star', '1em'}</div>
+						</div>
+					{/if}
+				</div>
+			</div>
+			<div class="icon-legend p-0">
+				<div class="rounded-10 bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+					 data-bs-toggle="collapse"
+					 data-bs-target="#legend">
+					<h5 class="m-0"><i class="fas fa-info-circle"></i> {lang 'Legenda'}</h5>
+					<div class="collapse-indicator">
+						<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+						<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+					</div>
+				</div>
+				<div class="card-body bg-white collapse shadow rounded-bottom-10 text-center"
+					 id="legend">
+					<div class="d-flex flex-wrap justify-content-evenly align-items-center">
+						<div class="legend m-3">
+							{svgIcon 'star', '', '1em'} - {lang 'Skóre', context: 'results'}
+						</div>
+						<div class="legend m-3">
+							{svgIcon 'bullets', '', '1em'} - {lang 'Výstřely', context: 'results'}
+						</div>
+						<div class="legend m-3">
+							{svgIcon 'kill', '', '1em'} - {lang 'Zásahy', context: 'results'}
+						</div>
+						<div class="legend m-3">
+							{svgIcon 'skull', '', '1em'} - {lang 'Smrti', context: 'results'}
+						</div>
+						<div class="legend m-3">
+							{svgIcon 'dead', '', '1em'} - {lang 'Zásahy od/do spoluhráčů', context: 'results'}
+						</div>
+						{if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode->settings->playerMines}
+							<div class="legend m-3">
+								{svgIcon 'base_2', '', '1em'} - {lang 'Bonusy', context: 'results'}
+							</div>
+							<div class="legend m-3">
+								{svgIcon 'agent', '', '1em'} - {lang 'Agent', context: 'results.bonus'}
+							</div>
+							<div class="legend m-3">
+								{svgIcon 'invisibility', '', '1em'} - {lang 'Neviditelnost', context: 'results.bonus'}
+							</div>
+							<div class="legend m-3">
+								{svgIcon 'machine_gun', '', '1em'} - {lang 'Samopal', context: 'results.bonus'}
+							</div>
+							<div class="legend m-3">
+								{svgIcon 'shield', '', '1em'} - {lang 'Štít', context: 'results.bonus'}
+							</div>
+						{/if}
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -328,6 +357,9 @@
 
 
 
+
+
+
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
 				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
@@ -344,6 +376,9 @@
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'accuracy')}
+
+
+
 
 
 
@@ -372,6 +407,9 @@
 
 
 
+
+
+
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
 				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
@@ -388,6 +426,9 @@
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'deaths')}
+
+
+
 
 
 

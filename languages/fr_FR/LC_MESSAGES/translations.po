@@ -1050,3 +1050,190 @@ msgstr ""
 msgctxt "results.bests"
 msgid "Dostupné trofeje"
 msgstr ""
+
+msgctxt "questionnaire"
+msgid "Dotazník"
+msgstr ""
+
+msgid "Legenda"
+msgstr ""
+
+msgctxt "results"
+msgid "Skóre"
+msgstr ""
+
+msgctxt "results"
+msgid "Zásahy"
+msgstr ""
+
+msgctxt "results"
+msgid "Smrti"
+msgstr ""
+
+msgctxt "results"
+msgid "Zásahy od/do spoluhráčů"
+msgstr ""
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem s největším skóre."
+msgstr ""
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem s největším počtem zásahů."
+msgstr ""
+
+msgctxt "results.bests.description"
+msgid "Staň se hráčem s největším počtem smrtí."
+msgstr ""
+
+msgctxt "results.bests.description"
+msgid "Staň se nejpřesnějším hráčem."
+msgstr ""
+
+msgctxt "results.bests"
+msgid "Zobrazit všechny trofeje"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Klikněte níže na okénko pro zobrazení tabulky dnešního pořadí."
+msgstr ""
+
+msgctxt "results.today"
+msgid "Zobrazit dnešní pořadí"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Víte, že tyto výsledky jsou vytvářeny v rámci bakalářské práce?"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Prosím Vás tedy o vyplnění krátkého dotazníku týkající se tištěných i on-line výsledků ze hry laser game."
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "K dispozici jsou 2 varianty dotazníku. Krátká a dlouhá. Nemusíte vyplňovat obě varianty, všechny otázky z krátké jsou zahrnuté v dlouhé."
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Krátký dotazník"
+msgstr ""
+
+msgctxt "actions"
+msgid "Začít"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Dlouhý dotazník"
+msgstr ""
+
+msgctxt "actions"
+msgid "Zavřít"
+msgstr ""
+
+msgctxt "action"
+msgid "Zobrazit později"
+msgstr ""
+
+msgctxt "action"
+msgid "Nezobrazovat"
+msgstr ""
+
+msgctxt "actions"
+msgid "Načítání"
+msgstr ""
+
+msgctxt "actions"
+msgid "Předchozí"
+msgstr ""
+
+msgctxt "action"
+msgid "Další"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "A"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "B"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "C"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Vlastní odpověď"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Jako známkování ve škole. (1 = nejlepší, 5 = nejhorší)"
+msgstr ""
+
+msgctxt "form.errors"
+msgid "Toto pole je povinné"
+msgstr ""
+
+msgctxt "action"
+msgid "Dokončit"
+msgstr ""
+
+msgctxt "action"
+msgid "Zavřít"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Děkuji, Váš formulář byl úspěšně zaznamenán."
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Dotazník je anonymní a neuchovává žádné citlivé údaje. Vyplnění dotazníku je zcela dobrovolné. Své odpovědi můžete změnit po dobu 30ti dnů ze zařízení, na kterém jste dotazník vyplnili. Stačí dotazník otevřít znovu pomocí tlačítka na začátku výsledků."
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Test"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Multistep otázka"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Step 1"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Step 2"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Step 3"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Range"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Range + custom"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Range - multistep"
+msgstr ""
+
+msgctxt "questionnaire.question"
+msgid "Step 4"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Vlastní odpověď (chcete něco dodat?)"
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Prosím Vás o vyplnění krátkého dotazníku týkající se tištěných výsledků, on-line výsledků a výsledkové tabule ze hry laser game."
+msgstr ""
+
+msgctxt "questionnaire"
+msgid "Pokud jste žádné výsledky ještě nikdy neviděli, nejprve si je v klidu projděte a k dotazníku se můžete vrátit později."
+msgstr ""

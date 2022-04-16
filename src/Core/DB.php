@@ -14,13 +14,11 @@ namespace App\Core;
 use App\Logging\Logger;
 use DateTimeInterface;
 use dibi;
-use Dibi\Bridges\Tracy\Panel;
 use Dibi\Connection;
 use Dibi\Exception;
 use Dibi\Fluent;
 use Dibi\Result;
 use InvalidArgumentException;
-use Tracy\Debugger;
 
 /**
  * @class   DB
@@ -68,9 +66,9 @@ class DB
 															 ]);
 		self::$db->getSubstitutes()->{''} = $config['Database']['PREFIX'] ?? '';
 		self::$db->onEvent[] = [self::$log, 'logDb'];
-		$panel = new Panel();
-		$panel->register(self::$db);
-		Debugger::getBar()->addPanel($panel);
+		//$panel = new Panel();
+		//$panel->register(self::$db);
+		//Debugger::getBar()->addPanel($panel);
 	}
 
 	/**
