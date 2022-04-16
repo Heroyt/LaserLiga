@@ -1674,3 +1674,7 @@ msgstr "Pokud jste žádné výsledky ještě nikdy neviděli, nejprve si je v k
 msgctxt "gameModes"
 msgid "Barvičky"
 msgstr "Barvičky"
+
+msgctxt "results"
+msgid "Bodování"
+msgstr "Bodování"

@@ -3,6 +3,7 @@
 use App\Controllers\Dashboard;
 use App\Controllers\Games;
 use App\Controllers\Questionnaire;
+use App\Core\App;
 use App\Core\Request;
 use App\Core\Routing\Route;
 
@@ -19,6 +20,7 @@ Route::get('players/leaderboard/{system}/{date}/{property}', [Games::class, 'tod
 
 Route::get('/lang/{lang}', static function(Request $request) {
 	$_SESSION['lang'] = $request->params['lang'];
+	App::redirect($request->get['redirect'] ?? []);
 });
 
 // Questionnaire

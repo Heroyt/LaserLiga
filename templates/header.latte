@@ -1,7 +1,10 @@
+{varType array $_GET}
+{varType \App\Core\Request $request}
+
 {define header}
 	<header class="navbar navbar-expand-lg navbar-light bg-light">
 		<div class="container-fluid">
-			<a href="" class="navbar-brand">My PHP Framework</a>
+			{*<a href="" class="navbar-brand">My PHP Framework</a>
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navBarContent"
 					aria-controls="navBarContent" aria-expanded="false" aria-label="{lang 'Toggle navigation'}">
 				<span class="navbar-toggler-icon"></span>
@@ -24,6 +27,29 @@
 								<a class="nav-link{if $menuItem->active} active{/if}" aria-current="page"
 								   href="{$menuItem->url}">{$menuItem->name}</a>
 							{/if}
+						</li>
+					{/foreach}
+				</ul>
+			</div>*}
+			<div class="btn-group ms-auto">
+				{var string $selectedLang = explode('_',$_GET['lang'] ?? App\Core\App::$language->id)[0]}
+				{var string $selectedCountry = App\Core\App::getSupportedLanguages()[$selectedLang]}
+				<button class="btn btn-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown"
+						aria-expanded="false">
+					<img src="{getUrl}assets/flags/{\App\Core\Constants::COUNTRIES[$selectedCountry]|escapeurl}.png"
+						 style="height: 2rem; width: 2rem;"
+						 alt="{\App\Core\Constants::COUNTRIES[$selectedCountry]}">
+				</button>
+				<ul class="dropdown-menu bg-white" style="min-width: 5rem;">
+					{foreach App\Core\App::getSupportedLanguages() as $lang => $country}
+						{continueIf $selectedLang === $lang}
+						<li>
+							<a class="dropdown-item" href="{link ['lang', $lang, 'redirect' => $request->path]}">
+								<img class="mx-auto d-block"
+									 src="{getUrl}assets/flags/{\App\Core\Constants::COUNTRIES[$country]|escapeurl}.png"
+									 style="height: 2rem; width: 2rem;"
+									 alt="{\App\Core\Constants::COUNTRIES[$country]}">
+							</a>
 						</li>
 					{/foreach}
 				</ul>

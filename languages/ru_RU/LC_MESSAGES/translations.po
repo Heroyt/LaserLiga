@@ -1636,3 +1636,7 @@ msgstr ""
 msgctxt "gameModes"
 msgid "Barvičky"
 msgstr ""
+
+msgctxt "results"
+msgid "Bodování"
+msgstr ""

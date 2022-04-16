@@ -1367,7 +1367,7 @@ msgstr "My hits and deaths"
 
 msgctxt "questionnaire.question"
 msgid "Trofeje (= tabulka \"Ti nej\")"
-msgstr "Trophies (=„The best” table)"
+msgstr "Trophies (=\"The best\" table)"
 
 msgctxt "questionnaire.question"
 msgid "Můj nejoblíbenější cíl a největší zabiják"
@@ -1664,3 +1664,7 @@ msgstr "If you have never seen any results, look through them first and you can 
 msgctxt "gameModes"
 msgid "Barvičky"
 msgstr "Color madness"
+
+msgctxt "results"
+msgid "Bodování"
+msgstr "Scoring"
