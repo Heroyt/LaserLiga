@@ -1,0 +1,48 @@
+{varType int $counter}
+{varType int $total}
+{varType App\Models\Questionnaire\Question $question}
+{varType App\Models\Questionnaire\User $user}
+
+<div class="question text-center">
+	<section class="counter">
+		<div class="progress" style="height: 2rem;">
+			<div class="progress-bar" role="progressbar" style="width: {100*$counter / $total|noescape}%;"
+				 aria-valuenow="{$counter}" aria-valuemin="0" aria-valuemax="{$total}"></div>
+		</div>
+		<p>{$counter}/{$total}</p>
+	</section>
+	<section class="question-description">
+		{lang($question->text, context: 'questionnaire.question')|noescape}
+	</section>
+	<section class="question-inputs">
+		{var App\Models\Questionnaire\Question[] $subQuestions = $question->getSubQuestions()}
+		{dump $subQuestions}
+		{if empty($subQuestions)}
+			{include $question->getTemplate()}
+		{else}
+			{foreach $subQuestions as $subQuestion}
+				<div class="row my-3 py-3 align-items-center border-bottom">
+					<label class="col-12 col-md-3 sub-question-description text-start"
+						   for="questionnaire-{$subQuestion->id}">
+						{lang($subQuestion->text, context: 'questionnaire.question')|noescape}
+					</label>
+					<div class="col-12 col-md-9 sub-question-inputs d-flex flex-wrap justify-content-evenly align-items-center">
+						{include $subQuestion->getTemplate(), question: $subQuestion}
+					</div>
+				</div>
+			{/foreach}
+			{if $question->allowCustom}
+				{var App\Models\Questionnaire\Answer|null $answer = $user->getAnswerForQuestion($question)}
+				{var string|array|null $answerValue = $answer?->getValue()}
+				<div class="form-group">
+					<label for="questionnaire-{$question->id}-custom">
+						{lang 'Vlastní odpověď (chcete něco dodat?)', context: 'questionnaire'}:
+					</label>
+					<textarea name="questionnaire[{$question->id}][custom]" id="questionnaire-{$question->id}-custom"
+							  rows="3"
+							  class="form-control">{if isset($answer) && is_array($answerValue)}{$answerValue['custom'] ?? ''}{/if}</textarea>
+				</div>
+			{/if}
+		{/if}
+	</section>
+</div>

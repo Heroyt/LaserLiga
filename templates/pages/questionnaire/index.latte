@@ -1,0 +1,34 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Questionnaire\User[] $users}
+
+{block content}
+	<h2>{lang 'Výsledky dotazníku', context: 'questionnaire'}</h2>
+	<p class="text-start">
+		<a href="{link ['questionnaire', 'results', 'stats']}" class="btn btn-warning">Statistiky</a>
+	</p>
+	<table class="table table-striped">
+		<thead>
+		<tr>
+			<th>ID</th>
+			<th>Dotazník</th>
+			<th class="text-center">Opdovědi</th>
+			<th class="text-center">Dokončeno</th>
+			<th class="text-center">Zobrazit</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr n:foreach="$users as $user">
+			<td>{$user->id}</td>
+			<td>{$user->questionnaire->name}</td>
+			<td class="text-center">{array_filter($user->getAnswers())|length}</td>
+			<td class="text-center">{if $user->finished}<span class="text-success"><i
+							class="fa-solid fa-circle-check"></i></span>{else}<span class="text-danger"><i
+							class="fa-solid fa-circle-xmark"></i></span>{/if}</td>
+			<td class="text-center"><a href="{link ['questionnaire', 'results', $user->id]}" class="btn btn-info">Zobrazit
+					výsledky</a></td>
+		</tr>
+		</tbody>
+	</table>
+
+{/block}

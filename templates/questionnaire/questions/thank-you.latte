@@ -1,0 +1,13 @@
+{varType int $counter}
+{varType int $total}
+
+<div class="question text-center">
+	<section class="counter">
+		<div class="progress" style="height: 2rem;">
+			<div class="progress-bar" role="progressbar" style="width: {100*$counter / $total|noescape}%;"
+				 aria-valuenow="{$counter}" aria-valuemin="0" aria-valuemax="{$total}"></div>
+		</div>
+		<p>{$counter}/{$total}</p>
+	</section>
+	<h3>{lang 'Děkuji, Váše odpovědi byly úspěšně zaznamenány.', context:'questionnaire'}</h3>
+</div>

@@ -1,0 +1,36 @@
+{varType App\Models\Questionnaire\Question $question}
+{varType App\Models\Questionnaire\User $user}
+
+{var string $inputName = $question->allowCustom ? 'questionnaire[' . $question->id . '][range]' : 'questionnaire[' . $question->id . ']'}
+
+{var App\Models\Questionnaire\Answer|null $answer = $user->getAnswerForQuestion($question)}
+{var string|array|null $answerValue = $answer?->getValue()}
+{dump $answerValue}
+
+<div class="w-100">
+	<div class="range d-flex justify-content-evenly">
+		{for $i = 1; $i < 6; $i++}
+			<label class="text-center py-2 px-4 rounded border m-2 cursor-pointer d-flex flex-column justify-content-center align-items-center"
+				   for="questionnaire-{$question->id}-{$i}">
+		<span class="form-check-label">
+			{$i}
+		</span>
+				<input class="form-check-input{if $question->optional} not-required{/if}" type="radio"
+					   name="{$inputName}"
+					   id="questionnaire-{$question->id}-{$i}" value="{$i}"
+					   {if isset($answer) && ((is_array($answerValue) && in_array((string) $i, $answerValue,true)) || ($answerValue === (string) $i))}checked="checked"{/if}>
+			</label>
+		{/for}
+	</div>
+	<p class="text-sm text-muted">{lang 'Jako známkování ve škole. (1 = nejlepší, 5 = nejhorší)', context: 'questionnaire'}</p>
+</div>
+
+{if $question->allowCustom}
+	<div class="form-group">
+		<label for="questionnaire-{$question->id}-custom">
+			{lang 'Vlastní odpověď', context: 'questionnaire'}:
+		</label>
+		<textarea name="questionnaire[{$question->id}][custom]" id="questionnaire-{$question->id}-custom" rows="3"
+				  class="form-control">{if isset($answer) && is_array($answerValue)}{$answerValue['custom'] ?? ''}{/if}</textarea>
+	</div>
+{/if}

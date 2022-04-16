@@ -1,0 +1,62 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Questionnaire\Question[] $questions}
+{varType array $answers}
+{varType string[][] $customs}
+
+{dump $customs}
+
+{block content}
+	<p class="text-start">
+		<a href="{link ['questionnaire', 'results']}" class="btn btn-warning">Zpět</a>
+		<a href="{link ['questionnaire', 'results', 'stats']}" class="btn btn-danger">Zrušit filtry</a>
+	</p>
+
+	<form action="{link ['questionnaire', 'results', 'stats']}" method="get" id="stats-form">
+		<div class="my-4 py-5 border-bottom" n:foreach="$questions as $question">
+			<div class="question text-center">
+				<section class="question-description">
+					{lang($question->text, context: 'questionnaire.question')|noescape}
+				</section>
+				<section class="question-inputs">
+					{var App\Models\Questionnaire\Question[] $subQuestions = $question->getSubQuestions()}
+					{if empty($subQuestions)}
+						{include $question->getTemplate(), answers: $answers[$question->id] ?? ['total' => 0, 'values' => []]}
+					{else}
+						{foreach $subQuestions as $subQuestion}
+							<div class="row my-3 py-3 align-items-center border-bottom">
+								<label class="col-12 col-md-3 sub-question-description text-start"
+									   for="questionnaire-{$subQuestion->id}">
+									{lang($subQuestion->text, context: 'questionnaire.question')|noescape}
+								</label>
+								<div class="col-12 col-md-9 sub-question-inputs d-flex flex-wrap justify-content-evenly align-items-center">
+									{include $subQuestion->getTemplate(), question: $subQuestion, answers: $answers[$subQuestion->id] ?? ['total' => 0, 'values' => []]}
+								</div>
+							</div>
+							{if !empty($customs[$subQuestion->id])}
+								<h5>Vlastní odpovědi:</h5>
+								<ul class="list-group">
+									<li class="list-group-item" n:foreach="$customs[$subQuestion->id] as $text">{$text}</li>
+								</ul>
+							{/if}
+						{/foreach}
+					{/if}
+				</section>
+				{if !empty($customs[$question->id])}
+					<h5>Vlastní odpovědi:</h5>
+					<ul class="list-group">
+						<li class="list-group-item" n:foreach="$customs[$question->id] as $text">{$text}</li>
+					</ul>
+				{/if}
+			</div>
+		</div>
+		<script>
+			document.querySelectorAll('input').forEach(input => {
+				input.addEventListener('change', () => {
+					document.forms['stats-form'].submit();
+				});
+			});
+		</script>
+	</form>
+
+{/block}

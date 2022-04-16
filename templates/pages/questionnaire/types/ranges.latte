@@ -1,0 +1,37 @@
+{varType App\Models\Questionnaire\Question $question}
+{varType array $answers}
+{varType array $_GET}
+
+{var string $inputName = 'questionnaire[' . $question->id . ']'}
+
+<div class="p-3 fw-bold rounded bg-secondary text-white col-12">
+	Celkem odpovědí: {$answers['total']}
+</div>
+
+<div class="w-100">
+	<div class="range d-flex justify-content-evenly">
+		{for $i = 1; $i < 6; $i++}
+			{var int $count = $answers['values'][(string) $i] ?? 0}
+			<div class="flex-fill">
+				<label class="text-center py-2 px-4 rounded border m-2 cursor-pointer d-flex flex-column justify-content-center align-items-center"
+					   for="questionnaire-{$question->id}-{$i}">
+				<span class="form-check-label">
+					{$i}
+				</span>
+					<input class="form-check-input{if $question->optional} not-required{/if}" type="radio"
+						   name="{$inputName}"
+						   id="questionnaire-{$question->id}-{$i}" value="{$i}"
+						   {if ($_GET['filters'][$question->id] ?? 0) === (string) $i}checked{/if}>
+				</label>
+				<div class="count">
+					<div class="progress align-items-end" style="height: 4rem;">
+						<div class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="0"
+							 aria-valuemin="0" aria-valuemax="100"
+							 style="width: 100%; height:{if $answers['total'] > 0}{100*$count / $answers['total']|noescape}{else}0{/if}%;"></div>
+					</div>
+					{$count}
+				</div>
+			</div>
+		{/for}
+	</div>
+</div>

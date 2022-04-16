@@ -1,0 +1,25 @@
+{varType App\Models\Questionnaire\Question $question}
+{varType App\Models\Questionnaire\User $user}
+
+{var string $inputName = $question->allowMultiple || $question->allowCustom ? 'questionnaire[' . $question->id . '][]' : 'questionnaire[' . $question->id . ']'}
+
+{var App\Models\Questionnaire\Answer|null $answer = $user->getAnswerForQuestion($question)}
+{var string|array|null $answerValue = $answer?->getValue()}
+
+<div class="form-group">
+	<textarea name="{$inputName}" id="questionnaire-{$question->id}" rows="3"
+			  class="form-control{if $question->optional} not-required{/if}">{if isset($answer)}{is_array($answerValue) ? $answerValue[0] : $answerValue}{/if}</textarea>
+	<div class="invalid-feedback">
+		{lang 'Toto pole je povinné', context: 'form.errors'}
+	</div>
+</div>
+
+{if $question->allowCustom}
+	<div class="form-group">
+		<label for="questionnaire-{$question->id}-custom">
+			{lang 'Vlastní odpověď', context: 'questionnaire'}:
+		</label>
+		<textarea name="questionnaire[{$question->id}][custom]" id="questionnaire-{$question->id}-custom" rows="3"
+				  class="form-control">{if isset($answer) && is_array($answerValue)}{$answerValue['custom'] ?? ''}{/if}</textarea>
+	</div>
+{/if}

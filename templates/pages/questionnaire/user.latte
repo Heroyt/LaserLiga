@@ -1,0 +1,15 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Questionnaire\User $user}
+{varType App\Models\Questionnaire\Question[] $questions}
+
+{block content}
+
+	<p class="text-start"><a href="{link ['questionnaire', 'results']}" class="btn btn-warning">Zpět</a></p>
+
+	{var int $total = count($questions)}
+	<div class="my-4 py-5 border-bottom" n:foreach="$questions as $question">
+		{include '../../questionnaire/questions/question.latte', counter: $iterator->counter, total: $total, question: $question}
+	</div>
+
+{/block}
