@@ -127,7 +127,7 @@ export function validateEmail(email) {
  */
 export function getLink(request) {
 	if (prettyUrl) {
-		return window.location.origin + '/' + document.documentElement.lang + '/' + request.join('/');
+		return window.location.origin + '/' + request.join('/');
 	} else {
 		let query = {
 			lang: document.documentElement.lang
