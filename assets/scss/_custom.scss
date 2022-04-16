@@ -6,11 +6,11 @@
 @use 'sass:map';
 @use 'functions';
 
-$utilityColors: functions.getUtilityColors($custom-colors);
-$theme-colors: map.merge($theme-colors, functions.getThemeColors($custom-colors));
+$utilityColors: functions.getUtilityColors($custom-colors-light);
+$theme-colors: map.merge($theme-colors, functions.getThemeColors($custom-colors-light));
 
 :root {
-	@each $name, $values in $custom-colors {
+	@each $name, $values in $custom-colors-light {
 		@each $weight, $color in $values {
 			$separator: '-';
 			@if $weight == '' {
@@ -45,6 +45,10 @@ body {
 	height: 100%;
 }
 
+* {
+	scroll-behavior: smooth;
+}
+
 $card-bg: map.get($theme-colors, 'dark');
 
 $utilities: map.deep-merge(
@@ -69,6 +73,20 @@ $utilities: map.deep-merge(
 						)
 				),
 			),
+			'cursor': (
+				property: cursor,
+				class: cursor,
+				responsive: false,
+				print: false,
+				values: (
+					pointer: pointer,
+					default: default,
+					help: help,
+					not-allowed: not-allowed,
+					copy: copy,
+					crosshair: crosshair,
+				),
+			),
 			'font-size': (
 				values: (
 					sm: .8rem,
@@ -91,5 +109,34 @@ $utilities: map.deep-merge(
 					size: var(--size, 1),
 				),
 			),
+			"rounded": (
+				values: (
+					10: 10px,
+				)
+			),
+			"rounded-top": (
+				values: (
+					10: 10px
+				)
+			),
+			"rounded-end": (
+				values: (
+					10: 10px
+				)
+			),
+			"rounded-bottom": (
+				values: (
+					10: 10px
+				)
+			),
+			"rounded-start": (
+				values: (
+					10: 10px
+				)
+			),
 		),
 );
+
+body {
+	--test: #{functions.getVarFromColor(#339af0, $custom-colors-light)};
+}

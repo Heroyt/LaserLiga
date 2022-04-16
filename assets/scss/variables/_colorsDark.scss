@@ -1,28 +1,29 @@
-$custom-colors-light: (
+$custom-colors-dark: (
 	'black': (
-		'': #000,
-		'100': ('color': #192029, 'alias': 'dark')
+		'0': ('color': #080a0d, 'alias': 'white'),
 	),
 	'white': (
-		'': #fff,
-		'200': ('color': #f0f0f0, 'alias': 'very-light'),
-		'300': ('color': #e0e0e0, 'alias': 'light'),
+		'0': ('color': #fff, 'alias': 'black'),
+		'1': ('color': #fff, 'alias': 'text'),
+		'100': ('color': #e6ecf2, 'alias': 'dark'),
+		'200': ('color': #262626, 'alias': 'very-light'),
+		'300': ('color': #707070, 'alias': 'light'),
 	),
 	'grey': (
 		'100': #f1f3f5,
 		'200': #e9ecef,
 		'300': #dee2e6,
-		'400': ('color': #ced4da, 'alias': 'light-grey'),
+		'400': ('color': #ced4da, 'alias': 'dark-grey'),
 		'500': #adb5bd,
 		'600': ('color': #868e96, 'alias': 'grey'),
-		'700': ('color': #495057, 'alias': 'dark-grey'),
+		'700': ('color': #495057, 'alias': 'light-grey'),
 		'800': #343a40,
 		'900': #212529,
-		'bg': ('color': #ebf0fa, 'alias': 'background'),
+		'bg': ('color': #c7cbd3, 'alias': 'light-background'),
 	),
 	'blue': (
 		'100': ('color': #74c7dc, 'alias': 'info'),
-		'200': ('color': #ade6fd, 'alias': 'light-blue'),
+		'200': ('color': #ade6fd, 'alias': 'dark-blue'),
 		'300': #84d1fa,
 		'400': #64bbf6,
 		'500': ('color': #339af0, 'alias': 'primary'),
@@ -30,11 +31,11 @@ $custom-colors-light: (
 		'700': #1959ac,
 		'800': #103f8b,
 		'900': #092c73,
-		'bg': ('color': #192029, 'alias': 'text'),
+		'bg': ('color': #192029, 'alias': 'background'),
 	),
 	'cyan': (
 		'100': #d2fcf4,
-		'200': ('color': #a6faf1, 'alias': 'light-cyan'),
+		'200': ('color': #a6faf1, 'alias': 'dark-cyan'),
 		'300': #77f0ed,
 		'400': #54dae2,
 		'500': ('color': #22b8cf, 'alias': 'company-blue'),
@@ -103,18 +104,16 @@ $custom-colors-light: (
 		"200": #E3E3E3,
 		"300": #DFDFDF,
 		"400": #DBDBDB,
-		"500": ("color": #D7D7D7, "alias": 'silver'),
+		"500": ("color": #D7D7D7, "alias": 'dark-silver'),
 		"600": #b3b3b3,
 		"700": #999,
 		"800": #808080,
-		"900": ("color": #525252, "alias": 'dark-silver'),
+		"900": ("color": #525252, "alias": 'silver'),
 	),
 	"table": (
 		"background": transparent,
 		"striped-background": rgba(255, 255, 255, 0.05),
-		"color": ('color': #192029, 'alias': 'table-text-color'),
-		"striped-color": #192029,
+		"color": ('color': #dae5f2, 'alias': 'table-text-color'),
+		"striped-color": #dae5f2,
 	),
 );
-
-$box-shadow-color: rgba(0, 0, 0, .16);

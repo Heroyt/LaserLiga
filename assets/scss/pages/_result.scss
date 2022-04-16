@@ -77,29 +77,6 @@
 				text-align: right;
 				max-width: 5rem;
 			}
-
-			.collapse-indicator {
-				text-align: center;
-				max-width: 1.5rem;
-			}
-
-			.collapse-indicator-collapsed {
-				display: none;
-			}
-
-			.collapse-indicator-not-collapsed {
-				display: inline-block;
-			}
-
-			&.collapsed {
-				.collapse-indicator-collapsed {
-					display: inline-block;
-				}
-
-				.collapse-indicator-not-collapsed {
-					display: none;
-				}
-			}
 		}
 
 		.player_mines {
@@ -269,7 +246,7 @@
 
 				.empty path {
 					fill: transparent;
-					stroke: #000;
+					stroke: currentColor;
 					stroke-width: 2px;
 				}
 			}
@@ -331,6 +308,7 @@
 	.player-body {
 		grid-template-columns: 1fr;
 		align-items: center;
+		grid-row-gap: 1.5rem;
 		grid-template-areas:
 			'trophy'
 			'accuracy'

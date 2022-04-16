@@ -1,4 +1,5 @@
 @use 'sass:map';
+@use '~bootstrap/scss/functions' as bs;
 
 @function getUtilityColors($colors) {
 	$map: ();
@@ -50,4 +51,41 @@
 		}
 	}
 	@return $map;
+}
+
+@function getThemeColors($colors) {
+	$map: ();
+	@each $name, $values in $colors {
+		@each $weight, $color in $values {
+			@if type-of($color) == 'map' {
+				$map: map.merge(
+						$map,
+						(
+							'#{map.get($color, "alias")}': map.get($color, 'color')
+						)
+				);
+			}
+		}
+	}
+	@return $map;
+}
+
+@function getVarFromColor($colorSearch, $colors) {
+	$result: $colorSearch;
+	@if type-of($colorSearch) != null {
+		@each $name, $values in $colors {
+			@each $weight, $color in $values {
+				@if (type-of($color) == 'map') {
+					@if (map.get($color, 'color') == $colorSearch) {
+						$result: var(--#{map.get($color, "alias")});
+					}
+				} @else {
+					@if ($color == $colorSearch) {
+						$result: var(--#{$name}-#{$weight});
+					}
+				}
+			}
+		}
+	}
+	@return $result;
 }
