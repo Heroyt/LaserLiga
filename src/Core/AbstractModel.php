@@ -112,14 +112,15 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	}
 
 	/**
-	 * @param int $id
+	 * @param int      $id
+	 * @param Row|null $row
 	 *
 	 * @return AbstractModel
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 */
-	public static function get(int $id) : AbstractModel {
-		return self::$instances[self::TABLE][$id] ?? new static($id);
+	public static function get(int $id, ?Row $row = null) : AbstractModel {
+		return self::$instances[self::TABLE][$id] ?? new static($id, $row);
 	}
 
 	/**

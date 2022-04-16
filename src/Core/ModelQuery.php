@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use App\Exceptions\ModelNotFoundException;
+use App\Logging\DirectoryCreationException;
 use Dibi\Fluent;
 
 class ModelQuery
@@ -76,7 +78,11 @@ class ModelQuery
 		$className = $this->className;
 		$model = [];
 		foreach ($rows as $row) {
-			$model[$row->{$this->className::PRIMARY_KEY}] = new $className($row->{$this->className::PRIMARY_KEY}, $row);
+			try {
+				$model[$row->{$this->className::PRIMARY_KEY}] = $className::get($row->{$this->className::PRIMARY_KEY}, $row);
+			} catch (ModelNotFoundException|DirectoryCreationException $e) {
+				bdump($e);
+			}
 		}
 		return $model;
 	}
