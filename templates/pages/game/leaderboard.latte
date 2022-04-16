@@ -1,4 +1,5 @@
 {varType string $property}
+{varType int $highlight}
 {varType Dibi\Row[] $players}
 
 {var array $icons = ['Score' => 'star', 'Accuracy' => 'target', 'Shots' => 'bullets', 'Hits' => 'kill', 'Deaths' => 'skull']}
@@ -14,8 +15,9 @@
 	</tr>
 	</thead>
 	<tbody>
-	<tr n:foreach="$players as $player">
-		<td>{$iterator->counter}.</td>
+	<tr n:foreach="$players as $player" data-id="{$player->id_player}"
+										class="{if $player->id_player === $highlight}table-primary{/if}">
+		<td>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</td>
 		<th scope="col" class="text-center text-uppercase">{$player->name}</th>
 		<td class="text-center">{lang $player->mode, context: 'gameModes'}</td>
 		<td class="text-end">

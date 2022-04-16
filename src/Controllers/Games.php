@@ -29,7 +29,6 @@ class Games extends Controller
 			return;
 		}
 		$this->params['today'] = new Today($this->params['game'], new ($this->params['game']->playerClass), new ($this->params['game']->teamClass));
-		bdump($this->params);
 		$this->view('pages/game/index');
 	}
 
@@ -41,7 +40,7 @@ class Games extends Controller
 	 * @return void
 	 */
 	public function todayLeaderboard(Request $request) : void {
-		$this->params['highlight'] = $request->get['highlight'] ?? 0;
+		$this->params['highlight'] = (int) ($request->get['highlight'] ?? 0);
 		$system = $request->params['system'] ?? '';
 		$date = $request->params['date'] ?? 'now';
 		$property = $request->params['property'] ?? 'score';
@@ -64,14 +63,27 @@ class Games extends Controller
 		}
 
 		$this->params['property'] = ucfirst($property);
+		// Get all game ids from today
+		$gameIds = DB::select($gameClass::TABLE, $gameClass::PRIMARY_KEY)->where('[end] IS NOT NULL AND DATE([start]) = %d', $date)->fetchAll();
 		$this->params['players'] = DB::select(
 			[$playerClass::TABLE, 'p'],
-			'[p].[id_player], [g].[id_game], [g].[start] as [date], [m].[name] as [mode], [p].[name], [p].'.DB::getConnection()->getDriver()->escapeIdentifier($property).' as [value]',
+			'[p].[id_player],
+			[g].[id_game],
+			[g].[start] as [date],
+			[m].[name] as [mode],
+			[p].[name],
+			[p].'.DB::getConnection()->getDriver()->escapeIdentifier($property).' as [value],
+			(('.DB::select([$playerClass::TABLE, 'pp1'], 'COUNT(*) as [count]')
+						->where('[pp1].%n IN %in', $gameClass::PRIMARY_KEY, $gameIds)
+						->where('[pp1].%n > [p].%n', $property, $property).')+1) as [better],
+			(('.DB::select([$playerClass::TABLE, 'pp2'], 'COUNT(*) as [count]')
+						->where('[pp2].%n IN %in', $gameClass::PRIMARY_KEY, $gameIds)
+						->where('[pp2].%n = [p].%n', $property, $property).')-1) as [same]',
 		)
 																 ->join($gameClass::TABLE, 'g')->on('[p].[id_game] = [g].[id_game]')
 																 ->leftJoin(AbstractMode::TABLE, 'm')
 																 ->on('([g].[id_mode] = [m].[id_mode] || ([g].[id_mode] IS NULL AND (([g].[game_type] = %s AND [m].[id_mode] = %i) OR ([g].[game_type] = %s AND [m].[id_mode] = %i))))', 'TEAM', 1, 'SOLO', 2)
-																 ->where('[g].[end] IS NOT NULL AND DATE([g].[start]) = %d', $date)
+																 ->where('[g].%n IN %in', $gameClass::PRIMARY_KEY, $gameIds)
 																 ->orderBy('value')
 																 ->desc()
 																 ->fetchAll();
