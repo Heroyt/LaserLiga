@@ -26,6 +26,13 @@ export default function initResults() {
 		});
 	});
 
+	// Auto-open tournament modal
+	const modalDom = document.getElementById('tournament-modal');
+	const modal = new Modal(modalDom);
+	if (modalDom.dataset.show && modalDom.dataset.show === 'true') {
+		modal.show();
+	}
+
 	initQuestionnaire();
 }
 
