@@ -247,8 +247,8 @@ function updateTranslations() : void {
 		if (!isset($template)) {
 			$template = clone $translation;
 		}
-		$poGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/LAC.po');
-		$moGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/LAC.mo');
+		$poGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/translations.po');
+		$moGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/translations.mo');
 	}
 	foreach ($template->getTranslations() as $string) {
 		$string->translate('');
@@ -260,7 +260,7 @@ function updateTranslations() : void {
 			}
 			$string->translatePlural(...$plural);
 		}
-		$poGenerator->generateFile($template, LANGUAGE_DIR.'LAC.pot');
+		$poGenerator->generateFile($template, LANGUAGE_DIR.'LaserLiga.pot');
 	}
 }
 

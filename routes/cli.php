@@ -3,6 +3,7 @@
 use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
 use App\Controllers\Cli\Help;
+use App\Controllers\Cli\Translations;
 use App\Core\Routing\CliRoute;
 use App\Services\CliHelper;
 
@@ -55,4 +56,7 @@ if (PHP_SAPI === 'cli') {
 													'description' => 'If set, output will be written to the [out] file. Otherwise, output will be written to stdout.',
 													'template'    => 'filepaths',
 												]);
+
+	CliRoute::cli('translations/compile', [Translations::class, 'compile'])
+					->description('Compile all translation files.');
 }

@@ -1633,3 +1633,13 @@ msgstr ""
 msgctxt "results"
 msgid "Bodování"
 msgstr ""
+
+# /src/Services/CliHelper.php:26
+msgctxt "cli.messages"
+msgid "Error"
+msgstr ""
+
+# /src/Services/CliHelper.php:27
+msgctxt "cli.errors"
+msgid "Missing the required path argument (1)"
+msgstr ""
