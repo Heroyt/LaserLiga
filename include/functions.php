@@ -13,8 +13,10 @@ use App\Core\App;
 use App\Exceptions\TemplateDoesNotExistException;
 use App\Logging\Tracy\Events\TranslationEvent;
 use App\Logging\Tracy\TranslationTracyPanel;
+use Gettext\Generator\MoGenerator;
 use Gettext\Generator\PoGenerator;
 use Gettext\Translation;
+use Gettext\Translations;
 
 /**
  * Get latte template file path by template name
@@ -149,15 +151,37 @@ function lang(?string $msg = null, ?string $plural = null, int $num = 1, ?string
 		$msg = $context."\004".$msg;
 	}
 
-	if ($context === 'leaderboard') {
-		bdump($msg);
-	}
-
 	// If in development - add translation to po file if not exist
 	if (!PRODUCTION && CHECK_TRANSLATIONS) {
 		$logged = false;
+		// Use an exception to get the trace to this function call
+		$trace = (new Exception)->getTrace();
+		$file = '';
+		if (is_array($trace) && isset($trace[0])) {
+			$file = str_replace(ROOT, '/', $trace[0]['file']).':'.$trace[0]['line'];
+			if (str_contains($trace[0]['file'], 'latte')) {
+				// Load parsed latte file by lines
+				$lines = file($trace[0]['file']);
+				// Source comment is on line 5
+				$line = $lines[4] ?? '';
+				if (preg_match('/\/\*+ source: ([^*]+) \*\//', $line, $matches)) {
+					$file = str_replace(ROOT, '/', $matches[1]).':';
+					// Find line number
+					// Line number should be located in a comment somewhere on or bellow the called line
+					$lineCount = count($lines);
+					for ($i = $trace[0]['line'] - 1; $i < $lineCount; $i++) {
+						if (preg_match('/\/\*+ line (\d+) \*\//', $lines[$i], $matches)) {
+							// Found line number
+							$file .= $matches[1];
+							break;
+						}
+					}
+				}
+			}
+		}
 		foreach ($GLOBALS['translations'] as $lang => $translations) {
-			if (!$translations->find($context, $msgTmp)) {                    // Check if translation exists
+			/** @var Translations $translations */
+			if (!($translation = $translations->find($context, $msgTmp))) {                    // Check if translation exists
 				// Create new translation
 				if (!$logged) {
 					$event = new TranslationEvent();
@@ -173,7 +197,13 @@ function lang(?string $msg = null, ?string $plural = null, int $num = 1, ?string
 				if ($plural !== null) {
 					$translation->setPlural($plural);
 				}
+
 				$translations->add($translation);
+				$GLOBALS['translationChange'] = true;
+			}
+			$comments = $translation->getComments();
+			if (!empty($file) && !in_array($file, $comments->toArray(), true)) {
+				$comments->add($file);
 				$GLOBALS['translationChange'] = true;
 			}
 		}
@@ -197,10 +227,6 @@ function lang(?string $msg = null, ?string $plural = null, int $num = 1, ?string
 			$translated = ngettext($split[1], $plural, $num);
 		}
 	}
-
-	if ($context === 'leaderboard') {
-		bdump($translated);
-	}
 	TranslationTracyPanel::incrementTranslations();
 	return $translated;
 }
@@ -209,14 +235,57 @@ function lang(?string $msg = null, ?string $plural = null, int $num = 1, ?string
  * Regenerate the translation .po files
  */
 function updateTranslations() : void {
+	/** @var Translations[] $translations */
 	global $translationChange, $translations;
 	if (PRODUCTION || !$translationChange) {
 		return;
 	}
 	$poGenerator = new PoGenerator();
+	$moGenerator = new MoGenerator();
+	$template = null;
 	foreach ($translations as $lang => $translation) {
-		$poGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/translations.po');
+		if (!isset($template)) {
+			$template = clone $translation;
+		}
+		$poGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/LAC.po');
+		$moGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/LAC.mo');
 	}
+	foreach ($template->getTranslations() as $string) {
+		$string->translate('');
+		$pluralCount = count($string->getPluralTranslations());
+		if ($pluralCount > 0) {
+			$plural = [];
+			for ($i = 0; $i < $pluralCount; $i++) {
+				$plural[] = '';
+			}
+			$string->translatePlural(...$plural);
+		}
+		$poGenerator->generateFile($template, LANGUAGE_DIR.'LAC.pot');
+	}
+}
+
+
+/**
+ * Gets simplified ratio of two numbers
+ *
+ * @param int      $var1   First number
+ * @param int      $var2   Second number
+ * @param int|null $return Index of what number to return to - null to return whole array
+ *
+ * @return int|array One simplified number or the whole ratio as an array
+ */
+function ratio(int $var1, int $var2, int $return = null) : array|int {
+	for ($x = $var1; $x > 1; $x--) {
+		if (($var1 % $x) === 0 && ($var2 % $x) === 0) {
+			$var1 /= $x;
+			$var2 /= $x;
+		}
+	}
+	$arr = [$var1, $var2];
+	if (!isset($return)) {
+		return $arr;
+	}
+	return $arr[$return] ?? 0;
 }
 
 function svgIcon(string $name, string|int $width = '100%', string|int $height = '') : string {
@@ -256,27 +325,4 @@ function trailingSlashIt(string $string) : string {
 		$string .= DIRECTORY_SEPARATOR;
 	}
 	return $string;
-}
-
-/**
- * Gets simplified ratio of two numbers
- *
- * @param int      $var1   First number
- * @param int      $var2   Second number
- * @param int|null $return Index of what number to return to - null to return whole array
- *
- * @return int|array One simplified number or the whole ratio as an array
- */
-function ratio(int $var1, int $var2, int $return = null) : array|int {
-	for ($x = $var1; $x > 1; $x--) {
-		if (($var1 % $x) === 0 && ($var2 % $x) === 0) {
-			$var1 /= $x;
-			$var2 /= $x;
-		}
-	}
-	$arr = [$var1, $var2];
-	if (!isset($return)) {
-		return $arr;
-	}
-	return $arr[$return] ?? 0;
 }
