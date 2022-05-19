@@ -197,7 +197,11 @@ class App
 				return str_replace(LANGUAGE_DIR, '', $dir);
 			}, glob(LANGUAGE_DIR.'*'));
 			foreach ($dirs as $dir) {
-				[$lang, $country] = explode('_', $dir);
+				$explode = explode('_', $dir);
+				if (count($explode) !== 2) {
+					continue;
+				}
+				[$lang, $country] = $explode;
 				self::$supportedLanguages[$lang] = $country;
 			}
 		}
