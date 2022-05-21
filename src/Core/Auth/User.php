@@ -9,7 +9,9 @@ use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\ModelNotFoundException;
 use App\Exceptions\ValidationException;
+use App\GameModels\Auth\LigaPlayer;
 use App\Logging\DirectoryCreationException;
+use App\Models\Arena;
 use App\Models\Auth\UserConnection;
 use App\Models\Auth\UserType;
 use Dibi\Row;
@@ -27,6 +29,9 @@ class User extends AbstractModel implements InsertExtendInterface
 		],
 		'parent'       => [
 			'class' => User::class,
+		],
+		'player'       => [
+			'class' => LigaPlayer::class,
 		],
 		'name'         => [],
 		'email'        => [
@@ -46,8 +51,9 @@ class User extends AbstractModel implements InsertExtendInterface
 	/** @var string Password hash */
 	public string $password;
 
-	public bool  $isParent = false;
-	public ?User $parent   = null;
+	public bool        $isParent = false;
+	public ?User       $parent   = null;
+	public ?LigaPlayer $player   = null;
 
 	/** @var UserConnection[] */
 	protected array $connections = [];
@@ -279,5 +285,25 @@ class User extends AbstractModel implements InsertExtendInterface
 	public function addConnection(UserConnection $connection) : User {
 		$this->connections[] = $connection;
 		return $this;
+	}
+
+	/**
+	 * @param Arena|null $arena
+	 *
+	 * @return LigaPlayer
+	 * @throws ValidationException
+	 */
+	public function createOrGetPlayer(?Arena $arena = null) : LigaPlayer {
+		if (!isset($this->player)) {
+			$this->player = new LigaPlayer();
+			$this->player->arena = $arena;
+			$this->player->id = $this->id;
+			$this->player->generateRandomCode();
+			$this->player->nickname = $this->name;
+			$this->player->user = $this;
+			$this->player->email = $this->email;
+			$this->player->save();
+		}
+		return $this->player;
 	}
 }

@@ -12,4 +12,9 @@ class UserType extends AbstractModel
 
 	public string $name = '';
 
+	public static function getHostUserType() : ?UserType {
+		/** @noinspection PhpIncompatibleReturnTypeInspection */
+		return self::query()->where('[host] = 1')->first();
+	}
+
 }
