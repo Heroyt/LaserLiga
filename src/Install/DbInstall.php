@@ -10,6 +10,7 @@ use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Evo5\Team;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
+use App\Models\Auth\UserConnection;
 use App\Models\Auth\UserType;
 use Dibi\DriverException;
 use Dibi\Exception;
@@ -19,7 +20,7 @@ class DbInstall implements InstallInterface
 
 	/** @var array{definition:string, modifications:array}[] */
 	public const TABLES = [
-		'page_info'         => [
+		'page_info'           => [
 			'definition'    => "(
 				`key` varchar(30) NOT NULL DEFAULT '',
 				`value` text DEFAULT NULL,
@@ -53,7 +54,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		'rights'            => [
+		'rights'              => [
 			'definition'    => "(
 				`right` varchar(20) NOT NULL DEFAULT '',
 				`description` text,
@@ -61,7 +62,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		'user_type_rights'  => [
+		'user_type_rights'    => [
 			'definition'    => "(
 				`id_user_type` int(11) unsigned NOT NULL,
 				`right` varchar(20) NOT NULL DEFAULT '',
@@ -73,7 +74,19 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		Arena::TABLE        => [
+		UserConnection::TABLE => [
+			'definition'    => "(
+				`id_connection` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				`id_user` int(11) unsigned NOT NULL,
+				`type` enum('rfid','laserforce') NOT NULL,
+				`identifier` tinytext NOT NULL,
+				PRIMARY KEY (`id_connection`),
+				KEY `id_user` (`id_user`),
+				CONSTRAINT `user_connected_accounts_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+			'modifications' => [],
+		],
+		Arena::TABLE          => [
 			'definition'    => "(
 				`id_arena` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`name` varchar(50) NOT NULL DEFAULT '',
@@ -83,7 +96,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		'api_keys'          => [
+		'api_keys'            => [
 			'definition'    => "(
 				`id_key` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_arena` int(11) unsigned NOT NULL,
