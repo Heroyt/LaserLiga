@@ -16,8 +16,12 @@ class ModelValidator
 	 *
 	 * @throws ValidationException
 	 */
-	public static function validateValue($value = null, array $validators = []) : void {
+	public static function validateValue($value = null, array $validators = [], ?AbstractModel $model = null) : void {
 		foreach ($validators as $validator) {
+			if (is_callable($validator)) {
+				$validator($value, $model);
+				continue;
+			}
 			$explode = explode(':', $validator);
 			$params = [];
 			if (count($explode) === 2) {
