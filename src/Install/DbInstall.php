@@ -5,6 +5,7 @@ namespace App\Install;
 use App\Core\Auth\User;
 use App\Core\DB;
 use App\Core\Info;
+use App\GameModels\Auth\Player as AuthPlayer;
 use App\GameModels\Game\Evo5\Game;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Evo5\Team;
@@ -38,7 +39,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		User::TABLE        => [
+		User::TABLE         => [
 			'definition'    => "(
 				`id_user` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_user_type` int(11) unsigned NOT NULL,
@@ -86,7 +87,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		Arena::TABLE          => [
+		Arena::TABLE        => [
 			'definition'    => "(
 				`id_arena` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`name` varchar(50) NOT NULL DEFAULT '',
@@ -96,7 +97,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		'api_keys'            => [
+		'api_keys'          => [
 			'definition'    => "(
 				`id_key` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_arena` int(11) unsigned NOT NULL,
@@ -108,6 +109,19 @@ class DbInstall implements InstallInterface
 				KEY `id_arena` (`id_arena`),
 				KEY `valid` (`valid`),
 				CONSTRAINT `api_keys_ibfk_1` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
+			'modifications' => [],
+		],
+		AuthPlayer::TABLE   => [
+			'definition'    => "(
+				`id_user` int(11) unsigned NOT NULL,
+				`id_arena` int(11) unsigned DEFAULT NULL,
+				`code` varchar(5) NOT NULL,
+				`nickname` varchar(20) NOT NULL,
+				PRIMARY KEY (`id_user`),
+				KEY `id_arena` (`id_arena`),
+				CONSTRAINT `players_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
+				CONSTRAINT `players_ibfk_2` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
@@ -166,7 +180,7 @@ class DbInstall implements InstallInterface
 			'modifications' => [],
 		],
 		Game::TABLE         => [
-			'definition'    => "(
+			'definition' => "(
 				`id_game` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_mode` int(11) unsigned DEFAULT NULL,
 				`id_arena` int(11) unsigned DEFAULT NULL,
@@ -219,7 +233,7 @@ class DbInstall implements InstallInterface
 			'modifications' => [],
 		],
 		Player::TABLE       => [
-			'definition'    => "(
+			'definition' => "(
 				`id_player` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_game` int(11) unsigned NOT NULL,
 				`id_team` int(11) unsigned DEFAULT NULL,
