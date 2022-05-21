@@ -10,6 +10,7 @@ use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\ModelNotFoundException;
 use App\Exceptions\ValidationException;
 use App\Logging\DirectoryCreationException;
+use App\Models\Auth\UserConnection;
 use App\Models\Auth\UserType;
 use Dibi\Row;
 use Nette\Security\Passwords;
@@ -47,6 +48,9 @@ class User extends AbstractModel implements InsertExtendInterface
 
 	public bool  $isParent = false;
 	public ?User $parent   = null;
+
+	/** @var UserConnection[] */
+	protected array $connections = [];
 
 	/**
 	 * @param int|null $id
@@ -142,6 +146,23 @@ class User extends AbstractModel implements InsertExtendInterface
 			self::$loggedIn->save();
 		}
 		$_SESSION['usr'] = serialize(self::$loggedIn);
+		return true;
+	}
+
+	public function save() : bool {
+		return parent::save() && $this->saveConnections();
+	}
+
+	/**
+	 * @return bool
+	 * @throws ValidationException
+	 */
+	public function saveConnections() : bool {
+		foreach ($this->connections as $connection) {
+			if (!$connection->save()) {
+				return false;
+			}
+		}
 		return true;
 	}
 
@@ -243,5 +264,20 @@ class User extends AbstractModel implements InsertExtendInterface
 		else if (empty($data['id_user'])) {
 			$data['id_user'] = $this->id;
 		}
+	}
+
+	/**
+	 * @return UserConnection[]
+	 */
+	public function getConnections() : array {
+		if (empty($this->connections)) {
+			$this->connections = UserConnection::getForUser($this);
+		}
+		return $this->connections;
+	}
+
+	public function addConnection(UserConnection $connection) : User {
+		$this->connections[] = $connection;
+		return $this;
 	}
 }
