@@ -25,7 +25,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	public const TABLE       = '';
 	public const PRIMARY_KEY = 'id';
 
-	/** @var array{validators:array, class: string, initialize: bool}[] Model's fields definition */
+	/** @var array{validators:array<string|callable>, class: string, initialize: bool}[] Model's fields definition */
 	public const DEFINITION = [];
 
 	/** @var static[][] */
@@ -44,16 +44,16 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	 */
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		// Initialize instance caching if not already initialized
-		if (!isset(self::$instances[$this::TABLE])) {
-			self::$instances[$this::TABLE] = [];
+		if (!isset(static::$instances[$this::TABLE])) {
+			static::$instances[$this::TABLE] = [];
 		}
 
 		// The created object is an existing object from DB
 		if (isset($id) && !empty($this::TABLE)) {
 			$this->id = $id;
 			$this->row = $dbRow;
+			static::$instances[$this::TABLE][$this->id] = $this;
 			$this->fetch();
-			self::$instances[$this::TABLE][$this->id] = $this;
 		}
 
 		// Initialize all empty classes which should be initialized
@@ -147,7 +147,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	 * @throws ModelNotFoundException
 	 */
 	public static function get(int $id, ?Row $row = null) : static {
-		return self::$instances[self::TABLE][$id] ?? new static($id, $row);
+		return static::$instances[static::TABLE][$id] ?? new static($id, $row);
 	}
 
 	/**
@@ -180,7 +180,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	 * @throws ValidationException
 	 */
 	public function save() : bool {
-		return isset($this->id) ? $this->update() : $this->insert();
+		return isset($this->id) && self::exists($this->id) ? $this->update() : $this->insert();
 	}
 
 	/**
@@ -259,7 +259,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 			$this->logger->error('Insert query passed, but ID was not returned.');
 			return false;
 		}
-		self::$instances[$this::TABLE][$this->id] = $this;
+		static::$instances[$this::TABLE][$this->id] = $this;
 		return true;
 	}
 
