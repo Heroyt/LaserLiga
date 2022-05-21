@@ -67,10 +67,10 @@ class Arena extends AbstractModel implements InsertExtendInterface
 	 *
 	 * @return Arena|null
 	 */
-	public static function parseRow(Row $row) : ?InsertExtendInterface {
+	public static function parseRow(Row $row) : ?static {
 		if (isset($row->{self::PRIMARY_KEY})) {
 			try {
-				return new self($row->{self::PRIMARY_KEY});
+				return self::get($row->{self::PRIMARY_KEY});
 			} catch (ModelNotFoundException|DirectoryCreationException $e) {
 			}
 		}

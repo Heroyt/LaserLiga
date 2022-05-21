@@ -37,7 +37,7 @@ class Question extends AbstractModel implements InsertExtendInterface
 	/**
 	 * @inheritDoc
 	 */
-	public static function parseRow(Row $row) : ?InsertExtendInterface {
+	public static function parseRow(Row $row) : ?static {
 		try {
 			if (isset($row->id_question)) {
 				return self::get($row->id_question);

@@ -28,7 +28,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	/** @var array{validators:array, class: string, initialize: bool}[] Model's fields definition */
 	public const DEFINITION = [];
 
-	/** @var AbstractModel[][] */
+	/** @var static[][] */
 	protected static array $instances = [];
 
 	public ?int      $id  = null;
@@ -43,21 +43,27 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	 * @throws DirectoryCreationException
 	 */
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
+		// Initialize instance caching if not already initialized
 		if (!isset(self::$instances[$this::TABLE])) {
 			self::$instances[$this::TABLE] = [];
 		}
+
+		// The created object is an existing object from DB
 		if (isset($id) && !empty($this::TABLE)) {
 			$this->id = $id;
 			$this->row = $dbRow;
 			$this->fetch();
 			self::$instances[$this::TABLE][$this->id] = $this;
 		}
+
+		// Initialize all empty classes which should be initialized
 		foreach ($this::DEFINITION as $name => $definition) {
 			if (isset($definition['class'], $definition['initialize']) && $definition['initialize'] === true && !isset($this->$name)) {
 				$class = $definition['class'];
 				$this->$name = new $class();
 			}
 		}
+
 		$this->logger = new Logger(LOG_DIR.'models/', $this::TABLE);
 	}
 
@@ -70,28 +76,39 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 		if (!isset($this->id) || $this->id <= 0) {
 			throw new RuntimeException('Id needs to be set before fetching model\'s data.');
 		}
+
+		// Refresh data from DB if necessary
 		if ($refresh || !isset($this->row)) {
 			$this->row = DB::select($this::TABLE, '*')->where('%n = %i', $this::PRIMARY_KEY, $this->id)->fetch();
 		}
+
 		if (!isset($this->row)) {
 			throw new ModelNotFoundException(get_class($this).' model of ID '.$this->id.' was not found.');
 		}
+
+		// Parse each column in row
 		foreach ($this->row as $key => $val) {
+			// Primary key check
 			if ($key === $this::PRIMARY_KEY) {
 				$this->id = $val;
 			}
+
 			if (property_exists($this, $key)) {
 				$this->setProperty($key, $val);
 				continue;
 			}
+			// Convert DB snake_case to camelCase
 			$key = Strings::toCamelCase($key);
 			if (property_exists($this, $key)) {
 				$this->setProperty($key, $val);
 			}
 		}
+
+		// Check classes that should be initialized differently
 		foreach ($this::DEFINITION as $key => $definition) {
 			$className = $definition['class'] ?? '';
 			if (property_exists($this, $key) && !empty($className)) {
+				// Check for classes which implement the InsertExtendInterface
 				$implements = class_implements($className);
 				if (isset($implements[InsertExtendInterface::class])) {
 					$this->$key = $className::parseRow($this->row, $this);
@@ -100,11 +117,21 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 		}
 	}
 
+	/**
+	 * Set a property's value from a DB value
+	 *
+	 * @param string $name
+	 * @param mixed  $value
+	 *
+	 * @return void
+	 */
 	protected function setProperty(string $name, mixed $value) : void {
 		if ($value instanceof DateInterval && isset($this::DEFINITION[$name]['class']) && $this::DEFINITION[$name]['class'] === DateTimeInterface::class) {
+			// Cast DB `time` column type into a DateTime object
 			$value = new DateTime($value->format('%H:%i:%s'));
 		}
 		else if (isset($this::DEFINITION[$name]['class']) && enum_exists($this::DEFINITION[$name]['class'])) {
+			// Check for enum values
 			$enumName = $this::DEFINITION[$name]['class'];
 			$value = $enumName::tryFrom($value);
 		}
@@ -115,11 +142,11 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	 * @param int      $id
 	 * @param Row|null $row
 	 *
-	 * @return AbstractModel
+	 * @return static
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 */
-	public static function get(int $id, ?Row $row = null) : AbstractModel {
+	public static function get(int $id, ?Row $row = null) : static {
 		return self::$instances[self::TABLE][$id] ?? new static($id, $row);
 	}
 
@@ -138,7 +165,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 	/**
 	 * Get all models
 	 *
-	 * @return AbstractModel[]
+	 * @return static[]
 	 */
 	public static function getAll() : array {
 		return static::query()->get();

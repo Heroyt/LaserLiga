@@ -173,16 +173,17 @@ class User extends AbstractModel implements InsertExtendInterface
 
 	/**
 	 * @inheritDoc
+	 * @noinspection PhpParamsInspection
 	 */
-	public static function parseRow(Row $row, ?AbstractModel $model = null) : ?InsertExtendInterface {
+	public static function parseRow(Row $row, ?AbstractModel $model = null) : ?static {
 		try {
 			if (isset($row->id_parent)) { // Priority
-				$user = new User($row->id_parent);
+				$user = self::get($row->id_parent);
 				$user->isParent = true;
 				return $user;
 			}
-			if (isset($row->id_user) && !(isset($model) && get_class($model) === User::class && $row->id_user === $model->id)) {
-				return new User($row->id_user);
+			if (isset($row->id_user) && !(isset($model) && get_class($model) === __CLASS__ && $row->id_user === $model->id)) {
+				return self::get($row->id_user);
 			}
 		} catch (ModelNotFoundException|DirectoryCreationException $e) {
 			return null;

@@ -66,6 +66,7 @@ class ModelQuery
 		if (!isset($row)) {
 			return null;
 		}
+		/** @var AbstractModel $className */
 		$className = $this->className;
 		return new $className($row->{$this->className::PRIMARY_KEY}, $row);
 	}

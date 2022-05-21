@@ -31,9 +31,9 @@ class Questionnaire extends \App\Core\AbstractModel implements InsertExtendInter
 	 *
 	 * @param Row $row Row from DB
 	 *
-	 * @return InsertExtendInterface|null
+	 * @return Questionnaire|null
 	 */
-	public static function parseRow(Row $row) : ?InsertExtendInterface {
+	public static function parseRow(Row $row) : ?static {
 		if (isset($row->id_questionnaire)) {
 			try {
 				return self::get($row->id_questionnaire);

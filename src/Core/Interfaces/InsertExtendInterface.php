@@ -12,9 +12,9 @@ interface InsertExtendInterface
 	 *
 	 * @param Row $row Row from DB
 	 *
-	 * @return InsertExtendInterface|null
+	 * @return static|null
 	 */
-	public static function parseRow(Row $row) : ?InsertExtendInterface;
+	public static function parseRow(Row $row) : ?static;
 
 	/**
 	 * Add data from the object into the data array for DB INSERT/UPDATE
