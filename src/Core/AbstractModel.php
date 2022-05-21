@@ -221,7 +221,7 @@ abstract class AbstractModel implements JsonSerializable, ArrayAccess
 				continue;
 			}
 			if (!empty($validators)) {
-				ModelValidator::validateValue($this->$property, $validators);
+				ModelValidator::validateValue($this->$property, $validators, $this);
 			}
 			if ($this->$property instanceof InsertExtendInterface) {
 				($this->$property)->addQueryData($data);
