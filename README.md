@@ -315,9 +315,9 @@ Route::post('/test', [Test::class, 'send'])->middleware(new CSRFCheck());
 
 namespace \App\Controllers;
 
-use \App\Core\Request;
+use \Lsr\Core\Requests\Request;
 
-class Test extends \App\Core\Controller {
+class Test extends \Lsr\Core\Controller {
 	
 	public function show() {
 		$this->view('pages/test/index');

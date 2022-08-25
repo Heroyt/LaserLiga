@@ -2,7 +2,7 @@
 
 namespace Tools;
 
-use App\Tools\Strings;
+use Lsr\Helpers\Tools\Strings;
 use PHPUnit\Framework\TestCase;
 
 class StringsTest extends TestCase

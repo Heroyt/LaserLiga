@@ -2,30 +2,22 @@
 
 namespace App\Models;
 
-use App\Core\AbstractModel;
-use App\Core\App;
-use App\Core\DB;
-use App\Core\Interfaces\InsertExtendInterface;
-use App\Exceptions\ModelNotFoundException;
-use App\Logging\DirectoryCreationException;
 use Dibi\Exception;
 use Dibi\Row;
+use Lsr\Core\App;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 use RuntimeException;
 
-/**
- *
- */
-class Arena extends AbstractModel implements InsertExtendInterface
+#[PrimaryKey('id_arena')]
+class Arena extends Model
 {
 
-	public const TABLE       = 'arenas';
-	public const PRIMARY_KEY = 'id_arena';
-
-	public const DEFINITION = [
-		'name' => ['validators' => ['required']],
-		'lat'  => [],
-		'lng'  => [],
-	];
+	public const TABLE = 'arenas';
 
 	public string $name;
 	public ?float $lat = null;
@@ -37,6 +29,7 @@ class Arena extends AbstractModel implements InsertExtendInterface
 	 * @param string $key
 	 *
 	 * @return Arena|null
+	 * @throws ValidationException
 	 */
 	public static function getForApiKey(string $key) : ?Arena {
 		$id = self::checkApiKey($key);
@@ -66,11 +59,12 @@ class Arena extends AbstractModel implements InsertExtendInterface
 	 * @param Row $row Row from DB
 	 *
 	 * @return Arena|null
+	 * @throws ValidationException
 	 */
 	public static function parseRow(Row $row) : ?static {
-		if (isset($row->{self::PRIMARY_KEY})) {
+		if (isset($row->{self::getPrimaryKey()})) {
 			try {
-				return self::get($row->{self::PRIMARY_KEY});
+				return self::get($row->{self::getPrimaryKey()});
 			} catch (ModelNotFoundException|DirectoryCreationException $e) {
 			}
 		}
@@ -112,7 +106,7 @@ class Arena extends AbstractModel implements InsertExtendInterface
 	 * @param array $data
 	 */
 	public function addQueryData(array &$data) : void {
-		$data[self::PRIMARY_KEY] = $this->id;
+		$data[self::getPrimaryKey()] = $this->id;
 	}
 
 	/**

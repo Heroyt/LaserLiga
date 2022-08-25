@@ -2,6 +2,12 @@
 	"name": "heroyt/my-php-framework",
 	"version": "1.2.2",
 	"minimum-stability": "stable",
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://packages.laserliga.cz"
+		}
+	],
 	"scripts": {
 		"install-app": "composer build && php install.php",
 		"serve": "php -S localhost:8000 index.php",
@@ -23,12 +29,23 @@
 		"ext-gettext": "*",
 		"nette/di": ">3.0",
 		"ext-mbstring": "*",
-		"ext-fileinfo": "*"
+		"ext-fileinfo": "*",
+		"lsr/interfaces": "^0.1",
+		"lsr/helpers": "^0.1",
+		"lsr/core": "^0.1",
+		"lsr/routing": "^0.1",
+		"lsr/logging": "^0.1",
+		"lsr/request": "^0.1",
+		"lsr/auth": "^0.1.0"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",
 		"phpunit/phpunit": "^9.5",
-		"gettext/gettext": "^5.5"
+		"gettext/gettext": "^5.7",
+		"phpstan/phpstan": "^1.8",
+		"phpstan/extension-installer": "^1.1",
+		"phpstan/phpstan-dibi": "^1.0",
+		"phpstan/phpstan-nette": "^1.0"
 	},
 	"autoload": {
 		"psr-4": {
@@ -43,5 +60,10 @@
 			"name": "Tomáš Vojík",
 			"email": "vojik@wboy.cz"
 		}
-	]
+	],
+	"config": {
+		"allow-plugins": {
+			"phpstan/extension-installer": true
+		}
+	}
 }

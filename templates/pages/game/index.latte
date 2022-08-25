@@ -97,7 +97,7 @@
 		</div>
 	</div>
 
-	<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="true">
+	<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="false">
 		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -635,8 +635,8 @@
 				{lang 'K:D', context: 'results.player'}
 				({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'})
 			</strong>
-			{ratio($player->hits, $player->deaths, 0)}:{ratio($player->hits, $player->deaths, 1)}
-			({($player->hits / ($player->deaths === 0 ? 1 : $player->deaths))|number:2,',',''})
+			{ratio($player->hitsOther, $player->deathsOther, 0)}:{ratio($player->hitsOther, $player->deathsOther, 1)}
+			({($player->hitsOther / ($player->deathsOther === 0 ? 1 : $player->deathsOther))|number:2,',',''})
 		</p>
 	</div>
 {/define}
@@ -729,7 +729,7 @@
 	<div class="results-teams">
 		<div n:foreach="$game->getTeamsSorted() as $team" class="team-score rounded bg-team-{$team->color}"
 														  style="--size:{100*($team->score > 0 ? $team->score : 0) / ($totalScore > 0 ? $totalScore : 1)|noescape}%;">
-			{if is_null($win) || $win->id_team === $team->id_team}{svgIcon 'crown', '2rem'}{/if}
+			{if is_null($win) || $win->id === $team->id}{svgIcon 'crown', '2rem'}{/if}
 			<div class="name">{$team->name}</div>
 			<div class="score"><i class="fa-solid fa-star"></i> {$team->score|number:0,',','&nbsp;'|noescape}</div>
 		</div>

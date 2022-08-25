@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Core\Controller;
+use Lsr\Core\Controller;
 
 class Dashboard extends Controller
 {
@@ -12,6 +12,11 @@ class Dashboard extends Controller
 
 	public function show() : void {
 		$this->view('pages/dashboard/index');
+	}
+
+	public function bp() : never {
+		header('location: https://youtu.be/dQw4w9WgXcQ');
+		exit;
 	}
 
 }

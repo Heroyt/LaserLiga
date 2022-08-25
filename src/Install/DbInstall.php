@@ -3,7 +3,6 @@
 namespace App\Install;
 
 use App\Core\Auth\User;
-use App\Core\DB;
 use App\Core\Info;
 use App\GameModels\Auth\Player as AuthPlayer;
 use App\GameModels\Game\Evo5\Game;
@@ -15,66 +14,20 @@ use App\Models\Auth\UserConnection;
 use App\Models\Auth\UserType;
 use Dibi\DriverException;
 use Dibi\Exception;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\CyclicDependencyException;
+use Lsr\Core\Migrations\MigrationLoader;
+use Lsr\Core\Models\Model;
+use Lsr\Exceptions\FileException;
+use Nette\Utils\AssertionException;
+use ReflectionClass;
+use ReflectionException;
 
 class DbInstall implements InstallInterface
 {
 
 	/** @var array{definition:string, modifications:array}[] */
 	public const TABLES = [
-		'page_info'           => [
-			'definition'    => "(
-				`key` varchar(30) NOT NULL DEFAULT '',
-				`value` text DEFAULT NULL,
-				PRIMARY KEY (`key`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
-			'modifications' => [],
-		],
-		UserType::TABLE     => [
-			'definition'    => "(
-				`id_user_type` int(11) unsigned NOT NULL AUTO_INCREMENT,
-				`name` varchar(100) DEFAULT NULL,
-				`super_admin` tinyint(1) NOT NULL DEFAULT '0',
-				`host` tinyint(1) NOT NULL DEFAULT '0',
-				PRIMARY KEY (`id_user_type`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
-			'modifications' => [],
-		],
-		User::TABLE         => [
-			'definition'    => "(
-				`id_user` int(11) unsigned NOT NULL AUTO_INCREMENT,
-				`id_user_type` int(11) unsigned NOT NULL,
-				`id_parent` int(11) unsigned DEFAULT NULL,
-				`name` varchar(20) NOT NULL DEFAULT '',
-				`email` varchar(50) NOT NULL,
-				`password` varchar(100) NOT NULL,
-				PRIMARY KEY (`id_user`),
-				KEY `id_user_type` (`id_user_type`),
-				KEY `id_parent` (`id_parent`),
-				CONSTRAINT `users_ibfk_1` FOREIGN KEY (`id_user_type`) REFERENCES `user_types` (`id_user_type`) ON UPDATE CASCADE,
-				CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id_parent`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
-			'modifications' => [],
-		],
-		'rights'              => [
-			'definition'    => "(
-				`right` varchar(20) NOT NULL DEFAULT '',
-				`description` text,
-				PRIMARY KEY (`right`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
-			'modifications' => [],
-		],
-		'user_type_rights'    => [
-			'definition'    => "(
-				`id_user_type` int(11) unsigned NOT NULL,
-				`right` varchar(20) NOT NULL DEFAULT '',
-				PRIMARY KEY (`id_user_type`,`right`),
-				KEY `right` (`right`),
-				KEY `id_user_type` (`id_user_type`),
-				CONSTRAINT `user_type_rights_ibfk_1` FOREIGN KEY (`id_user_type`) REFERENCES `user_types` (`id_user_type`) ON DELETE CASCADE ON UPDATE CASCADE,
-				CONSTRAINT `user_type_rights_ibfk_2` FOREIGN KEY (`right`) REFERENCES `rights` (`right`) ON DELETE CASCADE ON UPDATE CASCADE
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
-			'modifications' => [],
-		],
 		UserConnection::TABLE => [
 			'definition'    => "(
 				`id_connection` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -87,7 +40,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		Arena::TABLE        => [
+		Arena::TABLE          => [
 			'definition'    => "(
 				`id_arena` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`name` varchar(50) NOT NULL DEFAULT '',
@@ -97,7 +50,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		'api_keys'          => [
+		'api_keys'            => [
 			'definition'    => "(
 				`id_key` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_arena` int(11) unsigned NOT NULL,
@@ -112,21 +65,26 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		AuthPlayer::TABLE   => [
+		AuthPlayer::TABLE     => [
 			'definition'    => "(
 				`id_user` int(11) unsigned NOT NULL,
 				`id_arena` int(11) unsigned DEFAULT NULL,
 				`code` varchar(5) NOT NULL,
 				`nickname` varchar(20) NOT NULL,
+				`email` varchar(50) NOT NULL,
 				PRIMARY KEY (`id_user`),
 				KEY `id_arena` (`id_arena`),
 				CONSTRAINT `players_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
 				CONSTRAINT `players_ibfk_2` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
-			'modifications' => [],
+			'modifications' => [
+				'0.2' => [
+					'ADD `email` VARCHAR(50) NOT NULL AFTER `nickname`',
+				]
+			],
 		],
-		AbstractMode::TABLE => [
-			'definition' => "(
+		AbstractMode::TABLE   => [
+			'definition'    => "(
 				`id_mode` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`system` varchar(10) DEFAULT NULL,
 				`name` varchar(50) DEFAULT NULL,
@@ -169,7 +127,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Seznam a nastavení módů.';",
 			'modifications' => [],
 		],
-		'game_modes-names'  => [
+		'game_modes-names'    => [
 			'definition'    => "(
 				`id_mode` int(11) unsigned NOT NULL,
 				`sysName` varchar(20) NOT NULL,
@@ -179,8 +137,8 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		Game::TABLE         => [
-			'definition' => "(
+		Game::TABLE           => [
+			'definition'    => "(
 				`id_game` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_mode` int(11) unsigned DEFAULT NULL,
 				`id_arena` int(11) unsigned DEFAULT NULL,
@@ -218,7 +176,7 @@ class DbInstall implements InstallInterface
 				]
 			],
 		],
-		Team::TABLE         => [
+		Team::TABLE           => [
 			'definition'    => "(
 				`id_team` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_game` int(11) unsigned NOT NULL,
@@ -232,7 +190,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		Player::TABLE       => [
+		Player::TABLE         => [
 			'definition' => "(
 				`id_player` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_game` int(11) unsigned NOT NULL,
@@ -267,7 +225,7 @@ class DbInstall implements InstallInterface
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [],
 		],
-		'evo5_hits'         => [
+		'evo5_hits'           => [
 			'definition'    => "(
 				`id_player` int(11) unsigned NOT NULL,
 				`id_target` int(11) unsigned NOT NULL,
@@ -281,6 +239,7 @@ class DbInstall implements InstallInterface
 			'modifications' => [],
 		],
 	];
+	protected static array $classTables = [];
 
 	/**
 	 * Install all database tables
@@ -290,14 +249,36 @@ class DbInstall implements InstallInterface
 	 * @return bool
 	 */
 	public static function install(bool $fresh = false) : bool {
+		$loader = new MigrationLoader(ROOT.'config/migrations.neon');
+		try {
+			$loader->load();
+		} catch (CyclicDependencyException|FileException|\Nette\Neon\Exception|AssertionException $e) {
+			echo "\e[0;31m".$e->getMessage()."\e[m\n".$e->getTraceAsString()."\n";
+			return false;
+		}
+
+		$tables = array_merge($loader->migrations, self::TABLES);
+
 		try {
 			if ($fresh) {
-				foreach (array_reverse(self::TABLES) as $tableName => $definition) {
+				foreach (array_reverse($tables) as $tableName => $definition) {
+					if (class_exists($tableName)) {
+						$tableName = static::getTableNameFromClass($tableName);
+						if ($tableName === null) {
+							continue;
+						}
+					}
 					DB::getConnection()->query("DROP TABLE IF EXISTS %n;", $tableName);
 				}
 			}
 
-			foreach (self::TABLES as $tableName => $info) {
+			foreach ($tables as $tableName => $info) {
+				if (class_exists($tableName)) {
+					$tableName = static::getTableNameFromClass($tableName);
+					if ($tableName === null) {
+						continue;
+					}
+				}
 				$definition = $info['definition'];
 				DB::getConnection()->query("CREATE TABLE IF NOT EXISTS %n $definition", $tableName);
 			}
@@ -322,8 +303,14 @@ FROM (`game_modes` `a` left join `game_modes-names` `b` on(`a`.`id_mode` = `b`.`
 				}
 
 				$maxVersion = $currVersion;
-				foreach (self::TABLES as $tableName => $info) {
-					foreach ($info['modifications'] as $version => $queries) {
+				foreach ($tables as $tableName => $info) {
+					if (class_exists($tableName)) {
+						$tableName = static::getTableNameFromClass($tableName);
+						if ($tableName === null) {
+							continue;
+						}
+					}
+					foreach ($info['modifications'] ?? [] as $version => $queries) {
 						$version = (float) $version;
 						if ($version <= $currVersion) {
 							continue;
@@ -347,6 +334,29 @@ FROM (`game_modes` `a` left join `game_modes-names` `b` on(`a`.`id_mode` = `b`.`
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * @param string $className
+	 *
+	 * @return string|null
+	 * @throws ReflectionException
+	 */
+	protected static function getTableNameFromClass(string $className) : ?string {
+		if (isset(static::$classTables[$className])) {
+			return static::$classTables[$className];
+		}
+		$reflection = new ReflectionClass($className);
+
+		while ($parent = $reflection->getParentClass()) {
+			if ($parent->getName() === Model::class) {
+				static::$classTables[$className] = $className::TABLE;
+				return $className::TABLE;
+			}
+			$reflection = $parent;
+		}
+
+		return null;
 	}
 
 }

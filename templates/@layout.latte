@@ -3,7 +3,7 @@
 {import 'loader.latte'}
 {import 'symbols.latte'}
 
-{varType \App\Core\Controller $page}
+{varType \Lsr\Core\Controller $page}
 {varType string[] $errors}
 
 {define containerClasses}
@@ -37,7 +37,7 @@
 	<!-- Google Fonts Montserrat -->
 	<link rel="stylesheet"
 		  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
-	{\App\Core\App::getCss()|noescape}
+	{\Lsr\Core\App::getCss()|noescape}
 	<title>{$page->getTitle()}</title>
 	{\Tracy\Debugger::renderLoader()|noescape}
 	{include addHead}
@@ -58,17 +58,18 @@
 <div class="toast-container position-absolute bottom-0 end-0 p-3" id="toasts"></div>
 
 <script>
-	const page = {\App\Core\App::getRequest()};
-	const prettyUrl = {\App\Core\App::isPrettyUrl()};
+	const page = {\Lsr\Core\App::getRequest()};
+	const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
 </script>
-{\App\Core\App::getJs()|noescape}
+{\Lsr\Core\App::getJs()|noescape}
 
 
-<script src="{getUrl}node_modules/flatpickr/dist/l10n/{\App\Core\App::getShortLanguageCode()}.js"></script>
+
+<script src="{getUrl}node_modules/flatpickr/dist/l10n/{\Lsr\Core\App::getShortLanguageCode()}.js"></script>
 
 
 <script>
-	flatpickr.localize(flatpickr.l10ns.{\App\Core\App::getShortLanguageCode()|noescape});
+	flatpickr.localize(flatpickr.l10ns.{\Lsr\Core\App::getShortLanguageCode()|noescape});
 </script>
 {include svgSymbols}
 </body>

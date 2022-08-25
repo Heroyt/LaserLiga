@@ -2,15 +2,17 @@
 
 namespace App\Controllers;
 
-use App\Core\Controller;
-use App\Core\DB;
-use App\Core\Request;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Today;
-use App\Tools\Strings;
+use JsonException;
+use Lsr\Core\Controller;
+use Lsr\Core\DB;
+use Lsr\Core\Requests\Request;
+use Lsr\Exceptions\TemplateDoesNotExistException;
+use Lsr\Helpers\Tools\Strings;
 
 class Games extends Controller
 {
@@ -19,6 +21,7 @@ class Games extends Controller
 	 * @param Request $request
 	 *
 	 * @return void
+	 * @throws TemplateDoesNotExistException
 	 */
 	public function show(Request $request) : void {
 		$gameCode = $request->params['game'] ?? '';
@@ -38,6 +41,8 @@ class Games extends Controller
 	 * @param Request $request
 	 *
 	 * @return void
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
 	 */
 	public function todayLeaderboard(Request $request) : void {
 		$this->params['highlight'] = (int) ($request->get['highlight'] ?? 0);
@@ -45,13 +50,13 @@ class Games extends Controller
 		$date = $request->params['date'] ?? 'now';
 		$property = $request->params['property'] ?? 'score';
 		if (empty($system)) {
-			$this->ajaxJson(['error' => 'Missing required parameter - system'], 400);
+			$this->respond(['error' => 'Missing required parameter - system'], 400);
 		}
 		if (!in_array($system, GameFactory::getSupportedSystems(), true)) {
-			$this->ajaxJson(['error' => 'Unknown system'], 400);
+			$this->respond(['error' => 'Unknown system'], 400);
 		}
 		if (($date = strtotime($date)) === false) {
-			$this->ajaxJson(['error' => 'invalid date'], 400);
+			$this->respond(['error' => 'invalid date'], 400);
 		}
 		/** @var Game $gameClass */
 		$gameClass = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
@@ -59,12 +64,12 @@ class Games extends Controller
 		$playerClass = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Player';
 
 		if (!property_exists($playerClass, $property)) {
-			$this->ajaxJson(['error' => 'Unknown property'], 400);
+			$this->respond(['error' => 'Unknown property'], 400);
 		}
 
 		$this->params['property'] = ucfirst($property);
 		// Get all game ids from today
-		$gameIds = DB::select($gameClass::TABLE, $gameClass::PRIMARY_KEY)->where('[end] IS NOT NULL AND DATE([start]) = %d', $date)->fetchAll();
+		$gameIds = DB::select($gameClass::TABLE, $gameClass::getPrimaryKey())->where('[end] IS NOT NULL AND DATE([start]) = %d', $date)->fetchAll();
 		$this->params['players'] = DB::select(
 			[$playerClass::TABLE, 'p'],
 			'[p].[id_player],
@@ -74,16 +79,16 @@ class Games extends Controller
 			[p].[name],
 			[p].'.DB::getConnection()->getDriver()->escapeIdentifier($property).' as [value],
 			(('.DB::select([$playerClass::TABLE, 'pp1'], 'COUNT(*) as [count]')
-						->where('[pp1].%n IN %in', $gameClass::PRIMARY_KEY, $gameIds)
+						->where('[pp1].%n IN %in', $gameClass::getPrimaryKey(), $gameIds)
 						->where('[pp1].%n > [p].%n', $property, $property).')+1) as [better],
 			(('.DB::select([$playerClass::TABLE, 'pp2'], 'COUNT(*) as [count]')
-						->where('[pp2].%n IN %in', $gameClass::PRIMARY_KEY, $gameIds)
+						->where('[pp2].%n IN %in', $gameClass::getPrimaryKey(), $gameIds)
 						->where('[pp2].%n = [p].%n', $property, $property).')-1) as [same]',
 		)
 																 ->join($gameClass::TABLE, 'g')->on('[p].[id_game] = [g].[id_game]')
 																 ->leftJoin(AbstractMode::TABLE, 'm')
 																 ->on('([g].[id_mode] = [m].[id_mode] || ([g].[id_mode] IS NULL AND (([g].[game_type] = %s AND [m].[id_mode] = %i) OR ([g].[game_type] = %s AND [m].[id_mode] = %i))))', 'TEAM', 1, 'SOLO', 2)
-																 ->where('[g].%n IN %in', $gameClass::PRIMARY_KEY, $gameIds)
+																 ->where('[g].%n IN %in', $gameClass::getPrimaryKey(), $gameIds)
 																 ->orderBy('value')
 																 ->desc()
 																 ->fetchAll();

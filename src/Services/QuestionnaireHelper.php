@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Exceptions\ValidationException;
 use App\Models\Questionnaire\User;
+use Lsr\Core\Exceptions\ValidationException;
 
 class QuestionnaireHelper
 {

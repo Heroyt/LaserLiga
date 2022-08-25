@@ -2,25 +2,22 @@
 
 namespace App\Models\Auth;
 
-use App\Core\AbstractModel;
-use App\Core\Auth\User;
-use App\Core\DB;
 use App\Exceptions\DuplicateRecordException;
-use App\Exceptions\ValidationException;
 use App\Models\Auth\Enums\ConnectionType;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class UserConnection extends AbstractModel
+#[PrimaryKey('id_connection')]
+class UserConnection extends Model
 {
 
-	public const TABLE       = 'user_connected_accounts';
-	public const PRIMARY_KEY = 'id_connection';
-	public const DEFINITION  = [
-		'type'       => ['class' => ConnectionType::class, 'validators' => ['required']],
-		'user'       => ['class' => User::class, 'validators' => ['required']],
-		'identifier' => ['validators' => ['required']],
-	];
+	public const TABLE = 'user_connected_accounts';
 
 	public ConnectionType $type;
+	#[ManyToOne]
 	public User           $user;
 	public string|int     $identifier;
 
@@ -30,9 +27,10 @@ class UserConnection extends AbstractModel
 	 * @param User $user
 	 *
 	 * @return UserConnection[]
+	 * @throws ValidationException
 	 */
 	public static function getForUser(User $user) : array {
-		return self::query()->where('%n = %i', $user::PRIMARY_KEY, $user->id)->get();
+		return self::query()->where('%n = %i', $user::getPrimaryKey(), $user->id)->get();
 	}
 
 	/**
@@ -42,9 +40,10 @@ class UserConnection extends AbstractModel
 	 * @param ConnectionType $type
 	 *
 	 * @return UserConnection[]
+	 * @throws ValidationException
 	 */
 	public static function getForUserAndType(User $user, ConnectionType $type) : array {
-		return self::query()->where('%n = %i AND [type] = %s', $user::PRIMARY_KEY, $user->id, $type->value)->get();
+		return self::query()->where('%n = %i AND [type] = %s', $user::getPrimaryKey(), $user->id, $type->value)->get();
 	}
 
 	/**
@@ -56,7 +55,6 @@ class UserConnection extends AbstractModel
 	 * @return UserConnection|null
 	 */
 	public static function getByIdentifier(int|string $identifier, ConnectionType $type) : ?UserConnection {
-		/** @noinspection PhpIncompatibleReturnTypeInspection */
 		return self::query()->where('[identifier] = %s AND [type] = %s', $identifier, $type->value)->first();
 	}
 
@@ -86,7 +84,7 @@ class UserConnection extends AbstractModel
 	 */
 	public function update() : bool {
 		// Check for duplicates before updating an existing one
-		$test = DB::select($this::TABLE, '*')->where('[type] = %s AND [identifier] = %s AND %n <> %i', $this->type, $this->identifier, $this::PRIMARY_KEY, $this->id)->fetch();
+		$test = DB::select($this::TABLE, '*')->where('[type] = %s AND [identifier] = %s AND %n <> %i', $this->type, $this->identifier, $this::getPrimaryKey(), $this->id)->fetch();
 		if (isset($test)) {
 			// Trying to add a duplicate -> error
 			throw new DuplicateRecordException('Trying to add a duplicate user connection. This connection already exists for a different user.');

@@ -2,21 +2,22 @@
 
 namespace App\Models\Questionnaire;
 
-use App\Core\AbstractModel;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class User extends AbstractModel
+#[PrimaryKey('id_user')]
+class User extends Model
 {
 
 	public const TABLE       = 'questionnaire_user';
 	public const PRIMARY_KEY = 'id_user';
-	public const DEFINITION  = [
-		'identif'       => [],
-		'finished'      => [],
-		'questionnaire' => ['class' => Questionnaire::class],
-	];
 
-	public string         $identif       = '';
-	public bool           $finished      = false;
+	public string $identif  = '';
+	public bool   $finished = false;
+
+	#[ManyToOne]
 	public ?Questionnaire $questionnaire = null;
 
 	/** @var Answer[] */
@@ -26,6 +27,7 @@ class User extends AbstractModel
 	 * @param Question $question
 	 *
 	 * @return Answer|null
+	 * @throws ValidationException
 	 */
 	public function getAnswerForQuestion(Question $question) : ?Answer {
 		return $this->getAnswers()[$question->id] ?? null;
@@ -33,6 +35,7 @@ class User extends AbstractModel
 
 	/**
 	 * @return Answer[]
+	 * @throws ValidationException
 	 */
 	public function getAnswers() : array {
 		if (empty($this->answers)) {

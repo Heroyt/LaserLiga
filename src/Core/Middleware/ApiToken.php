@@ -2,9 +2,9 @@
 
 namespace App\Core\Middleware;
 
-use App\Core\Request;
-use App\Core\Routing\Middleware;
 use App\Models\Arena;
+use Lsr\Core\Routing\Middleware;
+use Lsr\Interfaces\RequestInterface;
 use RuntimeException;
 
 /**
@@ -39,13 +39,14 @@ class ApiToken implements Middleware
 
 	/**
 	 * @inheritDoc
+	 * @throws \JsonException
 	 */
-	public function handle(Request $request) : bool {
+	public function handle(RequestInterface $request) : bool {
 		$headers = apache_request_headers();
 		if (empty($headers['Authorization'])) {
 			http_response_code(401);
 			header('Content-type: application/json');
-			echo json_encode(['error' => 'Missing Authorization header'], JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+			echo json_encode(['error' => 'Missing Authorization header'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 			exit;
 		}
 

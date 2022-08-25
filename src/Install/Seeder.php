@@ -3,11 +3,11 @@
 namespace App\Install;
 
 use App\Core\Auth\User;
-use App\Core\DB;
 use App\Exceptions\ValidationException;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Auth\UserType;
 use Dibi\Exception;
+use Lsr\Core\DB;
 
 class Seeder implements InstallInterface
 {

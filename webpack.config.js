@@ -7,7 +7,7 @@ module.exports = {
 	mode: isDevelopment ? 'development' : 'production',
 	entry: [
 		'./assets/js/main.js',
-		'./assets/scss/main.scss'
+		'./assets/scss/main.scss',
 	],
 	output: {
 		filename: 'main.js',
@@ -17,17 +17,8 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.css$/,
-				use: [
-					'style-loader',
-					{loader: 'css-loader', options: {importLoaders: 1}},
-					'postcss-loader',
-				],
-			},
-			{
 				test: /\.(scss)$/,
 				use: [
-					'style-loader',
 					MiniCssExtractPlugin.loader,
 					{
 						loader: "css-loader",
@@ -37,22 +28,18 @@ module.exports = {
 						}
 					},
 					{
-						loader: "sass-loader"
-					},
-				]
-			},
-			{
-				test: /\.(gif|png|jpe?g|svg)$/i,
-				use: [
-					'file-loader',
-					{
-						loader: 'image-webpack-loader',
+						loader: "postcss-loader",
 						options: {
-							bypassOnDebug: true, // webpack@1.x
-							disable: true, // webpack@2.x and newer
-						},
+							sourceMap: true,
+						}
 					},
-				],
+					{
+						loader: "sass-loader",
+						options: {
+							//sourceMap: true
+						}
+					}
+				]
 			},
 		],
 	},
@@ -73,4 +60,27 @@ module.exports = {
 		})
 	],
 	devtool: "source-map",
+	optimization: {
+		splitChunks: {
+			chunks: 'async',
+			minSize: 20000,
+			minRemainingSize: 0,
+			minChunks: 1,
+			maxAsyncRequests: 30,
+			maxInitialRequests: 30,
+			enforceSizeThreshold: 50000,
+			cacheGroups: {
+				defaultVendors: {
+					test: /[\\/]node_modules[\\/]/,
+					priority: -10,
+					reuseExistingChunk: true,
+				},
+				default: {
+					minChunks: 2,
+					priority: -20,
+					reuseExistingChunk: true,
+				},
+			},
+		},
+	},
 };

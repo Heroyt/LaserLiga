@@ -2,58 +2,29 @@
 
 namespace App\Models\Questionnaire;
 
-use App\Core\DB;
-use App\Core\Interfaces\InsertExtendInterface;
-use App\Exceptions\ModelNotFoundException;
-use App\Logging\DirectoryCreationException;
-use Dibi\Row;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\ManyToMany;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class Questionnaire extends \App\Core\AbstractModel implements InsertExtendInterface
+#[PrimaryKey('id_questionnaire')]
+class Questionnaire extends Model
 {
 
 	public const TABLE               = 'questionnaire';
 	public const QUESTION_LINK_TABLE = 'question_questionnaire';
-	public const PRIMARY_KEY         = 'id_questionnaire';
-
-	public const DEFINITION = [
-		'name'        => [],
-		'description' => [],
-	];
 
 	public string  $name        = '';
 	public ?string $description = '';
 
 	/** @var Question[] */
-	private array $questions = [];
-
-	/**
-	 * Parse data from DB into the object
-	 *
-	 * @param Row $row Row from DB
-	 *
-	 * @return Questionnaire|null
-	 */
-	public static function parseRow(Row $row) : ?static {
-		if (isset($row->id_questionnaire)) {
-			try {
-				return self::get($row->id_questionnaire);
-			} catch (ModelNotFoundException|DirectoryCreationException $e) {
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Add data from the object into the data array for DB INSERT/UPDATE
-	 *
-	 * @param array $data
-	 */
-	public function addQueryData(array &$data) : void {
-		$data[self::PRIMARY_KEY] = $this->id;
-	}
+	#[ManyToMany(self::QUESTION_LINK_TABLE, class: Question::class)]
+	public array $questions = [];
 
 	/**
 	 * @return Question[]
+	 * @throws ValidationException
 	 */
 	public function getQuestions() : array {
 		if (empty($this->questions)) {

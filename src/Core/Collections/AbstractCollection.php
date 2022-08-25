@@ -1,18 +1,25 @@
 <?php
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 
 namespace App\Core\Collections;
 
-use App\Core\AbstractModel;
 use App\Core\Interfaces\CollectionInterface;
 use App\Exceptions\InvalidCollectionClassException;
 use InvalidArgumentException;
+use Lsr\Core\Models\Model;
 
+/**
+ * @template T of Model
+ * @implements CollectionInterface<T>
+ */
 abstract class AbstractCollection implements CollectionInterface
 {
 
 	/** @var string Type of collection's data */
 	protected string $type;
-	/** @var AbstractModel[] */
+	/** @var T[] */
 	protected array $data = [];
 	/** @var int|null Current offset for iterator access */
 	protected ?int $currentOffset = null;
@@ -20,9 +27,9 @@ abstract class AbstractCollection implements CollectionInterface
 	/**
 	 * Create a new collection from array of data
 	 *
-	 * @param AbstractModel[] $array
+	 * @param T[] $array
 	 *
-	 * @return CollectionInterface
+	 * @return CollectionInterface<T>
 	 */
 	public static function fromArray(array $array) : CollectionInterface {
 		$collection = new (static::class);
@@ -31,32 +38,15 @@ abstract class AbstractCollection implements CollectionInterface
 	}
 
 	/**
-	 * Get all collection's data as an array
-	 *
-	 * @return AbstractModel[]
-	 */
-	public function getAll() : array {
-		return $this->data;
-	}
-
-	/**
-	 * Reset collection's data
-	 */
-	public function clear() : void {
-		$this->data = [];
-	}
-
-
-	/**
 	 * Add new data to collection
 	 *
 	 * @details Checks value's type and uniqueness
 	 *
-	 * @param AbstractModel ...$values
+	 * @param T ...$values
 	 *
-	 * @return CollectionInterface
+	 * @return CollectionInterface<T>
 	 */
-	public function add(AbstractModel ...$values) : CollectionInterface {
+	public function add(Model ...$values) : CollectionInterface {
 		foreach ($values as $value) {
 			if (!$this->checkType($value)) {
 				throw new InvalidCollectionClassException('Class '.get_class($value).' cannot be added to collection of type '.$this->type);
@@ -71,32 +61,29 @@ abstract class AbstractCollection implements CollectionInterface
 	/**
 	 * Checks value's type before adding to the collection
 	 *
-	 * @param AbstractModel $value
+	 * @param T $value
 	 *
 	 * @return bool
 	 */
-	protected function checkType(AbstractModel $value) : bool {
+	protected function checkType(Model $value) : bool {
 		if (!isset($this->type)) {
 			$this->type = get_class($value);
 			return true;
 		}
-		return is_subclass_of($value, $this->type) || get_class($value) === $this->type;
+		return is_subclass_of($value, $this->type);
 	}
 
 	/**
 	 * Checks whether the given model already exists in collection
 	 *
-	 * @param AbstractModel $model
+	 * @param T $model
 	 *
 	 * @return bool
 	 */
-	public function contains(AbstractModel $model) : bool {
-		if ($this->type !== get_class($model)) {
-			return false;
-		}
+	public function contains(Model $model) : bool {
 		foreach ($this->data as $test) {
 			/** @noinspection TypeUnsafeComparisonInspection */
-			if ($test->id === $model->id) {
+			if ($test == $model) {
 				return true;
 			}
 		}
@@ -104,24 +91,20 @@ abstract class AbstractCollection implements CollectionInterface
 	}
 
 	/**
-	 * Get first object in collection
+	 * Get all collection's data as an array
 	 *
-	 * @return AbstractModel|null
+	 * @return T[]
 	 */
-	public function first() : ?AbstractModel {
-		/** @noinspection LoopWhichDoesNotLoopInspection */
-		foreach ($this->data as $object) {
-			return $object;
-		}
-		return null;
+	public function getAll() : array {
+		return $this->data;
 	}
 
 	/**
 	 * Get last object in collection
 	 *
-	 * @return AbstractModel|null
+	 * @return T|null
 	 */
-	public function last() : ?AbstractModel {
+	public function last() : ?Model {
 		/** @noinspection LoopWhichDoesNotLoopInspection */
 		foreach (array_reverse($this->data) as $object) {
 			return $object;
@@ -134,12 +117,12 @@ abstract class AbstractCollection implements CollectionInterface
 	 *
 	 * @details Checks value's type and uniqueness
 	 *
-	 * @param AbstractModel $value
-	 * @param int           $key
+	 * @param T   $value
+	 * @param int $key
 	 *
-	 * @return CollectionInterface
+	 * @return CollectionInterface<T>
 	 */
-	public function set(AbstractModel $value, int $key) : CollectionInterface {
+	public function set(Model $value, int $key) : CollectionInterface {
 		if (!$this->checkType($value)) {
 			throw new InvalidCollectionClassException('Class '.get_class($value).' cannot be added to collection of type '.$this->type);
 		}
@@ -155,9 +138,9 @@ abstract class AbstractCollection implements CollectionInterface
 	/**
 	 * @param int $key
 	 *
-	 * @return AbstractModel|null
+	 * @return T|null
 	 */
-	public function get(int $key) : ?AbstractModel {
+	public function get(int $key) : ?Model {
 		if (empty($this->data[$key])) {
 			return null;
 		}
@@ -188,15 +171,13 @@ abstract class AbstractCollection implements CollectionInterface
 	 *
 	 * @link  http://php.net/manual/en/arrayaccess.offsetget.php
 	 *
-	 * @param mixed $offset <p>
-	 *                      The offset to retrieve.
-	 *                      </p>
+	 * @param int $offset The offset to retrieve.
 	 *
-	 * @return mixed Can return all value types.
+	 * @return T|null
 	 * @since 5.0.0
 	 */
-	public function offsetGet($offset) : mixed {
-		return $this->data[$offset];
+	public function offsetGet($offset) : ?Model {
+		return $this->get($offset);
 	}
 
 	/**
@@ -204,18 +185,14 @@ abstract class AbstractCollection implements CollectionInterface
 	 *
 	 * @link  http://php.net/manual/en/arrayaccess.offsetset.php
 	 *
-	 * @param mixed $offset <p>
-	 *                      The offset to assign the value to.
-	 *                      </p>
-	 * @param mixed $value  <p>
-	 *                      The value to set.
-	 *                      </p>
+	 * @param int $offset The offset to assign the value to.
+	 * @param T   $value  The value to set.
 	 *
 	 * @return void
 	 * @since 5.0.0
 	 */
 	public function offsetSet($offset, $value) : void {
-		$this->data[$offset] = $value;
+		$this->set($value, $offset);
 	}
 
 	/**
@@ -223,9 +200,7 @@ abstract class AbstractCollection implements CollectionInterface
 	 *
 	 * @link  http://php.net/manual/en/arrayaccess.offsetunset.php
 	 *
-	 * @param mixed $offset <p>
-	 *                      The offset to unset.
-	 *                      </p>
+	 * @param int $offset The offset to unset.
 	 *
 	 * @return void
 	 * @since 5.0.0
@@ -238,7 +213,7 @@ abstract class AbstractCollection implements CollectionInterface
 	 * Specify data which should be serialized to JSON
 	 *
 	 * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
-	 * @return array data which can be serialized by <b>json_encode</b>,
+	 * @return T[] data which can be serialized by <b>json_encode</b>,
 	 * which is a value of any type other than a resource.
 	 * @since 5.4.0
 	 */
@@ -264,11 +239,12 @@ abstract class AbstractCollection implements CollectionInterface
 	 * Return the current element
 	 *
 	 * @link  http://php.net/manual/en/iterator.current.php
-	 * @return mixed Can return any type.
+	 * @return T|null Can return any type.
 	 * @since 5.0.0
 	 */
-	public function current() : mixed {
-		return current($this->data);
+	public function current() : ?Model {
+		$model = current($this->data);
+		return $model === false ? null : $model;
 	}
 
 	/**
@@ -302,7 +278,9 @@ abstract class AbstractCollection implements CollectionInterface
 	 * @since 5.0.0
 	 */
 	public function key() : ?int {
-		return key($this->data);
+		/** @var int|null $key */
+		$key = key($this->data);
+		return $key;
 	}
 
 	/**
@@ -327,11 +305,24 @@ abstract class AbstractCollection implements CollectionInterface
 	}
 
 	/**
+	 * Get first object in collection
+	 *
+	 * @return T|null
+	 */
+	public function first() : ?Model {
+		/** @noinspection LoopWhichDoesNotLoopInspection */
+		foreach ($this->data as $object) {
+			return $object;
+		}
+		return null;
+	}
+
+	/**
 	 * Sort collection's data using a callback function
 	 *
 	 * @param callable $callback
 	 *
-	 * @return CollectionInterface
+	 * @return CollectionInterface<T>
 	 */
 	public function sort(callable $callback) : CollectionInterface {
 		usort($this->data, $callback);

@@ -2,19 +2,17 @@
 
 namespace App\Models\Questionnaire;
 
-use App\Core\AbstractModel;
+use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class Value extends AbstractModel
+#[PrimaryKey('id_value')]
+class Value extends Model
 {
 
-	public const TABLE       = 'question_value';
-	public const PRIMARY_KEY = 'id_value';
-	public const DEFINITION  = [
-		'question' => ['class' => Question::class],
-		'value'    => [],
-		'label'    => [],
-	];
+	public const TABLE = 'question_value';
 
+	#[ManyToOne]
 	public Question $question;
 	public string   $value = '';
 	public string   $label = '';

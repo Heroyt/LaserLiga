@@ -12,7 +12,7 @@
 
 namespace App\Controllers;
 
-use App\Core\Controller;
+use Lsr\Core\Controller;
 
 /**
  * @class   E403
@@ -38,8 +38,8 @@ class E403 extends Controller
 
 
 	public function show() : void {
-		http_response_code(404);
-		view('errors/E404', $this->params);
+		http_response_code(403);
+		$this->view('errors/E404');
 	}
 
 }

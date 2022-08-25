@@ -4,18 +4,18 @@
 namespace App\Core\Middleware;
 
 
-use App\Core\Request;
-use App\Core\Routing\Middleware;
+use Lsr\Core\Routing\Middleware;
+use Lsr\Interfaces\RequestInterface;
 
 class CSRFCheck implements Middleware
 {
 
 	/**
-	 * @param Request $request
+	 * @param RequestInterface $request
 	 *
 	 * @return bool
 	 */
-	public function handle(Request $request) : bool {
+	public function handle(RequestInterface $request) : bool {
 		$csrfName = implode('/', $request->path);
 		if (!formValid($csrfName)) {
 			$error = lang('Požadavek vypršel, zkuste to znovu.', context: 'errors');

@@ -2,28 +2,45 @@
 
 namespace App\Controllers;
 
-use App\Core\App;
-use App\Core\Controller;
-use App\Core\DB;
-use App\Core\Request;
-use App\Exceptions\ModelNotFoundException;
-use App\Exceptions\ValidationException;
-use App\Logging\DirectoryCreationException;
 use App\Models\Questionnaire\Answer;
 use App\Models\Questionnaire\User;
 use App\Services\QuestionnaireHelper;
 use Dibi\Exception;
+use JsonException;
+use Lsr\Core\App;
+use Lsr\Core\Controller;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Request;
+use Lsr\Exceptions\TemplateDoesNotExistException;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 class Questionnaire extends Controller
 {
 
+	/**
+	 * @return void
+	 * @throws TemplateDoesNotExistException
+	 * @throws ValidationException
+	 */
 	public function resultsList() : void {
 		$this->params['users'] = User::query()->where('id_questionnaire IS NOT NULL')->get();
 		$this->view('pages/questionnaire/index');
 	}
 
+	/**
+	 * @param Request $request
+	 *
+	 * @return void
+	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws TemplateDoesNotExistException
+	 * @throws ValidationException
+	 * @throws JsonException
+	 */
 	public function resultsStats(Request $request) : void {
-		/** @var \App\Models\Questionnaire\Questionnaire $questionnaire Long questionnaire */
+		// Long questionnaire
 		$questionnaire = \App\Models\Questionnaire\Questionnaire::get(2);
 		$this->params['questions'] = $questionnaire->getQuestions();
 		$this->params['answers'] = [];
@@ -106,45 +123,38 @@ class Questionnaire extends Controller
 		$this->view('pages/questionnaire/stats');
 	}
 
+	/**
+	 * @param Request $request
+	 *
+	 * @return void
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws TemplateDoesNotExistException
+	 * @throws DirectoryCreationException
+	 */
 	public function resultsUser(Request $request) : void {
 		$id = (int) ($request->params['id'] ?? 0);
 		if ($id < 1) {
 			App::redirect('questionnaire-results');
 		}
-		/** @var User $user */
 		$user = User::get($id);
 		$this->params['user'] = $user;
 		$this->params['questions'] = $user->questionnaire->getQuestions();
 		$this->view('pages/questionnaire/user');
 	}
 
-	public function save(Request $request) : void {
-		$user = QuestionnaireHelper::getQuestionnaireUser();
-		foreach ($request->post['questionnaire'] ?? [] as $id => $values) {
-			$test = DB::select(Answer::TABLE, Answer::PRIMARY_KEY)->where('id_question = %i AND id_user = %i', $id, $user->id)->fetchSingle();
-			$data = [
-				'id_question' => $id,
-				'id_user'     => $user->id,
-				'value'       => is_array($values) ? json_encode($values, JSON_THROW_ON_ERROR) : $values,
-			];
-			try {
-				if (isset($test)) {
-					DB::update(Answer::TABLE, $data, ['%n = %i', Answer::PRIMARY_KEY, $test]);
-				}
-				else {
-					DB::insert(Answer::TABLE, $data);
-				}
-			} catch (Exception $e) {
-				$this->ajaxJson(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
-			}
-		}
-		$this->ajaxJson(['success' => true]);
-	}
-
+	/**
+	 * @param Request $request
+	 *
+	 * @return void
+	 * @throws JsonException
+	 * @throws TemplateDoesNotExistException
+	 * @throws ValidationException
+	 */
 	public function done(Request $request) : void {
 		$user = QuestionnaireHelper::getQuestionnaireUser();
 		foreach ($request->post['questionnaire'] ?? [] as $id => $values) {
-			$test = DB::select(Answer::TABLE, Answer::PRIMARY_KEY)->where('id_question = %i AND id_user = %i', $id, $user->id)->fetchSingle();
+			$test = DB::select(Answer::TABLE, Answer::getPrimaryKey())->where('id_question = %i AND id_user = %i', $id, $user->id)->fetchSingle();
 			$data = [
 				'id_question' => $id,
 				'id_user'     => $user->id,
@@ -152,13 +162,13 @@ class Questionnaire extends Controller
 			];
 			try {
 				if (isset($test)) {
-					DB::update(Answer::TABLE, $data, ['%n = %i', Answer::PRIMARY_KEY, $test]);
+					DB::update(Answer::TABLE, $data, ['%n = %i', Answer::getPrimaryKey(), $test]);
 				}
 				else {
 					DB::insert(Answer::TABLE, $data);
 				}
 			} catch (Exception $e) {
-				$this->ajaxJson(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
+				$this->respond(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
 			}
 		}
 		$user->finished = true;
@@ -166,12 +176,41 @@ class Questionnaire extends Controller
 		$count = count($user->questionnaire->getQuestions());
 		$this->params['counter'] = $count;
 		$this->params['total'] = $count;
-		$this->ajaxJson([
-											'success' => true,
-											'total'   => $count,
-											'step'    => $count + 1,
-											'html'    => $this->viewGet('questionnaire/questions/thank-you'),
-										]);
+		$this->respond([
+										 'success' => true,
+										 'total'   => $count,
+										 'step'    => $count + 1,
+										 'html'    => $this->latte->viewToString('questionnaire/questions/thank-you', $this->params),
+									 ]);
+	}
+
+	/**
+	 * @param Request $request
+	 *
+	 * @return void
+	 * @throws JsonException
+	 */
+	public function save(Request $request) : void {
+		$user = QuestionnaireHelper::getQuestionnaireUser();
+		foreach ($request->post['questionnaire'] ?? [] as $id => $values) {
+			$test = DB::select(Answer::TABLE, Answer::getPrimaryKey())->where('id_question = %i AND id_user = %i', $id, $user->id)->fetchSingle();
+			$data = [
+				'id_question' => $id,
+				'id_user'     => $user->id,
+				'value'       => is_array($values) ? json_encode($values, JSON_THROW_ON_ERROR) : $values,
+			];
+			try {
+				if (isset($test)) {
+					DB::update(Answer::TABLE, $data, ['%n = %i', Answer::getPrimaryKey(), $test]);
+				}
+				else {
+					DB::insert(Answer::TABLE, $data);
+				}
+			} catch (Exception $e) {
+				$this->respond(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
+			}
+		}
+		$this->respond(['success' => true]);
 	}
 
 	/**
@@ -180,18 +219,21 @@ class Questionnaire extends Controller
 	 * @param Request $request Allows passing "key" parameter to set which question to get
 	 *
 	 * @return void
+	 * @throws ValidationException
+	 * @throws JsonException
+	 * @throws TemplateDoesNotExistException
 	 */
 	public function getQuestion(Request $request) : void {
 		$key = (int) ($request->params['key'] ?? 0);
 		$this->params['user'] = QuestionnaireHelper::getQuestionnaireUser();
 		if (!isset($this->params['user']->questionnaire)) {
-			$this->ajaxJson(['error' => lang('User has no questionnaire set.', context: 'questionnaire.errors')], 400);
+			$this->respond(['error' => lang('User has no questionnaire set.', context: 'questionnaire.errors')], 400);
 		}
 		$questions = array_values($this->params['user']->questionnaire->getQuestions());
 		bdump($key);
 		bdump($questions);
 		if (empty($questions)) {
-			$this->ajaxJson(['error' => lang('Questionnaire is empty.', context: 'questionnaire.errors')], 404);
+			$this->respond(['error' => lang('Questionnaire is empty.', context: 'questionnaire.errors')], 404);
 		}
 		$this->params['total'] = count($questions);
 		// Get first unfilled question (or the last)
@@ -207,11 +249,11 @@ class Questionnaire extends Controller
 		$this->params['counter'] = $key;
 		$this->params['question'] = $questions[$key];
 		bdump($questions);
-		$this->ajaxJson([
-											'step'  => $key + 1,
-											'total' => $this->params['total'],
-											'html'  => $this->viewGet('questionnaire/questions/question'),
-										]);
+		$this->respond([
+										 'step'  => $key + 1,
+										 'total' => $this->params['total'],
+										 'html'  => $this->latte->viewToString('questionnaire/questions/question', $this->params),
+									 ]);
 	}
 
 	/**
@@ -220,37 +262,46 @@ class Questionnaire extends Controller
 	 * @param Request $request
 	 *
 	 * @return void
+	 * @throws ValidationException
+	 * @throws JsonException
 	 */
 	public function selectQuestionnaire(Request $request) : void {
 		if (!isset($request->params['id'])) {
-			$this->ajaxJson(['error' => 'Missing parameter ID'], 400);
+			$this->respond(['error' => 'Missing parameter ID'], 400);
 		}
 		$id = (int) $request->params['id'];
 		try {
-			/** @var \App\Models\Questionnaire\Questionnaire $questionnaire */
 			$questionnaire = \App\Models\Questionnaire\Questionnaire::get($id);
 		} catch (ModelNotFoundException|DirectoryCreationException $e) {
-			$this->ajaxJson(['error' => 'Questionnaire not found', 'exception' => $e->getMessage()], 404);
+			$this->respond(['error' => 'Questionnaire not found', 'exception' => $e->getMessage()], 404);
 		}
 		$user = QuestionnaireHelper::getQuestionnaireUser();
 		$user->questionnaire = $questionnaire;
 		try {
 			if ($user->save()) {
-				$this->ajaxJson(['success' => true]);
+				$this->respond(['success' => true]);
 			}
 		} catch (ValidationException $e) {
 		}
-		$this->ajaxJson(['error' => 'Failed to save user'], 500);
+		$this->respond(['error' => 'Failed to save user'], 500);
 	}
 
+	/**
+	 * @return void
+	 * @throws JsonException
+	 */
 	public function showLater() : void {
 		QuestionnaireHelper::showQuestionnaireLater();
-		$this->ajaxJson(['success' => true]);
+		$this->respond(['success' => true]);
 	}
 
+	/**
+	 * @return void
+	 * @throws JsonException
+	 */
 	public function dontShowAgain() : void {
 		QuestionnaireHelper::dontShowQuestionnaire();
-		$this->ajaxJson(['success' => true]);
+		$this->respond(['success' => true]);
 	}
 
 }

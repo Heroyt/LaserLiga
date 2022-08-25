@@ -1,0 +1,3 @@
+includes:
+	- vendor/lsr/core/migrations.neon
+	- vendor/lsr/auth/migrations.neon

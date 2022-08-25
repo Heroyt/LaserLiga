@@ -2,7 +2,7 @@
 
 use App\Controllers\Api\Games;
 use App\Core\Middleware\ApiToken;
-use App\Core\Routing\Route;
+use Lsr\Core\Routing\Route;
 
 $apiToken = new ApiToken();
 

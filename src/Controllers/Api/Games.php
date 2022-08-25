@@ -2,21 +2,24 @@
 
 namespace App\Controllers\Api;
 
-use App\Core\ApiController;
-use App\Core\App;
-use App\Core\Interfaces\RequestInterface;
 use App\Core\Middleware\ApiToken;
-use App\Core\Request;
 use App\Exceptions\GameModeNotFoundException;
-use App\Exceptions\ValidationException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
-use App\Logging\Logger;
 use App\Models\Arena;
-use App\Services\Timer;
-use App\Tools\Strings;
 use DateTime;
 use Exception;
+use InvalidArgumentException;
+use JsonException;
+use Lsr\Core\ApiController;
+use Lsr\Core\App;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Request;
+use Lsr\Helpers\Tools\Strings;
+use Lsr\Helpers\Tools\Timer;
+use Lsr\Interfaces\RequestInterface;
+use Lsr\Logging\Logger;
+use Throwable;
 
 /**
  * API controller for everything game related
@@ -26,6 +29,9 @@ class Games extends ApiController
 
 	public Arena $arena;
 
+	/**
+	 * @throws ValidationException
+	 */
 	public function init(RequestInterface $request) : void {
 		parent::init($request);
 		$this->arena = Arena::getForApiKey(ApiToken::getBearerToken());
@@ -36,9 +42,10 @@ class Games extends ApiController
 	 *
 	 * @param Request $request
 	 *
+	 * @return void
+	 * @throws JsonException
 	 * @pre Must be authorized
 	 *
-	 * @return void
 	 */
 	public function listGames(Request $request) : void {
 		$notFilters = ['date', 'system', 'sql', 'returnLink', 'returnCodes'];
@@ -61,7 +68,7 @@ class Games extends ApiController
 			else {
 				$query = GameFactory::queryGames(false, $date);
 			}
-			$query->where('%n = %i', Arena::PRIMARY_KEY, $this->arena->id);
+			$query->where('%n = %i', Arena::getPrimaryKey(), $this->arena->id);
 
 			// TODO: Filter parsing could be more universally implemented for all API Controllers
 			$availableFilters = GameFactory::getAvailableFilters($request->get['system'] ?? null);
@@ -205,9 +212,9 @@ class Games extends ApiController
 			}
 
 			$games = $query->fetchAll();
-		} catch (\InvalidArgumentException $e) {
+		} catch (InvalidArgumentException $e) {
 			$this->respond(['error' => 'Invalid input', 'exception' => $e->getMessage()], 400);
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			$this->respond(['error' => 'Unexpected error', 'exception' => $e->getMessage(), 'code' => $e->getCode()], 500);
 		}
 
@@ -238,9 +245,10 @@ class Games extends ApiController
 	 *
 	 * @param Request $request
 	 *
+	 * @return void
+	 * @throws JsonException
 	 * @pre Must be authorized
 	 *
-	 * @return void
 	 */
 	public function getGame(Request $request) : void {
 		$gameCode = $request->params['code'] ?? '';
@@ -262,9 +270,10 @@ class Games extends ApiController
 	 *
 	 * @param Request $request
 	 *
+	 * @return void
+	 * @throws JsonException
 	 * @pre Must be authorized
 	 *
-	 * @return void
 	 */
 	public function import(Request $request) : void {
 		$logger = new Logger(LOG_DIR, 'api-import');

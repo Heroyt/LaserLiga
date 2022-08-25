@@ -2,14 +2,14 @@
 
 namespace GameModels\Auth;
 
-use App\Core\Auth\User;
-use App\Core\DB;
-use App\Exceptions\ModelNotFoundException;
-use App\Exceptions\ValidationException;
 use App\GameModels\Auth\LigaPlayer;
-use App\Logging\DirectoryCreationException;
 use App\Models\Arena;
+use App\Models\Auth\User;
 use Dibi\Exception;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 use PHPUnit\Framework\TestCase;
 
 class LigaPlayerTest extends TestCase
@@ -91,8 +91,8 @@ class LigaPlayerTest extends TestCase
 		self::assertTrue($this->player2->validateUniqueCode($this->player2->getCode()));
 
 		// Validating against code from another player should fail
-		self::assertFalse($this->player1->validateUniqueCode($this->player2->getCode()));
-		self::assertFalse($this->player2->validateUniqueCode($this->player1->getCode()));
+		self::assertFalse($this->player1->validateUniqueCode($this->player2->getCode()), $this->player2->getCode());
+		self::assertFalse($this->player2->validateUniqueCode($this->player1->getCode()), $this->player1->getCode());
 
 		// Validating against the same code from different arenas should pass
 		$this->player2->arena = $this->arena2;

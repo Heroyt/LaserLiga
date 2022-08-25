@@ -1,5 +1,5 @@
 {varType array $_GET}
-{varType \App\Core\Request $request}
+{varType \Lsr\Core\Requests\Request $request}
 
 {define header}
 	<header class="navbar navbar-expand-lg navbar-light bg-light">
@@ -11,7 +11,7 @@
 			</button>
 			<div class="collapse navbar-collapse" id="navBarContent">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-					{foreach App\Core\App::getMenu() as $key => $menuItem}
+					{foreach Lsr\Core\App::getMenu() as $key => $menuItem}
 						<li class="nav-item{if count($menuItem->children) > 0} dropdown{/if}">
 							{if count($menuItem->children) > 0}
 								<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown{$key}" role="button"
@@ -32,23 +32,23 @@
 				</ul>
 			</div>*}
 			<div class="btn-group ms-auto">
-				{var string $selectedLang = explode('_',$_GET['lang'] ?? App\Core\App::$language->id)[0]}
-				{var string $selectedCountry = App\Core\App::getSupportedLanguages()[$selectedLang]}
+				{var string $selectedLang = explode('_',$_GET['lang'] ?? Lsr\Core\App::$language->id)[0]}
+				{var string $selectedCountry = Lsr\Core\App::getSupportedLanguages()[$selectedLang]}
 				<button class="btn btn-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown"
 						aria-expanded="false">
-					<img src="{getUrl}assets/flags/{\App\Core\Constants::COUNTRIES[$selectedCountry]|escapeurl}.png"
+					<img src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]|escapeUrl}.png"
 						 style="height: 2rem; width: 2rem;"
-						 alt="{\App\Core\Constants::COUNTRIES[$selectedCountry]}">
+						 alt="{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]}">
 				</button>
 				<ul class="dropdown-menu bg-white" style="min-width: 5rem;">
-					{foreach App\Core\App::getSupportedLanguages() as $lang => $country}
+					{foreach Lsr\Core\App::getSupportedLanguages() as $lang => $country}
 						{continueIf $selectedLang === $lang}
 						<li>
 							<a class="dropdown-item" href="{link ['lang', $lang, 'redirect' => $request->path]}">
 								<img class="mx-auto d-block"
-									 src="{getUrl}assets/flags/{\App\Core\Constants::COUNTRIES[$country]|escapeurl}.png"
+									 src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$country]|escapeUrl}.png"
 									 style="height: 2rem; width: 2rem;"
-									 alt="{\App\Core\Constants::COUNTRIES[$country]}">
+									 alt="{\Lsr\Core\Constants::COUNTRIES[$country]}">
 							</a>
 						</li>
 					{/foreach}

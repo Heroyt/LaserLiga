@@ -1,1 +1,9 @@
+includes:
+	- services-common.neon
+parameters:
+	memcached:
+		host: 'cache'
+		port: 11211
+		prefix: ''
 services:
+	cache.storage: Nette\Caching\Storages\MemcachedStorage(%memcached.host%, %memcached.port%, %memcached.prefix%)

@@ -4,8 +4,8 @@ use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
 use App\Controllers\Cli\Help;
 use App\Controllers\Cli\Translations;
-use App\Core\Routing\CliRoute;
-use App\Services\CliHelper;
+use Lsr\Core\Routing\CliRoute;
+use Lsr\Helpers\Cli\CliHelper;
 
 if (PHP_SAPI === 'cli') {
 

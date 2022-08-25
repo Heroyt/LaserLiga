@@ -2,25 +2,16 @@
 
 namespace App\Models\Questionnaire;
 
-use App\Core\AbstractModel;
-use App\Core\Interfaces\InsertExtendInterface;
-use App\Exceptions\ModelNotFoundException;
-use App\Logging\DirectoryCreationException;
-use Dibi\Row;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\OneToMany;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class Question extends AbstractModel implements InsertExtendInterface
+#[PrimaryKey('id_question')]
+class Question extends Model
 {
 
-	public const TABLE       = 'question';
-	public const PRIMARY_KEY = 'id_question';
-	public const DEFINITION  = [
-		'text'           => [],
-		'type'           => ['class' => QuestionType::class],
-		'allowCustom'    => [],
-		'allowMultiple'  => [],
-		'optional'       => [],
-		'customTemplate' => [],
-	];
+	public const TABLE = 'question';
 
 	public ?string      $text           = null;
 	public QuestionType $type           = QuestionType::ABC;
@@ -30,35 +21,16 @@ class Question extends AbstractModel implements InsertExtendInterface
 	public ?string      $customTemplate = null;
 
 	/** @var Question[] */
-	private array $subQuestions = [];
+	#[OneToMany('parent_question', class: Question::class)]
+	public array $subQuestions = [];
+
 	/** @var Value[] */
-	private array $values = [];
-
-	/**
-	 * @inheritDoc
-	 */
-	public static function parseRow(Row $row) : ?static {
-		try {
-			if (isset($row->id_question)) {
-				return self::get($row->id_question);
-			}
-			if (isset($row->parent_question)) {
-				return self::get($row->parent_question);
-			}
-		} catch (ModelNotFoundException|DirectoryCreationException $e) {
-		}
-		return null;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function addQueryData(array &$data) : void {
-		$data['id_question'] = $this->id;
-	}
+	#[OneToMany(class: Value::class)]
+	public array $values = [];
 
 	/**
 	 * @return Question[]
+	 * @throws ValidationException
 	 */
 	public function getSubQuestions() : array {
 		if (empty($this->subQuestions)) {
@@ -78,6 +50,7 @@ class Question extends AbstractModel implements InsertExtendInterface
 
 	/**
 	 * @return Value[]
+	 * @throws ValidationException
 	 */
 	public function getValues() : array {
 		if (empty($this->values)) {

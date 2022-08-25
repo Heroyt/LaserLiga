@@ -15,8 +15,15 @@
 
 namespace App\Core;
 
-use App\Core\Auth\User;
+use App\Models\Auth\User;
 use Dibi\Exception;
+use JsonException;
+use Lsr\Core\App;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
+use ReflectionException;
 use RuntimeException;
 
 /**
@@ -37,6 +44,11 @@ class Loader
 	 *
 	 * @return void
 	 *
+	 * @throws JsonException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @throws DirectoryCreationException
+	 * @throws ReflectionException
 	 * @post    URL request is parsed
 	 * @post    Database connection established
 	 *
