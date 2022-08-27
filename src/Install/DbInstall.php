@@ -1,8 +1,10 @@
 <?php
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 
 namespace App\Install;
 
-use App\Core\Auth\User;
 use App\Core\Info;
 use App\GameModels\Auth\Player as AuthPlayer;
 use App\GameModels\Game\Evo5\Game;
@@ -11,8 +13,6 @@ use App\GameModels\Game\Evo5\Team;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
 use App\Models\Auth\UserConnection;
-use App\Models\Auth\UserType;
-use Dibi\DriverException;
 use Dibi\Exception;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\CyclicDependencyException;
@@ -23,10 +23,13 @@ use Nette\Utils\AssertionException;
 use ReflectionClass;
 use ReflectionException;
 
+/**
+ * @version 0.1
+ */
 class DbInstall implements InstallInterface
 {
 
-	/** @var array{definition:string, modifications:array}[] */
+	/** @var array{definition:string, modifications?:array<string,string[]>}[] */
 	public const TABLES = [
 		UserConnection::TABLE => [
 			'definition'    => "(
@@ -191,7 +194,7 @@ class DbInstall implements InstallInterface
 			'modifications' => [],
 		],
 		Player::TABLE         => [
-			'definition' => "(
+			'definition'    => "(
 				`id_player` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`id_game` int(11) unsigned NOT NULL,
 				`id_team` int(11) unsigned DEFAULT NULL,
@@ -239,6 +242,8 @@ class DbInstall implements InstallInterface
 			'modifications' => [],
 		],
 	];
+
+	/** @var array<class-string, string> */
 	protected static array $classTables = [];
 
 	/**
@@ -249,6 +254,7 @@ class DbInstall implements InstallInterface
 	 * @return bool
 	 */
 	public static function install(bool $fresh = false) : bool {
+		// Load migration files
 		$loader = new MigrationLoader(ROOT.'config/migrations.neon');
 		try {
 			$loader->load();
@@ -257,10 +263,12 @@ class DbInstall implements InstallInterface
 			return false;
 		}
 
+		/** @var array{definition:string, modifications?:array<string,string[]>}[] $tables */
 		$tables = array_merge($loader->migrations, self::TABLES);
 
 		try {
 			if ($fresh) {
+				// Drop all tables in reverse order
 				foreach (array_reverse($tables) as $tableName => $definition) {
 					if (class_exists($tableName)) {
 						$tableName = static::getTableNameFromClass($tableName);
@@ -272,6 +280,7 @@ class DbInstall implements InstallInterface
 				}
 			}
 
+			// Create tables
 			foreach ($tables as $tableName => $info) {
 				if (class_exists($tableName)) {
 					$tableName = static::getTableNameFromClass($tableName);
@@ -296,13 +305,10 @@ AS SELECT
 FROM (`game_modes` `a` left join `game_modes-names` `b` on(`a`.`id_mode` = `b`.`id_mode`));");
 
 			if (!$fresh) {
-				try {
-					$currVersion = Info::get('db_version', 0.0);
-				} catch (DriverException $e) {
-					$currVersion = 0.0;
-				}
+				/** @var array<string,string> $tableVersions */
+				$tableVersions = (array) Info::get('db_version', []);
 
-				$maxVersion = $currVersion;
+				// Update all tables if there have been any changes to the tables
 				foreach ($tables as $tableName => $info) {
 					if (class_exists($tableName)) {
 						$tableName = static::getTableNameFromClass($tableName);
@@ -310,52 +316,81 @@ FROM (`game_modes` `a` left join `game_modes-names` `b` on(`a`.`id_mode` = `b`.`
 							continue;
 						}
 					}
+					$currTableVersion = $tableVersions[$tableName] ?? '0.0';
+					$maxVersion = $currTableVersion;
 					foreach ($info['modifications'] ?? [] as $version => $queries) {
-						$version = (float) $version;
-						if ($version <= $currVersion) {
+						// Check versions
+						if (version_compare($currTableVersion, $version) > 0) {
+							// Skip if this version have already been processed
 							continue;
 						}
-						if ($version > $maxVersion) {
+						if (version_compare($maxVersion, $version) < 0) {
 							$maxVersion = $version;
 						}
+
+						// Run ALTER TABLE queries for current version
 						foreach ($queries as $query) {
 							echo 'Altering table: '.$tableName.' - '.$query.PHP_EOL;
-							DB::getConnection()->query("ALTER TABLE %n $query;", $tableName);
+							try {
+								DB::getConnection()->query("ALTER TABLE %n $query;", $tableName);
+							} catch (Exception $e) {
+								if ($e->getCode() === 1060 || $e->getCode() === 1061) {
+									// Duplicate column <-> already created
+									continue;
+								}
+								throw $e;
+							}
 						}
 					}
+					$tableVersions[$tableName] = $maxVersion;
 				}
+
+				// Update table version cache
 				try {
-					Info::set('db_version', $maxVersion);
-				} catch (Exception $e) {
+					Info::set('db_version', $tableVersions);
+				} catch (Exception) {
 				}
 			}
 		} catch (Exception $e) {
 			echo "\e[0;31m".$e->getMessage()."\e[m\n".$e->getSql()."\n";
 			return false;
 		}
+
 		return true;
 	}
 
 	/**
-	 * @param string $className
+	 * Get a table name for a Model class
+	 *
+	 * @param class-string $className
 	 *
 	 * @return string|null
-	 * @throws ReflectionException
 	 */
 	protected static function getTableNameFromClass(string $className) : ?string {
+		// Check static cache
 		if (isset(static::$classTables[$className])) {
 			return static::$classTables[$className];
 		}
-		$reflection = new ReflectionClass($className);
 
+		// Try to get table name from reflection
+		try {
+			$reflection = new ReflectionClass($className);
+		} catch (ReflectionException) { // @phpstan-ignore-line
+			// Class not found
+			return null;
+		}
+
+		// Check if the class is instance of Model
 		while ($parent = $reflection->getParentClass()) {
 			if ($parent->getName() === Model::class) {
+				// Cache result
 				static::$classTables[$className] = $className::TABLE;
 				return $className::TABLE;
 			}
 			$reflection = $parent;
 		}
 
+		// Class is not a Model
 		return null;
 	}
 

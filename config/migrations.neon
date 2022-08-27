@@ -1,3 +1,32 @@
 includes:
 	- vendor/lsr/core/migrations.neon
 	- vendor/lsr/auth/migrations.neon
+tables:
+	page_info:
+		definition: '''
+    		(
+    			`key` varchar(30) NOT NULL DEFAULT '',
+    			`value` text DEFAULT NULL,
+    			PRIMARY KEY (`key`)
+    		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    		'''
+	Lsr\Core\Auth\Models\User:
+			definition: '''
+			(
+				`id_user` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				`id_user_type` int(11) unsigned NOT NULL,
+				`id_parent` int(11) unsigned DEFAULT NULL,
+				`name` varchar(20) NOT NULL DEFAULT '',
+				`email` varchar(50) NOT NULL,
+				`password` varchar(100) NOT NULL,
+				PRIMARY KEY (`id_user`),
+				KEY `id_user_type` (`id_user_type`),
+				KEY `id_parent` (`id_parent`),
+				CONSTRAINT `users_ibfk_1` FOREIGN KEY (`id_user_type`) REFERENCES `user_types` (`id_user_type`) ON UPDATE CASCADE,
+				CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id_parent`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+			'''
+			modifications:
+				0.1:
+					- 'ADD `id_parent` int(11) unsigned DEFAULT NULL AFTER `id_user_type`'
+					- 'ADD FOREIGN KEY (`id_parent`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE'

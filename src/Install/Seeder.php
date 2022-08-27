@@ -2,12 +2,16 @@
 
 namespace App\Install;
 
-use App\Core\Auth\User;
-use App\Exceptions\ValidationException;
 use App\GameModels\Game\GameModes\AbstractMode;
-use App\Models\Auth\UserType;
+use App\Models\Auth\User;
 use Dibi\Exception;
+use JsonException;
+use Lsr\Core\Auth\Models\User as UserParent;
+use Lsr\Core\Auth\Models\UserType;
 use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 class Seeder implements InstallInterface
 {
@@ -485,6 +489,7 @@ class Seeder implements InstallInterface
 
 	/**
 	 * @inheritDoc
+	 * @throws JsonException
 	 */
 	public static function install(bool $fresh = false) : bool {
 		try {
@@ -533,15 +538,15 @@ class Seeder implements InstallInterface
 
 			// Insert admin
 			if ($fresh) {
-				DB::delete(User::TABLE, ['1=1']);
-				DB::resetAutoIncrement(User::TABLE);
+				DB::delete(UserParent::TABLE, ['1=1']);
+				DB::resetAutoIncrement(UserParent::TABLE);
 			}
 			if (!User::exists(1)) {
 				echo 'Creating admin user...'.PHP_EOL;
 				$user = new User();
 				$user->name = 'admin';
 				$user->email = 'admin@admin.cz';
-				$user->id_user_type = 1;
+				$user->type = UserType::get(1);
 				$user->setPassword('admin');
 				if (!$user->save()) {
 					return false;
@@ -552,7 +557,7 @@ class Seeder implements InstallInterface
 				$user = new User();
 				$user->name = 'user';
 				$user->email = 'user@user.cz';
-				$user->id_user_type = 2;
+				$user->type = UserType::get(2);
 				$user->setPassword('user');
 				if (!$user->save()) {
 					return false;
@@ -573,7 +578,7 @@ class Seeder implements InstallInterface
 				DB::insertIgnore(AbstractMode::TABLE.'-names', $insert);
 			}
 
-		} catch (Exception|ValidationException $e) {
+		} catch (Exception|ValidationException|ModelNotFoundException|DirectoryCreationException $e) {
 			echo "\e[0;31m".$e->getMessage()."\e[m\n";
 			return false;
 		}
