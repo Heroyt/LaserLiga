@@ -77,12 +77,16 @@ class DbInstall implements InstallInterface
 				`email` varchar(50) NOT NULL,
 				PRIMARY KEY (`id_user`),
 				KEY `id_arena` (`id_arena`),
+				UNIQUE KEY `code` (`code`,`id_arena`),
 				CONSTRAINT `players_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
 				CONSTRAINT `players_ibfk_2` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
 			'modifications' => [
-				'0.2' => [
+				'0.2'   => [
 					'ADD `email` VARCHAR(50) NOT NULL AFTER `nickname`',
+				],
+				'0.2.1' => [
+					'ADD UNIQUE INDEX (`code`,`id_arena`)'
 				]
 			],
 		],
