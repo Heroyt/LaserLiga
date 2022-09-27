@@ -27,9 +27,12 @@ class Help extends CliController
 	public function generateAutocompleteJson(CliRequest $request) : void {
 		$outFile = $request->args[0] ?? '';
 		$out = [
-			'name'        => 'lac',
-			'description' => 'Laser arena control CLI tools',
-			'subcommands' => [],
+			'scriptCompletions' => [
+				'lsr' => 'autocomplete/src/lsr',
+			],
+			'name'              => 'lsr',
+			'description'       => 'Laser arena control CLI tools',
+			'subcommands'       => [],
 		];
 		// Add all routes (subcommands)
 		$this->addRoutes(Router::$availableRoutes, $out);
@@ -42,6 +45,12 @@ class Help extends CliController
 		}
 		else {
 			file_put_contents($outFile, $json);
+			/** @var string|false $out */
+			$out = exec('npx @fig/publish-spec --spec-path '.dirname($outFile).'/autocomplete/src/lsr.ts --is-script 2>&1', $output, $returnCode);
+			if ($out === false || $returnCode !== 0) {
+				$this->errorPrint($output);
+				exit($returnCode);
+			}
 		}
 	}
 

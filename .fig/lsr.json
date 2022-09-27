@@ -1,0 +1,86 @@
+{
+	"scriptCompletions": {
+		"lsr": "autocomplete/src/lsr"
+	},
+	"name": "lsr",
+	"description": "Laser arena control CLI tools",
+	"subcommands": [
+		{
+			"name": "cache/clean",
+			"description": "Clean server cache",
+			"args": [
+				{
+					"name": "...tag",
+					"isOptional": true,
+					"description": "If set, only the records with specified tags will be removed"
+				}
+			]
+		},
+		{
+			"name": "cache/clean/di",
+			"description": "Clean server cache",
+			"args": []
+		},
+		{
+			"name": "cache/clean/latte",
+			"description": "Clean latte cache",
+			"args": []
+		},
+		{
+			"name": "lint/latte",
+			"description": "Lint check all template files in the template directory",
+			"args": [
+				{
+					"name": "debug",
+					"isOptional": true
+				}
+			]
+		},
+		{
+			"name": "list",
+			"description": "Lists all available CLI commands.",
+			"args": [
+				{
+					"name": "commandGroup",
+					"isOptional": true,
+					"description": "Optional filter for command groups"
+				}
+			]
+		},
+        {
+            "name": "help",
+            "description": "Print help for a command.",
+            "args": [
+                {
+                    "name": "command",
+                    "isOptional": false,
+                    "description": "A command to get information about.",
+                    "suggestions": [
+                        "autocomplete/get",
+                        "list",
+                        "help",
+                        "results/load",
+                        "event/server"
+                    ]
+                }
+            ]
+        },
+        {
+					"name": "autocomplete/get",
+					"description": "Generate an autocomplete JSON for all available commands.",
+					"args": [
+						{
+							"name": "out",
+							"isOptional": true,
+							"description": "If set, output will be written to the [out] file. Otherwise, output will be written to stdout.",
+							"template": "filepaths"
+						}
+					]
+				},
+		{
+			"name": "translations/compile",
+			"description": "Compile all translation files.",
+			"args": []
+		}
+	]
+}

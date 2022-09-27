@@ -51,16 +51,16 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	/**
 	 * Get the result of the query
 	 *
-	 * @return CollectionInterface<T>
+	 * @return CollectionInterface<T>|array
 	 */
-	public function get() : CollectionInterface {
+	public function get() : CollectionInterface|array {
 		$collection = clone $this->collection;
 		$this
 			->applyFilters($collection)
 			->sort($collection);
 		if (isset($this->mapCallback)) {
 			$data = $collection->getAll();
-			return $this->collection::fromArray(array_map($this->mapCallback, $data));
+			return array_map($this->mapCallback, $data);
 		}
 		return $collection;
 	}

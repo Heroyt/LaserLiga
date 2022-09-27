@@ -21,6 +21,10 @@ array_unshift($argv, 'install');
 
 require_once ROOT."include/load.php";
 
+if (PHP_SAPI !== 'cli') {
+	echo '<pre>';
+}
+
 if (Install::install(in_array('fresh', $argv ?? [], true) || isset($_GET['fresh']))) {
 	echo 'Successfully installed!'.PHP_EOL;
 	exit(0);
