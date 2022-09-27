@@ -28,4 +28,21 @@ $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-co
 		--#{$variable-prefix}body-color: #{map.get($theme-colors-dark, 'text')};
 
 	}
+
+	$form-select-dark-indicator: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='#fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/></svg>");
+	.form-select {
+		background-image: escape-svg($form-select-dark-indicator) !important;
+	}
+
+	$form-switch-dark-color: #{map.get($theme-colors-dark, 'text')};
+	$form-switch-dark-bg-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$form-switch-dark-color}'/></svg>");
+	.form-switch {
+		.form-check-input {
+			background-image: escape-svg($form-switch-dark-bg-image) !important;
+
+			&:not(:checked) {
+				border-color: var(--text);
+			}
+		}
+	}
 }

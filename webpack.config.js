@@ -1,6 +1,8 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CompressionPlugin = require("compression-webpack-plugin");
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const isDevelopment = true;
 
 module.exports = {
@@ -10,12 +12,16 @@ module.exports = {
 		'./assets/scss/main.scss',
 	],
 	output: {
-		filename: 'main.js',
+		filename: '[name].js',
 		path: path.resolve(__dirname, 'dist'),
 		publicPath: "/dist/"
 	},
 	module: {
 		rules: [
+			{
+				test: /\.tsx?$/,
+				loader: 'ts-loader'
+			},
 			{
 				test: /\.(scss)$/,
 				use: [
@@ -48,38 +54,38 @@ module.exports = {
 			"node_modules",
 			path.resolve(__dirname, "dist")
 		],
-		extensions: [".js", ".json", ".jsx", ".css", ".scss"]
+		extensions: [".ts", ".tsx", ".js", ".json", ".jsx", ".css", ".scss"]
 	},
 	plugins: [
+		new BundleAnalyzerPlugin({
+			analyzerMode: 'json',
+		}),
+		new ForkTsCheckerWebpackPlugin(),
 		new MiniCssExtractPlugin({
 			filename: isDevelopment ? '[name].css' : '[name].[hash].css',
 			chunkFilename: isDevelopment ? '[id].css' : '[id].[hash].css'
 		}),
 		new CompressionPlugin({
 			test: /\.(js|css)/
-		})
+		}),
 	],
+	cache: {
+		type: 'filesystem',
+		cacheDirectory: path.resolve(__dirname, 'temp/webpack'),
+	},
 	devtool: "source-map",
 	optimization: {
+		usedExports: true,
+		runtimeChunk: true,
+		moduleIds: 'deterministic',
 		splitChunks: {
-			chunks: 'async',
-			minSize: 20000,
-			minRemainingSize: 0,
-			minChunks: 1,
-			maxAsyncRequests: 30,
-			maxInitialRequests: 30,
-			enforceSizeThreshold: 50000,
+			chunks: 'all',
 			cacheGroups: {
-				defaultVendors: {
+				vendor: {
 					test: /[\\/]node_modules[\\/]/,
-					priority: -10,
-					reuseExistingChunk: true,
-				},
-				default: {
-					minChunks: 2,
-					priority: -20,
-					reuseExistingChunk: true,
-				},
+					name: 'vendors',
+					//chunks: 'all',
+				}
 			},
 		},
 	},
