@@ -18,9 +18,12 @@ class MusicMode extends Model
 	#[Required]
 	#[StringLength(1, 20)]
 	public string $name;
-	public int    $order = 0;
+	public int    $order        = 0;
+	public string $fileName     = '';
 	#[ManyToOne]
-	public ?Arena $arena = null;
+	public ?Arena $arena        = null;
+	public int    $idLocal;
+	public int    $previewStart = 0;
 
 	/**
 	 * @param Arena|null $arena Filter music for arena

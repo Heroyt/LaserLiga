@@ -7,6 +7,8 @@ use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use App\Models\Arena;
+use App\Models\GameGroup;
+use App\Models\MusicMode;
 use DateTime;
 use Exception;
 use InvalidArgumentException;
@@ -293,6 +295,25 @@ class Games extends ApiController
 			try {
 				$game = $gameClass::fromJson($gameInfo);
 				$game->arena = $this->arena;
+				if (!empty($gameInfo['music']['id'])) {
+					$musicMode = MusicMode::query()->where('[id_arena] = %i AND [id_local] = %i', $this->arena->id, $gameInfo['music']['id'])->first();
+					if (isset($musicMode)) {
+						$game->music = $musicMode;
+					}
+				}
+				if (!empty($gameInfo['group']['id'])) {
+					$gameGroup = GameGroup::query()->where('[id_arena] = %i AND [id_local] = %i', $this->arena->id, $gameInfo['group']['id'])->first();
+					if (!isset($gameGroup)) {
+						$gameGroup = new GameGroup();
+						$gameGroup->arena = $this->arena;
+						$gameGroup->idLocal = $gameInfo['group']['id'];
+						$gameGroup->name = $gameInfo['group']['name'];
+						$gameGroup->save();
+					}
+					if (isset($gameGroup->id)) {
+						$game->group = $gameGroup;
+					}
+				}
 			} catch (GameModeNotFoundException $e) {
 				$this->respond(['error' => 'Invalid game mode', 'exception' => $e->getMessage()], 400);
 			}
