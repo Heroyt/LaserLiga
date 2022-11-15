@@ -320,6 +320,10 @@ class Games extends ApiController
 			$parseTime = microtime(true) - $start;
 			try {
 				if ($game->save() === false) {
+					$game->clearCache();
+					if (isset($game->group)) {
+						$game->group->clearCache();
+					}
 					$this->respond(['error' => 'Failed saving the game'], 500);
 				}
 				$imported++;

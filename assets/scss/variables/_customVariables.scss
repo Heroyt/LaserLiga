@@ -8,8 +8,8 @@
 
 $tmp-theme-colors: functions.getThemeColors($custom-colors-light);
 
-$link-color: var(--white);
-$link-hover-color: var(--danger);
+$link-color: var(--text);
+$link-hover-color: var(--primary);
 
 $navbar-dark-color: var(--white);
 $navbar-dark-hover-color: var(--danger);

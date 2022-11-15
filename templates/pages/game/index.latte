@@ -2,6 +2,8 @@
 
 {varType App\GameModels\Game\Game $game}
 {varType App\GameModels\Game\Today $today}
+{varType string $prevGame}
+{varType string $nextGame}
 
 {define teamColor}
 	{default int $teamColor = 0}
@@ -153,6 +155,7 @@
 				{lang 'Dotazník', context: 'questionnaire'}
 			</button>
 		</div>
+		{dump $game}
 		<div class="col-12 mt-2 game-head">
 			<div class="game-info py-3 rounded-10 shadow bg-white text-center d-flex flex-column justify-content-center align-items-center">
 				{$game->arena->getLogoHtml()|noescape}
@@ -164,9 +167,13 @@
 					<strong>{lang 'Datum', context: 'results.info'}:</strong>
 					{$game->start->format('d.m.Y H:i:s')}
 				</div>
-				<div>
+				<div class="my-1">
 					<strong>{lang 'Herní mód', context: 'results.info'}:</strong>
 					{lang $game->mode->name, context: 'gameModes'}
+				</div>
+				<div n:ifset="$game->group">
+					<strong>{lang 'Skupina', context: 'results.info'}:</strong>
+					{$game->group->name}
 				</div>
 			</div>
 			<div class="scoring p-3 rounded-10 shadow bg-white">
@@ -287,6 +294,22 @@
 						{/if}
 					</div>
 				</div>
+			</div>
+		</div>
+		<div n:if="isset($game->group)" class="col-12 mt-3 text-center">
+			<div class="btn-group btn-group-lg">
+				<a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-info">
+					<i class="fa-solid fa-caret-left"></i>
+					{lang 'Předchozí hra', context: 'results.group'}
+				</a>
+				<a href="{link ['game', 'group', $game->group->getEncodedId()]}" class="btn btn-secondary">
+					<i class="fa-solid fa-list"></i>
+					{lang 'Skupina'}
+				</a>
+				<a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-primary">
+					{lang 'Následující hra', context: 'results.group'}
+					<i class="fa-solid fa-caret-right"></i>
+				</a>
 			</div>
 		</div>
 	</div>

@@ -4,19 +4,19 @@
 }
 
 .collapse-indicator-collapsed {
-	display: none;
+	display: none !important;
 }
 
 .collapse-indicator-not-collapsed {
-	display: inline-block;
+	display: inline-block !important;
 }
 
 .collapsed {
 	.collapse-indicator-collapsed {
-		display: inline-block;
+		display: inline-block !important;
 	}
 
 	.collapse-indicator-not-collapsed {
-		display: none;
+		display: none !important;
 	}
 }

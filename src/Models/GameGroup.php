@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
+use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
+use App\Models\Group\Player as GroupPlayer;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -32,11 +34,16 @@ class GameGroup extends Model
 	/** @var Game[] */
 	private array $games = [];
 
-	/** @var Player[] */
+	/** @var GroupPlayer[] */
 	private array $players = [];
+	/** @var AbstractMode[] */
+	private array              $modes = [];
+	private string             $encodedId;
+	private \DateTimeInterface $firstDate;
+	private \DateTimeInterface $lastDate;
 
 	/**
-	 * @return Player[]
+	 * @return GroupPlayer[]
 	 * @throws Throwable
 	 */
 	public function getPlayers() : array {
@@ -53,42 +60,56 @@ class GameGroup extends Model
 					'gameGroups',
 				];
 				$dependencies[CacheParent::EXPIRE] = '1 months';
+
 				$players = [];
-				$playerSkills = [];
-				$playerVests = [];
 				foreach ($games as $game) {
 					/** @var Player $player */
 					foreach ($game->getPlayers() as $player) {
-						$asciiName = Strings::toAscii($player->name);
+						$asciiName = strtolower(Strings::toAscii($player->name));
 						if (!isset($players[$asciiName])) {
-							$playerSkills[$asciiName] = [];
-							$players[$asciiName] = clone $player;
-							$playerVests[$asciiName] = [];
+							$players[$asciiName] = new GroupPlayer(
+								$asciiName,
+								clone $player
+							);
+							$players[$asciiName]->name = $player->name;
 						}
-						if ($players[$asciiName]->name === $asciiName && $player->name !== $asciiName) {
-							$players[$asciiName]->name = $player->name; // Prefer non-ascii (with diacritics) names
-						}
-						$playerSkills[$asciiName][] = $player->skill;
-						if (!isset($playerVests[$asciiName][$player->vest])) {
-							$playerVests[$asciiName][$player->vest] = 0;
-						}
-						$playerVests[$asciiName][$player->vest]++;
+
+						$players[$asciiName]->addGame($player, $game);
 					}
 				}
 
-				// Set player's skill as average
+				// Copy some values to the base Player class
 				foreach ($players as $player) {
-					$asciiName = Strings::toAscii($player->name);
-					$player->skill = (int) round(array_sum($playerSkills[$asciiName]) / count($playerSkills[$asciiName]));
-					// Sort player vests by his use count
-					arsort($playerVests[$asciiName]);
-					$player->vest = array_key_first($playerVests[$asciiName]);
+					$player->player->skill = $player->getSkill();
+					$player->player->vest = $player->getFavouriteVest();
 				}
+
+				// Sort players by their skill in descending order
+				uasort(
+					$players,
+					static fn(GroupPlayer $playerA, GroupPlayer $playerB) => $playerB->getSkill() - $playerA->getSkill()
+				);
+
 				return $players;
 			});
 		}
 		/** @phpstan-ignore-next-line */
 		return $this->players;
+	}
+
+	/**
+	 * @param int[] $modeIds
+	 *
+	 * @return GroupPlayer[]
+	 * @throws Throwable
+	 */
+	public function getPlayersSortedForModes(array $modeIds) : array {
+		$players = array_filter($this->getPlayers(), static fn(GroupPlayer $player) => $player->getModesPlayCount($modeIds) > 0);
+		uasort(
+			$players,
+			static fn(GroupPlayer $playerA, GroupPlayer $playerB) => $playerB->getModesSkill($modeIds) - $playerA->getModesSkill($modeIds)
+		);
+		return $players;
 	}
 
 	/**
@@ -106,7 +127,7 @@ class GameGroup extends Model
 				];
 				$dependencies[CacheParent::EXPIRE] = '1 months';
 				$games = [];
-				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->fetchAll();
+				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll();
 				foreach ($rows as $row) {
 					$games[] = GameFactory::getByCode($row->code);
 				}
@@ -115,6 +136,31 @@ class GameGroup extends Model
 		}
 		/** @phpstan-ignore-next-line */
 		return $this->games;
+	}
+
+	/**
+	 * @return string[]
+	 * @throws Throwable
+	 */
+	public function getGamesCodes() : array {
+		if (empty($this->games)) {
+			/** @var Cache $cache */
+			$cache = App::getService('cache');
+			/** @phpstan-ignore-next-line */
+			return $cache->load('group/'.$this->id.'/games/ids', function(array &$dependencies) : array {
+				$dependencies[CacheParent::Tags] = [
+					'gameGroups',
+				];
+				$dependencies[CacheParent::EXPIRE] = '1 months';
+				$games = [];
+				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll();
+				foreach ($rows as $row) {
+					$games[] = $row->code;
+				}
+				return $games;
+			});
+		}
+		return array_map(static fn($game) => $game->code, $this->games);
 	}
 
 	public function save() : bool {
@@ -130,6 +176,68 @@ class GameGroup extends Model
 			$cache->remove('group/'.$this->id.'/players');
 			$cache->remove('group/'.$this->id.'/games');
 		}
+	}
+
+	public function getEncodedId() : string {
+		if (!isset($this->encodedId)) {
+			$this->encodedId = bin2hex(base64_encode($this->id.'-'.$this->arena->id.'-'.$this->idLocal));
+		}
+		return $this->encodedId;
+	}
+
+	/**
+	 * Gets formatted date range for this group
+	 *
+	 * @param string $format How to format the dates
+	 *
+	 * @return string
+	 */
+	public function getDateRange(string $format = 'd.m.Y') : string {
+		$first = $this->getFirstDate()?->format($format);
+		$last = $this->getLastDate()?->format($format);
+		return match (true) { // @phpstan-ignore-line
+			(!isset($first) && !isset($last)) => '',
+			!isset($first) => $last,
+			!isset($last), $first === $last => $first,
+			default => $first.' - '.$last,
+		};
+	}
+
+	public function getFirstDate() : ?\DateTimeInterface {
+		if (!isset($this->firstDate)) {
+			$firstGame = first($this->getGames());
+			if (!isset($firstGame, $firstGame->start)) {
+				return null;
+			}
+			$this->firstDate = clone $firstGame->start;
+		}
+		return $this->firstDate;
+	}
+
+	public function getLastDate() : ?\DateTimeInterface {
+		if (!isset($this->lastDate)) {
+			$firstGame = last($this->getGames());
+			if (!isset($firstGame, $firstGame->start)) {
+				return null;
+			}
+			$this->lastDate = clone $firstGame->start;
+		}
+		return $this->lastDate;
+	}
+
+	/**
+	 * @return AbstractMode[]
+	 * @throws Throwable
+	 */
+	public function getModes() : array {
+		if (empty($this->modes)) {
+			foreach ($this->getGames() as $game) {
+				if (isset($game->mode) && !isset($this->modes[$game->mode->id])) {
+					$this->modes[$game->mode->id] = $game->mode;
+				}
+			}
+		}
+		return $this->modes;
 	}
 
 }

@@ -7,10 +7,12 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Today;
+use App\Models\GameGroup;
 use JsonException;
 use Lsr\Core\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
+use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Helpers\Tools\Strings;
 
@@ -31,8 +33,74 @@ class Games extends Controller
 			$this->view('pages/game/empty');
 			return;
 		}
+		$this->params['prevGame'] = '';
+		$this->params['nextGame'] = '';
+		if (isset($this->params['game']->group)) {
+			// Get all game codes for the same group
+			$codes = $this->params['game']->group->getGamesCodes();
+			// Find previous and next game code from the same group
+			$found = false;
+			foreach ($codes as $code) {
+				if ($found) {
+					$this->params['nextGame'] = $code;
+					break;
+				}
+				if ($code === $gameCode) {
+					$found = true;
+					continue;
+				}
+				$this->params['prevGame'] = $code;
+			}
+		}
 		$this->params['today'] = new Today($this->params['game'], new ($this->params['game']->playerClass), new ($this->params['game']->teamClass));
 		$this->view('pages/game/index');
+	}
+
+	#[Get('/game/group/{groupid}')]
+	public function group(Request $request) : void {
+		$this->params['groupCode'] = $request->params['groupid'] ?? '4d4330774c54413d'; // Default is '0-0-0'
+		// Decode encoded group ids
+		$decodeGroupId = hex2bin($this->params['groupCode']);
+		if ($decodeGroupId === false) { // Decode error
+			http_response_code(403);
+			$this->view('pages/game/invalidGroup');
+			return;
+		}
+
+		/** @var string|false $decodeGroupId */
+		$decodeGroupId = base64_decode($decodeGroupId);
+		if ($decodeGroupId === false) { // Decode error
+			http_response_code(403);
+			$this->view('pages/game/invalidGroup');
+			return;
+		}
+
+		/**
+		 * Split one string into 3 ID values
+		 *
+		 * @var int $groupId
+		 * @var int $arenaId
+		 * @var int $localId
+		 */
+		[$groupId, $arenaId, $localId] = array_map(static fn($id) => (int) $id, explode('-', $decodeGroupId));
+
+		// Find group matching all ids
+		/** @var GameGroup|null $group */
+		$group = GameGroup::query()
+											->where('id_group = %i AND id_arena = %i AND id_local = %i', $groupId, $arenaId, $localId)
+											->first();
+
+		if (!isset($group)) { // Group not found
+			http_response_code(404);
+			$this->view('pages/game/invalidGroup');
+			return;
+		}
+
+		$this->params['group'] = $group;
+		$this->params['modes'] = isset($_GET['modes']) && is_array($_GET['modes']) ?
+			array_map(static fn($id) => (int) $id, $_GET['modes']) :
+			[];
+		$this->view('pages/game/group');
 	}
 
 	/**

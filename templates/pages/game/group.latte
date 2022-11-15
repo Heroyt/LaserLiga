@@ -1,0 +1,318 @@
+{layout '../../@layout.latte'}
+
+{varType string $groupCode}
+{varType \App\Models\GameGroup $group}
+{varType int[] $modes}
+
+{define teamColor}
+	{default int $teamColor = 0}
+	<span class="team-color bg-team-{$teamColor}"></span>
+{/define}
+
+{define addHead}
+	{\App\Tools\Color::getGamesColor($group->getGames())|noescape}
+{/define}
+
+{define containerClasses}
+	game-group py-5
+{/define}
+
+{define content}
+	<header id="groupHeader" class="py-3 mb-4 rounded-10 shadow bg-white text-center">
+		{$group->arena->getLogoHtml()|noescape}
+		<h2>{lang 'Skupina'} - {$group->name}</h2>
+		{var string $range = $group->getDateRange()}
+		<h4 n:if="!empty($range)">{$range}</h4>
+	</header>
+
+	<div class="card bg-secondary text-bg-secondary mb-4">
+		<div class="card-head cursor-pointer px-3 pt-2 collapsed d-flex justify-content-between"
+			 data-bs-toggle="collapse" data-bs-target="#filters">
+			<h4>{lang 'Filtry'}</h4>
+			<div class="collapse-indicator">
+				<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+				<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+			</div>
+		</div>
+		<form class="collapse p-3 card-body" action="{link ['game', 'group', $groupCode]}" id="filters" method="get">
+			<h5>{lang 'Herní mód'}</h5>
+			<div class="d-flex flex-wrap justify-content-evenly">
+				<div n:foreach="$group->getModes() as $modeId => $mode" class="form-check">
+					<input class="form-check-input" type="checkbox" value="{$modeId}" id="modeFilter{$modeId}"
+						   name="modes[]"
+						   {if in_array($modeId, $modes, true)}checked{/if}>
+					<label class="form-check-label" for="modeFilter{$modeId}">
+						{lang $mode->name, context: 'gameModes'}
+					</label>
+				</div>
+			</div>
+			<p class="text-center mt-3">
+			<span class="btn-group">
+				<button type="submit" class="btn btn-success">{lang 'Filtrovat', context: 'actions'}</button>
+				<button type="reset" class="btn btn-danger">{lang 'Smazat', context: 'actions'}</button>
+			</span>
+			</p>
+		</form>
+	</div>
+
+	{var App\Models\Group\Player[] $players = !empty($modes) ? $group->getPlayersSortedForModes($modes) : $group->getPlayers()}
+	<h3>{lang 'Hráči'} ({count($players)})</h3>
+	<section id="groupPlayers" class="d-flex flex-column">
+		<div n:foreach="$players as $player" class="group-player rounded-10 my-2 bg-white flex-fill shadow">
+			<div class="player-head collapsed bg-primary p-2" data-bs-toggle="collapse"
+				 data-bs-target="#player-body-{$player->asciiName|replace:' ','_'}">
+				<div class="position">
+					{$iterator->counter}.
+				</div>
+
+				<div class="player-name">
+					<div class="name">
+						{$player->name}
+					</div>
+				</div>
+
+				<div class="score" data-toggle="tooltip" title="{lang 'Průměrné ohodnocení hráče'}">
+					<i class="fa-solid fa-star"></i>
+					{if empty($modes)}
+						{$player->getSkill()|number:0,',','&nbsp;'|noescape}
+					{else}
+						{$player->getModesSkill($modes)|number:0,',','&nbsp;'|noescape}
+					{/if}
+					<i class="fa-solid fa-circle-info ms-2 me-1 cursor-info"></i>
+				</div>
+
+				<div class="collapse-indicator">
+					<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+					<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+				</div>
+			</div>
+			<div class="player-body rounded-bottom-10 collapse bg-white p-3"
+				 id="player-body-{$player->asciiName|replace:' ','_'}">
+				<div class="row">
+					<div class="player-info d-flex justify-content-center col-12 col-md-6">
+						<table class="table table-borderless align-middle w-auto">
+							<tr>
+								<th>{svgIcon 'Vesta', 'auto', '1.25rem'}</th>
+								<td>{lang 'Oblíbená vesta'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getFavouriteVest()}
+									{else}
+										{$player->getModesFavouriteVest($modes)}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<th>{svgIcon 'kill', 'auto', '1.25rem'}</th>
+								<td>{lang 'Odehráno her'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->playCount}
+									{else}
+										{$player->getModesPlayCount($modes)}
+									{/if}
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="col-12 col-md-6">
+						{var int $circleRadius = 98}
+						{var float $accuracy = empty($modes) ? $player->getAverageAccuracy() : $player->getModesAverageAccuracy($modes)}
+						<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
+							 class="accuracy" xml:space="preserve"
+							 style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+							<circle class="fill-circle" r="{$circleRadius}" cx="250" cy="250" fill="transparent"
+									stroke="tomato"
+									stroke-width="{2*$circleRadius}"
+									stroke-dasharray="{round($accuracy * pi() * 2 * $circleRadius / 100, 4)} {round(pi() * 2 * $circleRadius,4)}"/>
+							<text x="250px" y="282px" font-weight="bold">
+								<tspan text-anchor="middle">{$accuracy}%</tspan>
+							</text>
+							<g class="sight">
+								<g transform="matrix(1,0,0,1,-55,-4)">
+									<path d="M305,56C414.279,56 503,144.721 503,254C503,363.279 414.279,452 305,452C195.721,452 107,363.279 107,254C107,144.721 195.721,56 305,56ZM305,65.98C408.771,65.98 493.02,150.229 493.02,254C493.02,357.771 408.771,442.02 305,442.02C201.229,442.02 116.98,357.771 116.98,254C116.98,150.229 201.229,65.98 305,65.98Z"/>
+								</g>
+								<g transform="matrix(1,0,0,1,-0.5,4.5)">
+									<rect x="24" y="241" width="67" height="9"/>
+								</g>
+								<g transform="matrix(6.12323e-17,-1,1,6.12323e-17,4.5,500.5)">
+									<rect x="24" y="241" width="67" height="9"/>
+								</g>
+								<g transform="matrix(1,0,0,1,385.5,4.5)">
+									<rect x="24" y="241" width="67" height="9"/>
+								</g>
+								<g transform="matrix(6.12323e-17,-1,1,6.12323e-17,4.5,114.5)">
+									<rect x="24" y="241" width="67" height="9"/>
+								</g>
+							</g>
+						</svg>
+					</div>
+				</div>
+				<div class="row">
+					<div class="player-score col-12 col-md-6 d-flex justify-content-center">
+						<table class="table table-borderless align-middle w-auto">
+							<tr>
+								<th rowspan="2" class="fs-4">
+									<i class="fa-solid fa-star"></i>
+								</th>
+								<td>{lang 'Průměrné skóre'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getAverageScore()|number:2,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesAverageScore($modes)|number:2,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Celkové skóre'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getSumScore()|number:0,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesSumScore($modes)|number:0,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="player-shots col-12 col-md-6 d-flex justify-content-center">
+						<table class="table table-borderless align-middle w-auto">
+							<tr>
+								<th rowspan="2">
+									{svgIcon 'bullets', '', '1.25em'}
+								</th>
+								<td>{lang 'Průměrný počet výstřelů'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getAverageShots()|number:2,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesAverageShots($modes)|number:2,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Celkem výstřelů'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getSumShots()|number:0,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesSumShots($modes)|number:0,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="row">
+					<div class="player-hits col-12 col-md-6 d-flex justify-content-center">
+						<table class="table table-borderless align-middle w-auto">
+							<tr>
+								<th rowspan="2">
+									{svgIcon 'kill', '', '1.25em'}
+								</th>
+								<td>{lang 'Průměrný počet zásahů'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getAverageHits()|number:2,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesAverageHits($modes)|number:2,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Celkem zásahů'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getSumHits()|number:0,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesSumHits($modes)|number:0,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="player-deaths col-12 col-md-6 d-flex justify-content-center">
+						<table class="table table-borderless align-middle w-auto">
+							<tr>
+								<th rowspan="2">
+									{svgIcon 'skull', '', '1.25em'}
+								</th>
+								<td>{lang 'Průměrný počet smrtí'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getAverageDeaths()|number:2,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesAverageDeaths($modes)|number:2,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Celkem smrtí'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getSumDeaths()|number:0,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesSumDeaths($modes)|number:0,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div class="player-kd col-12 text-center">
+						<strong>
+							{lang 'K:D'}
+							({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'}):
+						</strong>
+						{if empty($modes)}
+							{ratio($player->getSumHits(), $player->getSumDeaths(), 0)}:{ratio($player->getSumHits(), $player->getSumDeaths(), 1)}
+							({$player->getKd()|number:2,',','&nbsp;'|noescape})
+						{else}
+							{var int $hits = $player->getModesSumHits($modes)}
+							{var int $deaths = $player->getModesSumDeaths($modes)}
+							{ratio($hits, $deaths, 0)}:{ratio($hits, $deaths, 1)}
+							({$player->getModesKd($modes)|number:2,',','&nbsp;'|noescape})
+						{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<table class="table caption-top">
+		{var int $gameCount = 0}
+		<thead>
+		<tr>
+			<th>{lang 'Time'}</th>
+			<th>{lang 'Game mode'}</th>
+			<th>{lang 'Players'}</th>
+			<th></th>
+		</tr>
+		</thead>
+		<tbody>
+		{foreach $group->getGames() as $game}
+			{continueIf !empty($modes) && !in_array($game->mode?->id, $modes, true)}
+			{do $gameCount++}
+			<tr>
+				{do $game->loadTeams()}
+				<td><a href="{link ['game', $game->code]}"
+					   class="text-decoration-none">{$game->start->format('d.m.Y H:i')}</a></td>
+				<td>{$game->mode?->name}</td>
+				<td>
+				<span n:foreach="$game->getPlayersSorted() as $player"
+						data-toggle="tooltip"
+						title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
+						class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+					{$player->position}.&nbsp;{$player->name}
+				</span>
+				</td>
+				<td><a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
+					   title="{lang 'Výsledky'}"><i class="fa-solid fa-eye"></i></a></td>
+			</tr>
+		{/foreach}
+		</tbody>
+		<caption class="fs-3 text-text text-center">
+			{lang 'Hry'} ({$gameCount})
+		</caption>
+	</table>
+{/define}
