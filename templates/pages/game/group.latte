@@ -40,7 +40,7 @@
 				<div n:foreach="$group->getModes() as $modeId => $mode" class="form-check">
 					<input class="form-check-input" type="checkbox" value="{$modeId}" id="modeFilter{$modeId}"
 						   name="modes[]"
-						   {if in_array($modeId, $modes, true)}checked{/if}>
+						   {if empty($modes) || in_array($modeId, $modes, true)}checked{/if}>
 					<label class="form-check-label" for="modeFilter{$modeId}">
 						{lang $mode->name, context: 'gameModes'}
 					</label>
