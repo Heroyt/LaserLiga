@@ -209,4 +209,46 @@ class Translations extends CliController
 		return false;
 	}
 
+	public function removeComments() : never {
+		/** @var GettextTranslations[] $translations */
+		global $translations;
+
+		$poGenerator = new PoGenerator();
+
+		$count = 0;
+		$template = null;
+		foreach ($translations as $lang => $translation) {
+			foreach ($translation->getTranslations() as $string) {
+				$comments = $string->getComments();
+				$all = $comments->toArray();
+				$count += count($all);
+				$comments->delete(...$all);
+			}
+
+			if (!isset($template)) {
+				$template = clone $translation;
+			}
+
+			$poGenerator->generateFile($translation, LANGUAGE_DIR.$lang.'/LC_MESSAGES/'.LANGUAGE_FILE_NAME.'.po');
+		}
+
+		if (isset($template)) {
+			foreach ($template->getTranslations() as $string) {
+				$string->translate('');
+				$pluralCount = count($string->getPluralTranslations());
+				if ($pluralCount > 0) {
+					$plural = [];
+					for ($i = 0; $i < $pluralCount; $i++) {
+						$plural[] = '';
+					}
+					$string->translatePlural(...$plural);
+				}
+				$poGenerator->generateFile($template, LANGUAGE_DIR.LANGUAGE_FILE_NAME.'.pot');
+			}
+		}
+
+		echo Colors::color(ForegroundColors::GREEN).'Removed '.$count.' comments'.Colors::reset().PHP_EOL;
+		exit(0);
+	}
+
 }
