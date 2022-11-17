@@ -74,7 +74,7 @@ trait PlayerAggregate
 		if (count($this->accuracies) === 0) {
 			return 0;
 		}
-		$this->accuracyAvg = array_sum($this->accuracies) / count($this->accuracies);
+		$this->accuracyAvg = (int) round(array_sum($this->accuracies) / count($this->accuracies));
 		return $this->accuracyAvg;
 	}
 
