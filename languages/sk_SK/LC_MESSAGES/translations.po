@@ -2755,3 +2755,26 @@ msgstr ""
 msgctxt "cli.help.arguments"
 msgid "A comma separated list of context names to skip while merging."
 msgstr ""
+
+msgid "Nepodařilo se připojit k TCP serveru (%s:%d)."
+msgstr ""
+
+msgctxt "settings"
+msgid "Skupiny"
+msgstr ""
+
+msgctxt "actions"
+msgid "Deaktivovat"
+msgstr ""
+
+msgctxt "actions"
+msgid "Aktivovat"
+msgstr ""
+
+msgctxt "settings"
+msgid "Neaktivní skupiny"
+msgstr ""
+
+msgctxt "actions"
+msgid "Zobrazit"
+msgstr ""

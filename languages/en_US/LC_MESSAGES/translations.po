@@ -2768,3 +2768,26 @@ msgstr "A language directory from the other project."
 msgctxt "cli.help.arguments"
 msgid "A comma separated list of context names to skip while merging."
 msgstr "A comma separated list of context names to skip while merging."
+
+msgid "Nepodařilo se připojit k TCP serveru (%s:%d)."
+msgstr "Failed to connect to the TCP server (%s:%d)."
+
+msgctxt "settings"
+msgid "Skupiny"
+msgstr "Groups"
+
+msgctxt "actions"
+msgid "Deaktivovat"
+msgstr "Disable"
+
+msgctxt "actions"
+msgid "Aktivovat"
+msgstr "Enable"
+
+msgctxt "settings"
+msgid "Neaktivní skupiny"
+msgstr "Disabled groups"
+
+msgctxt "actions"
+msgid "Zobrazit"
+msgstr "Show"

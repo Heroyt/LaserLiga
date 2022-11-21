@@ -2778,3 +2778,26 @@ msgstr "Adresář překladů z jiného projektu."
 msgctxt "cli.help.arguments"
 msgid "A comma separated list of context names to skip while merging."
 msgstr "Čárkou oddělený seznam kontextových jmen pro přeskočení při sloučení."
+
+msgid "Nepodařilo se připojit k TCP serveru (%s:%d)."
+msgstr "Nepodařilo se připojit k TCP serveru (%s:%d)."
+
+msgctxt "settings"
+msgid "Skupiny"
+msgstr "Skupiny"
+
+msgctxt "actions"
+msgid "Deaktivovat"
+msgstr "Deaktivovat"
+
+msgctxt "actions"
+msgid "Aktivovat"
+msgstr "Aktivovat"
+
+msgctxt "settings"
+msgid "Neaktivní skupiny"
+msgstr "Neaktivní skupiny"
+
+msgctxt "actions"
+msgid "Zobrazit"
+msgstr "Zobrazit"
