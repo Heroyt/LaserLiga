@@ -170,9 +170,16 @@ class GameGroup extends Model
 	}
 
 	public function clearCache() : void {
+		parent::clearCache();
 		if (isset($this->id)) {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
+			$cache->clean([
+											CacheParent::Tags => [
+												'group/'.$this->id.'/games',
+												'group/'.$this->id.'/players',
+											]
+										]);
 			$cache->remove('group/'.$this->id.'/players');
 			$cache->remove('group/'.$this->id.'/games');
 		}

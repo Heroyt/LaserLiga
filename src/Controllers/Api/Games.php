@@ -312,7 +312,15 @@ class Games extends ApiController
 					}
 					if (isset($gameGroup->id)) {
 						$game->group = $gameGroup;
+						if ($gameGroup->name !== $gameInfo['group']['name']) {
+							// Update group's name
+							$gameGroup->name = $gameInfo['group']['name'];
+							$gameGroup->save();
+						}
 					}
+				}
+				else {
+					$game->group = null;
 				}
 			} catch (GameModeNotFoundException $e) {
 				$this->respond(['error' => 'Invalid game mode', 'exception' => $e->getMessage()], 400);
@@ -320,11 +328,11 @@ class Games extends ApiController
 			$parseTime = microtime(true) - $start;
 			try {
 				if ($game->save() === false) {
-					$game->clearCache();
-					if (isset($game->group)) {
-						$game->group->clearCache();
-					}
 					$this->respond(['error' => 'Failed saving the game'], 500);
+				}
+				$game->clearCache();
+				if (isset($game->group)) {
+					$game->group->clearCache();
 				}
 				$imported++;
 			} catch (ValidationException $e) {
