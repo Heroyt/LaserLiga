@@ -217,7 +217,7 @@ class Games extends ApiController
 		} catch (InvalidArgumentException $e) {
 			$this->respond(['error' => 'Invalid input', 'exception' => $e->getMessage()], 400);
 		} catch (Throwable $e) {
-			$this->respond(['error' => 'Unexpected error', 'exception' => $e->getMessage(), 'code' => $e->getCode()], 500);
+			$this->respond(['error' => 'Unexpected error', 'exception' => $e->getMessage(), 'code' => $e->getCode(), 'trace' => $e->getTrace()], 500);
 		}
 
 		// Return only public links
@@ -317,6 +317,7 @@ class Games extends ApiController
 							$gameGroup->name = $gameInfo['group']['name'];
 							$gameGroup->save();
 						}
+						$gameGroup->clearCache();
 					}
 				}
 				else {

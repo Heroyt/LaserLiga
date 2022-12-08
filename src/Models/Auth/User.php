@@ -4,6 +4,7 @@ namespace App\Models\Auth;
 
 use App\GameModels\Auth\LigaPlayer;
 use App\Models\Arena;
+use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\OneToMany;
@@ -16,6 +17,8 @@ class User extends \Lsr\Core\Auth\Models\User
 
 	#[ManyToOne('', 'id_parent')]
 	public ?User $parent = null;
+
+	public int $id_user_type; // TODO: Figure out the error when this is deleted
 
 	/** @var UserConnection[] */
 	#[OneToMany(class: UserConnection::class)]
@@ -56,6 +59,15 @@ class User extends \Lsr\Core\Auth\Models\User
 	public function addConnection(UserConnection $connection) : User {
 		$this->connections[] = $connection;
 		return $this;
+	}
+
+	public static function getByEmail(string $email) : ?User {
+		return static::query()->where('[email] = %s', $email)->first();
+	}
+
+	public static function existsByEmail(string $email) : bool {
+		$test = DB::select(static::TABLE, 'count(*)')->where('[email] = %s', $email)->fetchSingle(cache: false);
+		return $test > 0;
 	}
 
 	/**

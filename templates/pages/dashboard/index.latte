@@ -1,5 +1,10 @@
 {layout '../../@layout.latte'}
 
+{varType App\Models\Auth\User $user}
+
 {block content}
+
+	<p>Current user: {$user->name}, {$user->email}, {$user->type->name}</p>
+	<p n:ifset="$user->player">Player: {$user->player->arena->name} {$user->player->getCode()}</p>
 
 {/block}

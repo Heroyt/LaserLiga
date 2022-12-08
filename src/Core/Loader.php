@@ -62,12 +62,15 @@ class Loader
 			self::initConfig();
 
 			// Initialize app
-			User::init();
 			App::init();
 		}
 
 		// Setup database connection
 		self::initDB();
+
+		if (defined('INDEX') && INDEX) {
+			User::init();
+		}
 
 	}
 

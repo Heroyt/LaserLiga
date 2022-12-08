@@ -1,0 +1,46 @@
+{layout '../../@layout.latte'}
+
+{varType string[] $errors}
+{varType array $_POST}
+
+{define content}
+	<form action="{link ['login']}" method="post" id="login-form" class="card has-validation" style="max-width: 400px;">
+		<div class="card-header">
+			<h3>{lang 'Přihlásit'}</h3>
+		</div>
+		<div class="card-body">
+			<div class="form-group mb-3">
+				<div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
+					<input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
+						   id="loginEmail" placeholder="mail@mail.cz"
+						   autocomplete="email" required value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
+					<label for="loginEmail">{lang 'E-mail'}:</label>
+				</div>
+				<div class="invalid-feedback">
+					{ifset $errors['email']}
+						{$errors['email']}
+					{/ifset}
+				</div>
+			</div>
+			<div class="form-group mb-3">
+				<div class="form-floating {ifset $errors['password']}is-invalid{/ifset}">
+					<input type="password" name="password"
+						   class="form-control {ifset $errors['password']}is-invalid{/ifset}" id="loginPassword"
+						   placeholder="****"
+						   autocomplete="password" required>
+					<label for="loginPassword">{lang 'Heslo'}:</label>
+				</div>
+				<div class="invalid-feedback">
+					{ifset $errors['password']}
+						{$errors['password']}
+					{/ifset}
+				</div>
+			</div>
+			<div>
+				<button type="submit" class="btn btn-success">{lang 'Odeslat', context: 'actions'}</button>
+				<br>
+				{lang 'Nemáte ještě účet?'} <a href="{link ['register']}">{lang 'Vytvořit účet'}</a>
+			</div>
+		</div>
+	</form>
+{/define}

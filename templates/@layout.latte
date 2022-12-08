@@ -14,7 +14,8 @@
 {define addHead}
 {/define}
 {define errors}
-	{foreach $errors as $error}
+	{foreach $errors as $key => $error}
+		{skipIf is_string($key)}
 		{alertDanger $error}
 	{/foreach}
 {/define}

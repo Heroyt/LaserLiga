@@ -124,10 +124,12 @@ class GameGroup extends Model
 			$this->games = $cache->load('group/'.$this->id.'/games', function(array &$dependencies) : array {
 				$dependencies[CacheParent::Tags] = [
 					'gameGroups',
+					$this::TABLE.'/'.$this->id,
+					'group/'.$this->id.'/games',
 				];
 				$dependencies[CacheParent::EXPIRE] = '1 months';
 				$games = [];
-				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll();
+				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll(cache: false);
 				foreach ($rows as $row) {
 					$games[] = GameFactory::getByCode($row->code);
 				}
@@ -150,10 +152,12 @@ class GameGroup extends Model
 			return $cache->load('group/'.$this->id.'/games/ids', function(array &$dependencies) : array {
 				$dependencies[CacheParent::Tags] = [
 					'gameGroups',
+					$this::TABLE.'/'.$this->id,
+					'group/'.$this->id.'/games',
 				];
 				$dependencies[CacheParent::EXPIRE] = '1 months';
 				$games = [];
-				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll();
+				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll(cache: false);
 				foreach ($rows as $row) {
 					$games[] = $row->code;
 				}
@@ -182,6 +186,7 @@ class GameGroup extends Model
 										]);
 			$cache->remove('group/'.$this->id.'/players');
 			$cache->remove('group/'.$this->id.'/games');
+			$cache->remove('group/'.$this->id.'/games/ids');
 		}
 	}
 

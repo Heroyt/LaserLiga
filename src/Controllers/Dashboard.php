@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Auth\User;
 use Lsr\Core\Controller;
 
 class Dashboard extends Controller
@@ -11,6 +12,7 @@ class Dashboard extends Controller
 	protected string $description = '';
 
 	public function show() : void {
+		$this->params['user'] = User::getLoggedIn();
 		$this->view('pages/dashboard/index');
 	}
 

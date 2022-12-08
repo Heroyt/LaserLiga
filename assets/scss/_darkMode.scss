@@ -2,14 +2,41 @@
 @use 'sass:map';
 @use 'functions';
 
+@mixin dark-theme() {
+	$form-select-dark-indicator: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='#fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/></svg>");
+	.form-select {
+		background-image: escape-svg($form-select-dark-indicator) !important;
+	}
+
+	$form-switch-dark-color: #{map.get($theme-colors-dark, 'text')};
+	$form-switch-dark-bg-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$form-switch-dark-color}'/></svg>");
+	.form-switch {
+		.form-check-input {
+			background-image: escape-svg($form-switch-dark-bg-image) !important;
+
+			&:not(:checked) {
+				border-color: var(--text);
+			}
+		}
+	}
+
+	.form-floating {
+		color: var(--black-forced);
+	}
+}
+
 $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-colors-dark));
 
 .bg-white path[fill="white"] {
 	fill: var(--not-so-dark);
 }
 
+* {
+	transition: background .3s ease;
+}
+
 @media (prefers-color-scheme: dark) {
-	:root {
+	body:not(.lightMode) {
 		@each $name, $values in $custom-colors-dark {
 			@each $weight, $color in $values {
 				$separator: '-';
@@ -27,22 +54,27 @@ $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-co
 		--#{$variable-prefix}body-bg: #{map.get($theme-colors-dark, 'background')};
 		--#{$variable-prefix}body-color: #{map.get($theme-colors-dark, 'text')};
 
+		@include dark-theme();
 	}
+}
 
-	$form-select-dark-indicator: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='#fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/></svg>");
-	.form-select {
-		background-image: escape-svg($form-select-dark-indicator) !important;
-	}
-
-	$form-switch-dark-color: #{map.get($theme-colors-dark, 'text')};
-	$form-switch-dark-bg-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$form-switch-dark-color}'/></svg>");
-	.form-switch {
-		.form-check-input {
-			background-image: escape-svg($form-switch-dark-bg-image) !important;
-
-			&:not(:checked) {
-				border-color: var(--text);
+body.darkMode {
+	@each $name, $values in $custom-colors-dark {
+		@each $weight, $color in $values {
+			$separator: '-';
+			@if $weight == '' {
+				$separator: '';
+			}
+			@if type-of($color) == 'map' {
+				--#{map.get($color, 'alias')}: #{map.get($color, 'color')};
+				--#{$name}#{$separator}#{$weight}: #{map.get($color, 'color')};
+			} @else {
+				--#{$name}#{$separator}#{$weight}: #{$color};
 			}
 		}
 	}
+	--#{$variable-prefix}body-bg: #{map.get($theme-colors-dark, 'background')};
+	--#{$variable-prefix}body-color: #{map.get($theme-colors-dark, 'text')};
+
+	@include dark-theme();
 }
