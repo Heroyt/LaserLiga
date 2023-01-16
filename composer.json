@@ -1,6 +1,6 @@
 {
-	"name": "heroyt/my-php-framework",
-	"version": "1.2.2",
+	"name": "heroyt/laserliga",
+	"version": "1.2.3",
 	"minimum-stability": "stable",
 	"repositories": [
 		{
@@ -30,13 +30,14 @@
 		"nette/di": ">3.0",
 		"ext-mbstring": "*",
 		"ext-fileinfo": "*",
-		"lsr/interfaces": "^0.1",
-		"lsr/helpers": "^0.1",
-		"lsr/core": "^0.1",
-		"lsr/routing": "^0.1",
-		"lsr/logging": "^0.1",
-		"lsr/request": "^0.1",
-		"lsr/auth": "^0.1.0"
+		"lsr/interfaces": "^0.2",
+		"lsr/helpers": "^0.2",
+		"lsr/core": "^0.2",
+		"lsr/routing": "^0.2",
+		"lsr/logging": "^0.2",
+		"lsr/request": "^0.2",
+		"lsr/auth": "^0.2",
+		"ext-simplexml": "*"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",
