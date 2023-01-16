@@ -62,15 +62,11 @@ class Games extends ApiController
 			}
 
 			if (!empty($request->get['system'])) {
-				$query = GameFactory::queryGamesSystem($request->get['system'], true);
-				if (isset($date)) {
-					$query->where('DATE([start]) = %d', $date);
-				}
+				$query = $this->arena->queryGamesSystem($request->get['system'], $date);
 			}
 			else {
-				$query = GameFactory::queryGames(false, $date);
+				$query = $this->arena->queryGames($date);
 			}
-			$query->where('%n = %i', Arena::getPrimaryKey(), $this->arena->id);
 
 			// TODO: Filter parsing could be more universally implemented for all API Controllers
 			$availableFilters = GameFactory::getAvailableFilters($request->get['system'] ?? null);
@@ -346,6 +342,23 @@ class Games extends ApiController
 			}
 		}
 		$this->respond(['success' => true, 'imported' => $imported]);
+	}
+
+	public function stats(Request $request) : void {
+		$date = null;
+		if (isset($request->get['date'])) {
+			$date = new DateTime($request->get['date']);
+		}
+
+		$gameCount = (isset($request->get['system']) ? $this->arena->queryGamesSystem($request->get['system'], $date) : $this->arena->queryGames($date))->count();
+		$playerCount = $this->arena->queryPlayers($date)->count();
+		$teamCount = $this->arena->queryTeams($date)->count();
+
+		$this->respond([
+										 'games'   => $gameCount,
+										 'players' => $playerCount,
+										 'teams'   => $teamCount,
+									 ]);
 	}
 
 }

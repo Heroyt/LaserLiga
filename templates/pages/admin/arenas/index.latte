@@ -1,0 +1,30 @@
+{layout '../../../@layout.latte'}
+
+{varType App\Models\Arena[] $arenas}
+
+{block content}
+
+	<table class="table table-striped">
+		<thead>
+		<tr>
+			<th>{lang 'Logo'}</th>
+			<th>{lang 'Název'}</th>
+			<th>{lang 'Akce'}</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr n:foreach="$arenas as $arena">
+			<td>{$arena->getLogoHtml()|noescape}</td>
+			<td>{$arena->name}</td>
+			<td>
+				<div class="btn-group">
+					<a href="{link ['admin', 'arenas', $arena->id]}" class="btn btn-info">
+						<i class="fa-solid fa-pencil"></i>
+					</a>
+				</div>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+
+{/block}

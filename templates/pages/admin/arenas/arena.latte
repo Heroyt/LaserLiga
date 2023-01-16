@@ -1,0 +1,67 @@
+{layout '../../../@layout.latte'}
+
+{varType App\Models\Arena $arena}
+{varType Dibi\Row[] $apiKeys}
+
+{block content}
+	<p class="text-start">
+		<a href="{link ['admin', 'arenas']}" class="btn btn-warning"><i
+					class="fa-solid fa-caret-left"></i> {lang 'Zpět'}</a>
+	</p>
+	<form action="{link ['admin', 'arenas', $arena->id]}" method="post" enctype="multipart/form-data" id="arena-form">
+		<div class="form-floating mb-3">
+			<input type="text" name="name" class="form-control" id="arena-name" placeholder="{lang 'Název'}" required
+				   value="{$arena->name}">
+			<label for="arena-name">{lang 'Název'}</label>
+		</div>
+		<div class="input-group mb-3">
+			<div class="form-floating">
+				<input type="text" name="lat" class="form-control" id="arena-lat" placeholder="Lat" required
+					   value="{$arena->lat}">
+				<label for="arena-lat">{lang 'Zeměpisná délka'}</label>
+			</div>
+			<div class="form-floating">
+				<input type="text" name="lng" class="form-control" id="arena-lng" placeholder="Lng" required
+					   value="{$arena->lng}">
+				<label for="arena-lng">{lang 'Zeměpisná šířka'}</label>
+			</div>
+			{* TODO: Google API from address *}
+		</div>
+		<div class="row mb-3">
+			<div class="col-md-6" id="img">
+				{$arena->getLogoHtml()|noescape}
+			</div>
+			<div class="col-md-6">
+				<label for="arena-image" class="form-label">{lang 'Logo'}:</label>
+				<input type="file" class="form-control" name="image" id="arena-image" accept="image/svg+xml">
+				<div class="form-text">{lang 'Vektorový obrázek ve formátu SVG'}</div>
+			</div>
+		</div>
+
+		<h3>{lang 'API klíče'}</h3>
+		<button type="button" class="btn btn-success" id="addApiKey"><i class="fa-solid fa-plus"></i></button>
+		<div id="api-keys">
+			<div n:foreach="$apiKeys as $id => $apiKey" class="input-group mb-2" data-id="{$id}">
+				<input type="text" readonly="readonly"
+					   class="form-control col-9 text-center font-monospace bg-light-grey text-black" id="key-{$id}"
+					   value="{$apiKey->key}">
+				<button type="button" data-action="copy-to-clipboard" data-target="#key-{$id}"
+						class="btn btn-secondary">
+					<i class="fa-solid fa-clipboard"></i>
+				</button>
+				<div class="form-floating">
+					<input type="text" name="key[{$id}][name]" class="form-control" id="key-{$id}-name"
+						   placeholder="{lang 'Název'}" required value="{$apiKey->name}">
+					<label for="key-{$id}-name">{lang 'Název'}</label>
+				</div>
+				<button type="button" class="delete btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+			</div>
+		</div>
+
+	</form>
+	<script>
+		const translations = {
+			name: '{lang 'Název'}',
+		};
+	</script>
+{/block}

@@ -7,16 +7,18 @@ use Lsr\Core\Routing\Route;
 
 $apiToken = new ApiToken();
 
-Route::get('api/games', [Games::class, 'listGames'])
-		 ->middleware($apiToken);
-Route::get('api/games/{code}', [Games::class, 'getGame'])
-		 ->middleware($apiToken);
-Route::post('api/games', [Games::class, 'import'])
-		 ->middleware($apiToken);
-
-Route::post('api/music', [Music::class, 'import'])
-		 ->middleware($apiToken);
-Route::post('api/music/{id}/upload', [Music::class, 'uploadFile'])
-		 ->middleware($apiToken);
-Route::delete('api/music/{id}', [Music::class, 'removeMode'])
-		 ->middleware($apiToken);
+Route::group('/api')
+		 ->middlewareAll($apiToken)
+		 ->group('/games')
+		 ->get('/', [Games::class, 'listGames'])
+		 ->post('/', [Games::class, 'import'])
+		 ->get('/{code}', [Games::class, 'getGame'])
+		 ->group('/stats')
+		 ->get('/', [Games::class, 'stats'])
+		 ->endGroup()
+		 ->endGroup()
+		 ->group('/music')
+		 ->post('/', [Music::class, 'import'])
+		 ->delete('/{id}', [Music::class, 'removeMode'])
+		 ->post('/{id}/upload', [Music::class, 'uploadFile'])
+		 ->endGroup();

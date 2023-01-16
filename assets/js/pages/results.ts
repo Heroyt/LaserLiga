@@ -1,17 +1,17 @@
 import {Modal} from 'bootstrap';
-import axios from "axios";
+import axios, {AxiosResponse} from "axios";
 import {getLink} from "../functions";
 
 export default function initResults() {
-	const leaderboardModalDom = document.getElementById('leaderboard-modal');
+	const leaderboardModalDom = document.getElementById('leaderboard-modal') as HTMLDivElement | null;
 	if (!leaderboardModalDom) {
 		return;
 	}
-	const leaderboardModalDomBody = leaderboardModalDom.querySelector('.modal-body');
+	const leaderboardModalDomBody = leaderboardModalDom.querySelector('.modal-body') as HTMLDivElement;
 
 	const leaderboardModal = new Modal(leaderboardModalDom);
 
-	document.querySelectorAll('.show-leaderboard').forEach(btn => {
+	(document.querySelectorAll('.show-leaderboard') as NodeListOf<HTMLButtonElement>).forEach(btn => {
 		const url = btn.dataset.href;
 		btn.addEventListener('click', () => {
 			axios.get(url)
@@ -27,7 +27,7 @@ export default function initResults() {
 	});
 
 	// Auto-open tournament modal
-	const modalDom = document.getElementById('tournament-modal');
+	const modalDom = document.getElementById('tournament-modal') as HTMLDivElement;
 	const modal = new Modal(modalDom);
 	if (modalDom.dataset.show && modalDom.dataset.show === 'true') {
 		modal.show();
@@ -37,13 +37,13 @@ export default function initResults() {
 }
 
 function initQuestionnaire() {
-	const modalDom = document.getElementById('questionnaire-modal');
-	const questionModalDom = document.getElementById('questionnaire-question-modal');
-	const previousBtn = questionModalDom.querySelector('.previous');
-	const nextBtn = questionModalDom.querySelector('.next');
-	const doneBtn = questionModalDom.querySelector('.done');
-	const closeBtn = questionModalDom.querySelector('.close');
-	const questionBody = questionModalDom.querySelector('.modal-body');
+	const modalDom = document.getElementById('questionnaire-modal') as HTMLDivElement;
+	const questionModalDom = document.getElementById('questionnaire-question-modal') as HTMLDivElement;
+	const previousBtn = questionModalDom.querySelector('.previous') as HTMLButtonElement;
+	const nextBtn = questionModalDom.querySelector('.next') as HTMLButtonElement;
+	const doneBtn = questionModalDom.querySelector('.done') as HTMLButtonElement;
+	const closeBtn = questionModalDom.querySelector('.close') as HTMLButtonElement;
+	const questionBody = questionModalDom.querySelector('.modal-body') as HTMLFormElement;
 
 	let currentStep = -1;
 
@@ -61,7 +61,7 @@ function initQuestionnaire() {
 	}
 
 	// Button functions
-	modalDom.querySelectorAll('.startQuestionnaire').forEach(btn => {
+	(modalDom.querySelectorAll('.startQuestionnaire') as NodeListOf<HTMLButtonElement>).forEach(btn => {
 		btn.addEventListener('click', () => {
 			currentStep = -1;
 			modal.hide();
@@ -72,8 +72,8 @@ function initQuestionnaire() {
 				})
 		});
 	});
-	const showLaterBtn = modalDom.querySelector('#show-later');
-	const dontShowAgainBtn = modalDom.querySelector('#dont-show-again');
+	const showLaterBtn = modalDom.querySelector('#show-later') as HTMLButtonElement;
+	const dontShowAgainBtn = modalDom.querySelector('#dont-show-again') as HTMLButtonElement;
 	if (showLaterBtn) {
 		showLaterBtn.addEventListener('click', () => {
 			axios.post(getLink(['questionnaire', 'show_later']))
@@ -112,19 +112,19 @@ function initQuestionnaire() {
 		if (validateStep()) {
 			const data = new FormData(questionBody);
 			axios.post(getLink(['questionnaire', 'done']), data)
-				.then(response => {
+				.then((response: AxiosResponse<{ step: number, html: string, total: number }>) => {
 					currentStep = response.data.step;
 					questionBody.innerHTML = response.data.html;
 					if (currentStep <= 1) {
 						previousBtn.ariaDisabled = 'true';
-						previousBtn.disabled = 'true';
+						previousBtn.disabled = true;
 					} else {
 						previousBtn.ariaDisabled = 'false';
 						previousBtn.disabled = false;
 					}
 					if (currentStep === response.data.total) {
 						nextBtn.ariaDisabled = 'true';
-						nextBtn.disabled = 'true';
+						nextBtn.disabled = true;
 						nextBtn.classList.add('d-none');
 						closeBtn.classList.add('d-none');
 						doneBtn.classList.remove('d-none');
@@ -156,21 +156,21 @@ function initQuestionnaire() {
 
 	function loadQuestion() {
 		modal.hide();
-		axios.get(getLink(['questionnaire', 'question', currentStep]))
-			.then(response => {
+		axios.get(getLink(['questionnaire', 'question', currentStep.toString()]))
+			.then((response: AxiosResponse<{ step: number, html: string, total: number }>) => {
 				currentStep = response.data.step;
 				questionBody.innerHTML = response.data.html;
 				questionBody.scrollTo(0, 0);
 				if (currentStep <= 1) {
 					previousBtn.ariaDisabled = 'true';
-					previousBtn.disabled = 'true';
+					previousBtn.disabled = true;
 				} else {
 					previousBtn.ariaDisabled = 'false';
 					previousBtn.disabled = false;
 				}
 				if (currentStep === response.data.total) {
 					nextBtn.ariaDisabled = 'true';
-					nextBtn.disabled = 'true';
+					nextBtn.disabled = true;
 					nextBtn.classList.add('d-none');
 					closeBtn.classList.add('d-none');
 					doneBtn.classList.remove('d-none');

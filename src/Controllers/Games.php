@@ -52,6 +52,10 @@ class Games extends Controller
 				$this->params['prevGame'] = $code;
 			}
 		}
+		/*if (!$this->params['game']->visited) {
+			$this->params['game']->visited = true;
+			$this->params['game']->save();
+		}*/
 		$this->params['today'] = new Today($this->params['game'], new ($this->params['game']->playerClass), new ($this->params['game']->teamClass));
 		$this->view('pages/game/index');
 	}

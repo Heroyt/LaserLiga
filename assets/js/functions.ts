@@ -2,13 +2,19 @@ import {Tooltip} from "bootstrap";
 import {startLoading, stopLoading} from "./loaders";
 import axios from "axios";
 
-String.prototype.replaceMultiple = function (chars) {
+declare global {
+	const prettyUrl: boolean;
+}
+
+// @ts-ignore
+String.prototype.replaceMultiple = function (chars: string[]) {
 	let retStr = this;
 	chars.forEach(ch => {
 		retStr = retStr.replace(new RegExp(ch[0], 'g'), ch[1]);
 	});
 	return retStr;
 };
+// @ts-ignore
 String.prototype.decodeEntities = function () {
 	const element = document.createElement('div');
 	let str = this;
@@ -24,7 +30,8 @@ String.prototype.decodeEntities = function () {
  *
  * @param elemName {String}
  */
-Element.prototype.findParentElement = function (elemName) {
+// @ts-ignore
+Element.prototype.findParentElement = function (elemName: string) {
 	let currElem = this;
 	while (currElem.tagName.toLowerCase() !== elemName.toLowerCase()) {
 		currElem = currElem.parentNode;
@@ -41,7 +48,8 @@ Element.prototype.findParentElement = function (elemName) {
  *
  * @return {Element}
  */
-Element.prototype.findParentElementByClassName = function (className) {
+// @ts-ignore
+Element.prototype.findParentElementByClassName = function (className: string): HTMLElement | null {
 	let currElem = this;
 	while (!currElem.classList.contains(className)) {
 		currElem = currElem.parentNode;
@@ -60,7 +68,8 @@ Element.prototype.findParentElementByClassName = function (className) {
  *
  * @return {number}
  */
-Math.easeInOutQuad = function (t, b, c, d) {
+// @ts-ignore
+Math.easeInOutQuad = function (t: number, b: number, c: number, d: number): number {
 	t /= d / 2;
 	if (t < 1) return c / 2 * t * t + b;
 	t--;
@@ -73,7 +82,8 @@ Math.easeInOutQuad = function (t, b, c, d) {
  * @param {number} to Pixel value from top
  * @param {number} duration Time in ms
  */
-window.scrollSmooth = function (to, duration) {
+// @ts-ignore
+window.scrollSmooth = function (to: number, duration: number) {
 	let start = window.scrollY,
 		change = to - start,
 		currentTime = 0,
@@ -81,6 +91,7 @@ window.scrollSmooth = function (to, duration) {
 
 	const animateScroll = function () {
 		currentTime += increment;
+		// @ts-ignore
 		window.scrollBy(0, Math.easeInOutQuad(currentTime, start, change, duration) - window.scrollY)
 		if (currentTime < duration) {
 			setTimeout(animateScroll, increment);
@@ -94,7 +105,7 @@ window.scrollSmooth = function (to, duration) {
  * @param {string} str
  * @returns {string|null}
  */
-export function formatPhoneNumber(str) {
+export function formatPhoneNumber(str: string): string | null {
 	//Filter only numbers from the input
 	const plus = str[0] === '+';
 	const cleaned = ('' + str).replace(/\D/g, '');
@@ -113,7 +124,7 @@ export function formatPhoneNumber(str) {
  * @param {string} email
  * @returns {boolean}
  */
-export function validateEmail(email) {
+export function validateEmail(email: string): boolean {
 	const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return re.test(String(email).toLowerCase());
 }
@@ -125,24 +136,24 @@ export function validateEmail(email) {
  *
  * @returns {string}
  */
-export function getLink(request) {
+export function getLink(request: string[]): string {
 	if (prettyUrl) {
 		return window.location.origin + '/' + request.join('/');
-	} else {
-		let query = {
-			lang: document.documentElement.lang
-		};
-		let i = 0;
-		request.forEach(page => {
-			if (page === '') {
-				return;
-			}
-			query[`p[${i}]`] = page;
-			i++;
-		});
-		const params = new URLSearchParams(query);
-		return window.location.origin + "?" + params.toString();
 	}
+	let query = {
+		lang: document.documentElement.lang
+	};
+	let i = 0;
+	request.forEach(page => {
+		if (page === '') {
+			return;
+		}
+		// @ts-ignore
+		query[`p[${i}]`] = page;
+		i++;
+	});
+	const params = new URLSearchParams(query);
+	return window.location.origin + "?" + params.toString();
 }
 
 /**
@@ -150,12 +161,12 @@ export function getLink(request) {
  *
  * @param {Element} input
  */
-export function selectInputDescriptionSetup(input) {
+export function selectInputDescriptionSetup(input: HTMLSelectElement) {
 	const id = input.id;
 	const descriptionElement = document.querySelectorAll(`.select-description[data-target="#${id}"]`);
 	const update = () => {
 		const val = input.value;
-		const description = input.querySelector(`option[value="${val}"]`).dataset.description;
+		const description = (input.querySelector(`option[value="${val}"]`) as HTMLOptionElement).dataset.description;
 		descriptionElement.forEach(elem => {
 			elem.innerHTML = description;
 		});
@@ -166,23 +177,23 @@ export function selectInputDescriptionSetup(input) {
 	}
 }
 
-export function initTooltips(dom) {
+export function initTooltips(dom: HTMLElement) {
 	const tooltipTriggerList = [].slice.call(dom.querySelectorAll('[data-toggle="tooltip"]'))
-	const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+	tooltipTriggerList.map(function (tooltipTriggerEl: HTMLElement) {
 		return new Tooltip(tooltipTriggerEl)
 	});
 }
 
 export function initAutoSaveForm() {
 	// Autosave form
-	document.querySelectorAll('form.autosave').forEach(form => {
+	(document.querySelectorAll('form.autosave') as NodeListOf<HTMLFormElement>).forEach(form => {
 		const method = form.method;
 		const url = form.action;
 
 		let lastData = new FormData(form);
 		let autosaving = 0;
-		const lastSave = document.querySelectorAll(`.last-save[data-target="#${form.id}"]`);
-		const saveButtons = form.querySelectorAll(`[data-action="autosave"]`);
+		const lastSave = document.querySelectorAll(`.last-save[data-target="#${form.id}"]`) as NodeListOf<HTMLDivElement>;
+		const saveButtons = form.querySelectorAll(`[data-action="autosave"]`) as NodeListOf<HTMLButtonElement>;
 		const save = (smallLoader = true) => {
 			let newData = new FormData(form);
 			let changed = false;
@@ -197,7 +208,7 @@ export function initAutoSaveForm() {
 					console.log("Changed - new key", key, value)
 					changed = true;
 				} else if (value instanceof File) {
-					if (value.name !== lastData.get(key).name) {
+					if (value.name !== (lastData.get(key) as File).name) {
 						console.log("Changed - new file", key, value)
 						changed = true;
 					}
@@ -255,7 +266,9 @@ export function initAutoSaveForm() {
 			}
 		};
 
-		form.addEventListener("autosave", save);
+		form.addEventListener("autosave", () => {
+			save();
+		});
 
 		saveButtons.forEach(button => {
 			button.addEventListener("click", () => {
@@ -264,5 +277,28 @@ export function initAutoSaveForm() {
 		})
 
 		setInterval(save, 10000);
+	});
+}
+
+export function initCopyToClipboard(elem: HTMLElement | null | Document = null): void {
+	if (!elem) {
+		elem = document;
+	}
+	(elem.querySelectorAll('[data-action="copy-to-clipboard"]') as NodeListOf<HTMLButtonElement>).forEach(triggerElem => {
+		const targetSelector = triggerElem.dataset.target ?? '';
+		if (!targetSelector) {
+			return;
+		}
+		const targetElement = document.querySelector(targetSelector) as HTMLInputElement | null;
+		if (!targetElement || targetElement.nodeName !== 'INPUT') {
+			return;
+		}
+		triggerElem.addEventListener("click", () => {
+			targetElement.select();
+			targetElement.setSelectionRange(0, 99999);
+
+			navigator.clipboard.writeText(targetElement.value);
+			console.log('Copy', targetElement.value);
+		});
 	});
 }

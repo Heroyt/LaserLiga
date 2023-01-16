@@ -27,7 +27,12 @@
 
 $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-colors-dark));
 
-.bg-white path[fill="white"] {
+.bg-white path[fill="white"],
+.bg-white path[fill="#fff"],
+.bg-white path[fill="#ffffff"],
+.arena-logo path[fill="white"],
+.arena-logo path[fill="#ffffff"],
+.arena-logo path[fill="#fff"] {
 	fill: var(--not-so-dark);
 }
 

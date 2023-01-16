@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Lsr\Core\App;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -37,6 +38,10 @@ class MusicMode extends Model
 			$q->where('[id_arena] = %i', $arena->id);
 		}
 		return $q->get();
+	}
+
+	public function getMediaUrl() : string {
+		return str_replace(ROOT, App::getUrl(), $this->fileName);
 	}
 
 }
