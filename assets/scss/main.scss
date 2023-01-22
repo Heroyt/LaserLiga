@@ -3,8 +3,8 @@
 // Main stylesheet that is compiled into /dist/main.css
 
 @import '~bootstrap/scss/functions';
-@import 'variables/customVariables';
 @import '~bootstrap/scss/variables';
+@import 'variables/customVariables';
 @import '~bootstrap/scss/maps';
 
 @import 'custom';
