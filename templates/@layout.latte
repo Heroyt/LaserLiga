@@ -4,6 +4,7 @@
 {import 'symbols.latte'}
 
 {varType \Lsr\Core\Controller $page}
+{varType Lsr\Interfaces\RequestInterface $request}
 {varType string[] $errors}
 
 {define containerClasses}
@@ -15,6 +16,10 @@
 {/define}
 {define errors}
 	{foreach $errors as $key => $error}
+		{skipIf is_string($key)}
+		{alertDanger $error}
+	{/foreach}
+	{foreach $request->getErrors() as $key => $error}
 		{skipIf is_string($key)}
 		{alertDanger $error}
 	{/foreach}

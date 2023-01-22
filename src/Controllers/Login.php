@@ -13,12 +13,16 @@ use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
 use Lsr\Core\Templating\Latte;
-use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Utils\Validators;
 
 class Login extends Controller
 {
+
+	/**
+	 * @var array{errors: array<string|int, string>,arenas?:Arena[]}
+	 */
+	public array $params = ['errors' => []];
 
 	public function __construct(
 		protected Latte         $latte,
@@ -27,22 +31,15 @@ class Login extends Controller
 		parent::__construct($latte);
 	}
 
-	public function init(RequestInterface $request) : void {
-		parent::init($request);
-		$this->params['errors'] = [];
-	}
-
-	#[Get('login', name: 'login')]
 	public function show() : void {
 		$this->view('pages/login/index');
 	}
 
-	#[Post('/register')]
 	public function processRegister(Request $request) : void {
 		// Validate
-		$email = $request->post['email'] ?? '';
-		$password = $request->post['password'] ?? '';
-		$name = $request->post['name'] ?? '';
+		$email = (string) ($request->post['email'] ?? '');
+		$password = (string) ($request->post['password'] ?? '');
+		$name = (string) ($request->post['name'] ?? '');
 		$arena = null;
 
 		if (empty($email)) {
@@ -73,7 +70,8 @@ class Login extends Controller
 			return;
 		}
 
-		$user = User::register($email, $password, $name);
+		/** @var User|null $user */
+		$user = $this->auth->register($email, $password, $name);
 		if (!isset($user)) {
 			$this->params['arenas'] = Arena::getAll();
 			$this->params['errors'][] = lang('Něco se pokazilo.', context: 'errors');
@@ -87,21 +85,19 @@ class Login extends Controller
 		}
 
 		// Login user
-		$_SESSION['usr'] = serialize($user);
+		$this->auth->setLoggedIn($user);
 		App::redirect('dashboard', $request);
 	}
 
-	#[Get('/register', name: 'register')]
 	public function register() : void {
 		$this->params['arenas'] = Arena::getAll();
 		$this->view('pages/login/register');
 	}
 
-	#[Post('login')]
 	public function process(Request $request) : void {
 		// Validate
-		$email = $request->post['email'] ?? '';
-		$password = $request->post['password'] ?? '';
+		$email = (string) ($request->post['email'] ?? '');
+		$password = (string) ($request->post['password'] ?? '');
 
 		if (empty($email)) {
 			$this->params['errors']['email'] = lang('E-mail je povinný', context: 'errors');
@@ -128,11 +124,12 @@ class Login extends Controller
 	}
 
 	#[Get('/logout', 'logout'), Post('/logout')]
-	public function logout() : void {
-		if (User::loggedIn()) {
-			User::logout();
+	public function logout(Request $request) : void {
+		if ($this->auth->loggedIn()) {
+			$this->auth->logout();
 		}
-		App::redirect('login');
+		$request->addPassNotice(lang('Odhlášení bylo úspěšné.'));
+		App::redirect('login', $request);
 	}
 
 }

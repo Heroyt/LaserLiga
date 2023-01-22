@@ -5,7 +5,9 @@ use App\Controllers\Dashboard;
 use App\Controllers\Games;
 use App\Controllers\Index;
 use App\Controllers\Lang;
+use App\Controllers\Login;
 use App\Controllers\Questionnaire;
+use Lsr\Core\Auth\Middleware\LoggedOut;
 use Lsr\Core\Routing\Route;
 
 Route::get('/', [Index::class, 'show'])->name('index');
@@ -55,3 +57,11 @@ Route::group('/arena')
 		 ->get('/music', [Arenas::class, 'musicModesStats'])
 		 ->endGroup()
 		 ->endGroup();
+
+// Login
+Route::group()
+		 ->middlewareAll(new LoggedOut('dashboard'))
+		 ->get('/login', [Login::class, 'show'])->name('login')
+		 ->post('/login', [Login::class, 'process'])
+		 ->get('/register', [Login::class, 'register'])->name('register')
+		 ->post('/register', [Login::class, 'processRegister']);

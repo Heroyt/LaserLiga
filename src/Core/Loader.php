@@ -67,10 +67,6 @@ class Loader
 		// Setup database connection
 		self::initDB();
 
-		if (defined('INDEX') && INDEX) {
-			App::getService('auth')->init();
-		}
-
 	}
 
 	/**
