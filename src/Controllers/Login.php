@@ -5,18 +5,27 @@ namespace App\Controllers;
 use App\Models\Arena;
 use App\Models\Auth\User;
 use Lsr\Core\App;
+use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
+use Lsr\Core\Templating\Latte;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Utils\Validators;
 
 class Login extends Controller
 {
+
+	public function __construct(
+		protected Latte         $latte,
+		protected readonly Auth $auth,
+	) {
+		parent::__construct($latte);
+	}
 
 	public function init(RequestInterface $request) : void {
 		parent::init($request);
@@ -108,7 +117,7 @@ class Login extends Controller
 			return;
 		}
 
-		if (!User::login($email, $password)) {
+		if (!$this->auth->login($email, $password)) {
 			$this->params['errors']['login'] = lang('E-mail nebo heslo není správné.', context: 'errors');
 			$this->view('pages/login/index');
 			return;

@@ -33,8 +33,6 @@ if (!defined('ROOT')) {
 
 date_default_timezone_set('Europe/Prague');
 
-session_start();
-
 // Autoload libraries
 require_once ROOT.'vendor/autoload.php';
 
@@ -83,7 +81,7 @@ Debugger::getBar()
 
 Loader::init();
 
-if (!defined('INDEX')) {
+if (defined('INDEX')) {
 	// Register library tracy panels
 	if (!isset($_ENV['noDb'])) {
 		(new Panel())->register(DB::getConnection());

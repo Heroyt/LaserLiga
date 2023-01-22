@@ -3,11 +3,12 @@
 use App\Controllers\Arenas;
 use App\Controllers\Dashboard;
 use App\Controllers\Games;
+use App\Controllers\Index;
 use App\Controllers\Lang;
 use App\Controllers\Questionnaire;
 use Lsr\Core\Routing\Route;
 
-Route::get('/', [Dashboard::class, 'show'])->name('dashboard');
+Route::get('/', [Index::class, 'show'])->name('index');
 
 Route::group('/game')
 		 ->get('/', [Games::class, 'show'])->name('game-empty')    // This will result in HTTP 404 error

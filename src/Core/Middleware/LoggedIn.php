@@ -16,13 +16,14 @@ class LoggedIn extends \Lsr\Core\Auth\Middleware\LoggedIn
 	 * @return bool
 	 */
 	public function handle(RequestInterface $request) : bool {
-		if (!User::loggedIn()) {
-			$request->passErrors[] = lang('Pro přístup na tuto stránku se musíte přihlásit!', context: 'errors');
+		bdump($this->auth->loggedIn());
+		if (!$this->auth->loggedIn()) {
+			$request->addPassError(lang('Pro přístup na tuto stránku se musíte přihlásit!', context: 'errors'));
 			App::redirect('login', $request);
 		}
 		if (!empty($this->rights)) {
 			/** @var User $user */
-			$user = User::getLoggedIn();
+			$user = $this->auth->getLoggedIn();
 			$allow = true;
 			foreach ($this->rights as $right) {
 				if (!$user->hasRight($right)) {
@@ -31,7 +32,7 @@ class LoggedIn extends \Lsr\Core\Auth\Middleware\LoggedIn
 				}
 			}
 			if (!$allow) {
-				$request->passErrors[] = lang('You don\'t have permission to access this page.', context: 'errors');
+				$request->addPassError(lang('You don\'t have permission to access this page.', context: 'errors'));
 				App::redirect([], $request);
 			}
 		}

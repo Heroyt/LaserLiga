@@ -1,3 +1,6 @@
+parameters:
+	auth:
+		userClass: 'App\Models\Auth\User'
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
 services:

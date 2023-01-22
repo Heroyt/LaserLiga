@@ -15,7 +15,6 @@
 
 namespace App\Core;
 
-use App\Models\Auth\User;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\App;
@@ -69,7 +68,7 @@ class Loader
 		self::initDB();
 
 		if (defined('INDEX') && INDEX) {
-			User::init();
+			App::getService('auth')->init();
 		}
 
 	}
