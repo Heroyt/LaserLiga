@@ -12,42 +12,53 @@ msgstr ""
 "Project-Id-Version: \n"
 "X-Generator: Poedit 3.0.1\n"
 
+# /vendor/lsr/core/src/Controller.php:84
 msgctxt "pageTitles"
 msgid "404"
 msgstr ""
 
+# /templates/errors/E404.latte:3
 msgctxt "errors"
 msgid "stránka nenalezena"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Db/panel.latte:7
 msgctxt "debugPanel"
 msgid "Rows"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Db/panel.latte:8
 msgctxt "debugPanel"
 msgid "Takes"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Translation/tab.latte:27
+# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:3
 msgctxt "debugPanel"
 msgid "Translations"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:16
 msgctxt "debugPanel"
 msgid "Translated strings"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:19
 msgctxt "debugPanel"
 msgid "Added a new string"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:20
 msgctxt "debugPanel"
 msgid "String"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:22
 msgctxt "debugPanel"
 msgid "Context"
 msgstr ""
 
+# /vendor/lsr/core/src/Controller.php:84
 msgctxt "pageTitles"
 msgid "Dashboard"
 msgstr ""
@@ -344,10 +355,12 @@ msgctxt "results.bests"
 msgid "Největší vlastňák"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:6
 msgctxt "debugPanel"
 msgid "Language"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:10
 msgctxt "debugPanel"
 msgid "HTTP header"
 msgstr ""
@@ -1786,6 +1799,7 @@ msgctxt "gameModes"
 msgid "Apokalypsa"
 msgstr ""
 
+# /templates/../vendor/lsr/helpers/templates/Caching/tab.latte:28
 msgctxt "debugPanel"
 msgid "%d call"
 msgid_plural "%d calls"
@@ -2095,6 +2109,7 @@ msgstr ""
 msgid "Název v konzoli"
 msgstr ""
 
+# /templates/pages/login/index.latte:40
 msgctxt "actions"
 msgid "Odeslat"
 msgstr ""
@@ -2753,4 +2768,57 @@ msgstr ""
 
 msgctxt "cli.help.arguments"
 msgid "A comma separated list of context names to skip while merging."
+msgstr ""
+
+msgid "Nepodařilo se připojit k TCP serveru (%s:%d)."
+msgstr ""
+
+msgctxt "settings"
+msgid "Skupiny"
+msgstr ""
+
+msgctxt "actions"
+msgid "Deaktivovat"
+msgstr ""
+
+msgctxt "actions"
+msgid "Aktivovat"
+msgstr ""
+
+msgctxt "settings"
+msgid "Neaktivní skupiny"
+msgstr ""
+
+msgctxt "actions"
+msgid "Zobrazit"
+msgstr ""
+
+# /templates/pages/game/empty.latte:4
+msgctxt "errors"
+msgid "Nebyla nalezena žádná hra"
+msgstr ""
+
+# /templates/pages/login/index.latte:9
+msgid "Přihlásit"
+msgstr ""
+
+# /templates/pages/login/index.latte:17
+msgid "E-mail"
+msgstr ""
+
+# /templates/pages/login/index.latte:31
+msgid "Heslo"
+msgstr ""
+
+# /templates/pages/login/index.latte:42
+msgid "Nemáte ještě účet?"
+msgstr ""
+
+# /templates/pages/login/index.latte:42
+msgid "Vytvořit účet"
+msgstr ""
+
+# /src/Core/Middleware/LoggedIn.php:21
+msgctxt "errors"
+msgid "Pro přístup na tuto stránku se musíte přihlásit!"
 msgstr ""

@@ -10,17 +10,21 @@ use Lsr\Interfaces\RequestInterface;
 class CSRFCheck implements Middleware
 {
 
+	public function __construct(
+		public readonly string $name = '',
+	) {
+	}
+
 	/**
 	 * @param RequestInterface $request
 	 *
 	 * @return bool
 	 */
 	public function handle(RequestInterface $request) : bool {
-		$csrfName = implode('/', $request->path);
+		$csrfName = empty($this->name) ? implode('/', $request->getPath()) : $this->name;
 		if (!formValid($csrfName)) {
 			$error = lang('Požadavek vypršel, zkuste to znovu.', context: 'errors');
-			$request->query['error'] = $error;
-			$request->errors[] = $error;
+			$request->addError($error);
 			return false;
 		}
 		return true;

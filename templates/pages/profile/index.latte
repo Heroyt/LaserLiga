@@ -1,0 +1,94 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Auth\User $user}
+{varType App\Models\Arena[] $arenas}
+{varType string[] $errors}
+
+{block content}
+	<h1>{lang 'Profil hráče'} - {$user->name}</h1>
+
+	<h2 n:ifset="$user->player">{lang 'Unikátní kód hráče'}: {$user->player->getCode()}</h2>
+
+	<form action="{link ['user']}" id="profile-form" method="post" class="position-relative">
+		{csrfInput 'user-profile'}
+		<div class="form-group mb-3">
+			<div class="form-floating {ifset $errors['name']}is-invalid{/ifset}">
+				<input type="text" name="name" class="form-control {ifset $errors['name']}is-invalid{/ifset}"
+					   id="loginName" placeholder="Player" aria-describedby="loginName-description"
+					   autocomplete="nickname" required value="{$user->name}">
+				<label for="loginName">{lang 'Jméno'}:</label>
+			</div>
+			<div class="invalid-feedback">
+				{ifset $errors['name']}
+					{$errors['name']}
+				{/ifset}
+			</div>
+			<div class="form-text" id="loginName-description">
+				{lang 'Vaše jméno/přezdívka do hry.'}
+			</div>
+		</div>
+		<div class="form-group mb-3">
+			<div class="form-floating {ifset $errors['arena']}is-invalid{/ifset}">
+				{* TODO: Replace with searchable select *}
+				<select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"
+						id="loginArena">
+					<option value="" n:if="!isset($user->player, $user->player->arena)">{lang 'Žádná'}</option>
+					<option n:foreach="$arenas as $arena" {if isset($user->player, $user->player->arena) && $user->player->arena->id === $arena->id}selected{/if}
+							value="{$arena->id}">
+						{$arena->name}
+					</option>
+				</select>
+				<label for="loginArena">{lang 'Domovská aréna'}:</label>
+			</div>
+			<div class="invalid-feedback">
+				{ifset $errors['arena']}
+					{$errors['arena']}
+				{/ifset}
+			</div>
+			<div class="form-text" id="loginArena-description">
+				{lang 'Domovskou arénu sice vyplňovat nemusíte, ale pokud je na seznamu, doporučujeme jí vyplnit.'}
+			</div>
+		</div>
+
+		<button class="btn btn-primary my-3" type="button" data-bs-toggle="collapse"
+				data-bs-target="#password-collapse">
+			{lang 'Změna hesla'}
+		</button>
+		<div class="collapse" id="password-collapse">
+			<div class="form-group mb-3">
+				<div class="form-floating {ifset $errors['oldPassword']}is-invalid{/ifset}">
+					<input type="password" name="oldPassword"
+						   class="form-control {ifset $errors['oldPassword']}is-invalid{/ifset}" id="oldLoginPassword"
+						   placeholder="****"
+						   autocomplete="current-password">
+					<label for="oldLoginPassword">{lang 'Aktuální heslo'}:</label>
+				</div>
+				<div class="invalid-feedback">
+					{ifset $errors['oldPassword']}
+						{$errors['oldPassword']}
+					{/ifset}
+				</div>
+			</div>
+			<div class="form-group mb-3">
+				<div class="form-floating {ifset $errors['password']}is-invalid{/ifset}">
+					<input type="password" name="password"
+						   class="form-control {ifset $errors['password']}is-invalid{/ifset}" id="loginPassword"
+						   placeholder="****"
+						   autocomplete="new-password">
+					<label for="loginPassword">{lang 'Nové heslo'}:</label>
+				</div>
+				<div class="invalid-feedback">
+					{ifset $errors['password']}
+						{$errors['password']}
+					{/ifset}
+				</div>
+			</div>
+		</div>
+		<div>
+			<button type="submit" class="btn btn-success">
+				{lang 'Uložit', context: 'actions'}
+			</button>
+		</div>
+	</form>
+
+{/block}
