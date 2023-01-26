@@ -54,6 +54,29 @@
 					{/foreach}
 				</ul>
 			</div>
+			<div class="btn-group" n:if="\Lsr\Core\App::getService('auth')->loggedIn()">
+				<button class="btn btn-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown"
+						aria-expanded="false">
+					<i class="fa-solid fa-user"></i>
+				</button>
+				<ul class="dropdown-menu bg-white" style="min-width: 3rem;right:0;left:auto;">
+					<li>
+						<a class="dropdown-item text-dark" href="{link ['dashboard']}">
+							{lang 'Profil'}
+						</a>
+					</li>
+					<li>
+						<a class="dropdown-item text-dark" href="{link ['user']}">
+							{lang 'Nastavení'}
+						</a>
+					</li>
+					<li>
+						<a class="dropdown-item text-dark" href="{link ['logout']}">
+							{lang 'Odhlásit'}
+						</a>
+					</li>
+				</ul>
+			</div>
 		</div>
 	</header>
 {/define}
