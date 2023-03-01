@@ -1,9 +1,15 @@
 includes:
 	- services-common.neon
 parameters:
-	memcached:
-		host: 'cache'
-		port: 11211
-		prefix: ''
+	mail:
+		host: mx.hotnet.cz
+		username: app@laserliga.cz
+		password: z#LWJrF7g5y
+		encryption: 'ssl'
 services:
-	cache.storage: Nette\Caching\Storages\MemcachedStorage(%memcached.host%, %memcached.port%, %memcached.prefix%)
+	mailer: Nette\Mail\SmtpMailer(
+		host: %mail.host%,
+		username: %mail.username%,
+		password: %mail.password%,
+		encryption: %mail.encryption%
+	)

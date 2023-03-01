@@ -18,3 +18,33 @@
 .form-check-input {
 	cursor: pointer;
 }
+
+.input-group {
+	> .flatpickr-wrapper {
+		flex: 1 1 auto; // For focus state's z-index
+		min-width: 0;
+		position: relative;
+		width: 1%; // https://stackoverflow.com/questions/36247140/why-dont-flex-items-shrink-past-content-size
+	}
+
+	// Bring the "active" form control to the top of surrounding elements
+	> .flatpickr-wrapper:focus {
+		z-index: 5;
+	}
+
+	&:not(.has-validation) {
+		> .flatpickr-wrapper:not(:last-child) > .form-control {
+			@include border-end-radius(0);
+		}
+	}
+
+	&.has-validation {
+		> .flatpickr-wrapper:nth-last-child(n + 3) > .form-control {
+			@include border-end-radius(0);
+		}
+	}
+
+	> .flatpickr-wrapper:not(:first-child) > .form-control {
+		@include border-start-radius(0);
+	}
+}

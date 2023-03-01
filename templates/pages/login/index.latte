@@ -4,7 +4,8 @@
 {varType array $_POST}
 
 {define content}
-	<form action="{link ['login']}" method="post" id="login-form" class="card has-validation" style="max-width: 400px;">
+	<form action="{link ['login']}" method="post" id="login-form" class="card text-center mx-auto has-validation"
+		  style="max-width: 400px;">
 		<div class="card-header">
 			<h3>{lang 'Přihlásit'}</h3>
 		</div>
@@ -13,7 +14,8 @@
 				<div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
 					<input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
 						   id="loginEmail" placeholder="mail@mail.cz"
-						   autocomplete="email" required value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
+						   autocomplete="username email" required
+						   value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
 					<label for="loginEmail">{lang 'E-mail'}:</label>
 				</div>
 				<div class="invalid-feedback">
@@ -35,10 +37,22 @@
 						{$errors['password']}
 					{/ifset}
 				</div>
+				<div class="text-end">
+					<a href="{link ['login', 'forgot']}">{lang 'Zapomenuté heslo'}</a>
+				</div>
+			</div>
+			<div class="d-flex justify-content-center">
+				<div class="form-check mb-3">
+					<input type="checkbox" class="form-check-input" id="remember-me" name="remember" value="1">
+					<label for="remember-me" class="form-check-label">
+						{lang 'Pamatovat si mě', context: 'login'}
+					</label>
+				</div>
+			</div>
+			<div class="mb-3">
+				<button type="submit" class="btn btn-success btn-lg w-100">{lang 'Odeslat', context: 'actions'}</button>
 			</div>
 			<div>
-				<button type="submit" class="btn btn-success">{lang 'Odeslat', context: 'actions'}</button>
-				<br>
 				{lang 'Nemáte ještě účet?'} <a href="{link ['register']}">{lang 'Vytvořit účet'}</a>
 			</div>
 		</div>

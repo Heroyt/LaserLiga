@@ -3,6 +3,7 @@
 {varType string $groupCode}
 {varType \App\Models\GameGroup $group}
 {varType int[] $modes}
+{varType \App\Models\Auth\User|null $user}
 
 {define teamColor}
 	{default int $teamColor = 0}
@@ -70,6 +71,13 @@
 						{$player->name}
 					</div>
 				</div>
+
+
+				{if isset($user) && !isset($player->player->user) && comparePlayerNames($user->name, $player->name)}
+					<button class="btn btn-info setGroupMe" type="button" data-group="{$group->id}">
+						{lang 'Přivlastnit'}
+					</button>
+				{/if}
 
 				<div class="score" data-toggle="tooltip" title="{lang 'Průměrné ohodnocení hráče'}"
 					 data-skills="{json_encode($player->skills)}">
@@ -180,7 +188,7 @@
 					<div class="player-shots col-12 col-md-6 d-flex justify-content-center">
 						<table class="table table-borderless align-middle w-auto">
 							<tr>
-								<th rowspan="2">
+								<th rowspan="4">
 									{svgIcon 'bullets', '', '1.25em'}
 								</th>
 								<td>{lang 'Průměrný počet výstřelů'}:</td>
@@ -202,6 +210,26 @@
 									{/if}
 								</td>
 							</tr>
+							<tr>
+								<td>{lang 'Průměrný počet výstřelů mimo'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getAverageMisses()|number:2,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesAverageMisses($modes)|number:2,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Celkem výstřelů mimo'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getSumMisses()|number:0,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesSumMisses($modes)|number:0,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
 						</table>
 					</div>
 				</div>
@@ -209,7 +237,7 @@
 					<div class="player-hits col-12 col-md-6 d-flex justify-content-center">
 						<table class="table table-borderless align-middle w-auto">
 							<tr>
-								<th rowspan="2">
+								<th rowspan="4">
 									{svgIcon 'kill', '', '1.25em'}
 								</th>
 								<td>{lang 'Průměrný počet zásahů'}:</td>
@@ -231,12 +259,32 @@
 									{/if}
 								</td>
 							</tr>
+							<tr>
+								<td>{lang 'Průměrný počet zásahů do vlastních'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getAverageOwnHits()|number:2,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesAverageOwnHits($modes)|number:2,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Celkem zásahů do vlastních'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getSumOwnHits()|number:0,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesSumOwnHits($modes)|number:0,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
 						</table>
 					</div>
 					<div class="player-deaths col-12 col-md-6 d-flex justify-content-center">
 						<table class="table table-borderless align-middle w-auto">
 							<tr>
-								<th rowspan="2">
+								<th rowspan="4">
 									{svgIcon 'skull', '', '1.25em'}
 								</th>
 								<td>{lang 'Průměrný počet smrtí'}:</td>
@@ -255,6 +303,26 @@
 										{$player->getSumDeaths()|number:0,',','&nbsp;'|noescape}
 									{else}
 										{$player->getModesSumDeaths($modes)|number:0,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Průměrný počet smrtí od vlastních'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getAverageOwnDeaths()|number:2,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesAverageOwnDeaths($modes)|number:2,',','&nbsp;'|noescape}
+									{/if}
+								</td>
+							</tr>
+							<tr>
+								<td>{lang 'Celkem smrtí od vlastních'}:</td>
+								<td>
+									{if empty($modes)}
+										{$player->getSumOwnDeaths()|number:0,',','&nbsp;'|noescape}
+									{else}
+										{$player->getModesSumOwnDeaths($modes)|number:0,',','&nbsp;'|noescape}
 									{/if}
 								</td>
 							</tr>

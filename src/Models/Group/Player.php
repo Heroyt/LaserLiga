@@ -55,6 +55,13 @@ class Player
 		$this->accuracies[] = $player->accuracy;
 		$this->shots[] = $player->shots;
 
+		if (isset($player->hitsOwn)) {
+			$this->hitsOwn[] = $player->hitsOwn;
+		}
+		if (isset($player->deathsOwn)) {
+			$this->deathsOwn[] = $player->deathsOwn;
+		}
+
 		// Add vest
 		if (!isset($this->vests[$player->vest])) {
 			$this->vests[$player->vest] = 0;
@@ -151,6 +158,26 @@ class Player
 	 *
 	 * @return float
 	 */
+	public function getModesAverageMisses(array $modeIds) : float {
+		$sum = 0;
+		$count = 0;
+		foreach ($modeIds as $id) {
+			if (isset($this->gameModes[$id])) {
+				$sum += $this->gameModes[$id]->getSumMisses();
+				$count += count($this->gameModes[$id]->getMisses());
+			}
+		}
+		if ($count === 0) {
+			return 0;
+		}
+		return $sum / $count;
+	}
+
+	/**
+	 * @param int[] $modeIds
+	 *
+	 * @return float
+	 */
 	public function getModesAverageAccuracy(array $modeIds) : float {
 		$sumHits = 0;
 		$sumShots = 0;
@@ -191,6 +218,26 @@ class Player
 	 *
 	 * @return float
 	 */
+	public function getModesAverageOwnHits(array $modeIds) : float {
+		$sum = 0;
+		$count = 0;
+		foreach ($modeIds as $id) {
+			if (isset($this->gameModes[$id])) {
+				$sum += $this->gameModes[$id]->getSumOwnHits();
+				$count += count($this->gameModes[$id]->hitsOwn);
+			}
+		}
+		if ($count === 0) {
+			return 0;
+		}
+		return $sum / $count;
+	}
+
+	/**
+	 * @param int[] $modeIds
+	 *
+	 * @return float
+	 */
 	public function getModesAverageDeaths(array $modeIds) : float {
 		$sum = 0;
 		$count = 0;
@@ -198,6 +245,26 @@ class Player
 			if (isset($this->gameModes[$id])) {
 				$sum += $this->gameModes[$id]->getSumDeaths();
 				$count += count($this->gameModes[$id]->deaths);
+			}
+		}
+		if ($count === 0) {
+			return 0;
+		}
+		return $sum / $count;
+	}
+
+	/**
+	 * @param int[] $modeIds
+	 *
+	 * @return float
+	 */
+	public function getModesAverageOwnDeaths(array $modeIds) : float {
+		$sum = 0;
+		$count = 0;
+		foreach ($modeIds as $id) {
+			if (isset($this->gameModes[$id])) {
+				$sum += $this->gameModes[$id]->getSumOwnDeaths();
+				$count += count($this->gameModes[$id]->deathsOwn);
 			}
 		}
 		if ($count === 0) {
@@ -325,6 +392,51 @@ class Player
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
 				$sum += $this->gameModes[$id]->getSumDeaths();
+			}
+		}
+		return $sum;
+	}
+
+	/**
+	 * @param int[] $modeIds
+	 *
+	 * @return int
+	 */
+	public function getModesSumOwnDeaths(array $modeIds) : int {
+		$sum = 0;
+		foreach ($modeIds as $id) {
+			if (isset($this->gameModes[$id])) {
+				$sum += $this->gameModes[$id]->getSumOwnDeaths();
+			}
+		}
+		return $sum;
+	}
+
+	/**
+	 * @param int[] $modeIds
+	 *
+	 * @return int
+	 */
+	public function getModesSumOwnHits(array $modeIds) : int {
+		$sum = 0;
+		foreach ($modeIds as $id) {
+			if (isset($this->gameModes[$id])) {
+				$sum += $this->gameModes[$id]->getSumOwnHits();
+			}
+		}
+		return $sum;
+	}
+
+	/**
+	 * @param int[] $modeIds
+	 *
+	 * @return int
+	 */
+	public function getModesSumMisses(array $modeIds) : int {
+		$sum = 0;
+		foreach ($modeIds as $id) {
+			if (isset($this->gameModes[$id])) {
+				$sum += $this->gameModes[$id]->getSumMisses();
 			}
 		}
 		return $sum;

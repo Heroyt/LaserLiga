@@ -1,0 +1,15 @@
+{layout '../@layout.txt.latte'}
+
+{varType string $hash}
+{varType App\Models\Auth\User $user}
+
+{block body}
+	{lang 'Žádost o obnovu hesla', context: 'mails.reset'}
+
+	{lang 'Zaznamenali jsme novou žádost o obnovu hesla.', context: 'mail.reset'}
+	{sprintf(lang('Žádost je platná do: %s', context: 'mail.reset'), date('d.m.Y H:i', strtotime('+6 hours')))}
+
+	{lang 'Pro obnovu hesla klikněte na odkaz níže.', context: 'mail.reset'}
+
+	{lang 'Obnovit heslo', context: 'mail.reset'}: {link ['login', 'forgot', 'reset', 'token' => $hash, 'email' => $user->email]}
+{/block}

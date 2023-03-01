@@ -2,13 +2,20 @@
 
 use App\Controllers\Arenas;
 use App\Controllers\Dashboard;
+use App\Controllers\ForgotPassword;
 use App\Controllers\Games;
 use App\Controllers\Index;
 use App\Controllers\Lang;
 use App\Controllers\Login;
+use App\Controllers\MailTestController;
 use App\Controllers\Questionnaire;
+use App\Core\Middleware\CSRFCheck;
 use Lsr\Core\Auth\Middleware\LoggedOut;
 use Lsr\Core\Routing\Route;
+
+// TODO: Remove test route
+Route::get('/mailtest/123', [MailTestController::class, 'sendTestMail']);
+Route::get('/mailtest/123/show', [MailTestController::class, 'showTestMail']);
 
 Route::get('/', [Index::class, 'show'])->name('index');
 
@@ -63,5 +70,9 @@ Route::group()
 		 ->middlewareAll(new LoggedOut('dashboard'))
 		 ->get('/login', [Login::class, 'show'])->name('login')
 		 ->post('/login', [Login::class, 'process'])
+		 ->get('/login/forgot', [ForgotPassword::class, 'forgot'])->name('forgot-password')
+		 ->post('/login/forgot', [ForgotPassword::class, 'forgot'])->middleware(new CSRFCheck('forgot'))
+		 ->get('/login/forgot/reset', [ForgotPassword::class, 'reset'])->name('reset-password')
+		 ->post('/login/forgot/reset', [ForgotPassword::class, 'reset'])->middleware(new CSRFCheck('reset'))
 		 ->get('/register', [Login::class, 'register'])->name('register')
 		 ->post('/register', [Login::class, 'processRegister']);

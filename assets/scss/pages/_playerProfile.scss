@@ -1,0 +1,49 @@
+.player-profile {
+	display: grid;
+	grid-gap: 4rem 1rem;
+	grid-template-areas: 'arena header' 'games stats';
+	grid-template-columns: 1fr 2fr;
+
+
+	@include media-breakpoint-down(lg) {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	@include media-breakpoint-down(md) {
+		grid-template-areas: 'header' 'arena' 'stats' 'games';
+		grid-template-columns: 100%;
+	}
+
+	header {
+		align-self: center;
+		grid-area: header;
+	}
+
+	.home-arena {
+		align-self: center;
+		grid-area: arena;
+	}
+
+	.last-games {
+		grid-area: games;
+
+		table {
+			td {
+				vertical-align: middle;
+			}
+		}
+
+		.arena-logo {
+			max-height: 3rem;
+			width: auto;
+		}
+	}
+
+	.stats {
+		grid-area: stats;
+
+		path, circle, rect {
+			fill: currentColor;
+		}
+	}
+}

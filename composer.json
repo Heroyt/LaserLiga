@@ -37,11 +37,12 @@
 		"lsr/logging": "^0.2",
 		"lsr/request": "^0.2",
 		"lsr/auth": "^0.2",
-		"ext-simplexml": "*"
+		"ext-simplexml": "*",
+		"nette/mail": "^4.0"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",
-		"phpunit/phpunit": "^9.5",
+		"phpunit/phpunit": "^10",
 		"gettext/gettext": "^5.7",
 		"phpstan/phpstan": "^1.8",
 		"phpstan/extension-installer": "^1.1",

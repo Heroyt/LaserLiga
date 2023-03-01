@@ -66,7 +66,7 @@ module.exports = {
 			chunkFilename: isDevelopment ? '[id].css' : '[id].[hash].css'
 		}),
 		new CompressionPlugin({
-			test: /\.(js|css)/
+			//test: /\.(js|ts|css)/
 		}),
 	],
 	cache: {

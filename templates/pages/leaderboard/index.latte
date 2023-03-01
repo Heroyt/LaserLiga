@@ -1,0 +1,35 @@
+{layout '../../@layout.latte'}
+
+{varType App\GameModels\Auth\Player[] $players}
+{varType App\GameModels\Auth\LigaPlayer|null $searchedPlayer}
+{varType int $p}
+{varType int $pages}
+{varType int $limit}
+{varType int $total}
+{varType int $orderBy}
+{varType bool $desc}
+{varType int $userOrder}
+{default string $activeType = 'rank'}
+
+
+{block content}
+	<h2>{lang 'Pořadí hráčů'}</h2>
+
+	<form action="{link ['user', 'leaderboard']}" method="get" id="user-leaderboard-form"
+		  class="player-leaderboard data-table-form">
+		{embed '../../partials/leaderboard/table.latte',
+		user: $user,
+		userOrder: $userOrder,
+		players: $players,
+		p: $p,
+		pages: $pages,
+		limit: $limit,
+		total: $total,
+		orderBy: $orderBy,
+		desc: $desc,
+		activeType: $activeType,
+		searchedPlayer: $searchedPlayer
+		}
+		{/embed}
+	</form>
+{/block}

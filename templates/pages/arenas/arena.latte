@@ -24,7 +24,8 @@
 	</div>
 	<div class="row mt-3">
 		<div class="col-md-6">
-			<table n:if="!empty($players)" class="table table-striped caption-top">
+			<table n:if="!empty($players)" class="table table-striped caption-top" data-track-content=""
+										   data-content-name="Arena - Top players">
 				<caption class="text-text fs-4">{lang 'Dnešní nejlepší hráči'}:</caption>
 				<thead>
 				<tr>
@@ -36,7 +37,16 @@
 				<tbody>
 				<tr n:foreach="$players as $player">
 					<th>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</th>
-					<td class="text-center">{$player->name}</td>
+					<td class="text-center">
+						{$player->name}
+						{ifset $player->code}
+							<a href="{link ['user', ($player->id_arena ?? 0) . '-' . $player->code]}"
+							   class="btn btn-sm btn-primary ms-2" data-content-piece="Profil" data-toggle="tooltip"
+							   title="{lang 'Profil hráče'}">
+								<i class="fa-solid fa-user"></i>
+							</a>
+						{/ifset}
+					</td>
 					<td class="text-end">
 						{$player->skill|number:0,',' . '&nbsp;'|noescape}
 						<i class="fa-solid fa-star"></i>
@@ -47,7 +57,8 @@
 		</div>
 		<div class="col-md-6">
 			<label for="graph-filter">{lang 'Období'}:</label>
-			<select id="graph-filter" class="form-select mb-3">
+			<select id="graph-filter" class="form-select mb-3" data-track-content=""
+					data-content-name="Arena - date filter">
 				<option value="" n:attr="selected: !isset($date)">{lang 'Za celou dobu'}</option>
 				<option value="date" n:attr="selected: isset($date)">{lang 'Den'}</option>
 				<option value="week">{lang 'Tento týden'}</option>
@@ -60,7 +71,9 @@
 		</div>
 	</div>
 	<h4 class="mt-3">{lang 'Hudební módy'}:</h4>
-	<ul class="list-group" id="musicModes">
+	<ul class="list-group" id="musicModes"
+		data-track-content=""
+		data-content-name="Arena - Music modes">
 		<li n:foreach="$music as $mode" class="list-group-item music" data-id="{$mode->id}">
 			<div class="w-100 d-flex justify-content-between align-items-center">
 				<strong>{$mode->name}</strong>
@@ -68,7 +81,9 @@
 					<div class="time-music font-monospace">
 						0:00
 					</div>
-					<button type="button" class="btn btn-success play-music ms-2" data-file="{$mode->getMediaUrl()}"
+					<button type="button" class="btn btn-success play-music ms-2" data-content-piece="Play"
+							data-content-target="{$mode->getMediaUrl()}"
+							data-file="{$mode->getMediaUrl()}"
 							data-toggle="tooltip" data-play="{lang 'Přehrát', context: 'actions'}"
 							data-stop="{lang 'Zastavit', context: 'actions'}"
 							title="{lang 'Přehrát', context: 'actions'}">

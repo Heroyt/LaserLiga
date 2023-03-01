@@ -4,6 +4,7 @@
 {varType App\GameModels\Game\Today $today}
 {varType string $prevGame}
 {varType string $nextGame}
+{varType \App\Models\Auth\User|null $user}
 
 {define teamColor}
 	{default int $teamColor = 0}
@@ -244,7 +245,8 @@
 			<div class="icon-legend p-0">
 				<div class="rounded-10 bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
 					 data-bs-toggle="collapse"
-					 data-bs-target="#legend">
+					 data-bs-target="#legend"
+					 data-track-content="" data-content-name="Results - Legenda">
 					<h5 class="m-0"><i class="fas fa-info-circle"></i> {lang 'Legenda'}</h5>
 					<div class="collapse-indicator">
 						<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
@@ -292,15 +294,18 @@
 		</div>
 		<div n:if="isset($game->group)" class="col-12 mt-3 text-center">
 			<div class="btn-group btn-group-lg">
-				<a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-info">
+				<a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-info" data-track-content=""
+											data-content-name="Results - Previous game">
 					<i class="fa-solid fa-caret-left"></i>
 					{lang 'Předchozí hra', context: 'results.group'}
 				</a>
-				<a href="{link ['game', 'group', $game->group->getEncodedId()]}" class="btn btn-secondary">
+				<a href="{link ['game', 'group', $game->group->getEncodedId()]}" class="btn btn-secondary"
+				   data-track-content="" data-content-name="Results - Group">
 					<i class="fa-solid fa-list"></i>
 					{lang 'Skupina'}
 				</a>
-				<a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-primary">
+				<a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-primary"
+											data-track-content="" data-content-name="Results - Next game">
 					{lang 'Následující hra', context: 'results.group'}
 					<i class="fa-solid fa-caret-right"></i>
 				</a>
@@ -316,6 +321,7 @@
 		{foreach $game->getPlayersSorted() as $key => $player}
 			<div class="results-player rounded-10 my-2 bg-white flex-fill shadow">
 				<div class="player-head collapsed bg-team-{$player->getTeamColor()} p-2" data-bs-toggle="collapse"
+					 data-track-content="" data-content-name="Results - player" data-content-target="#player-{$key}"
 					 data-bs-target="#player-body-{$key}">
 					<div class="position">
 						{$iterator->counter}.
@@ -331,6 +337,20 @@
 							<div class="rank-name">{$rank['name']}</div>
 						</div>
 					</div>
+
+					{if isset($user) && !isset($player->user) && comparePlayerNames($user->name, $player->name)}
+						<button class="btn btn-primary setMe" type="button" data-id="{$player->id}"
+								data-system="{$player::SYSTEM}"
+								data-content-piece="Přivlastnit">
+							{lang 'Přivlastnit'}
+						</button>
+					{elseif isset($player->user)}
+						<a href="{link ['user', $player->user->getCode()]}" class="btn btn-primary"
+						   data-toggle="tooltip" title="{lang 'Profil hráče'}"
+						   data-content-piece="Profile">
+							<i class="fa-solid fa-user"></i>
+						</a>
+					{/if}
 
 					{include playerScore}
 
@@ -375,7 +395,7 @@
 		</div>
 		<button type="button" class="btn btn-info mt-2 shadow-sm" data-toggle="tooltip"
 				title="{lang 'Zobrazit dostupné trofeje', context: 'results.bests'}" data-bs-toggle="modal"
-				data-bs-target="#trophy-modal">
+				data-bs-target="#trophy-modal" data-track-content="" data-content-name="Results - Trophies">
 			<i class="fa-solid fa-info"></i> {lang 'Zobrazit všechny trofeje', context: 'results.bests'}
 		</button>
 	</div>
@@ -393,23 +413,14 @@
 		</p>
 		<div class="categories">
 			{var string $order = $today->getPlayerOrder($player,'score')}
-
-
-
-
-
-
-
-
-
-
-
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
 				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+				 data-track-content="" data-content-name="Results - Leaderboard"
+				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score', 'highlight' => $player->id]}">
 					<div class="label">
 						{svgIcon 'star', '2em'}<br>
@@ -420,22 +431,14 @@
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'accuracy')}
-
-
-
-
-
-
-
-
-
-
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
 				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+				 data-track-content="" data-content-name="Results - Leaderboard"
+				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy', 'highlight' => $player->id]}">
 					<div class="label">
 						{svgIcon 'target', '2em'}<br>
@@ -446,22 +449,14 @@
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'hits')}
-
-
-
-
-
-
-
-
-
-
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
 				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+				 data-track-content="" data-content-name="Results - Leaderboard"
+				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits', 'highlight' => $player->id]}">
 					<div class="label">
 						{svgIcon 'kill', '3em'}<br>
@@ -472,22 +467,14 @@
 					</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'deaths')}
-
-
-
-
-
-
-
-
-
-
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
 				 class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+				 data-track-content="" data-content-name="Results - Leaderboard"
+				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths', 'highlight' => $player->id]}">
 					<div class="label">
 						{svgIcon 'skull', '2em'}<br>
@@ -504,6 +491,8 @@
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+				 data-track-content="" data-content-name="Results - Leaderboard"
+				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'shots', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'shots', 'highlight' => $player->id]}">
 				<div class="label">
 					{svgIcon 'bullets', '2em'}<br>

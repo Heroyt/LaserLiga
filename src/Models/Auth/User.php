@@ -27,6 +27,10 @@ class User extends \Lsr\Core\Auth\Models\User
 	#[OneToOne]
 	public ?LigaPlayer $player = null;
 
+	public static function getByCode(string $code) : ?static {
+		return LigaPlayer::getByCode($code)?->user;
+	}
+
 	/**
 	 * @return bool
 	 * @throws ValidationException
@@ -57,7 +61,17 @@ class User extends \Lsr\Core\Auth\Models\User
 	}
 
 	public function addConnection(UserConnection $connection) : User {
-		$this->connections[] = $connection;
+		// Find duplicates
+		$found = false;
+		foreach ($this->getConnections() as $connectionToTest) {
+			if ($connectionToTest->type === $connection->type && $connection->identifier === $connectionToTest->identifier) {
+				$found = true;
+				break;
+			}
+		}
+		if (!$found) {
+			$this->connections[] = $connection;
+		}
 		return $this;
 	}
 

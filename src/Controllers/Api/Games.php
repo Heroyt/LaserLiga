@@ -4,19 +4,24 @@ namespace App\Controllers\Api;
 
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\GameModeNotFoundException;
+use App\GameModels\Auth\LigaPlayer;
+use App\GameModels\Auth\Player;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use App\Models\Arena;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
+use App\Services\PlayerUserService;
 use DateTime;
 use Exception;
 use InvalidArgumentException;
 use JsonException;
 use Lsr\Core\ApiController;
 use Lsr\Core\App;
+use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
+use Lsr\Core\Templating\Latte;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Interfaces\RequestInterface;
@@ -28,6 +33,13 @@ use Throwable;
  */
 class Games extends ApiController
 {
+
+	public function __construct(
+		Latte                                $latte,
+		protected readonly PlayerUserService $playerUserService,
+	) {
+		parent::__construct($latte);
+	}
 
 	public Arena $arena;
 
@@ -241,19 +253,19 @@ class Games extends ApiController
 	/**
 	 * Get one game's data by its code
 	 *
-	 * @param Request $request
 	 *
-	 * @return void
+	 * @param string $code
+	 *
+	 * @return never
 	 * @throws JsonException
+	 * @throws Throwable
 	 * @pre Must be authorized
-	 *
 	 */
-	public function getGame(Request $request) : void {
-		$gameCode = $request->params['code'] ?? '';
-		if (empty($gameCode)) {
-			$this->respond(['Invalid code'], 400);
+	public function getGame(string $code) : never {
+		if (empty($code)) {
+			$this->respond(['error' => 'Invalid code'], 400);
 		}
-		$game = GameFactory::getByCode($gameCode);
+		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
 			$this->respond(['error' => 'Game not found'], 404);
 		}
@@ -261,6 +273,165 @@ class Games extends ApiController
 			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
 		}
 		$this->respond($game);
+	}
+
+	/**
+	 * @param string $code
+	 *
+	 * @return never
+	 * @throws JsonException
+	 * @throws Throwable
+	 * @pre Must be authorized
+	 */
+	public function getGameUsers(string $code) : never {
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->respond(['error' => 'Game not found'], 404);
+		}
+		if ($game->arena->id !== $this->arena->id) {
+			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
+		}
+		$users = [];
+		foreach ($game->getPlayers() as $player) {
+			if (isset($player->user)) {
+				$users[$player->vest] = $player->user;
+			}
+		}
+		$this->respond($users);
+	}
+
+	public function recalcMultipleGameSkills(Request $request) : never {
+		$games = $this->recalcMultipleGameSkillsGetGames($request);
+
+		$playerSkills = [];
+		foreach ($games as $game) {
+			$playerSkills[$game->code] = [];
+			$game->calculateSkills();
+			foreach ($game->getPlayers() as $player) {
+				if (isset($player->user) && $game->mode->rankable) {
+					$player->user->stats->rank = $this->playerUserService->recalculatePlayerGameRating($player);
+					$player->user->save();
+				}
+			}
+			if (!$game->save()) {
+				$this->respond(['error' => 'Save failed', 'game' => $game->code], 500);
+			}
+			foreach ($game->getPlayers()->getAll() as $player) {
+				$playerSkills[$game->code][$player->vest] = [
+					'name'  => $player->name,
+					'skill' => $player->getSkill(),
+				];
+			}
+		}
+		$this->respond($playerSkills);
+	}
+
+	/**
+	 * @param Request $request
+	 *
+	 * @return Game[]
+	 * @throws JsonException
+	 * @throws Throwable
+	 */
+	private function recalcMultipleGameSkillsGetGames(Request $request) : array {
+		$games = [];
+
+		/** @var string|string[] $codes */
+		$codes = $request->getGet('codes', []);
+		if (!empty($codes)) {
+			if (is_string($codes)) {
+				$this->recalcGameSkill($codes); // Only one game
+			}
+			foreach ($codes as $code) {
+				$game = GameFactory::getByCode($code);
+				if (isset($game)) {
+					$games[$code] = $game;
+				}
+			}
+			return $games;
+		}
+
+		/** @var string|null $date */
+		$date = $request->getGet('date');
+		if (isset($date)) {
+			try {
+				$dateObject = new \DateTimeImmutable($date);
+				return GameFactory::getByDate($dateObject, true);
+			} catch (Exception) {
+				$this->respond(['error' => 'Invalid date'], 400);
+			}
+		}
+
+		$user = (int) $request->getGet('user', 0);
+		if ($user > 0) {
+			$player = LigaPlayer::get($user);
+			if (!isset($user)) {
+				$this->respond(['error' => 'User does not exist'], 404);
+			}
+			$rows = $player->queryGames()->fetchAll();
+			foreach ($rows as $row) {
+				$game = GameFactory::getById((int) $row->id_game, ['system' => $row->system]);
+				if (isset($game)) {
+					$games[] = $game;
+				}
+			}
+			return $games;
+		}
+
+		$offset = (int) $request->getGet('offset', 0);
+		$limit = (int) $request->getGet('limit', 0);
+		if ($limit === 0) {
+			$this->respond(['error' => 'Limit cannot be empty'], 400);
+		}
+		$query = GameFactory::queryGames()->offset($offset)->limit($limit);
+		if (!empty($request->getGet('withUsers'))) {
+			$query->where('id_game IN %sql', DB::select('evo5_players', 'id_game')->where('id_user IS NOT NULL'));
+		}
+		$rows = $query->fetchAll();
+		foreach ($rows as $row) {
+			$game = GameFactory::getById((int) $row->id_game, ['system' => $row->system]);
+			if (isset($game)) {
+				$games[] = $game;
+			}
+		}
+
+		return $games;
+	}
+
+	/**
+	 * @param string $code
+	 *
+	 * @return never
+	 * @throws JsonException
+	 * @throws Throwable
+	 * @pre Must be authorized
+	 */
+	public function recalcGameSkill(string $code) : never {
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->respond(['error' => 'Game not found'], 404);
+		}
+		if ($game->arena->id !== $this->arena->id) {
+			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
+		}
+		$game->calculateSkills();
+		foreach ($game->getPlayers() as $player) {
+			if (isset($player->user) && $game->mode->rankable) {
+				$player->user->stats->rank = $this->playerUserService->recalculatePlayerGameRating($player);
+				$player->user->save();
+			}
+		}
+		if (!$game->save()) {
+			$this->respond(['error' => 'Save failed'], 500);
+		}
+		$playerSkills = [];
+		foreach ($game->getPlayers()->getAll() as $player) {
+			$playerSkills[$player->vest] = [
+				'name'  => $player->name,
+				'skill' => $player->getSkill(),
+			];
+		}
+		$this->respond($playerSkills);
 	}
 
 	/**
@@ -275,17 +446,70 @@ class Games extends ApiController
 	 */
 	public function import(Request $request) : void {
 		$logger = new Logger(LOG_DIR, 'api-import');
+		/** @var string $system */
 		$system = $request->post['system'] ?? '';
 		$supported = GameFactory::getSupportedSystems();
-		/** @var Game $gameClass */
+		/** @var class-string<Game> $gameClass */
 		$gameClass = '\App\GameModels\Game\\'.Strings::toPascalCase($system).'\Game';
 		if (!class_exists($gameClass) || !in_array($system, $supported, true)) {
 			$this->respond(['error' => 'Invalid game system', 'class' => $gameClass], 400);
 		}
 
 		$imported = 0;
+		/**
+		 * @var array{
+		 *     gameType?: string,
+		 *     lives?: int,
+		 *     ammo?: int,
+		 *     modeName?: string,
+		 *     fileNumber?: int,
+		 *     code?: string,
+		 *     respawn?: int,
+		 *     sync?: int|bool,
+		 *     start?: array{date:string,timezone:string},
+		 *     end?: array{date:string,timezone:string},
+		 *     timing?: array<string,int>,
+		 *     scoring?: array<string,int>,
+		 *     mode?: array{type?:string,name:string},
+		 *     players?: array{
+		 *         id?: int,
+		 *         id_player?: int,
+		 *         name?: string,
+		 *         code?: string,
+		 *         team?: int,
+		 *         score?: int,
+		 *         skill?: int,
+		 *         shots?: int,
+		 *         accuracy?: int,
+		 *         vest?: int,
+		 *         hits?: int,
+		 *         deaths?: int,
+		 *         hitsOwn?: int,
+		 *         hitsOther?: int,
+		 *         hitPlayers?: array{target:int,count:int}[],
+		 *         deathsOwn?: int,
+		 *         deathsOther?: int,
+		 *         position?: int,
+		 *         shotPoints?: int,
+		 *         scoreBonus?: int,
+		 *         scoreMines?: int,
+		 *         ammoRest?: int,
+		 *         bonus?: array<string, int>,
+		 *     }[],
+		 *   teams?: array{
+		 *         id?: int,
+		 *         id_team?: int,
+		 *         name?: string,
+		 *         score?: int,
+		 *         color?: int,
+		 *         position?: int,
+		 *     }[],
+		 * }[] $games
+		 */
 		$games = $request->post['games'] ?? [];
 		$logger->info('Importing '.$system.' system - '.count($games).' games.');
+		/** @var array<int,LigaPlayer> $users */
+		$users = [];
 		foreach ($games as $gameInfo) {
 			$start = microtime(true);
 			try {
@@ -323,6 +547,11 @@ class Games extends ApiController
 				$this->respond(['error' => 'Invalid game mode', 'exception' => $e->getMessage()], 400);
 			}
 			$parseTime = microtime(true) - $start;
+			foreach ($game->getPlayers() as $player) {
+				if (isset($player->user)) {
+					$users[$player->user->id] = $player->user;
+				}
+			}
 			try {
 				if ($game->save() === false) {
 					$this->respond(['error' => 'Failed saving the game'], 500);
@@ -337,9 +566,15 @@ class Games extends ApiController
 			}
 			$dbTime = microtime(true) - $start - $parseTime;
 			$logger->debug('Game '.$game->code.' imported in '.(microtime(true) - $start).'s - parse: '.$parseTime.'s, save: '.$dbTime.'s');
-			foreach (Timer::$timers as $key => $times) {
-				$logger->debug($key.': '.Timer::get($key).'s');
-			}
+		}
+		Timer::start('user.stats');
+		foreach ($users as $user) {
+			$user->clearCache();
+			$this->playerUserService->updatePlayerStats($user->user);
+		}
+		Timer::stop('user.stats');
+		foreach (Timer::$timers as $key => $times) {
+			$logger->debug($key.': '.Timer::get($key).'s');
 		}
 		$this->respond(['success' => true, 'imported' => $imported]);
 	}

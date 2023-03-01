@@ -1,2 +1,15 @@
 includes:
 	- services-common.neon
+parameters:
+	mail:
+		host: sandbox.smtp.mailtrap.io
+		username: 96c9f02629cb09
+		password: 19ffed00f29315
+		encryption: 'tsl'
+services:
+	mailer: Nette\Mail\SmtpMailer(
+		host: %mail.host%,
+		username: %mail.username%,
+		password: %mail.password%,
+		encryption: %mail.encryption%
+	)

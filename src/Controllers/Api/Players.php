@@ -26,18 +26,27 @@ class Players extends ApiController
 		// Filter by search parameter - name, code, email
 		$search = trim($request->getGet('search', ''));
 		if (!empty($search)) {
-			$query->where(
-				'%or',
-				[
-					['[code] LIKE %~like~', $search],
-					['[nickname] LIKE %~like~', $search],
-					['[email] LIKE %~like~', $search],
-				]
-			);
+			// Check code format
+			if (preg_match('/^(\d+)-([A-Z\d]{1,5})$/', trim($search), $matches) === 1) {
+				$arena = $matches[1];
+				$query->where('[code] LIKE %like~', $matches[2]);
+			}
+			else {
+				$query->where(
+					'%or',
+					[
+						['[code] LIKE %~like~', $search],
+						['[nickname] LIKE %~like~', $search],
+						['[email] LIKE %~like~', $search],
+					]
+				);
+			}
 		}
 
 		// Filter by home arena
-		$arena = (int) $request->getGet('arena', 0);
+		if (!empty($arena)) {
+			$arena = (int) $request->getGet('arena', 0);
+		}
 		if ($arena > 0) {
 			$query->where('[id_arena] = %i', $arena);
 		}
@@ -57,12 +66,17 @@ class Players extends ApiController
 	}
 
 	/**
-	 * @param LigaPlayer|null $player
+	 * @param string $code
 	 *
 	 * @return never
 	 * @throws JsonException
 	 */
-	public function player(?LigaPlayer $player = null) : never {
+	public function player(string $code) : never {
+		try {
+			$player = LigaPlayer::getByCode($code);
+		} catch (\InvalidArgumentException $e) {
+			$this->respond(['error' => $e->getMessage(), 'code' => $code], 400);
+		}
 		if (!isset($player)) {
 			$this->respond(['error' => 'Player not found'], 404);
 		}

@@ -9,15 +9,31 @@ use App\GameModels\Game\Player;
 use App\GameModels\Game\Today;
 use App\Models\GameGroup;
 use JsonException;
+use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
+use Lsr\Core\Templating\Latte;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Helpers\Tools\Strings;
+use Lsr\Interfaces\RequestInterface;
 
 class Games extends Controller
 {
+
+
+	public function __construct(
+		protected Latte         $latte,
+		protected readonly Auth $auth,
+	) {
+		parent::__construct($latte);
+	}
+
+	public function init(RequestInterface $request) : void {
+		parent::init($request);
+		$this->params['user'] = $this->auth->getLoggedIn();
+	}
 
 	/**
 	 * @param Request $request
@@ -60,7 +76,7 @@ class Games extends Controller
 		$this->view('pages/game/index');
 	}
 
-	#[Get('/game/group/{groupid}')]
+	#[Get('/game/group/{groupid}', 'group-results')]
 	public function group(Request $request) : void {
 		$this->params['groupCode'] = $request->params['groupid'] ?? '4d4330774c54413d'; // Default is '0-0-0'
 		// Decode encoded group ids

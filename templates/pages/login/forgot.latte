@@ -1,0 +1,35 @@
+{layout '../../@layout.latte'}
+
+{varType string[] $errors}
+{varType array $_POST}
+
+{define content}
+	<form action="{link ['login', 'forgot']}" method="post" id="forgot-form"
+		  class="card mx-auto text-center has-validation" style="max-width: 400px;">
+		{csrfInput 'forgot'}
+		<div class="card-header">
+			<h3>{lang 'Zapomenuté heslo'}</h3>
+		</div>
+		<div class="card-body">
+			<div class="form-group mb-3">
+				<div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
+					<input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
+						   id="loginEmail" placeholder="mail@mail.cz"
+						   autocomplete="email" required value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
+					<label for="loginEmail">{lang 'E-mail'}:</label>
+				</div>
+				<div class="invalid-feedback">
+					{ifset $errors['email']}
+						{$errors['email']}
+					{/ifset}
+				</div>
+			</div>
+			<div class="mb-3">
+				<button type="submit" class="btn btn-success btn-lg w-100">{lang 'Odeslat', context: 'actions'}</button>
+			</div>
+			<div class="text-start">
+				<a href="{link ['login']}">{lang 'Zpět'}</a>
+			</div>
+		</div>
+	</form>
+{/define}

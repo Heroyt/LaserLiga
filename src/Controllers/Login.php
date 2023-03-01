@@ -24,6 +24,10 @@ class Login extends Controller
 	 */
 	public array $params = ['errors' => []];
 
+	/**
+	 * @param Latte      $latte
+	 * @param Auth<User> $auth
+	 */
 	public function __construct(
 		protected Latte         $latte,
 		protected readonly Auth $auth,
@@ -98,6 +102,7 @@ class Login extends Controller
 		// Validate
 		$email = (string) ($request->post['email'] ?? '');
 		$password = (string) ($request->post['password'] ?? '');
+		$rememberMe = !empty($request->post['remember']);
 
 		if (empty($email)) {
 			$this->params['errors']['email'] = lang('E-mail je povinný', context: 'errors');
@@ -113,7 +118,7 @@ class Login extends Controller
 			return;
 		}
 
-		if (!$this->auth->login($email, $password)) {
+		if (!$this->auth->login($email, $password, $rememberMe)) {
 			$this->params['errors']['login'] = lang('E-mail nebo heslo není správné.', context: 'errors');
 			$this->view('pages/login/index');
 			return;

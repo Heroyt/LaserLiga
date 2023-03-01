@@ -1,6 +1,7 @@
 import {Modal} from 'bootstrap';
 import axios, {AxiosResponse} from "axios";
 import {getLink} from "../functions";
+import {initSetMe} from "../userPlayer";
 
 export default function initResults() {
 	const leaderboardModalDom = document.getElementById('leaderboard-modal') as HTMLDivElement | null;
@@ -34,11 +35,16 @@ export default function initResults() {
 	}
 
 	initQuestionnaire();
+
+	initSetMe();
 }
 
 function initQuestionnaire() {
 	const modalDom = document.getElementById('questionnaire-modal') as HTMLDivElement;
 	const questionModalDom = document.getElementById('questionnaire-question-modal') as HTMLDivElement;
+	if (!questionModalDom) {
+		return;
+	}
 	const previousBtn = questionModalDom.querySelector('.previous') as HTMLButtonElement;
 	const nextBtn = questionModalDom.querySelector('.next') as HTMLButtonElement;
 	const doneBtn = questionModalDom.querySelector('.done') as HTMLButtonElement;

@@ -12,11 +12,13 @@ enum ConnectionType: string
 
 	case RFID = 'rfid';
 	case LASER_FORCE = 'laserforce';
+	case OTHER = 'other';
 
 	public function getReadable() : string {
 		return match ($this) {
 			self::RFID => 'RFID',
 			self::LASER_FORCE => 'Laser force',
+			self::OTHER => lang('Other'),
 		};
 	}
 

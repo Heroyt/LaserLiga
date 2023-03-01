@@ -14,9 +14,13 @@ $apiGroup->group('/games')
 				 ->get('/', [Games::class, 'listGames'])
 				 ->post('/', [Games::class, 'import'])
 				 ->get('/{code}', [Games::class, 'getGame'])
+				 ->get('/{code}/users', [Games::class, 'getGameUsers'])
+				 ->get('/{code}/skills', [Games::class, 'recalcGameSkill'])
+				 ->get('/skills', [Games::class, 'recalcMultipleGameSkills'])
 				 ->group('/stats')
 				 ->get('/', [Games::class, 'stats'])
 				 ->endGroup();
+
 
 $apiGroup->group('/music')
 				 ->post('/', [Music::class, 'import'])
@@ -25,5 +29,5 @@ $apiGroup->group('/music')
 
 $apiGroup->group('/players')
 				 ->get('/', [Players::class, 'find'])
-				 ->get('/{id}', [Players::class, 'player'])
+				 ->get('/{code}', [Players::class, 'player'])
 				 ->endGroup();

@@ -2,6 +2,7 @@ import {formatPhoneNumber, initAutoSaveForm, initCopyToClipboard, initTooltips} 
 import axios from 'axios';
 import route from "./router";
 import initDatePickers from "./datePickers";
+import {initClearButtons} from "./pages/utils";
 
 axios.defaults.headers.post['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.get['X-Requested-With'] = 'XMLHttpRequest';
@@ -22,6 +23,10 @@ window.addEventListener("load", () => {
 			input.value = formatPhoneNumber(input.value);
 		});
 	});
+
+	// Utils
+	initClearButtons();
+
 	// Datepicker
 	initDatePickers();
 
@@ -37,6 +42,18 @@ window.addEventListener("load", () => {
 			element.findParentElement("form").submit();
 		});
 	});
+	document.querySelectorAll('[data-toggle="scroll-to"]').forEach(element => {
+		const delay = parseInt(element.dataset.delay ?? "0");
+		element.addEventListener('click', () => {
+			setTimeout(() => {
+				const target = document.querySelector(element.dataset.target);
+				if (!target) {
+					return;
+				}
+				window.scrollTo(0, target.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop));
+			}, delay);
+		});
+	})
 
 	initCopyToClipboard();
 

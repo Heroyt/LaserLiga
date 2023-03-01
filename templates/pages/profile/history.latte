@@ -1,0 +1,44 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Auth\User $user}
+{varType App\GameModels\Game\Game[] $games}
+{varType int $p}
+{varType int $pages}
+{varType int $limit}
+{varType int $total}
+{varType string $orderBy}
+{varType bool $desc}
+{varType int[] $modeIds}
+{varType \DateTimeImmutable|null $date}
+{varType string[] $dates}
+
+{define addHead}
+	{\App\Tools\Color::getGamesColor($games)|noescape}
+{/define}
+
+{block content}
+	<p class="text-start">
+		<a href="{link ['user', $user->player->getCode()]}" class="btn btn-warning">
+			<i class="fa-solid fa-angle-left"></i> {lang 'Profil hráče'}
+		</a>
+	</p>
+	<h2>{sprintf(lang('Historie her hráče %s'), $user->name)}</h2>
+
+	<form action="{link ['user', $user->player->getCode(), 'history']}" method="get" id="user-history-form"
+		  class="player-history data-table-form">
+		{embed '../../partials/user/history.latte',
+		user: $user,
+		games: $games,
+		p: $p,
+		pages: $pages,
+		limit: $limit,
+		total: $total,
+		orderBy: $orderBy,
+		desc: $desc,
+		modeIds: $modeIds,
+		date: $date,
+		dates: $dates
+		}
+		{/embed}
+	</form>
+{/block}

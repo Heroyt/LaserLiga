@@ -6,3 +6,6 @@ extensions:
 services:
 	user: App\Models\Auth\User
 	caching.journal: Nette\Caching\Storages\SQLiteJournal('%constants.tempDir%journal.s3db')
+	playerUser: App\Services\PlayerUserService
+	mailer: Nette\Mail\SendmailMailer
+	mail: App\Services\MailService

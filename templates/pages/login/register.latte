@@ -5,7 +5,7 @@
 {varType App\Models\Arena[] $arenas}
 
 {define content}
-	<form action="{link ['register']}" method="post" id="register-form" class="card has-validation"
+	<form action="{link ['register']}" method="post" id="register-form" class="card mx-auto text-center has-validation"
 		  style="max-width: 400px;">
 		<div class="card-header">
 			<h3>{lang 'Vytvořit účet'}</h3>
@@ -33,7 +33,7 @@
 					<select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"
 							id="loginArena">
 						<option value="">{lang 'Žádná'}</option>
-						<option n:foreach="$arenas as $arena" {if $_POST['arena'] && ((int) $_POST['arena']) === $arena->id}selected{/if}
+						<option n:foreach="$arenas as $arena" {if isset($_POST['arena']) && ((int) $_POST['arena']) === $arena->id}selected{/if}
 								value="{$arena->id}">
 							{$arena->name}
 						</option>
@@ -53,7 +53,8 @@
 				<div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
 					<input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
 						   id="loginEmail" placeholder="mail@mail.cz"
-						   autocomplete="email" required value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
+						   autocomplete="username email" required
+						   value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
 					<label for="loginEmail">{lang 'E-mail'}:</label>
 				</div>
 				<div class="invalid-feedback">
@@ -76,9 +77,10 @@
 					{/ifset}
 				</div>
 			</div>
+			<div class="mb-3">
+				<button type="submit" class="btn btn-success w-100 btn-lg">{lang 'Odeslat', context: 'actions'}</button>
+			</div>
 			<div>
-				<button type="submit" class="btn btn-success">{lang 'Odeslat', context: 'actions'}</button>
-				<br>
 				{lang 'Máte již účet?'} <a href="{link ['login']}">{lang 'Přihlásit'}</a>
 			</div>
 		</div>

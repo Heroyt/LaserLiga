@@ -1,0 +1,111 @@
+{varType App\Models\Auth\User $user}
+{varType App\GameModels\Game\Game[] $games}
+{varType int $p}
+{varType int $pages}
+{varType int $limit}
+{varType int $total}
+{varType string $orderBy}
+{varType bool $desc}
+{varType int[] $modeIds}
+{varType \DateTimeImmutable|null $date}
+{varType string[] $dates}
+
+{import '../dataTable.latte'}
+
+{default array $fields = [
+'start' => ['name' => lang('Datum'), 'sortable' => true],
+'id_arena' => ['name' => lang('Aréna'), 'sortable' => true],
+'modeName' => ['name' => lang('Herní mód'), 'sortable' => true],
+'players' => ['name' => lang('Hráči'), 'sortable' => false],
+'skill' => ['name' => lang('Herní úroveň'), 'sortable' => true],
+]}
+
+{block filters}
+	<h4>{lang 'Filtry'}</h4>
+	<div class="row">
+		<div class="col-md-8 col-lg-7 my-3">
+			<button type="button" class="btn btn-info w-100 collapsed d-flex justify-content-center"
+					data-bs-toggle="collapse" data-bs-target="#modes-filters">
+				{lang 'Herní módy'}
+				<div class="collapse-indicator ms-3">
+					<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+					<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+				</div>
+			</button>
+			<div class="collapse p-2" id="modes-filters">
+				<div class="d-flex flex-wrap justify-content-evenly">
+					<div n:foreach="\App\GameModels\Factory\GameModeFactory::getAll() as $mode" class="form-check">
+						<input class="form-check-input" type="checkbox" value="{$mode->id}" id="modeFilter{$mode->id}"
+							   name="modes[]"
+							   {if empty($modeIds) || in_array($mode->id, $modeIds, true)}checked{/if}>
+						<label class="form-check-label" for="modeFilter{$mode->id}">
+							{lang $mode->name, context: 'gameModes'}
+						</label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 col-lg-3 my-3">
+			<div class="input-group">
+				<input type="date" class="form-control date-picker"
+					   value="{ifset $date}{$date->format('d.m.Y')}{/ifset}"
+					   name="date" id="date" data-max="{date('d.m.Y')}" placeholder="{date('d.m.Y')}"
+					   data-events="{json_encode($dates)}">
+				<button type="button" class="btn btn-danger" data-toggle="clear" data-target="#date">
+					<i class="fa-solid fa-ban"></i>
+				</button>
+			</div>
+		</div>
+		<div class="col-12 col-lg-2 text-center my-3">
+			<button class="btn btn-success" type="submit"><i class="fa-solid fa-filter"></i> {lang 'Filtrovat'}</button>
+		</div>
+	</div>
+{/block}
+
+{block table}
+	{if empty($games)}
+		<p class="text-center my-5 fs-3">{lang 'Žádné hry neodpovídají filtrům'}</p>
+	{else}
+		<input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
+		<input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
+		<table class="table table-striped data-table" id="user-history-table">
+			<thead>
+			<tr>
+				{include tableHead, $fields, $orderBy, $desc}
+			</tr>
+			</thead>
+			<tbody>
+			<tr n:foreach="$games as $game" data-code="{$game->code}">
+				<td>{$game->start->format('d.m.Y H:i')}</td>
+				<td>{$game->arena->getLogoHtml()|noescape}</td>
+				<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
+				<td>
+						<span n:foreach="$game->getPlayersSorted() as $player"
+						data-toggle="tooltip"
+						title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
+						class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+					{$player->position}.&nbsp;{$player->name}
+				</span>
+				</td>
+				<td>
+					{foreach $game->getPlayers() as $player}
+						{varType App\GameModels\Game\Player $player}
+						{if isset($player->user) && $player->user->id === $user->id}
+							{$player->skill} <i class="fa-solid fa-star"></i>
+							{breakIf true}
+						{/if}
+					{/foreach}
+				</td>
+				<td>
+					<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
+					   title="{lang 'Výsledky'}">
+						<i class="fa-solid fa-eye"></i>
+					</a>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	{/if}
+{/block}
+
+{include pagination, $p, $pages, $limit, $total, 'Zobrazeno %s z %d her'}

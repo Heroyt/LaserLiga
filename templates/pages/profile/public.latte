@@ -1,7 +1,11 @@
 {layout '../../@layout.latte'}
 
+{varType App\Models\Auth\User|null $loggedInUser}
+{varType App\Models\Auth\User $user}
+{varType Dibi\Row[] $lastGames}
+
 {block content}
+	{embed '../../partials/user/profile.latte', loggedIn: false, user: $user, lastGames: $lastGames, loggedInUser: $loggedInUser}
 
-	<h1>Laser liga</h1>
-
+	{/embed}
 {/block}

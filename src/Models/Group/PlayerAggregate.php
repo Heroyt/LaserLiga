@@ -19,6 +19,8 @@ trait PlayerAggregate
 	public array $deathsOwn = [];
 	/** @var int[] $shots */
 	public array $shots = [];
+	/** @var int[] */
+	public array $misses = [];
 	/** @var int[] $skills */
 	public array $skills = [];
 	/** @var array<string|int, int> $vests */
@@ -34,13 +36,19 @@ trait PlayerAggregate
 	protected float $scoreAvg;
 
 	protected int   $hitsSum;
+	protected int   $hitsTeamSum;
 	protected float $hitsAvg;
+	protected float $hitsTeamAvg;
 
 	protected int   $deathsSum;
+	protected int   $deathsTeamSum;
 	protected float $deathsAvg;
+	protected float $deathsTeamAvg;
 
 	protected int   $shotsSum;
+	protected int   $missSum;
 	protected float $shotsAvg;
+	protected float $missAvg;
 
 	protected float $kdAvg;
 
@@ -158,11 +166,85 @@ trait PlayerAggregate
 		return $this->hitsSum;
 	}
 
+	public function getSumOwnHits() : int {
+		if (isset($this->hitsTeamSum)) {
+			return $this->hitsTeamSum;
+		}
+		$this->hitsTeamSum = array_sum($this->hitsOwn);
+		return $this->hitsTeamSum;
+	}
+
+	public function getAverageOwnHits() : float {
+		if (isset($this->hitsTeamAvg)) {
+			return $this->hitsTeamAvg;
+		}
+		$count = count($this->hitsOwn);
+		if ($count === 0) {
+			return 0;
+		}
+		$this->hitsTeamAvg = $this->getSumOwnHits() / $count;
+		return $this->hitsTeamAvg;
+	}
+
 	public function getSumDeaths() : int {
 		if (isset($this->deathsSum)) {
 			return $this->deathsSum;
 		}
 		$this->deathsSum = array_sum($this->deaths);
 		return $this->deathsSum;
+	}
+
+	public function getSumOwnDeaths() : int {
+		if (isset($this->deathsTeamSum)) {
+			return $this->deathsTeamSum;
+		}
+		$this->deathsTeamSum = array_sum($this->deathsOwn);
+		return $this->deathsTeamSum;
+	}
+
+	public function getAverageOwnDeaths() : float {
+		if (isset($this->deathsTeamAvg)) {
+			return $this->deathsTeamAvg;
+		}
+		$count = count($this->deathsOwn);
+		if ($count === 0) {
+			return 0;
+		}
+		$this->deathsTeamAvg = $this->getSumOwnDeaths() / $count;
+		return $this->deathsTeamAvg;
+	}
+
+	public function getSumMisses() : int {
+		if (isset($this->missSum)) {
+			return $this->missSum;
+		}
+		$this->missSum = array_sum($this->getMisses());
+		return $this->missSum;
+	}
+
+	public function getAverageMisses() : float {
+		if (isset($this->missAvg)) {
+			return $this->missAvg;
+		}
+		$misses = $this->getMisses();
+		$count = count($misses);
+		if ($count === 0) {
+			return 0.0;
+		}
+		$this->missAvg = $this->getSumMisses() / $count;
+		return $this->missAvg;
+	}
+
+	/**
+	 * @return int[]
+	 */
+	public function getMisses() : array {
+		if (!empty($this->misses)) {
+			return $this->misses;
+		}
+		foreach ($this->shots as $key => $count) {
+			$this->misses[$key] = $count - ($this->hits[$key] ?? 0);
+		}
+		return $this->misses;
 	}
 }

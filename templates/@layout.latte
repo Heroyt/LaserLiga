@@ -7,6 +7,7 @@
 {varType Lsr\Interfaces\RequestInterface $request}
 {varType string[] $errors}
 {varType string[]|array[] $notices}
+{varType array $_COOKIE}
 
 {define containerClasses}
 	py-5
@@ -16,19 +17,31 @@
 {define addHead}
 {/define}
 {define errors}
+	{var array $displayedErrors = []}
 	{foreach $errors as $key => $error}
 		{skipIf is_string($key)}
 		{alertDanger $error}
+		{do $displayedErrors[] = $error}
 	{/foreach}
 	{foreach $request->getErrors() as $key => $error}
-		{skipIf is_string($key)}
+		{skipIf is_string($key) || in_array($error, $displayedErrors, true)}
 		{alertDanger $error}
 	{/foreach}
 {/define}
 
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="{\Lsr\Core\App::getShortLanguageCode()}" data-bs-theme="{$_COOKIE['mode'] ?? 'light'}">
 <head>
+	<!-- Matomo Tag Manager -->
+	<script>
+		var _mtm = window._mtm = window._mtm || [];
+		_mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+		var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+		g.async = true;
+		g.src = 'https://analytics.laserliga.cz/js/container_F9NT5Iaa.js';
+		s.parentNode.insertBefore(g, s);
+	</script>
+	<!-- End Matomo Tag Manager -->
 	<meta charset="UTF-8">
 	<meta name="viewport"
 		  content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
@@ -50,6 +63,28 @@
 	{include addHead}
 	<script src="/dist/runtime~main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
 	<script src="/dist/vendors.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+	<!-- Matomo -->
+	<script>
+		var _paq = window._paq = window._paq || [];
+		/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+		{var Lsr\Core\Auth\Services\Auth $auth = \Lsr\Core\App::getService('auth')}
+		{if $auth->loggedIn()}
+		_paq.push(['setUserId', {$auth->getLoggedIn()->email}]);
+		{/if}
+		_paq.push(['trackPageView']);
+		_paq.push(['trackVisibleContentImpressions']);
+		_paq.push(['enableLinkTracking']);
+		(function () {
+			var u = "//analytics.laserliga.cz/";
+			_paq.push(['setTrackerUrl', u + 'matomo.php']);
+			_paq.push(['setSiteId', '1']);
+			var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+			g.async = true;
+			g.src = u + 'matomo.js';
+			s.parentNode.insertBefore(g, s);
+		})();
+	</script>
+	<!-- End Matomo Code -->
 </head>
 <body>
 
@@ -64,7 +99,7 @@
 {include footer}
 {include loader}
 
-<div class="toast-container position-absolute bottom-0 end-0 p-3" id="toasts">
+<div class="toast-container position-fixed end-0 p-3" id="toasts" style="top: 5rem;">
 	{foreach $notices as $notice}
 		{var string $type = 'info'}
 		{var string $content = ''}
@@ -76,7 +111,7 @@
 			{do $content = $notice['content'] ?? ''}
 			{do $title = $notice['title'] ?? ''}
 		{/if}
-		<div class="toast show text-black-forced" role="alert" aria-live="assertive" aria-atomic="true">
+		<div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
 			<div class="toast-header">
 				<svg class="bd-placeholder-img rounded me-2 text-{$type}" width="20" height="20"
 					 xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"

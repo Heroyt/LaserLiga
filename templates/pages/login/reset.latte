@@ -1,0 +1,51 @@
+{layout '../../@layout.latte'}
+
+{varType string[] $errors}
+{varType string $hash}
+{varType string $email}
+
+{define content}
+	<form action="{link ['login', 'forgot', 'reset', 'token' => $hash, 'email' => $email]}" method="post"
+		  id="reset-form" class="card mx-auto text-center has-validation" style="max-width: 400px;">
+		{csrfInput 'reset'}
+		<div class="card-header">
+			<h3>{lang 'Obnovit heslo'}</h3>
+		</div>
+		<div class="card-body">
+			<div class="form-group mb-3">
+				<div class="form-floating {ifset $errors['password']}is-invalid{/ifset}">
+					<input type="password" name="password"
+						   class="form-control {ifset $errors['password']}is-invalid{/ifset}" id="new-password"
+						   placeholder="****"
+						   autocomplete="new-password" required>
+					<label for="new-password">{lang 'Nové heslo'}:</label>
+				</div>
+				<div class="invalid-feedback">
+					{ifset $errors['password']}
+						{$errors['password']}
+					{/ifset}
+				</div>
+			</div>
+			<div class="form-group mb-3">
+				<div class="form-floating {ifset $errors['password1']}is-invalid{/ifset}">
+					<input type="password" name="password1"
+						   class="form-control {ifset $errors['password1']}is-invalid{/ifset}" id="new-password-confirm"
+						   placeholder="****"
+						   autocomplete="new-password" required>
+					<label for="new-password-confirm">{lang 'Nové heslo znovu'}:</label>
+				</div>
+				<div class="invalid-feedback">
+					{ifset $errors['password1']}
+						{$errors['password1']}
+					{/ifset}
+				</div>
+			</div>
+			<div class="mb-3">
+				<button type="submit" class="btn btn-success btn-lg w-100">{lang 'Odeslat', context: 'actions'}</button>
+			</div>
+			<div class="text-start">
+				<a href="{link ['login']}">{lang 'Zpět'}</a>
+			</div>
+		</div>
+	</form>
+{/define}

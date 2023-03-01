@@ -1,0 +1,54 @@
+.data-table {
+	td,
+	th {
+		vertical-align: middle;
+	}
+
+	.sortable {
+		cursor: pointer;
+
+		.fa-sort {
+			display: inline-block;
+		}
+
+		.fa-sort-up {
+			display: none;
+		}
+
+		.fa-sort-down {
+			display: none;
+		}
+
+		&.sort-asc {
+			.fa-sort {
+				display: none;
+			}
+
+			.fa-sort-up {
+				display: inline-block;
+			}
+
+			.fa-sort-down {
+				display: none;
+			}
+		}
+
+		&.sort-desc {
+			.fa-sort {
+				display: none;
+			}
+
+			.fa-sort-up {
+				display: none;
+			}
+
+			.fa-sort-down {
+				display: inline-block;
+			}
+		}
+	}
+
+	path, circle, rect {
+		fill: currentColor;
+	}
+}

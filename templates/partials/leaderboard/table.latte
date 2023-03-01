@@ -1,0 +1,167 @@
+{varType App\Models\Auth\User|null $user}
+{varType App\GameModels\Auth\Player[] $players}
+{varType App\GameModels\Auth\LigaPlayer|null $searchedPlayer}
+{varType int $p}
+{varType int $pages}
+{varType int $limit}
+{varType int $total}
+{varType string $orderBy}
+{varType bool $desc}
+{varType int $userOrder}
+
+{import '../dataTable.latte'}
+
+{default array $fields = [
+'nickname' => ['name' => lang('Jméno'), 'sortable' => true],
+'code' => ['name' => lang('Kód'), 'sortable' => true],
+'games_played' => ['name' => lang('Odehráno her'), 'sortable' => true],
+'rank' => ['name' => lang('Herní úroveň'), 'sortable' => true],
+'average_accuracy' => ['name' => lang('Přesnost'), 'sortable' => true],
+'average_position' => ['name' => lang('Pozice'), 'sortable' => true],
+'average_shots' => ['name' => lang('Počet výstřelů'), 'sortable' => true],
+'average_shots_per_minute' => ['name' => lang('Výstřelů za minutu'), 'sortable' => true],
+'max_score' => ['name' => lang('Skóre'), 'sortable' => true],
+'max_skill' => ['name' => lang('Herní úroveň'), 'sortable' => true],
+'max_accuracy' => ['name' => lang('Přesnost'), 'sortable' => true],
+'total_minutes' => ['name' => lang('Čas ve hře'), 'sortable' => true],
+'arenas_played' => ['name' => lang('Navštíveno arén'), 'sortable' => true],
+'shots' => ['name' => lang('Výstřelů'), 'sortable' => true],
+'kd' => ['name' => lang('K:D'), 'sortable' => true],
+'hits' => ['name' => lang('Zásahy'), 'sortable' => true],
+'deaths' => ['name' => lang('Smrti'), 'sortable' => true],
+]}
+
+{default array $commonFields = ['nickname', 'code']}
+{default array $types = [
+'rank' => ['name' => lang('Herní úroveň'), 'fields' => ['games_played', 'rank']],
+'averages' => ['name' => lang('Průměry'), 'fields' => ['average_accuracy', 'average_position', 'average_shots', 'average_shots_per_minute', 'kd']],
+'max' => ['name' => lang('Maxima'), 'fields' => ['max_score', 'max_skill', 'max_accuracy']],
+'sums' => ['name' => lang('Sumy'), 'fields' => ['games_played', 'total_minutes', 'arenas_played', 'shots', 'hits', 'deaths']],
+]}
+
+{default string $activeType = 'rank'}
+
+{var array $activeFields = []}
+{if !isset($types[$activeType])}
+	{do $activeType = 'rank'}
+{/if}
+{foreach $commonFields as $field}
+	{do $activeFields[$field] = $fields[$field]}
+{/foreach}
+{foreach $types[$activeType]['fields'] as $field}
+	{do $activeFields[$field] = $fields[$field]}
+{/foreach}
+
+{block jumpToUser}
+	{if $userOrder > 0}
+		<p>
+			<a href="#" class="page-link-standalone btn btn-primary" data-toggle="scroll-to" data-delay="500"
+			   data-target="#user-leaderboard-table .table-primary"
+			   data-page="{floor($userOrder / $limit) + 1}">{lang 'Skočit na aktuálního uživatele'}</a>
+		</p>
+	{/if}
+{/block}
+
+{block filters}
+	<div class="d-flex flex-wrap justify-content-center justify-content-md-end mb-2">
+		<div class="input-group" style="max-width: 300px;">
+			<input type="search" class="form-control" placeholder="{lang 'Jméno nebo kód hráče'}" name="search"
+				   id="player-search" value="{$_GET['search'] ?? ''}">
+			<button class="btn btn-success" id="search-button">
+				<i class="fa-solid fa-magnifying-glass"></i>
+			</button>
+		</div>
+	</div>
+{/block}
+
+{block typeSelect}
+	<input type="hidden" name="type" value="{$activeType}" id="inputActiveType">
+	<ul class="nav nav-pills justify-content-center">
+		<li class="nav-item" n:foreach="$types as $type => $info">
+			<a n:class="table-type-select, nav-link, $type === $activeType ? active"
+					data-type="{$type}" {if $type === $activeType}aria-current="page"{/if} href="#">
+				{$info['name']}
+			</a>
+		</li>
+	</ul>
+{/block}
+
+{block table}
+	{if empty($players)}
+		<p class="text-center my-5 fs-3">{lang 'Žádní hráči neodpovídají filtrům'}</p>
+	{else}
+		<input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
+		<input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
+		<div class="table-responsive">
+			<table class="table table-striped data-table fs-sm fs-md-6 table--md-sm" id="user-leaderboard-table">
+				<thead>
+				<tr>
+					<th></th>
+					{include tableHead, $activeFields, $orderBy, $desc, 'center'}
+				</tr>
+				</thead>
+				<tbody>
+				<tr n:foreach="$players as $player"
+						n:class="$player->id === $user->id ? table-primary, isset($searchedPlayer) && $player->id === $searchedPlayer->id ? table-success"
+						data-code="{$player->getCode()}">
+					<td>{$iterator->counter + (($p-1) * $limit)}.</td>
+					<td n:foreach="$activeFields as $field => $info" class="text-center"
+							{if $field === 'code'}
+						style="min-width:100px;"
+							{elseif $field === 'total_minutes'}
+						style="min-width:140px;"
+							{/if}>
+						{switch $field}
+							{case 'nickname'}
+							{ifset $player->arena}
+								{$player->arena->getLogoHtml()|noescape}
+							{/ifset}
+							{$player->nickname}
+							{case 'code'}
+							{$player->getCode()}
+							{case 'games_played'}
+							{$player->stats->gamesPlayed}
+							{case 'rank'}
+							{$player->stats->rank}&nbsp;<i class="fa-solid fa-star"></i>
+						{case 'average_accuracy'}
+						{$player->stats->averageAccuracy|number:2,',',''}&nbsp;%
+						{case 'average_shots'}
+						{$player->stats->averageShots|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
+						{case 'average_shots_per_minute'}
+						{$player->stats->averageShotsPerMinute|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
+						{case 'average_position'}
+						{$player->stats->averagePosition|number:2,',',''}
+						{case 'max_accuracy'}
+						{$player->stats->maxAccuracy}&nbsp;%
+						{case 'max_score'}
+						{$player->stats->maxScore|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'star', '', '1rem'}
+						{case 'max_skill'}
+						{$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-star"></i>
+							{case 'shots'}
+							{$player->stats->shots|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1rem'}
+							{case 'total_minutes'}
+							{convertMinutesToPartsReadableString($player->stats->totalMinutes)}
+							{case 'arenas_played'}
+							{$player->stats->arenasPlayed}
+							{case 'hits'}
+							{$player->stats->hits|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'kill', '', '1rem'}
+							{case 'deaths'}
+							{$player->stats->deaths|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'skull', '', '1rem'}
+							{case 'kd'}
+							{$player->stats->kd|number:2,',',''}
+						{/switch}
+					</td>
+					<td>
+						<a href="{link ['user', $player->getCode()]}" class="btn btn-primary" data-toggle="tooltip"
+						   title="{lang 'Profil'}">
+							<i class="fa-solid fa-user"></i>
+						</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	{/if}
+{/block}
+
+{include pagination, $p, $pages, $limit, $total, 'Zobrazeno %s z %d hráčů'}

@@ -2,20 +2,31 @@
 
 namespace App\Controllers\User;
 
+use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\Game;
+use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\Player;
+use App\GameModels\Game\Team;
 use App\Models\Arena;
 use App\Models\Auth\User;
+use DateTimeImmutable;
+use Dibi\Row;
+use Exception;
 use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Controller;
+use Lsr\Core\DB;
+use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
+use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Security\Passwords;
 
-class UserController extends Controller
+class UserController extends AbstractUserController
 {
 
 	public function __construct(
@@ -24,6 +35,11 @@ class UserController extends Controller
 		protected readonly Passwords $passwords,
 	) {
 		parent::__construct($latte);
+	}
+
+	public function init(RequestInterface $request) : void {
+		parent::init($request);
+		$this->params['loggedInUser'] = $this->auth->getLoggedIn();
 	}
 
 	public function show() : void {
@@ -130,8 +146,244 @@ class UserController extends Controller
 		App::redirect($request->path, $request);
 	}
 
-	public function public(User $user, Request $request) : void {
+	public function public(string $code, Request $request) : void {
+		$user = $this->getUser($code);
+		$this->params['user'] = $user;
+		$this->params['lastGames'] = $user->player->queryGames()
+																							->limit(10)
+																							->orderBy('start')
+																							->desc()
+																							->cacheTags('user/games', 'user/'.$this->params['user']->player->getCode().'/games', 'user/'.$this->params['user']->player->getCode().'/lastGames')
+																							->fetchAll();
 		$this->view('pages/profile/public');
+	}
+
+	public function gameHistory(Request $request, string $code = '') : void {
+		$user = empty($code) ? $this->auth->getLoggedIn() : $this->getUser($code);
+		$query = $user->createOrGetPlayer()->queryGames();
+
+		// Filters
+		[$modeIds, $date] = $this->filters($request, $query);
+
+		// Pagination
+		$page = (int) $request->getGet('p', 1);
+		$limit = (int) $request->getGet('l', 15);
+		$total = $query->count();
+		$pages = ceil($total / $limit);
+		$query->limit($limit)->offset(($page - 1) * $limit);
+
+		// Order by
+		$allowedOrderFields = ['start', 'modeName', 'id_arena', 'skill'];
+		$orderBy = $request->getGet('orderBy', 'start');
+		$query->orderBy(
+			is_string($orderBy) && in_array($orderBy, $allowedOrderFields, true) ?
+				$orderBy :
+				'start' // Default
+		);
+		$desc = $request->getGet('dir', 'desc');
+		$desc = !is_string($desc) || strtolower($desc) === 'desc'; // Default true -> the latest game should be first
+		if ($desc) {
+			$query->desc();
+		}
+
+		// Load games
+		/** @var array<string|Row> $rows */
+		$rows = $query->fetchAssoc('code');
+		$games = [];
+		foreach ($rows as $gameCode => $row) {
+			$games[$gameCode] = GameFactory::getByCode($gameCode);
+		}
+
+		// Available dates
+		$rowsDates = $user->createOrGetPlayer()->queryGames()->groupBy('DATE([start])')->fetchAll();
+		$dates = [];
+		foreach ($rowsDates as $row) {
+			$dates[$row->start->format('d.m.Y')] = true;
+		}
+
+		// Set params
+		$this->params['dates'] = $dates;
+		$this->params['user'] = $user;
+		$this->params['games'] = $games;
+		$this->params['p'] = $page;
+		$this->params['pages'] = $pages;
+		$this->params['limit'] = $limit;
+		$this->params['total'] = $total;
+		$this->params['orderBy'] = $orderBy;
+		$this->params['desc'] = $desc;
+		$this->params['modeIds'] = $modeIds;
+		$this->params['date'] = $date;
+
+		// Render
+		$this->view($request->isAjax() ? 'partials/user/history' : 'pages/profile/history');
+	}
+
+	/**
+	 * @param Request $request
+	 * @param Fluent  $query
+	 *
+	 * @return array{0:int[],1:DateTimeImmutable|null}
+	 */
+	protected function filters(Request $request, Fluent $query) : array {
+		$modeIds = [];
+		/** @var string[] $modes */
+		$modes = $request->getGet('modes', []);
+		if (!empty($modes) && is_array($modes)) {
+			foreach ($modes as $mode) {
+				$modeIds[] = (int) $mode;
+			}
+
+			$query->where('[id_mode] IN %in', $modeIds);
+		}
+		$dateObj = null;
+		$date = $request->getGet('date', '');
+		if (!empty($date) && is_string($date)) {
+			try {
+				$dateObj = new DateTimeImmutable($date);
+				$query->where('DATE([start]) = %d', $dateObj);
+			} catch (Exception) {
+				// Invalid date
+			}
+		}
+		return [$modeIds, $dateObj];
+	}
+
+	public function getUserCompare(string $code, Request $request) : never {
+		$user = $this->getUser($code);
+		/** @var User|null $currentUser */
+		$currentUser = $this->params['loggedInUser'];
+		if (!isset($currentUser) || $user->id === $currentUser->id) {
+			$this->respond(['error' => 'Must be logged in and not the same as the compared user.'], 400);
+		}
+		$data = [];
+
+		// TODO: Filter by game modes
+
+		// Get rankable modes
+		$modes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
+							 ->where('[rankable] = 1')
+							 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+							 ->fetchPairs('id_mode', 'name');
+
+		// Get games together
+		$games = (new Fluent(
+			DB::getConnection()->select("[id_game], [type], [code], [id_mode], GROUP_CONCAT([vest] SEPARATOR ',') as [vests], GROUP_CONCAT([id_team] SEPARATOR ',') as [teams], GROUP_CONCAT([id_user] SEPARATOR ',') as [users], GROUP_CONCAT([name] SEPARATOR ',') as [names]")
+				->from(
+					PlayerFactory::queryPlayersWithGames(playerFields: ['vest'], modeFields: ['type'])
+											 ->where('[id_user] IN %in', [$user->id, $currentUser->id])
+						->fluent,
+					'players'
+				)
+				->groupBy('id_game')
+				->having('COUNT([id_game]) = 2')
+		))
+			->cacheTags(
+				'players',
+				'user/'.$user->id.'/games',
+				'user/'.$currentUser->id.'/games',
+				'user/compare',
+				'user/compare/'.$user->id.'/'.$currentUser->id,
+				'user/compare/'.$currentUser->id.'/'.$user->id
+			)
+			->fetchAll();
+
+		//$data['rows'] = $games;
+		$data['gameCount'] = count($games);
+		$data['gameCountTogether'] = 0;
+		$data['gameCountEnemy'] = 0;
+		$data['gameCountEnemyTeam'] = 0;
+		$data['gameCountEnemySolo'] = 0;
+		$data['winsTogether'] = 0;
+		$data['lossesTogether'] = 0;
+		$data['drawsTogether'] = 0;
+		$data['winsEnemy'] = 0;
+		$data['lossesEnemy'] = 0;
+		$data['drawsEnemy'] = 0;
+		$data['hitsTogether'] = 0;
+		$data['hitsEnemy'] = 0;
+		$data['deathsTogether'] = 0;
+		$data['deathsEnemy'] = 0;
+		$data['gameCodes'] = [];
+		$data['gameCodesTogether'] = [];
+		$data['gameCodesEnemy'] = [];
+		//$gameObjects = [];
+		foreach ($games as $gameRow) {
+			/** @var Game $game */
+			$game = GameFactory::getByCode($gameRow->code);
+			//$gameObjects[$game->code] = $game;
+			$data['gameCodes'][] = $gameRow->code;
+			[$user1, $user2] = explode(',', $gameRow->users);
+			[$vest1, $vest2] = explode(',', $gameRow->vests);
+			[$team1, $team2] = explode(',', $gameRow->teams);
+			if (((int) $user1) === $currentUser->id) {
+				/** @var Player $currentPlayer */
+				$currentPlayer = $game->getVestPlayer($vest1);
+				/** @var Player $otherPlayer */
+				$otherPlayer = $game->getVestPlayer($vest2);
+			}
+			else {
+				/** @var Player $currentPlayer */
+				$currentPlayer = $game->getVestPlayer($vest2);
+				/** @var Player $otherPlayer */
+				$otherPlayer = $game->getVestPlayer($vest1);
+			}
+
+			$teammates = $team1 === $team2 && $gameRow->type === 'TEAM';
+			if ($teammates) {
+				$data['gameCodesTogether'][] = $gameRow->code;
+				$data['gameCountTogether']++;
+				/** @var Team|null $winTeam */
+				$winTeam = $game->mode?->getWin($game);
+				if (isset($winTeam) && $winTeam->id === (int) $team1) {
+					$data['winsTogether']++;
+				}
+				else if ($winTeam === null) {
+					$data['drawsTogether']++;
+				}
+				else {
+					$data['lossesTogether']++;
+				}
+
+				$data['hitsTogether'] += $currentPlayer->getHitsPlayer($otherPlayer);
+				$data['deathsTogether'] += $otherPlayer->getHitsPlayer($currentPlayer);
+			}
+			else {
+				$data['gameCodesEnemy'][] = $gameRow->code;
+				$data['gameCountEnemy']++;
+
+				if ($game->mode->isTeam()) {
+					$data['gameCountEnemyTeam']++;
+					/** @var Team|null $winTeam */
+					$winTeam = $game->mode?->getWin($game);
+					if ($currentPlayer->getTeam()->id === $winTeam->id) {
+						$data['winsEnemy']++;
+					}
+					elseif ($otherPlayer->getTeam()->id === $winTeam->id) {
+						$data['lossesEnemy']++;
+					}
+					else {
+						$data['drawsEnemy']++;
+					}
+				}
+				else {
+					$data['gameCountEnemySolo']++;
+					if ($currentPlayer->score === $otherPlayer->score) {
+						$data['drawsEnemy']++;
+					}
+					elseif ($currentPlayer->score > $otherPlayer->score) {
+						$data['winsEnemy']++;
+					}
+					else {
+						$data['lossesEnemy']++;
+					}
+				}
+
+				$data['hitsEnemy'] += $currentPlayer->getHitsPlayer($otherPlayer);
+				$data['deathsEnemy'] += $otherPlayer->getHitsPlayer($currentPlayer);
+			}
+		}
+
+		$this->respond($data);
 	}
 
 }

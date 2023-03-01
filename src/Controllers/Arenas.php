@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
@@ -35,24 +36,26 @@ class Arenas extends Controller
 			$queries[] = DB::select(
 				[$playerTable, 'p'.$key],
 				'[p'.$key.'].[id_player],
+			[p'.$key.'].[id_user],
 			[g'.$key.'].[id_game],
 			[g'.$key.'].[start] as [date],
 			[p'.$key.'].[name],
 			[p'.$key.'].[skill],
 			(('.DB::select([$playerTable, 'pp1'.$key], 'COUNT(*) as [count]')
-						->where('[pp1'.$key.'].%n IN %in', 'id_game', $gameIds)
-						->where('[pp1'.$key.'].%n > [p'.$key.'].%n', 'skill', 'skill').')+1) as [better],
+					->where('[pp1'.$key.'].%n IN %in', 'id_game', $gameIds)
+					->where('[pp1'.$key.'].%n > [p'.$key.'].%n', 'skill', 'skill').')+1) as [better],
 			(('.DB::select([$playerTable, 'pp2'.$key], 'COUNT(*) as [count]')
-						->where('[pp2'.$key.'].%n IN %in', 'id_game', $gameIds)
-						->where('[pp2'.$key.'].%n = [p'.$key.'].%n', 'skill', 'skill').')-1) as [same]',
+					->where('[pp2'.$key.'].%n IN %in', 'id_game', $gameIds)
+					->where('[pp2'.$key.'].%n = [p'.$key.'].%n', 'skill', 'skill').')-1) as [same]',
 			)
 										 ->join($gameTable, 'g'.$key)->on('[p'.$key.'].[id_game] = [g'.$key.'].[id_game]')
 										 ->where('[g'.$key.'].%n IN %in', 'id_game', $gameIds);
 		}
 		$query = (new Fluent(
 			DB::getConnection()
-				->select('*')
+				->select('[p].*, [u].[id_arena], [u].[code]')
 				->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [p]')
+				->leftJoin(LigaPlayer::TABLE, 'u')->on('[p].[id_user] = [u].[id_user]')
 		))->cacheTags('players', 'arena-players', 'best-players', 'leaderboard');
 		$this->params['players'] = $query->orderBy('skill')->desc()->limit(20)->fetchAll();
 		$this->params['todayGames'] = $arena->queryGames($today)->cacheTags('games', 'games-'.$today->format('Y-m-d'))->count();
@@ -116,7 +119,7 @@ class Arenas extends Controller
 
 	public function musicModesStats(Arena $arena) : never {
 		$gamesQuery = $arena->queryGames(isset($_GET['date']) ? new DateTime($_GET['date']) : null, extraFields: ['id_music'])
-												->where('[id_music] IS NOT NULL');
+			->where('[id_music] IS NOT NULL');
 		$this->statFilter($gamesQuery);
 		$query = new Fluent(
 			DB::getConnection()

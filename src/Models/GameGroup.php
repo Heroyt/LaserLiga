@@ -113,7 +113,7 @@ class GameGroup extends Model
 	}
 
 	/**
-	 * @return Game[]
+	 * @return array<string,Game>
 	 * @throws Throwable
 	 */
 	public function getGames() : array {
@@ -131,7 +131,7 @@ class GameGroup extends Model
 				$games = [];
 				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll(cache: false);
 				foreach ($rows as $row) {
-					$games[] = GameFactory::getByCode($row->code);
+					$games[(string) $row->code] = GameFactory::getByCode($row->code);
 				}
 				return $games;
 			});

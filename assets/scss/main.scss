@@ -4,6 +4,7 @@
 
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
+@import '~bootstrap/scss/variables-dark';
 @import 'variables/customVariables';
 @import '~bootstrap/scss/maps';
 
@@ -26,6 +27,7 @@
 @import '~bootstrap/scss/containers';
 @import '~bootstrap/scss/grid';
 @import '~bootstrap/scss/tables';
+@import 'tables';
 @import '~bootstrap/scss/forms';
 @import '~bootstrap/scss/buttons';
 @import '~bootstrap/scss/transitions';
@@ -75,10 +77,14 @@
 @import 'components/collapseIndicator';
 @import 'components/arena';
 @import 'components/links';
+@import 'components/dataTable';
 
 // Pages
 @import 'pages/result';
 @import 'pages/gameGroup';
+@import 'pages/playerProfile';
+@import 'pages/playerHistory';
+@import 'pages/leaderboard';
 
 // Font Awesome
 @import '~@fortawesome/fontawesome-free/css/all.css';

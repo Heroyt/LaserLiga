@@ -1,17 +1,18 @@
 {varType array $_GET}
+{varType array $_COOKIE}
 {varType \Lsr\Core\Requests\Request $request}
 
 {define header}
 	<header class="navbar navbar-expand-lg navbar-light bg-light">
 		<div class="container-fluid">
-			{*<a href="" class="navbar-brand">My PHP Framework</a>
+			{*<a href="" class="navbar-brand">My PHP Framework</a>*}
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navBarContent"
 					aria-controls="navBarContent" aria-expanded="false" aria-label="{lang 'Toggle navigation'}">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navBarContent">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-					{foreach Lsr\Core\App::getMenu() as $key => $menuItem}
+					{foreach Lsr\Core\App::getMenu(\Lsr\Core\App::getService('auth')->loggedIn() ? 'user' : 'menu') as $key => $menuItem}
 						<li class="nav-item{if count($menuItem->children) > 0} dropdown{/if}">
 							{if count($menuItem->children) > 0}
 								<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown{$key}" role="button"
@@ -30,7 +31,7 @@
 						</li>
 					{/foreach}
 				</ul>
-			</div>*}
+			</div>
 			<div class="btn-group ms-auto">
 				{var string $selectedLang = explode('_',$_GET['lang'] ?? Lsr\Core\App::$language->id)[0]}
 				{var string $selectedCountry = Lsr\Core\App::getSupportedLanguages()[$selectedLang]}
@@ -78,5 +79,35 @@
 				</ul>
 			</div>
 		</div>
+		<script>
+			let currentColorScheme = {ifset $_COOKIE['mode']}{$_COOKIE['mode']}{else}window.matchMedia("(prefers-color-scheme: dark)").matches ? 'dark' : 'light'{/ifset}
+			//const modeSwitch = document.getElementById('modeSwitch');
+			//console.log(currentColorScheme, modeSwitch.classList.entries());
+			document.documentElement.setAttribute('data-bs-theme', currentColorScheme);
+			/*if (currentColorScheme === 'dark') {
+				modeSwitch.classList.remove('btn-dark');
+				modeSwitch.classList.add('btn-light');
+			} else {
+				modeSwitch.classList.add('btn-dark');
+				modeSwitch.classList.remove('btn-light');
+			}
+			modeSwitch.addEventListener('click', () => {
+				if (currentColorScheme === 'dark') {
+					modeSwitch.classList.add('btn-dark');
+					modeSwitch.classList.remove('btn-light');
+					document.body.classList.remove('darkMode');
+					document.body.classList.add('lightMode');
+					currentColorScheme = 'light';
+				} else {
+					modeSwitch.classList.remove('btn-dark');
+					modeSwitch.classList.add('btn-light');
+					document.body.classList.add('darkMode');
+					document.body.classList.remove('lightMode');
+					currentColorScheme = 'dark';
+				}
+				document.documentElement.setAttribute('data-bs-theme', currentColorScheme);
+				document.cookie = `mode=` + currentColorScheme;
+			});*/
+		</script>
 	</header>
 {/define}
