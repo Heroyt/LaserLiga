@@ -24,6 +24,7 @@ $publicUserIdGroup = $publicUserRoutes
 	->get('/', [UserController::class, 'public'])->name('public-profile')
 	->get('/history', [UserController::class, 'gameHistory'])->name('player-game-history')
 	->group('stats')
+	->get('trends', [UserController::class, 'getTrends'])
 	->get('rankhistory', [StatController::class, 'rankHistory'])
 	->get('modes', [StatController::class, 'modes']);
 

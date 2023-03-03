@@ -49,7 +49,7 @@ body {
 	scroll-behavior: smooth;
 }
 
-$card-bg: map.get($theme-colors, 'dark');
+//$card-bg: map.get($theme-colors, 'dark');
 
 $utilities: map.deep-merge(
 		$utilities,

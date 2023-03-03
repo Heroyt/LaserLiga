@@ -31,6 +31,14 @@
 					{lang 'Statistiky'}
 				</button>
 			</li>
+			<li class="nav-item" role="presentation">
+				<button class="nav-link" id="trends-tab" data-bs-toggle="tab"
+						data-bs-target="#trends-stats-tab" data-user="{$user->player->getCode()}"
+						type="button" role="tab" aria-controls="trends-stats-tab" aria-selected="true"
+						data-content-piece="Trends">
+					{lang 'Trendy'}
+				</button>
+			</li>
 			<li class="nav-item" role="presentation" n:if="$showCompare">
 				<button class="nav-link" id="compare-tab" data-bs-toggle="tab" data-bs-target="#compare-stats-tab"
 						data-user="{$user->player->getCode()}"

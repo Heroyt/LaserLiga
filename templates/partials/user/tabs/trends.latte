@@ -1,0 +1,102 @@
+{varType App\Models\Auth\User $user}
+
+<div class="d-flex justify-content-center" id="trends-loader">
+	<div class="spinner-border" role="status" style="width:3rem;height:3rem;">
+		<span class="visually-hidden">Loading...</span>
+	</div>
+</div>
+<div id="trends-stats" class="d-none py-3" data-track-content="" data-content-name="Trendy">
+	<h4>{lang 'Trendy za posledních 10 her'}</h4>
+	<div class="d-flex flex-wrap g-2 justify-content-evenly align-items-center">
+		{include trend,
+		'rank-trend',
+		'Herní úroveň',
+		lang('Za posledních 10 her se ti podařilo zvýšit svojí herní úroveň.'),
+		lang('Za posledních 10 her se ti bohužel herní úroveň snížila. Z toho si ale nic nedělej, příští hry se musíš trochu víc snažit!'),
+		lang('Tvoje herní úroveň se nezměnila.'),
+		'primary'
+		}
+		{include trend,
+		'accuracy-trend',
+		'Přesnost',
+		lang('Za posledních 10 her si měl vyšší přesnost, než dříve.'),
+		lang('Za posledních 10 her si měl horší přesnost než dříve.'),
+		lang('Za posledních 10 her se ti nijak výrazně nezměnila tvá průměrná přesnost.'),
+		'success'
+		}
+		{include trend,
+		'average-shots-trend',
+		'Průměrný počet výstřelů za hru',
+		lang('Za posledních 10 her si střílel/a více než je tvůj průměr.'),
+		lang('Za posledních 10 her si střílel/a méně než je tvůj průměr.'),
+		lang('Za posledních 10 her si střílel/a průměrně stejně.'),
+		'warning'
+		}
+	</div>
+	<h4 class="mt-4">{lang 'Trendy za posledních 30 dní'}</h4>
+	<div class="d-flex flex-wrap g-2 justify-content-evenly align-items-center">
+		{include trend,
+		'game-count-trend',
+		'Počet her',
+		lang('Za posledních 30 dní si odehrál/a více her, než předchozí měsíc. Jen tak dál!'),
+		lang('Za posledních 30 dní si odehrál/a méně her, než předchozí měsíc. Nechceš si jít zahrát?'),
+		lang('Za posledních 30 dní si odehrál/a stejně her, jako předchozí měsíc.'),
+		'info'
+		}
+		{include trend,
+		'rankable-game-count-trend',
+		'Počet klasických her',
+		lang('Za posledních 30 dní si odehrál/a více klasických her, než předchozí měsíc. Jen tak dál!'),
+		lang('Za posledních 30 dní si odehrál/a méně klasických her, než předchozí měsíc. Nechceš si jít zahrát?'),
+		lang('Za posledních 30 dní si odehrál/a stejně klasických her, jako předchozí měsíc.'),
+		'info'
+		}
+		{include trend,
+		'sum-shots-trend',
+		'Počet výstřelů',
+		lang('Za posledních 30 dní si vystřelil/a vícekrát, než předchozí měsíc.'),
+		lang('Za posledních 30 dní si vystřelil/a méněkrát, než předchozí měsíc.'),
+		lang('Za posledních 30 dní si vystřelil/a stejně, jako předchozí měsíc.'),
+		'warning'
+		}
+		{include trend,
+		'sum-hits-trend',
+		'Počet zásahů',
+		lang('Za posledních 30 dní si zastřelil/a víc protihráčů, než předchozí měsíc.'),
+		lang('Za posledních 30 dní si zastřelil/a méně protihráčů, než předchozí měsíc.'),
+		lang('Za posledních 30 dní si zastřelil/a stejně protihráčů, jako předchozí měsíc.'),
+		'purple-500'
+		}
+		{include trend,
+		'sum-deaths-trend',
+		'Počet smrtí',
+		lang('Za posledních 30 dní jsi byl/a zastřelen/a vícekrát, než předchozí měsíc.'),
+		lang('Za posledních 30 dní jsi byl/a zastřelen/a méněkrát, než předchozí měsíc.'),
+		lang('Za posledních 30 dní jsi byl/a zastřelen/a stejněkrát, jako předchozí měsíc.'),
+		'danger'
+		}
+	</div>
+</div>
+
+{define trend, string $id, string $label, string $tooltipRising, string $tooltipFalling, string $tooltipStable, string $text = '', string $bg = 'light'}
+	<div class="card m-2 trend stable" id="{$id}" data-tooltip-rising="{$tooltipRising}"
+		 data-tooltip-falling="{$tooltipFalling}" data-tooltip-stable="{$tooltipStable}" data-content-piece="{$label}">
+		<div class="card-body d-flex align-items-center {if !empty($text)}text-{$text}{/if}">
+			<div class="trend-icon">
+				<div class="bg-{$bg} rising trend-icon-inner">
+					<i class="fa-solid fa-angle-up"></i>
+				</div>
+				<div class="bg-{$bg} falling trend-icon-inner">
+					<i class="fa-solid fa-angle-down"></i>
+				</div>
+				<div class="bg-{$bg} stable trend-icon-inner">
+					-
+				</div>
+			</div>
+			<div class="trend-description ps-2">
+				<div class="trend-value">0</div>
+				<h6 class="trend-title">{lang $label}</h6>
+			</div>
+		</div>
+	</div>
+{/define}

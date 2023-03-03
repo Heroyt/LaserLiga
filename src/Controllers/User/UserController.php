@@ -22,13 +22,20 @@ use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
+use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Security\Passwords;
+use Throwable;
 
 class UserController extends AbstractUserController
 {
 
+	/**
+	 * @param Latte      $latte
+	 * @param Auth<User> $auth
+	 * @param Passwords  $passwords
+	 */
 	public function __construct(
 		protected Latte              $latte,
 		protected readonly Auth      $auth,
@@ -42,6 +49,11 @@ class UserController extends AbstractUserController
 		$this->params['loggedInUser'] = $this->auth->getLoggedIn();
 	}
 
+	/**
+	 * @return void
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 */
 	public function show() : void {
 		$this->params['user'] = $this->auth->getLoggedIn();
 		$this->params['arenas'] = Arena::getAll();
@@ -77,7 +89,7 @@ class UserController extends AbstractUserController
 			if (!empty($arenaId)) {
 				$arena = Arena::get($arenaId);
 			}
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			$request->passErrors['arena'] = lang('Aréna neexistuje', context: 'errors');
 		}
 
@@ -126,9 +138,9 @@ class UserController extends AbstractUserController
 	}
 
 	/**
-	 * @param Request $request
-	 * @param array   $data
-	 * @param int     $statusCode
+	 * @param Request             $request
+	 * @param array<string,mixed> $data
+	 * @param int                 $statusCode
 	 *
 	 * @return never
 	 * @throws JsonException
@@ -146,20 +158,39 @@ class UserController extends AbstractUserController
 		App::redirect($request->path, $request);
 	}
 
-	public function public(string $code, Request $request) : void {
+	/**
+	 * @param string $code
+	 *
+	 * @return void
+	 * @throws TemplateDoesNotExistException
+	 */
+	public function public(string $code) : void {
 		$user = $this->getUser($code);
 		$this->params['user'] = $user;
-		$this->params['lastGames'] = $user->player->queryGames()
+		$this->params['lastGames'] = $user->player?->queryGames()
 																							->limit(10)
 																							->orderBy('start')
 																							->desc()
-																							->cacheTags('user/games', 'user/'.$this->params['user']->player->getCode().'/games', 'user/'.$this->params['user']->player->getCode().'/lastGames')
-																							->fetchAll();
+																							->cacheTags('user/games', 'user/'.$this->params['user']->player?->getCode().'/games', 'user/'.$this->params['user']->player?->getCode().'/lastGames')
+																							->fetchAll() ?? [];
 		$this->view('pages/profile/public');
 	}
 
+	/**
+	 * @param Request $request
+	 * @param string  $code
+	 *
+	 * @return void
+	 * @throws TemplateDoesNotExistException
+	 * @throws ValidationException
+	 * @throws Throwable
+	 */
 	public function gameHistory(Request $request, string $code = '') : void {
 		$user = empty($code) ? $this->auth->getLoggedIn() : $this->getUser($code);
+		if (!isset($user)) {
+			$request->addPassError(lang('Uživatel neexistuje'));
+			App::redirect([], $request);
+		}
 		$query = $user->createOrGetPlayer()->queryGames();
 
 		// Filters
@@ -257,26 +288,32 @@ class UserController extends AbstractUserController
 		}
 		$data = [];
 
-		// TODO: Filter by game modes
-
-		// Get rankable modes
-		$modes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
-							 ->where('[rankable] = 1')
-							 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
-							 ->fetchPairs('id_mode', 'name');
-
 		// Get games together
-		$games = (new Fluent(
-			DB::getConnection()->select("[id_game], [type], [code], [id_mode], GROUP_CONCAT([vest] SEPARATOR ',') as [vests], GROUP_CONCAT([id_team] SEPARATOR ',') as [teams], GROUP_CONCAT([id_user] SEPARATOR ',') as [users], GROUP_CONCAT([name] SEPARATOR ',') as [names]")
-				->from(
-					PlayerFactory::queryPlayersWithGames(playerFields: ['vest'], modeFields: ['type'])
-											 ->where('[id_user] IN %in', [$user->id, $currentUser->id])
-						->fluent,
-					'players'
-				)
-				->groupBy('id_game')
-				->having('COUNT([id_game]) = 2')
-		))
+		$gamesQuery = DB::getConnection()->select("[id_game], [type], [code], [id_mode], GROUP_CONCAT([vest] SEPARATOR ',') as [vests], GROUP_CONCAT([id_team] SEPARATOR ',') as [teams], GROUP_CONCAT([id_user] SEPARATOR ',') as [users], GROUP_CONCAT([name] SEPARATOR ',') as [names]")
+										->from(
+											PlayerFactory::queryPlayersWithGames(playerFields: ['vest'], modeFields: ['type'])
+																	 ->where('[id_user] IN %in', [$user->id, $currentUser->id])
+												->fluent,
+											'players'
+										)
+										->groupBy('id_game')
+										->having('COUNT([id_game]) = 2');
+
+		// Filter by game modes
+		/** @var numeric-string|numeric-string[] $modes */
+		$modes = $request->getGet('modes', []);
+		if (!is_array($modes)) {
+			$modes = [$modes];
+		}
+		if (!empty($modes)) {
+			// Cast all ids to int
+			foreach ($modes as $key => $mode) {
+				$modes[$key] = (int) $mode;
+			}
+			$gamesQuery->where('[id_mode] IN %in', $modes);
+		}
+
+		$games = (new Fluent($gamesQuery))
 			->cacheTags(
 				'players',
 				'user/'.$user->id.'/games',
@@ -384,6 +421,146 @@ class UserController extends AbstractUserController
 		}
 
 		$this->respond($data);
+	}
+
+	public function getTrends(string $code, Request $request) : never {
+		$user = $this->getUser($code);
+		$player = $user->player;
+		if (!isset($player)) {
+			$this->respond(['error' => 'User is not a valid player'], 404);
+		}
+
+		$trends = [
+			// Default values
+			'accuracy'     => $player->stats->averageAccuracy,
+			'averageShots' => $player->stats->shots,
+		];
+
+		// @phpstan-ignore-next-line
+		$lookBackGames = (int) $request->getGet('lookback', 10);
+		if ($lookBackGames <= 0) {
+			$lookBackGames = 10;
+		}
+
+		$trends['rank'] = (new Fluent(
+			DB::getConnection()
+				->select('SUM([difference])')
+				->from(
+					DB::select('player_game_rating', '[difference]')
+						->where('[id_user] = %i', $user->id)
+						->orderBy('[date]')
+						->desc()
+						->limit($lookBackGames)
+						->fluent,
+					'a'
+				)
+		))
+			->cacheTags('players', 'liga-players', 'rating-difference')
+			->fetchSingle();
+
+		// Get rankable modes
+		$modes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
+							 ->where('[rankable] = 1')
+							 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+							 ->fetchPairs('id_mode', 'name');
+
+		$totalGamesCount = $player->queryGames()
+															->where('[id_mode] IN %in', array_keys($modes))
+															->count();
+		$trends['totalGamesCount'] = $totalGamesCount;
+		$trends['lookBack'] = $lookBackGames;
+		$lastGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots'])
+															->where('[id_user] = %i', $user->id)
+															->where('[id_mode] IN %in', array_keys($modes))
+															->orderBy('start')
+															->desc()
+															->limit($lookBackGames)
+															->cacheTags('user/'.$user->id.'/games')
+															->fetchAssoc('code');
+		$sumAccuracy = 0;
+		$sumShots = 0;
+		foreach ($lastGames as $game) {
+			$sumAccuracy += $game->accuracy;
+			$sumShots += $game->shots;
+		}
+
+		if ($totalGamesCount > $lookBackGames) {
+			// Get average accuracy before the last look back game
+			// Modifying this equation:
+			// ($sumAccuracy + ($totalGamesCount - $lookBackGames) * $averageAccuracyBefore) / $totalGamesCount = $player->stats->averageAccuracy
+			$averageAccuracyBefore = ($player->stats->averageAccuracy * $totalGamesCount - $sumAccuracy) / ($totalGamesCount - $lookBackGames);
+			$trends['accuracy'] = ($sumAccuracy / $lookBackGames) - $averageAccuracyBefore;
+			// Same process for average shots
+			$averageShotsBefore = ($player->stats->averageShots * $totalGamesCount - $sumShots) / ($totalGamesCount - $lookBackGames);
+			$trends['averageShots'] = ($sumShots / $lookBackGames) - $averageShotsBefore;
+		}
+
+		// Prepare dates for game counts
+		$today = new DateTimeImmutable();
+		$monthAgo = new DateTimeImmutable('- 30 days');
+		$twoMonthsAgo = new DateTimeImmutable('- 60 days');
+		$thisMonthGamesCount = $player->queryGames()->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)->count();
+		$lastMonthGamesCount = $player->queryGames()->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)->count();
+		$trends['games'] = [
+			'before' => $lastMonthGamesCount,
+			'now'    => $thisMonthGamesCount,
+			'diff'   => $thisMonthGamesCount - $lastMonthGamesCount,
+		];
+		$thisMonthGamesCount = $player->queryGames()
+																	->where('[id_mode] IN %in', array_keys($modes))
+																	->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)->count();
+		$lastMonthGamesCount = $player->queryGames()
+																	->where('[id_mode] IN %in', array_keys($modes))
+																	->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)->count();
+		$trends['rankableGames'] = [
+			'before' => $lastMonthGamesCount,
+			'now'    => $thisMonthGamesCount,
+			'diff'   => $thisMonthGamesCount - $lastMonthGamesCount,
+		];
+		$thisMonthGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots', 'hits', 'deaths'])
+																	 ->where('[id_user] = %i', $user->id)
+																	 ->where('[id_mode] IN %in', array_keys($modes))
+																	 ->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)
+																	 ->fetchAll();
+		$lastMonthGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots', 'hits', 'deaths'])
+																	 ->where('[id_user] = %i', $user->id)
+																	 ->where('[id_mode] IN %in', array_keys($modes))
+																	 ->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)
+																	 ->fetchAll();
+
+		$thisMonthSumShots = 0;
+		$lastMonthSumShots = 0;
+		$thisMonthSumHits = 0;
+		$lastMonthSumHits = 0;
+		$thisMonthSumDeaths = 0;
+		$lastMonthSumDeaths = 0;
+		foreach ($thisMonthGames as $game) {
+			$thisMonthSumShots += $game->shots;
+			$thisMonthSumHits += $game->hits;
+			$thisMonthSumDeaths += $game->deaths;
+		}
+		foreach ($lastMonthGames as $game) {
+			$lastMonthSumShots += $game->shots;
+			$lastMonthSumHits += $game->hits;
+			$lastMonthSumDeaths += $game->deaths;
+		}
+		$trends['sumShots'] = [
+			'before' => $lastMonthSumShots,
+			'now'    => $thisMonthSumShots,
+			'diff'   => $thisMonthSumShots - $lastMonthSumShots,
+		];
+		$trends['sumHits'] = [
+			'before' => $lastMonthSumHits,
+			'now'    => $thisMonthSumHits,
+			'diff'   => $thisMonthSumHits - $lastMonthSumHits,
+		];
+		$trends['sumDeaths'] = [
+			'before' => $lastMonthSumDeaths,
+			'now'    => $thisMonthSumDeaths,
+			'diff'   => $thisMonthSumDeaths - $lastMonthSumDeaths,
+		];
+
+		$this->respond($trends);
 	}
 
 }

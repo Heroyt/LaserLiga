@@ -46,4 +46,77 @@
 			fill: currentColor;
 		}
 	}
+
+	.trend {
+		max-width: 100%;
+		width: 200px;
+
+		&.stable {
+			.stable {
+				display: flex;
+			}
+
+			.rising {
+				display: none;
+			}
+
+			.falling {
+				display: none;
+			}
+		}
+
+		&.rising {
+			.stable {
+				display: none;
+			}
+
+			.rising {
+				display: flex;
+			}
+
+			.falling {
+				display: none;
+			}
+		}
+
+		&.falling {
+			.stable {
+				display: none;
+			}
+
+			.rising {
+				display: none;
+			}
+
+			.falling {
+				display: flex;
+			}
+		}
+
+		.trend-icon {
+
+			.trend-icon-inner {
+				align-items: center;
+				border-radius: 50%;
+				font-size: 2.5rem;
+				height: 3rem;
+				justify-content: center;
+				width: 3rem;
+
+				&.falling {
+					padding-top: .6rem;
+				}
+			}
+		}
+
+		.trend-description {
+			flex: 1;
+
+			.trend-value {
+				font-size: 2rem;
+				font-weight: bold;
+				text-align: center;
+			}
+		}
+	}
 }
