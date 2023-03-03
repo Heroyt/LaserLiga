@@ -67,6 +67,10 @@ class ForgotPassword extends Controller
 						'type'    => 'success',
 						'content' => lang('Pokud uživatel existuje, odeslali jsme vám e-mail s odkazem obnovu hesla.'),
 					];
+					$this->params['notices'][] = [
+						'type'    => 'info',
+						'content' => lang('LaserLiga ještě není připravená na 100%, proto se může stát, že email spadne do spamu.'),
+					];
 				}
 			}
 			else {
