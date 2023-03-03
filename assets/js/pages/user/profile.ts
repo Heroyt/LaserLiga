@@ -337,6 +337,87 @@ export default function initProfile() {
 		});
 	}
 
+	const graphsTabBtn = document.getElementById('graphs-tab') as HTMLLIElement | null;
+	const graphsTabWrapper = document.getElementById('graphs-stats-tab') as HTMLDivElement | null;
+	if (graphsTabBtn && graphsTabWrapper) {
+		const graphsHistoryFilter = document.getElementById('graphsHistoryFilter') as HTMLSelectElement;
+		const userCode = graphsTabBtn.dataset.user;
+		const gameCountsCanvas = document.getElementById('games-graphs-graph') as HTMLCanvasElement;
+		const gameCountsChart = new Chart(
+			gameCountsCanvas,
+			{
+				type: "bar",
+				data: {
+					labels: [],
+					datasets: [],
+				},
+				options: {
+					maintainAspectRatio: false,
+					responsive: true,
+					scales: {
+						x: {
+							stacked: true,
+						},
+						y: {
+							stacked: true
+						}
+					}
+				}
+			}
+		);
+		const graphsLoader = document.getElementById('graphs-loader') as HTMLDivElement;
+		const graphsStatsWrapper = document.getElementById('graphs-stats') as HTMLDivElement;
+		let graphsLoaded = false;
+		graphsTabBtn.addEventListener('show.bs.tab', e => {
+			loadGraphs();
+		});
+
+		graphsHistoryFilter.addEventListener('change', () => {
+			loadGraphs();
+		});
+
+		function loadGraphs() {
+			startLoading(true);
+			axios.get(`/user/${userCode}/stats/gamecounts?limit=${graphsHistoryFilter.value}`)
+				.then((response: AxiosResponse<{ [index: string]: { label: string, modes: { count: number, id_mode: number, modeName: string }[] } }>) => {
+					if (!graphsLoaded) {
+						graphsLoader.classList.add('d-none');
+						graphsStatsWrapper.classList.remove('d-none');
+						graphsLoaded = true;
+					}
+					let datasets = new Map();
+					gameCountsChart.data.labels = [];
+					let i = 0;
+					Object.values(response.data).forEach((values) => {
+						gameCountsChart.data.labels.push(values.label);
+						values.modes.forEach(modeData => {
+							if (!datasets.has(modeData.id_mode)) {
+								datasets.set(
+									modeData.id_mode,
+									{
+										label: modeData.modeName,
+										backgroundColor: colors[i % colors.length],
+										data: [],
+									}
+								)
+								i++;
+							}
+							let data = datasets.get(modeData.id_mode);
+							data.data.push(modeData.count);
+							datasets.set(modeData.id_mode, data);
+						});
+					});
+					gameCountsChart.data.datasets = Array.from(datasets.values());
+					gameCountsChart.update();
+					stopLoading(true, true);
+				})
+				.catch(e => {
+					console.error(e);
+					stopLoading(false, true);
+				})
+		}
+	}
+
 	function initTrend(elem: HTMLDivElement, value: number) {
 		let tooltipContent: string = '';
 		if (value > 1) {

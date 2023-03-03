@@ -32,6 +32,14 @@
 				</button>
 			</li>
 			<li class="nav-item" role="presentation">
+				<button class="nav-link" id="graphs-tab" data-bs-toggle="tab"
+						data-bs-target="#graphs-stats-tab" data-user="{$user->player->getCode()}"
+						type="button" role="tab" aria-controls="graphs-stats-tab" aria-selected="true"
+						data-content-piece="Graphs">
+					{lang 'Grafy'}
+				</button>
+			</li>
+			<li class="nav-item" role="presentation">
 				<button class="nav-link" id="trends-tab" data-bs-toggle="tab"
 						data-bs-target="#trends-stats-tab" data-user="{$user->player->getCode()}"
 						type="button" role="tab" aria-controls="trends-stats-tab" aria-selected="true"
@@ -53,7 +61,11 @@
 				 data-track-content="" data-content-name="General tab" tabindex="0">
 				{include 'tabs/general.latte'}
 			</div>
-			<div class="tab-pane fade show active" id="trends-stats-tab" role="tabpanel" aria-labelledby="trends-tab"
+			<div class="tab-pane fade" id="graphs-stats-tab" role="tabpanel" aria-labelledby="graphs-tab"
+				 data-track-content="" data-content-name="Graphs tab" tabindex="0">
+				{include 'tabs/graphs.latte'}
+			</div>
+			<div class="tab-pane fade" id="trends-stats-tab" role="tabpanel" aria-labelledby="trends-tab"
 				 data-track-content="" data-content-name="Trends tab" tabindex="0">
 				{include 'tabs/trends.latte'}
 			</div>
