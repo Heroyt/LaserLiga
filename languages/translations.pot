@@ -12,53 +12,42 @@ msgstr ""
 "Project-Id-Version: \n"
 "X-Generator: Poedit 3.0.1\n"
 
-# /vendor/lsr/core/src/Controller.php:84
 msgctxt "pageTitles"
 msgid "404"
 msgstr ""
 
-# /templates/errors/E404.latte:3
 msgctxt "errors"
 msgid "stránka nenalezena"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Db/panel.latte:7
 msgctxt "debugPanel"
 msgid "Rows"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Db/panel.latte:8
 msgctxt "debugPanel"
 msgid "Takes"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Translation/tab.latte:27
-# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:3
 msgctxt "debugPanel"
 msgid "Translations"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:16
 msgctxt "debugPanel"
 msgid "Translated strings"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:19
 msgctxt "debugPanel"
 msgid "Added a new string"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:20
 msgctxt "debugPanel"
 msgid "String"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:22
 msgctxt "debugPanel"
 msgid "Context"
 msgstr ""
 
-# /vendor/lsr/core/src/Controller.php:84
 msgctxt "pageTitles"
 msgid "Dashboard"
 msgstr ""
@@ -355,12 +344,10 @@ msgctxt "results.bests"
 msgid "Největší vlastňák"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:6
 msgctxt "debugPanel"
 msgid "Language"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Translation/panel.latte:10
 msgctxt "debugPanel"
 msgid "HTTP header"
 msgstr ""
@@ -1799,7 +1786,6 @@ msgctxt "gameModes"
 msgid "Apokalypsa"
 msgstr ""
 
-# /templates/../vendor/lsr/helpers/templates/Caching/tab.latte:28
 msgctxt "debugPanel"
 msgid "%d call"
 msgid_plural "%d calls"
@@ -2109,7 +2095,6 @@ msgstr ""
 msgid "Název v konzoli"
 msgstr ""
 
-# /templates/pages/login/index.latte:40
 msgctxt "actions"
 msgid "Odeslat"
 msgstr ""
@@ -2793,32 +2778,413 @@ msgctxt "actions"
 msgid "Zobrazit"
 msgstr ""
 
-# /templates/pages/game/empty.latte:4
 msgctxt "errors"
 msgid "Nebyla nalezena žádná hra"
 msgstr ""
 
-# /templates/pages/login/index.latte:9
 msgid "Přihlásit"
 msgstr ""
 
-# /templates/pages/login/index.latte:17
 msgid "E-mail"
 msgstr ""
 
-# /templates/pages/login/index.latte:31
 msgid "Heslo"
 msgstr ""
 
-# /templates/pages/login/index.latte:42
 msgid "Nemáte ještě účet?"
 msgstr ""
 
-# /templates/pages/login/index.latte:42
 msgid "Vytvořit účet"
 msgstr ""
 
-# /src/Core/Middleware/LoggedIn.php:21
 msgctxt "errors"
 msgid "Pro přístup na tuto stránku se musíte přihlásit!"
+msgstr ""
+
+msgid "Přihlášení bylo úspěšné."
+msgstr ""
+
+msgid "Profil"
+msgstr ""
+
+msgid "Nastavení"
+msgstr ""
+
+msgid "Odhlásit"
+msgstr ""
+
+msgid "Profil uživatele"
+msgstr ""
+
+msgid "Domovská aréna"
+msgstr ""
+
+msgid "Navštíveno arén"
+msgstr ""
+
+msgid "Úroveň"
+msgstr ""
+
+msgid "Období"
+msgstr ""
+
+msgid "Den"
+msgstr ""
+
+msgid "Týden"
+msgstr ""
+
+msgid "Měsíc"
+msgstr ""
+
+msgid "3 měsíce"
+msgstr ""
+
+msgid "6 měsíců"
+msgstr ""
+
+msgid "Rok"
+msgstr ""
+
+msgid "Historie úrovně"
+msgstr ""
+
+msgid "Herní módy"
+msgstr ""
+
+msgid "Poslední hry"
+msgstr ""
+
+msgid "Aréna"
+msgstr ""
+
+msgid "Herní úroveň"
+msgstr ""
+
+msgid "Všechny hry hráče"
+msgstr ""
+
+msgid "Kód není platný"
+msgstr ""
+
+msgid "Uživatel neexistuje"
+msgstr ""
+
+msgid "Jméno"
+msgstr ""
+
+msgid "Kód"
+msgstr ""
+
+msgid "Přesnost"
+msgstr ""
+
+msgid "Počet výstřelů"
+msgstr ""
+
+msgid "Výstřelů za minutu"
+msgstr ""
+
+msgid "Skóre"
+msgstr ""
+
+msgid "Čas ve hře"
+msgstr ""
+
+msgid "Výstřelů"
+msgstr ""
+
+msgid "Zásahy"
+msgstr ""
+
+msgid "Smrti"
+msgstr ""
+
+msgid "Průměry"
+msgstr ""
+
+msgid "Maxima"
+msgstr ""
+
+msgid "Sumy"
+msgstr ""
+
+msgid "Skočit na aktuálního uživatele"
+msgstr ""
+
+msgid "Jméno nebo kód hráče"
+msgstr ""
+
+msgid "Navigace"
+msgstr ""
+
+msgid "Zobrazeno %s z %d hráčů"
+msgstr ""
+
+msgid "%d den"
+msgid_plural "%d dní"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgid "%d hodina"
+msgid_plural "%d hodin"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgid "%d minuta"
+msgid_plural "%d minut"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgid "Žebříček"
+msgstr ""
+
+msgid "Moje hry"
+msgstr ""
+
+msgid "Profil hráče"
+msgstr ""
+
+msgid "Historie her hráče %s"
+msgstr ""
+
+msgid "Filtrovat"
+msgstr ""
+
+msgid "Zobrazeno %s z %d her"
+msgstr ""
+
+msgid "Statistiky"
+msgstr ""
+
+msgid "Grafy"
+msgstr ""
+
+msgid "Trendy"
+msgstr ""
+
+msgid "Následující statistiky se počítají pouze z klasických herních módů."
+msgstr ""
+
+msgid "Vystřeleno nábojů"
+msgstr ""
+
+msgid "Zasaženo hráčů"
+msgstr ""
+
+msgid "Smrtí"
+msgstr ""
+
+msgid "Průměrná pozice"
+msgstr ""
+
+msgid "Průměrná přesnost"
+msgstr ""
+
+msgid "Průměrný počet výstřelů za minutu"
+msgstr ""
+
+msgid "Průměrný počet zásahů za minutu"
+msgstr ""
+
+msgid "Průměrný počet smrtí za minutu"
+msgstr ""
+
+msgid "Nejlepší přesnost"
+msgstr ""
+
+msgid "Nejlepší skóre"
+msgstr ""
+
+msgid "Nejlepší hodnocení hráče ve hře"
+msgstr ""
+
+msgid "Další statistiky"
+msgstr ""
+
+msgid "Počet her"
+msgstr ""
+
+msgid "Trendy za posledních 10 her"
+msgstr ""
+
+msgid "Za posledních 10 her se ti podařilo zvýšit svojí herní úroveň."
+msgstr ""
+
+msgid "Za posledních 10 her se ti bohužel herní úroveň snížila. Z toho si ale nic nedělej, příští hry se musíš trochu víc snažit!"
+msgstr ""
+
+msgid "Tvoje herní úroveň se nezměnila."
+msgstr ""
+
+msgid "Za posledních 10 her si měl vyšší přesnost, než dříve."
+msgstr ""
+
+msgid "Za posledních 10 her si měl horší přesnost než dříve."
+msgstr ""
+
+msgid "Za posledních 10 her se ti nijak výrazně nezměnila tvá průměrná přesnost."
+msgstr ""
+
+msgid "Za posledních 10 her si střílel/a více než je tvůj průměr."
+msgstr ""
+
+msgid "Za posledních 10 her si střílel/a méně než je tvůj průměr."
+msgstr ""
+
+msgid "Za posledních 10 her si střílel/a průměrně stejně."
+msgstr ""
+
+msgid "Průměrný počet výstřelů za hru"
+msgstr ""
+
+msgid "Trendy za posledních 30 dní"
+msgstr ""
+
+msgid "Za posledních 30 dní si odehrál/a více her, než předchozí měsíc. Jen tak dál!"
+msgstr ""
+
+msgid "Za posledních 30 dní si odehrál/a méně her, než předchozí měsíc. Nechceš si jít zahrát?"
+msgstr ""
+
+msgid "Za posledních 30 dní si odehrál/a stejně her, jako předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní si odehrál/a více klasických her, než předchozí měsíc. Jen tak dál!"
+msgstr ""
+
+msgid "Za posledních 30 dní si odehrál/a méně klasických her, než předchozí měsíc. Nechceš si jít zahrát?"
+msgstr ""
+
+msgid "Za posledních 30 dní si odehrál/a stejně klasických her, jako předchozí měsíc."
+msgstr ""
+
+msgid "Počet klasických her"
+msgstr ""
+
+msgid "Za posledních 30 dní si vystřelil/a vícekrát, než předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní si vystřelil/a méněkrát, než předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní si vystřelil/a stejně, jako předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní si zastřelil/a víc protihráčů, než předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní si zastřelil/a méně protihráčů, než předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní si zastřelil/a stejně protihráčů, jako předchozí měsíc."
+msgstr ""
+
+msgid "Počet zásahů"
+msgstr ""
+
+msgid "Za posledních 30 dní jsi byl/a zastřelen/a vícekrát, než předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní jsi byl/a zastřelen/a méněkrát, než předchozí měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní jsi byl/a zastřelen/a stejněkrát, jako předchozí měsíc."
+msgstr ""
+
+msgid "Počet smrtí"
+msgstr ""
+
+msgid "Team deathmach"
+msgstr ""
+
+msgid "Barvičky"
+msgstr ""
+
+msgid "Deathmach"
+msgstr ""
+
+msgid "T.M.A - solo"
+msgstr ""
+
+msgid "Prihlásit"
+msgstr ""
+
+msgid "Zapomenuté heslo"
+msgstr ""
+
+msgctxt "login"
+msgid "Pamatovat si mě"
+msgstr ""
+
+msgid "Friday"
+msgstr ""
+
+msgid "Saturday"
+msgstr ""
+
+msgid "Sunday"
+msgstr ""
+
+msgid "Monday"
+msgstr ""
+
+msgid "Tuesday"
+msgstr ""
+
+msgid "Wednesday"
+msgstr ""
+
+msgid "Thursday"
+msgstr ""
+
+msgid "CSGO"
+msgstr ""
+
+msgid "Survival"
+msgstr ""
+
+msgid "100 nábojů"
+msgstr ""
+
+msgid "T.M.A"
+msgstr ""
+
+msgid "March"
+msgstr ""
+
+msgid "April"
+msgstr ""
+
+msgid "May"
+msgstr ""
+
+msgid "June"
+msgstr ""
+
+msgid "July"
+msgstr ""
+
+msgid "August"
+msgstr ""
+
+msgid "September"
+msgstr ""
+
+msgid "October"
+msgstr ""
+
+msgid "November"
+msgstr ""
+
+msgid "December"
+msgstr ""
+
+msgid "January"
+msgstr ""
+
+msgid "February"
 msgstr ""
