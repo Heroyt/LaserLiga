@@ -3135,35 +3135,35 @@ msgid "T.M.A - solo"
 msgstr ""
 
 msgid "Prihlásit"
-msgstr ""
+msgstr "Prihlásit"
 
 msgid "Zapomenuté heslo"
-msgstr ""
+msgstr "Zapomenuté heslo"
 
 msgctxt "login"
 msgid "Pamatovat si mě"
-msgstr ""
+msgstr "Pamatovat si mě"
 
 msgid "Friday"
-msgstr ""
+msgstr "Pátek"
 
 msgid "Saturday"
-msgstr ""
+msgstr "Sobota"
 
 msgid "Sunday"
-msgstr ""
+msgstr "Neděle"
 
 msgid "Monday"
-msgstr ""
+msgstr "Pondělí"
 
 msgid "Tuesday"
-msgstr ""
+msgstr "Úterý"
 
 msgid "Wednesday"
-msgstr ""
+msgstr "Středa"
 
 msgid "Thursday"
-msgstr ""
+msgstr "Čtvrtek"
 
 msgid "CSGO"
 msgstr ""
@@ -3178,37 +3178,37 @@ msgid "T.M.A"
 msgstr ""
 
 msgid "March"
-msgstr ""
+msgstr "Březen"
 
 msgid "April"
-msgstr ""
+msgstr "Duben"
 
 msgid "May"
-msgstr ""
+msgstr "Květen"
 
 msgid "June"
-msgstr ""
+msgstr "Červen"
 
 msgid "July"
-msgstr ""
+msgstr "Červenec"
 
 msgid "August"
-msgstr ""
+msgstr "Srpen"
 
 msgid "September"
-msgstr ""
+msgstr "Září"
 
 msgid "October"
-msgstr ""
+msgstr "Říjen"
 
 msgid "November"
-msgstr ""
+msgstr "Listopad"
 
 msgid "December"
-msgstr ""
+msgstr "Prosinec"
 
 msgid "January"
-msgstr ""
+msgstr "Leden"
 
 msgid "February"
-msgstr ""
+msgstr "Únor"
