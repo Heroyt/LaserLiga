@@ -5,9 +5,10 @@ namespace App\Controllers\Api;
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Auth\LigaPlayer;
-use App\GameModels\Auth\Player;
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
+use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
@@ -34,14 +35,14 @@ use Throwable;
 class Games extends ApiController
 {
 
+	public Arena $arena;
+
 	public function __construct(
 		Latte                                $latte,
 		protected readonly PlayerUserService $playerUserService,
 	) {
 		parent::__construct($latte);
 	}
-
-	public Arena $arena;
 
 	/**
 	 * @throws ValidationException
@@ -303,15 +304,17 @@ class Games extends ApiController
 	public function recalcMultipleGameSkills(Request $request) : never {
 		$games = $this->recalcMultipleGameSkillsGetGames($request);
 
+		$rankOnly = !empty($request->getGet('rankonly'));
+
 		$playerSkills = [];
 		foreach ($games as $game) {
-			$playerSkills[$game->code] = [];
-			$game->calculateSkills();
-			foreach ($game->getPlayers() as $player) {
-				if (isset($player->user) && $game->mode->rankable) {
-					$player->user->stats->rank = $this->playerUserService->recalculatePlayerGameRating($player);
-					$player->user->save();
-				}
+			if (!$rankOnly) {
+				$playerSkills[$game->code] = [];
+				$game->calculateSkills();
+			}
+			$this->playerUserService->recalculateRatingForGame($game);
+			if ($rankOnly) {
+				continue;
 			}
 			if (!$game->save()) {
 				$this->respond(['error' => 'Save failed', 'game' => $game->code], 500);
@@ -362,13 +365,44 @@ class Games extends ApiController
 			}
 		}
 
+		$rankable = !empty($request->getGet('rankable'));
+		if ($rankable) {
+			$modes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
+								 ->where('[rankable] = 1')
+								 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+								 ->fetchPairs('id_mode', 'name');
+		}
+
 		$user = (int) $request->getGet('user', 0);
 		if ($user > 0) {
 			$player = LigaPlayer::get($user);
 			if (!isset($user)) {
 				$this->respond(['error' => 'User does not exist'], 404);
 			}
-			$rows = $player->queryGames()->fetchAll();
+			$query = $player->queryGames();
+			if (isset($modes)) {
+				$query->where('[id_mode] IN %in', array_keys($modes));
+			}
+			$rows = $query->fetchAll();
+			foreach ($rows as $row) {
+				$game = GameFactory::getById((int) $row->id_game, ['system' => $row->system]);
+				if (isset($game)) {
+					$games[] = $game;
+				}
+			}
+			return $games;
+		}
+		$hasUser = !empty($request->getGet('hasuser'));
+		if ($hasUser) {
+			$since = (string) $request->getGet('since', '');
+			$query = PlayerFactory::queryPlayersWithGames()->where('[id_user] IS NOT NULL')->orderBy('start');
+			if (isset($modes)) {
+				$query->where('[id_mode] IN %in', array_keys($modes));
+			}
+			if (!empty($since) && strtotime($since) > 0) {
+				$query->where('[start] > %dt', strtotime($since));
+			}
+			$rows = $query->fetchAll();
 			foreach ($rows as $row) {
 				$game = GameFactory::getById((int) $row->id_game, ['system' => $row->system]);
 				if (isset($game)) {
@@ -383,9 +417,12 @@ class Games extends ApiController
 		if ($limit === 0) {
 			$this->respond(['error' => 'Limit cannot be empty'], 400);
 		}
-		$query = GameFactory::queryGames()->offset($offset)->limit($limit);
+		$query = GameFactory::queryGames(fields: isset($modes) ? ['id_mode'] : [])->offset($offset)->limit($limit);
 		if (!empty($request->getGet('withUsers'))) {
 			$query->where('id_game IN %sql', DB::select('evo5_players', 'id_game')->where('id_user IS NOT NULL'));
+		}
+		if (isset($modes)) {
+			$query->where('[id_mode] IN %in', array_keys($modes));
 		}
 		$rows = $query->fetchAll();
 		foreach ($rows as $row) {
@@ -415,23 +452,50 @@ class Games extends ApiController
 			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
 		}
 		$game->calculateSkills();
-		foreach ($game->getPlayers() as $player) {
-			if (isset($player->user) && $game->mode->rankable) {
-				$player->user->stats->rank = $this->playerUserService->recalculatePlayerGameRating($player);
-				$player->user->save();
-			}
-		}
+		$this->playerUserService->recalculateRatingForGame($game);
 		if (!$game->save()) {
 			$this->respond(['error' => 'Save failed'], 500);
 		}
 		$playerSkills = [];
+		$sumSkill = 0;
+		$sumUserSkill = 0;
+		$max = 0;
+		$min = 99999;
 		foreach ($game->getPlayers()->getAll() as $player) {
 			$playerSkills[$player->vest] = [
 				'name'  => $player->name,
 				'skill' => $player->getSkill(),
+				'user'  => $player->user?->stats->rank ?? $player->getSkill(),
 			];
+			if ($playerSkills[$player->vest]['skill'] > $max) {
+				$max = $playerSkills[$player->vest]['skill'];
+			}
+			if ($playerSkills[$player->vest]['skill'] < $min) {
+				$min = $playerSkills[$player->vest]['skill'];
+			}
+			$sumSkill += $playerSkills[$player->vest]['skill'];
+			$sumUserSkill += $playerSkills[$player->vest]['user'];
 		}
-		$this->respond($playerSkills);
+		$min -= PlayerUserService::MIN_PADDING;
+		$max += PlayerUserService::MAX_PADDING;
+		$average = $sumSkill / count($playerSkills);
+		$averageUser = $sumUserSkill / count($playerSkills);
+		/*foreach ($playerSkills as $vest => $info) {
+			$playerSkills[$vest]['normalized'] = ($info['skill'] - $min) / ($max - $min);
+			$playerSkills[$vest]['diff'] = ($info['skill'] - $average);
+			$playerSkills[$vest]['diff2'] = ($info['user'] - $average);
+			$playerSkills[$vest]['diff3'] = ($info['user'] - $averageUser);
+			$playerSkills[$vest]['expected'] = 1 / (1 + 10 ** ($playerSkills[$vest]['diff'] / PlayerUserService::RATING_RATIO_CONSTANT));
+			$playerSkills[$vest]['expected2'] = 1 / (1 + 10 ** ($playerSkills[$vest]['diff2'] / PlayerUserService::RATING_RATIO_CONSTANT));
+			$playerSkills[$vest]['expected3'] = 1 / (1 + 10 ** ($playerSkills[$vest]['diff3'] / PlayerUserService::RATING_RATIO_CONSTANT));
+			$playerSkills[$vest]['expectedDiff'] = ($playerSkills[$vest]['normalized'] - $playerSkills[$vest]['expected']);
+			$playerSkills[$vest]['expectedDiff2'] = ($playerSkills[$vest]['normalized'] - $playerSkills[$vest]['expected2']);
+			$playerSkills[$vest]['expectedDiff3'] = ($playerSkills[$vest]['normalized'] - $playerSkills[$vest]['expected3']);
+			$playerSkills[$vest]['rankDiff'] = PlayerUserService::K_FACTOR * $playerSkills[$vest]['expectedDiff'];
+			$playerSkills[$vest]['rankDiff2'] = PlayerUserService::K_FACTOR * $playerSkills[$vest]['expectedDiff2'];
+			$playerSkills[$vest]['rankDiff3'] = PlayerUserService::K_FACTOR * $playerSkills[$vest]['expectedDiff3'];
+		}*/
+		$this->respond(['players' => $playerSkills, 'average' => $average, 'averageUser' => $averageUser]);
 	}
 
 	/**
@@ -576,7 +640,7 @@ class Games extends ApiController
 		foreach (Timer::$timers as $key => $times) {
 			$logger->debug($key.': '.Timer::get($key).'s');
 		}
-		$this->respond(['success' => true, 'imported' => $imported]);
+		$this->respond(['success' => true, 'imported' => $imported]/*, 201*/);
 	}
 
 	public function stats(Request $request) : void {
