@@ -7,6 +7,7 @@ use App\Models\Auth\User;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controller;
+use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
@@ -14,6 +15,7 @@ use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
 use Lsr\Core\Templating\Latte;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Nette\Security\Passwords;
 use Nette\Utils\Validators;
 
 class Login extends Controller
@@ -29,8 +31,9 @@ class Login extends Controller
 	 * @param Auth<User> $auth
 	 */
 	public function __construct(
-		protected Latte         $latte,
-		protected readonly Auth $auth,
+		protected Latte            $latte,
+		protected readonly Auth    $auth,
+		private readonly Passwords $passwords,
 	) {
 		parent::__construct($latte);
 	}
@@ -123,6 +126,20 @@ class Login extends Controller
 			$this->view('pages/login/index');
 			return;
 		}
+		if ($rememberMe) {
+			$token = bin2hex(random_bytes(16));
+			$validator = bin2hex(random_bytes(32));
+			DB::insert(
+				'user_tokens',
+				[
+					'token'     => $token,
+					'validator' => $this->passwords->hash($validator),
+					'id_user'   => $this->auth->getLoggedIn()->id,
+					'expire'    => new \DateTimeImmutable('+ 30 days'),
+				]
+			);
+			setcookie('rememberme', $token.':'.$validator, time() + (30 * 24 * 3600));
+		}
 
 		$request->passNotices[] = ['type' => 'info', 'content' => lang('Přihlášení bylo úspěšné.')];
 		App::redirect('dashboard', $request);
@@ -132,6 +149,14 @@ class Login extends Controller
 	public function logout(Request $request) : void {
 		if ($this->auth->loggedIn()) {
 			$this->auth->logout();
+		}
+		if (isset($_COOKIE['rememberme'])) {
+			$ex = explode(':', $_COOKIE['rememberme']);
+			if (count($ex) === 2) {
+				[$token, $validator] = $ex;
+				DB::delete('user_tokens', ['[token] = %s', $token]);
+			}
+			setcookie('rememberme', '', -1);
 		}
 		$request->addPassNotice(lang('Odhlášení bylo úspěšné.'));
 		App::redirect('login', $request);

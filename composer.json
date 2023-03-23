@@ -38,7 +38,8 @@
 		"lsr/request": "^0.2",
 		"lsr/auth": "^0.2",
 		"ext-simplexml": "*",
-		"nette/mail": "^4.0"
+		"nette/mail": "^4.0",
+		"ext-curl": "*"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

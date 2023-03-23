@@ -15,13 +15,16 @@
 
 namespace App\Core;
 
+use App\Models\Auth\User;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\App;
+use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Nette\Security\Passwords;
 use ReflectionException;
 use RuntimeException;
 
@@ -67,6 +70,24 @@ class Loader
 		// Setup database connection
 		self::initDB();
 
+
+		if (isset($_COOKIE['rememberme'])) {
+			/** @var Auth $auth */
+			$auth = App::getService('auth');
+			if (!$auth->loggedIn()) {
+				$ex = explode(':', $_COOKIE['rememberme']);
+				if (count($ex) === 2) {
+					[$token, $validator] = $ex;
+					$row = DB::select('user_tokens', '*')->where('[token] = %s AND [expire] > NOW()', $token)->fetch(cache: false);
+					if (isset($row)) {
+						$password = App::getContainer()->getByType(Passwords::class);
+						if (isset($password) && $password->verify($validator, $row->validator)) {
+							$auth->setLoggedIn(User::get($row->id_user));
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
