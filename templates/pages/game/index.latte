@@ -100,7 +100,7 @@
 		</div>
 	</div>
 
-	<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="false">
+	{*<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="false">
 		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -125,7 +125,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div>*}
 {/define}
 
 {define resultsWin}
@@ -361,12 +361,13 @@
 				</div>
 				<div class="player-body rounded-bottom-10 collapse bg-white p-3" id="player-body-{$key}">
 					{include playerTrophies}
+					{include playerScoreDetail}
 					{include playerAccuracy}
 					{include playerShots}
 					{include playerHits}
 					{include playerFavourites}
 					{include playerHitsPlayers}
-					{if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode->settings->playerMines}
+					{if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode->settings->playerMines && $player->bonus->getSum() > 0}
 						{include playerMines}
 					{/if}
 					{include playerToday}
@@ -374,6 +375,86 @@
 			</div>
 		{/foreach}
 	</section>
+{/define}
+
+{define playerScoreDetail}
+	{varType App\GameModels\Game\Player $player}
+	{var float|null $diff = $player->getRankDifference()}
+	<div class="player-score-detail" data-content-piece="Score">
+		<h4>{lang 'Rozpad skóre a herní úrovně'}</h4>
+		<div class="row px-5">
+			<div class="col-12 col-md-6">
+				<h5 class="border-bottom py-2 mt-3" {ifset $diff}style="line-height: 2.4;"{/ifset}>
+					{lang 'Skóre'}: {$player->score|number:0,',','&nbsp;'|noescape}
+					<i class="fa-solid fa-star"></i>
+				</h5>
+				{var int $hitScore = ($game->getMode()->isSolo() || !isset($player->hitsOther) ? $player->hits : $player->hitsOther) * $game->scoring->hitOther}
+		{include playerScoreDetailPart 'Zásahy', $hitScore}
+		{var int $deathScore =
+				(($game->getMode()->isSolo() || !isset($player->deathsOther) ? $player->deaths : $player->deathsOther) * $game->scoring->deathOther) +
+				($game->getMode()->isSolo() || !isset($player->deathsOther) ? 0 : $player->deathsOwn) * $game->scoring->deathOwn}
+		{include playerScoreDetailPart 'Smrti', $deathScore}
+		{if $game->getMode()->isTeam() && isset($player->hitsOwn) && $player->hitsOwn > 0}
+					{var int $hitOwnScore = $player->hitsOwn * $game->scoring->hitOwn}
+					{include playerScoreDetailPart 'Zásahy spoluhráčů', $hitOwnScore}
+				{/if}
+		{if isset($player->scoreMines) && $player->scoreMines !== 0}
+					{include playerScoreDetailPart 'Smrti od min', $player->scoreMines}
+				{/if}
+		{if isset($player->bonus) && $player->bonus->getSum() > 0}
+					{var int $bonusScore = ($player->bonus->agent * $game->scoring->agent) + ($player->bonus->machineGun * $game->scoring->machineGun) + ($player->bonus->invisibility * $game->scoring->invisibility) + ($player->bonus->shield * $game->scoring->shield)}
+					{include playerScoreDetailPart 'Bonusy', $bonusScore}
+				{/if}
+		{if isset($player->shotPoints) && $player->shotPoints !== 0}
+					{include playerScoreDetailPart 'Výstřely', $player->shotPoints}
+				{/if}
+			</div>
+			<div class="col-12 col-md-6">
+				<h5 class="border-bottom py-2 mt-3">
+					{lang 'Herní úroveň'}: {$player->getSkill()|number:0,',','&nbsp;'|noescape}
+				<i class="fa-solid fa-star"></i>
+				{ifset $diff}
+						<br>
+						<span class="fs-6">({sprintf(lang('%s k herní úrovni hráče'), ($diff > 0 ? '+' : '') . number_format($diff,2,',',''))})</span>
+					{/ifset}
+				</h5>
+				{var int $sum = 0}
+			{foreach $player->getSkillParts() as $key => $skill}
+					{do $sum += $skill}
+					{include playerSkillDetailPart, $key, $skill}
+				{/foreach}
+			{include playerSkillDetailPart, 'rounding', $player->getSkill() - $sum}
+			</div>
+		</div>
+	</div>
+{/define}
+
+{define playerScoreDetailPart string $label, int $score}
+	<p class="my-1">
+		{lang $label}:
+		<span n:class="$score > 0 ? text-success, $score < 0 ? text-danger">
+			{if $score > 0}+{/if}{$score|number:0,',','&nbsp;'|noescape}
+			<i class="fa-solid fa-star"></i>
+		</span>
+	</p>
+{/define}
+{define playerSkillDetailPart string $key, int $skill}
+	<p class="my-1" n:if="$skill !== 0.0">
+		{switch $key}
+			{case 'hits'} {lang 'Zásahy'}:
+			{case 'teamHits'} {lang 'Zásahy spoluhráčů'}:
+			{case 'kd'} {lang 'K:D'}:
+			{case 'accuracy'} {lang 'Přesnost'}:
+			{case 'bonuses'} {lang 'Bonusy'}:
+			{case 'rounding'} <i class="fa-solid fa-circle-question" data-toggle="tooltip"
+								 title="{lang 'Zohlednění vašich protihráčů. Pokud hrajete proti slabším, vaše herní úroveň se sníží. Naopak, pokud hrajete proti silným hráčům, vaše herní úroveň se zvýší.'}"></i>
+			{lang 'Srovnání s protihráči'}:
+		{/switch}
+		<span n:class="$skill > 0 ? text-success, $skill < 0 ? text-danger">
+			{if $skill > 0}+{/if}{round($skill)|number:0,',','&nbsp;'|noescape}
+			<i class="fa-solid fa-star"></i>
+		</span>
+	</p>
 {/define}
 
 {define playerTrophies}
@@ -645,8 +726,13 @@
 				{lang 'K:D', context: 'results.player'}
 				({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'})
 			</strong>
-			{ratio($player->hitsOther, $player->deathsOther, 0)}:{ratio($player->hitsOther, $player->deathsOther, 1)}
-			({($player->hitsOther / ($player->deathsOther === 0 ? 1 : $player->deathsOther))|number:2,',',''})
+			{if $game->mode->isSolo()}
+				{ratio($player->hits, $player->deaths, 0)}:{ratio($player->hits, $player->deaths, 1)}
+				({($player->hits / ($player->deaths === 0 ? 1 : $player->deaths))|number:2,',',''})
+			{else}
+				{ratio($player->hitsOther, $player->deathsOther, 0)}:{ratio($player->hitsOther, $player->deathsOther, 1)}
+				({($player->hitsOther / ($player->deathsOther === 0 ? 1 : $player->deathsOther))|number:2,',',''})
+			{/if}
 		</p>
 	</div>
 {/define}
@@ -701,8 +787,12 @@
 {/define}
 
 {define playerScore}
-	<div n:if="$game->mode->settings->playerScore" class="score">
-		<i class="fa-solid fa-star"></i> {$player->score|number:0,',','&nbsp;'|noescape}
+	<div n:if="$game->mode->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
+		<i class="fa-solid fa-star"></i>
+		<b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
+	</div>
+	<div class="skill text-end ps-1" style="max-width:3.5rem;" data-toggle="tooltip" title="{lang 'Herní úroveň'}">
+		({$player->getSkill()|number:0,',','&nbsp;'|noescape})
 	</div>
 {/define}
 
