@@ -27,7 +27,9 @@ $publicUserIdGroup = $publicUserRoutes
 	->get('trends', [UserController::class, 'getTrends'])
 	->get('rankhistory', [StatController::class, 'rankHistory'])
 	->get('gamecounts', [StatController::class, 'games'])
-	->get('modes', [StatController::class, 'modes']);
+	->get('modes', [StatController::class, 'modes'])
+	->get('radar', [StatController::class, 'radar'])
+	->get('trophies', [StatController::class, 'trophies']);
 
 $userGroup = $routes
 	->group('/user')

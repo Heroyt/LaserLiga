@@ -3,6 +3,9 @@
 namespace App\Controllers\User;
 
 use App\GameModels\Auth\LigaPlayer;
+use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\PlayerTrophy;
 use DateInterval;
 use DateTimeImmutable;
 use Dibi\Row;
@@ -14,6 +17,12 @@ use Lsr\Core\Requests\Request;
 class StatController extends AbstractUserController
 {
 
+	/**
+	 * @var array<int,string>
+	 */
+	private array $rankableModes;
+	private int   $maxRank;
+
 	public function modes(string $code, Request $request) : never {
 		$user = $this->getUser($code);
 		$since = match ($request->getGet('limit', 'month')) {
@@ -22,6 +31,7 @@ class StatController extends AbstractUserController
 			'3 months' => new DateTimeImmutable('-3 months'),
 			'week' => new DateTimeImmutable('-7 days'),
 			'day' => new DateTimeImmutable('-1 days'),
+			'all' => new DateTimeImmutable('2000-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
@@ -56,6 +66,7 @@ class StatController extends AbstractUserController
 			'3 months' => new DateTimeImmutable('-3 months'),
 			'week' => new DateTimeImmutable('-7 days'),
 			'day' => new DateTimeImmutable('-1 days'),
+			'all' => new DateTimeImmutable('2000-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
@@ -97,13 +108,18 @@ class StatController extends AbstractUserController
 		/** @var LigaPlayer $player */
 		$player = $user->player;
 		$limit = $request->getGet('limit', 'month');
+		/** @var DateTimeImmutable $since */
 		$since = match ($limit) {
+			'all' => $player->queryGames()->orderBy('start')->fetch()->start,
 			'year' => new DateTimeImmutable('-1 years'),
 			'week' => new DateTimeImmutable('-7 days'),
 			default => new DateTimeImmutable('-1 months'),
 		};
+		if ($limit === 'all') {
+			$since = $since->modify('- '.(((int) $since->format('d')) - 1).' days');
+		}
 		$interval = match ($limit) {
-			'year' => "DATE_FORMAT([start], '%Y-%m')",
+			'all', 'year' => "DATE_FORMAT([start], '%Y-%m')",
 			'week' => "DATE_FORMAT([start], '%Y-%m-%d')",
 			default => "DATE_FORMAT([start], '%Y-%u')",
 		};
@@ -131,13 +147,13 @@ class StatController extends AbstractUserController
 		}
 		$interval = new DateInterval(
 			match ($limit) {
-				'year' => "P1M",
+				'all', 'year' => "P1M",
 				'week' => "P1D",
 				default => "P7D",
 			}
 		);
 		$format = match ($limit) {
-			'year' => "Y-m",
+			'all', 'year' => "Y-m",
 			'week' => "Y-m-d",
 			default => "Y-W",
 		};
@@ -158,9 +174,17 @@ class StatController extends AbstractUserController
 			}
 			$data[$date] = [
 				'label' => match ($limit) {
+					'all' => lang(($d = DateTimeImmutable::createFromFormat('Y-m', $date))->format('F')).' '.$d->format('Y'),
 					'year' => lang(DateTimeImmutable::createFromFormat('Y-m', $date)->format('F')),
 					'week' => lang((new DateTimeImmutable($date))->format('l')),
-					default => (new DateTimeImmutable())->setISODate(strtok($date, '-'), strtok('-'))->format('d.m.Y'),
+					default => (new DateTimeImmutable())
+							->setISODate(strtok($date, '-'), strtok('-'))
+							->format('d.m.').
+						' - '.
+						(new DateTimeImmutable())
+							->setISODate(strtok($date, '-'), strtok('-'))
+							->add(new DateInterval('P6D'))
+							->format('d.m.Y'),
 				},
 				'modes' => array_values($rows),
 			];
@@ -170,5 +194,103 @@ class StatController extends AbstractUserController
 		ksort($data);
 
 		$this->respond($data);
+	}
+
+	public function radar(string $code, Request $request) : never {
+		$user = $this->getUser($code);
+		/** @var LigaPlayer $player */
+		$player = $user->player;
+		$response = [
+			$player->nickname.' ('.strtoupper($code).')' => $this->getPlayerRadarData($player)
+		];
+
+		/** @var string|string[] $compareCodes */
+		$compareCodes = $request->getGet('compare', '');
+		if (!empty($compareCodes)) {
+			if (!is_array($compareCodes)) {
+				$compareCodes = [$compareCodes];
+			}
+			foreach ($compareCodes as $compareCode) {
+				$user = $this->getUser($compareCode);
+				/** @var LigaPlayer $player */
+				$player = $user->player;
+				$response[$player->nickname.' ('.strtoupper($compareCode).')'] = $this->getPlayerRadarData($player);
+			}
+		}
+
+		$this->respond($response);
+	}
+
+	/**
+	 * @param LigaPlayer $player
+	 *
+	 * @return array{accuracy:float,kd:float,hits:float}
+	 */
+	private function getPlayerRadarData(LigaPlayer $player) : array {
+		$data = [
+			'rank'           => 100 * $player->stats->rank / $this->getMaxRank(),
+			'shotsPerMinute' => $player->stats->averageShotsPerMinute,
+			'accuracy'       => $player->stats->averageAccuracy,
+		];
+
+		// Get rankable modes
+		$modes = $this->getRankableModes();
+
+		$query = new Fluent(DB::getConnection()
+													->select('AVG([relative_hits])')
+													->from(
+														PlayerFactory::queryPlayersWithGames(playerFields: ['relative_hits'])
+																				 ->where('[id_user] = %i', $player->id)
+																				 ->where('[id_mode] IN %in', array_keys($modes))
+															->fluent,
+														'a'
+													));
+		$hits = $query->cacheTags('user/'.$player->id.'/games', 'relative_hits')
+									->fetchSingle();
+		$ex = exp(4 * ($hits - 1));
+		$data['hits'] = 100 * $ex / ($ex + 1);
+		$ex = exp(4 * ($player->stats->kd - 1));
+		$data['kd'] = 100 * $ex / ($ex + 1);
+		return $data;
+	}
+
+	private function getMaxRank() : int {
+		if (!isset($this->maxRank)) {
+			$this->maxRank = DB::getConnection()
+												 ->select('MAX([rank])')
+												 ->from(LigaPlayer::TABLE)
+												 ->fetchSingle();
+		}
+		return $this->maxRank;
+	}
+
+	/**
+	 * @return array<int,string>
+	 */
+	private function getRankableModes() : array {
+		if (!isset($this->rankableModes)) {
+			$this->rankableModes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
+															 ->where('[rankable] = 1')
+															 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+															 ->fetchPairs('id_mode', 'name');
+		}
+		return $this->rankableModes;
+	}
+
+	public function trophies(string $code, Request $request) : never {
+		$user = $this->getUser($code);
+		/** @var LigaPlayer $player */
+		$player = $user->player;
+		$rankableOnly = !empty($request->getGet('rankable'));
+		$trophies = $player->getTrophyCount($rankableOnly);
+		$responseAll = PlayerTrophy::getFields();
+		unset($responseAll['average']);
+		foreach ($responseAll as $name => $trophy) {
+			$count = $trophies[$name] ?? 0;
+			$responseAll[$name]['icon'] = str_replace("\n", '', svgIcon($responseAll[$name]['icon'], 'auto', '2rem'));
+			$responseAll[$name]['count'] = $count;
+		}
+		uasort($responseAll, static fn($trophyA, $trophyB) => $trophyB['count'] - $trophyA['count']);
+		$this->respond($responseAll);
 	}
 }

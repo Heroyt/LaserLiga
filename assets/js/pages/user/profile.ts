@@ -3,6 +3,7 @@ import axios, {AxiosResponse} from "axios";
 import 'chartjs-adapter-date-fns';
 import {startLoading, stopLoading} from "../../loaders";
 import {Tooltip} from "bootstrap";
+import {initTooltips} from "../../functions";
 
 interface TrendData {
 	before: number,
@@ -37,6 +38,16 @@ export default function initProfile() {
 			)
 			.then(localeModule => {
 				console.log(localeModule[document.documentElement.lang]);
+				const compareRankHistoryBtn = document.getElementById('compareRankHistory') as HTMLButtonElement | null;
+				let compareUser = '';
+				let compareEnabled = false;
+				if (compareRankHistoryBtn) {
+					compareUser = compareRankHistoryBtn.dataset.user;
+					compareRankHistoryBtn.addEventListener('click', () => {
+						compareEnabled = !compareEnabled;
+						loadGraphs();
+					});
+				}
 				const rankHistoryChart = new Chart(
 					rankHistoryCanvas,
 					{
@@ -45,8 +56,10 @@ export default function initProfile() {
 							labels: ['Skill'],
 							datasets: [
 								{
+									label: rankHistoryCanvas.dataset.label,
 									data: [],
 									tension: 0.1,
+									borderColor: colors[1],
 								}
 							],
 						},
@@ -113,6 +126,32 @@ export default function initProfile() {
 							});
 							rankHistoryChart.update();
 						});
+					if (compareEnabled && compareUser) {
+						if (rankHistoryChart.data.datasets[1]) {
+							rankHistoryChart.show(1);
+						}
+						axios.get('/user/' + compareUser + '/stats/rankhistory?limit=' + rankHistoryFilter.value)
+							.then((response: AxiosResponse<{ [index: string]: number }>) => {
+								compareRankHistoryBtn.classList.remove('btn-outline-info');
+								compareRankHistoryBtn.classList.add('btn-info');
+								rankHistoryChart.data.datasets[1] = {
+									label: compareRankHistoryBtn.dataset.label,
+									data: [],
+									tension: 0.1,
+									borderColor: colors[0],
+								};
+								rankHistoryChart.data.datasets[1].data = [];
+								Object.entries(response.data).forEach(([date, count]) => {
+									// @ts-ignore
+									rankHistoryChart.data.datasets[1].data.push({x: date, y: count});
+								});
+								rankHistoryChart.update();
+							});
+					} else if (rankHistoryChart.data.datasets[1]) {
+						compareRankHistoryBtn.classList.add('btn-outline-info');
+						compareRankHistoryBtn.classList.remove('btn-info');
+						rankHistoryChart.hide(1);
+					}
 					axios.get('/user/' + id + '/stats/modes?limit=' + rankHistoryFilter.value)
 						.then((response: AxiosResponse<{ [index: string]: number }>) => {
 							gameModesChart.data.labels = [];
@@ -337,6 +376,63 @@ export default function initProfile() {
 		});
 	}
 
+	const trophiesTabBtn = document.getElementById('trophies-tab') as HTMLLIElement | null;
+	const trophiesTabWrapper = document.getElementById('trophies-stats-tab') as HTMLDivElement | null;
+	if (trophiesTabBtn && trophiesTabWrapper) {
+		let trophiesLoaded = false;
+
+		const trophiesLoaderWrapper = document.getElementById('trophies-loader') as HTMLDivElement;
+		const trophiesStatsWrapper = document.getElementById('trophies-stats') as HTMLDivElement;
+		const trophiesWrapper = document.getElementById('trophies-wrapper') as HTMLDivElement;
+
+		const trophiesAllModesCheck = document.getElementById('trophies-all-modes') as HTMLInputElement;
+		const trophiesRankableModesCheck = document.getElementById('trophies-rankable-modes') as HTMLInputElement;
+
+		const code = trophiesTabBtn.dataset.user;
+		trophiesTabBtn.addEventListener('show.bs.tab', e => {
+			if (trophiesLoaded) {
+				return; // Do not load data more than once
+			}
+			updateTrophies();
+		});
+
+		trophiesAllModesCheck.addEventListener('change', () => {
+			updateTrophies();
+		});
+		trophiesRankableModesCheck.addEventListener('change', () => {
+			updateTrophies();
+		});
+
+		function updateTrophies() {
+			startLoading(true);
+			axios.get('/user/' + code + '/stats/trophies' + (trophiesRankableModesCheck.checked ? '?rankable=1' : ''))
+				.then((response: AxiosResponse<{ [index: string]: { name: string, icon: string, description: string, count: number } }>) => {
+					stopLoading(true, true);
+					trophiesLoaderWrapper.classList.add('d-none');
+					trophiesStatsWrapper.classList.remove('d-none');
+
+					trophiesWrapper.innerHTML = '';
+					Object.entries(response.data).forEach(([key, trophy]) => {
+						const trophyEl = document.createElement('div');
+						trophyEl.classList.add('card', 'm-2', 'text-center');
+						trophyEl.style.width = '14rem';
+						trophyEl.id = 'trophy-' + key;
+						trophyEl.setAttribute('data-toggle', 'tooltip');
+						trophyEl.setAttribute('title', trophy.description);
+						trophyEl.innerHTML = `<div class="card-body">${trophy.icon}<h5 class="card-title mt-3">${trophy.name}</h5><div class="count fs-2 fw-bold">${trophy.count}&times;</div></div>`;
+						trophiesWrapper.appendChild(trophyEl);
+					});
+					initTooltips(trophiesWrapper);
+
+					trophiesLoaded = true;
+				})
+				.catch(e => {
+					console.error(e);
+					stopLoading(false, true);
+				});
+		}
+	}
+
 	const graphsTabBtn = document.getElementById('graphs-tab') as HTMLLIElement | null;
 	const graphsTabWrapper = document.getElementById('graphs-stats-tab') as HTMLDivElement | null;
 	if (graphsTabBtn && graphsTabWrapper) {
@@ -365,6 +461,44 @@ export default function initProfile() {
 				}
 			}
 		);
+		const radarCanvas = document.getElementById('radar-graphs-graph') as HTMLCanvasElement;
+		const radarCategories: { [index: string]: string } = JSON.parse(radarCanvas.dataset.categories);
+		const radarCompare = radarCanvas.dataset.compare ?? '';
+		const radarChart = new Chart(
+			radarCanvas,
+			{
+				type: "radar",
+				data: {
+					labels: Object.values(radarCategories),
+					datasets: [],
+				},
+				options: {
+					maintainAspectRatio: false,
+					responsive: true,
+					elements: {
+						line: {
+							borderWidth: 2,
+						}
+					},
+					scales: {
+						r: {
+							grid: {
+								display: true,
+								color: '#777',
+							},
+							angleLines: {
+								display: true,
+								color: '#aaa',
+							},
+							ticks: {
+								backdropColor: null,
+								color: '#aaa',
+							}
+						}
+					}
+				}
+			}
+		);
 		const graphsLoader = document.getElementById('graphs-loader') as HTMLDivElement;
 		const graphsStatsWrapper = document.getElementById('graphs-stats') as HTMLDivElement;
 		let graphsLoaded = false;
@@ -377,9 +511,12 @@ export default function initProfile() {
 		});
 
 		function loadGraphs() {
+			let loaded = 0;
+			const graphCount = 2;
 			startLoading(true);
 			axios.get(`/user/${userCode}/stats/gamecounts?limit=${graphsHistoryFilter.value}`)
 				.then((response: AxiosResponse<{ [index: string]: { label: string, modes: { count: number, id_mode: number, modeName: string }[] } }>) => {
+					loaded++;
 					if (!graphsLoaded) {
 						graphsLoader.classList.add('d-none');
 						graphsStatsWrapper.classList.remove('d-none');
@@ -409,7 +546,34 @@ export default function initProfile() {
 					});
 					gameCountsChart.data.datasets = Array.from(datasets.values());
 					gameCountsChart.update();
-					stopLoading(true, true);
+					if (loaded >= graphCount) {
+						stopLoading(true, true);
+					}
+				})
+				.catch(e => {
+					console.error(e);
+					stopLoading(false, true);
+				})
+			axios.get(`/user/${userCode}/stats/radar?compare=${radarCompare}`)
+				.then((response: AxiosResponse<{ [index: string]: { [index: string]: number } }>) => {
+					loaded++;
+					if (!graphsLoaded) {
+						graphsLoader.classList.add('d-none');
+						graphsStatsWrapper.classList.remove('d-none');
+						graphsLoaded = true;
+					}
+					radarChart.data.datasets = [];
+					let i = 0;
+					Object.entries(response.data).forEach(([label, values]) => {
+						radarChart.data.datasets.push({
+							label,
+							data: Object.values(values),
+						});
+					});
+					radarChart.update();
+					if (loaded >= graphCount) {
+						stopLoading(true, true);
+					}
 				})
 				.catch(e => {
 					console.error(e);

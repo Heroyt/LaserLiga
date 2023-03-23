@@ -1,104 +1,109 @@
+{varType App\Models\Auth\User|null $loggedInUser}
 {varType App\Models\Auth\User $user}
 
+<h3 class="mt-3">{lang 'Souhrnné statistiky'}</h3>
 <div class="d-flex flex-wrap justify-content-evenly g-3 align-items-center">
 	<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-		<h5 class="stat-title">{lang 'Odehráno her'}</h5>
+		<h4 class="stat-title fs-5">{lang 'Odehráno her'}</h4>
 		<div class="stat-value fs-2">{$user->player?->stats->gamesPlayed ?? 0}</div>
 	</div>
 	<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-		<h5 class="stat-title">{lang 'Navštíveno arén'}</h5>
+		<h4 class="stat-title fs-5">{lang 'Navštíveno arén'}</h4>
 		<div class="stat-value fs-2">{$user->player?->stats->arenasPlayed ?? 0}</div>
 	</div>
-	<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-		<h5 class="stat-title">{lang 'Úroveň'}</h5>
-		<div class="stat-value fs-2">{$user->player?->stats->rank ?? 100} <i
-					class="fa-solid fa-star"></i></div>
+	<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;" data-toggle="tooltip"
+		 title="{lang 'Herní úroveň se zvyšuje a klesá s každou odehranou klasickou hrou. Při výpočtu se přihlíží k úrovni protihráčů - pokud hrajete schválně se slabšími spoluhráči, herní úroveň roste pomalu.'}">
+		<h4 class="stat-title fs-5">{lang 'Úroveň'} <i class="fa-solid fa-circle-question"></i></h4>
+		<div class="stat-value fs-2">
+			{$user->player?->stats->rank ?? 100} <i class="fa-solid fa-star"></i>
+		</div>
 	</div>
 </div>
 <div class="collapse hide" id="more-stats">
 	<div class="text-muted text-center">{lang 'Následující statistiky se počítají pouze z klasických herních módů.'}</div>
 	<div class="d-flex flex-wrap justify-content-evenly g-3 align-items-center">
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Čas ve hře'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Čas ve hře'}</h4>
 			<div class="stat-value fs-2">
 				{convertMinutesToPartsReadableString($user->player?->stats->totalMinutes ?? 0)}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Vystřeleno nábojů'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Vystřeleno nábojů'}</h4>
 			<div class="stat-value fs-2">
 				{($user->player?->stats->shots ?? 0)|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1em'}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Zasaženo hráčů'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Zasaženo hráčů'}</h4>
 			<div class="stat-value fs-2">
 				{($user->player?->stats->hits ?? 0)|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'kill', '', '1em'}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Smrtí'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Smrtí'}</h4>
 			<div class="stat-value fs-2">
 				{($user->player?->stats->deaths ?? 0)|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'skull', '', '1em'}
 			</div>
 		</div>
-		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'K:D'}</h5>
+		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;" data-toggle="tooltip"
+			 title="{lang 'Poměr zabití a smrtí. Např. hodnota 2 znamená, že máš 2x tolik zásahů než smrtí.'}">
+			<h4 class="stat-title fs-5">{lang 'K:D'} <i class="fa-solid fa-circle-question"></i></h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->kd|number:2,',',''}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Průměrná pozice'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Průměrná pozice'}</h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->averagePosition|number:2,',',''}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Průměrná přesnost'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Průměrná přesnost'}</h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->averageAccuracy|number:2,',',''}&nbsp;%
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Průměrný počet výstřelů'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Průměrný počet výstřelů'}</h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->averageShots|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1em'}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Průměrný počet výstřelů za minutu'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Průměrný počet výstřelů za minutu'}</h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->averageShotsPerMinute|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1em'}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Průměrný počet zásahů za minutu'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Průměrný počet zásahů za minutu'}</h4>
 			<div class="stat-value fs-2">
 				{($user->player?->stats->totalMinutes > 0 ? ($user->player?->stats->hits / $user->player?->stats->totalMinutes) : 0)|number:2,',',''}&nbsp;{svgIcon 'kill', '', '1em'}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Průměrný počet smrtí za minutu'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Průměrný počet smrtí za minutu'}</h4>
 			<div class="stat-value fs-2">
 				{($user->player?->stats->totalMinutes > 0 ? ($user->player?->stats->deaths / $user->player?->stats->totalMinutes) : 0)|number:2,',',''}&nbsp;{svgIcon 'skull', '', '1em'}
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Nejlepší přesnost'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Nejlepší přesnost'}</h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->maxAccuracy}&nbsp;%
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Nejlepší skóre'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Nejlepší skóre'}</h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->maxScore|number:0,',','&nbsp;'|noescape} <i
 						class="fa-solid fa-star"></i>
 			</div>
 		</div>
 		<div class="stat rounded bg-light p-3 m-3 text-center" style="width: 200px;">
-			<h5 class="stat-title">{lang 'Nejlepší hodnocení hráče ve hře'}</h5>
+			<h4 class="stat-title fs-5">{lang 'Nejlepší hodnocení hráče ve hře'}</h4>
 			<div class="stat-value fs-2">
 				{$user->player?->stats->maxSkill} <i class="fa-solid fa-star"></i>
 			</div>
@@ -120,10 +125,19 @@
 	<option value="3 months">{lang '3 měsíce'}</option>
 	<option value="6 months">{lang '6 měsíců'}</option>
 	<option value="year">{lang 'Rok'}</option>
+	<option value="all">{lang 'Za celou dobu'}</option>
 </select>
-<h4>{lang 'Historie úrovně'}</h4>
+<h3>{lang 'Historie úrovně'}</h3>
+<p n:if="isset($loggedInUser, $loggedInUser->player) && $loggedInUser->id !== $user->id">
+	<button class="btn btn-outline-info" type="button" id="compareRankHistory"
+			data-user="{$loggedInUser->player->getCode()}"
+			data-label="{$loggedInUser->name} ({$loggedInUser->player->getCode()})">
+		{lang 'Porovnat se mnou'}
+	</button>
+</p>
 <canvas id="rankHistory" data-content-piece="Rank history graph" data-user="{$user->player->getCode()}"
+		data-label="{$user->name} ({$user->player->getCode()})"
 		style="max-height: 350px; width: 100%;"></canvas>
-<h4>{lang 'Herní módy'}</h4>
+<h3>{lang 'Herní módy'}</h3>
 <canvas id="gameModes" data-user="{$user->player->getCode()}" data-content-piece="Game modes graph"
 		style="max-height: 350px; width: 100%;"></canvas>
