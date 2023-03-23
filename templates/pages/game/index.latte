@@ -151,7 +151,8 @@
 	<div class="results-header text-start row">
 		<div class="col-12 mt-2 game-head">
 			<div class="game-info py-3 rounded-10 shadow bg-white text-center d-flex flex-column justify-content-center align-items-center">
-				<a href="{link ['arena', $game->arena->id]}">
+				<a href="{link ['arena', $game->arena->id]}" aria-label="{lang 'Zobrazit stránku arény'}"
+				   title="{lang 'Zobrazit stránku arény'}">
 					{$game->arena->getLogoHtml()|noescape}
 				</a>
 				<div class="my-1">
@@ -321,7 +322,7 @@
 		{foreach $game->getPlayersSorted() as $key => $player}
 			<div class="results-player rounded-10 my-2 bg-white flex-fill shadow">
 				<div class="player-head collapsed bg-team-{$player->getTeamColor()} p-2" data-bs-toggle="collapse"
-					 data-track-content="" data-content-name="Results - player" data-content-target="#player-{$key}"
+					 data-track-content="" data-content-name="Results - player" data-content-target="{$player->name}"
 					 data-bs-target="#player-body-{$key}">
 					<div class="position">
 						{$iterator->counter}.
@@ -459,7 +460,7 @@
 
 {define playerTrophies}
 	{var array $trophies = $player->getAllBestAt()}
-	<div class="player-trophies text-center mb-3">
+	<div class="player-trophies text-center mb-3" data-content-piece="Trophies">
 		<h4 class="caption">
 			<i class="fa-solid fa-trophy"></i>
 			{lang 'Získané trofeje', context: 'results.bests'} ({$trophies|length}):
@@ -483,7 +484,7 @@
 {/define}
 
 {define playerToday}
-	<div class="player-today mt-4">
+	<div class="player-today mt-4" data-content-piece="Today">
 		<h4 class="caption">
 			<i class="fa-solid fa-calendar"></i><br>
 			{lang 'Dnešní pořadí podle', context: 'results.today'}:
@@ -589,7 +590,7 @@
 
 {define playerMines}
 	{varType App\GameModels\Game\Evo5\Player $player}
-	<div class="player_mines mt-2">
+	<div class="player_mines mt-2" data-content-piece="Bonus">
 		{svgIcon 'base_2', '3rem'}
 		<div class="bonus">
 			<div n:foreach="$player->bonus->getArray() as $name => $value" class="{$name}">
@@ -601,7 +602,7 @@
 {/define}
 
 {define playerShots}
-	<div n:if="$game->mode->settings->playerShots" class="player-shots">
+	<div n:if="$game->mode->settings->playerShots" class="player-shots" data-content-piece="Shots">
 		{var int $step = ceil($maxShots / 10)}
 		{var int $count = ceil($player->shots / $step)}
 		<svg viewBox="0 0 1720 504" class="mb-1">
@@ -630,6 +631,7 @@
 {define playerAccuracy}
 	<svg n:if="$game->mode->settings->playerAccuracy" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
 													  class="accuracy" xml:space="preserve"
+													  data-content-piece="Accuracy"
 													  style="--color:var(--team-{$player->getTeamColor()});fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
 					{var int $circleRadius = 98}
 		<circle class="fill-circle" r="{$circleRadius}" cx="250" cy="250" fill="transparent" stroke="tomato"
@@ -659,7 +661,7 @@
 {/define}
 
 {define playerHits}
-	<div class="player-hits">
+	<div class="player-hits" data-content-piece="Hits">
 		{var int $total = $player->hits + $player->deaths}
 		<div n:if="$game->mode->settings->playerPlayers" class="hits mt-1 mb-2">
 			<div class="kills-row">
@@ -738,8 +740,8 @@
 {/define}
 
 {define playerHitsPlayers}
-	<div n:if="$game->mode->settings->partHits"
-			class="player-hits-player d-md-none d-flex flex-wrap justify-content-center align-items-start">
+	<div n:if="$game->mode->settings->partHits" data-content-piece="Hits players"
+												class="player-hits-player d-md-none d-flex flex-wrap justify-content-center align-items-start">
 		<div class="hits-my col-12 col-sm-5">
 			<h4 class="caption mt-3">
 				{svgIcon 'kill', '', '1rem'}<br>
@@ -799,7 +801,8 @@
 {define playerFavourites}
 	{var App\GameModels\Game\Player|null $favourite = $player->getFavouriteTarget()}
 	{var App\GameModels\Game\Player|null $favouriteOf = $player->getFavouriteTargetOf()}
-	<div n:if="$game->mode->settings->playerFavourites" class="player-favourites text-center">
+	<div n:if="$game->mode->settings->playerFavourites" class="player-favourites text-center"
+														data-content-piece="Favourites">
 		<div n:if="isset($favourite)" class="favourite-target">
 			<strong>{lang 'Nejoblíbenější cíl', context: 'results.player'}:</strong>
 			<div class="text-uppercase text-team-{$game->mode->isSolo() ? 2 : $favourite->getTeamColor()}">
