@@ -58,6 +58,11 @@ class UserController extends AbstractUserController
 		$this->params['user'] = $this->auth->getLoggedIn();
 		$this->params['arenas'] = Arena::getAll();
 
+		$this->title = 'Nastavení profilu hráče - %s';
+		$this->titleParams[] = $this->params['user']->name;
+		$this->description = 'Nastavení osobních údajů a profilu hráče laser game - %s.';
+		$this->descriptionParams[] = $this->params['user']->name;
+
 		$this->view('pages/profile/index');
 	}
 
@@ -174,6 +179,12 @@ class UserController extends AbstractUserController
 																							->desc()
 																							->cacheTags('user/games', 'user/'.$this->params['user']->player?->getCode().'/games', 'user/'.$this->params['user']->player?->getCode().'/lastGames')
 																							->fetchAll() ?? [];
+
+		$this->title = 'Nástěnka hráče - %s';
+		$this->titleParams[] = $this->params['user']->name;
+		$this->description = 'Profil a statistiky všech laser game her hráče %s';
+		$this->descriptionParams[] = $this->params['user']->name;
+
 		$this->view('pages/profile/public');
 	}
 
@@ -246,6 +257,12 @@ class UserController extends AbstractUserController
 		$this->params['desc'] = $desc;
 		$this->params['modeIds'] = $modeIds;
 		$this->params['date'] = $date;
+
+		// SEO
+		$this->title = 'Hry hráče - %s';
+		$this->titleParams[] = $this->params['user']->name;
+		$this->description = 'Seznam všech her laser game hráče %s.';
+		$this->descriptionParams[] = $this->params['user']->name;
 
 		// Render
 		$this->view($request->isAjax() ? 'partials/user/history' : 'pages/profile/history');

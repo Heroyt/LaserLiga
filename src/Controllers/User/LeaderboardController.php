@@ -36,6 +36,9 @@ class LeaderboardController extends AbstractUserController
 		$userQuery = DB::select(LigaPlayer::TABLE, 'COUNT([id_user]) as count');
 
 		if (isset($arena)) {
+			$this->title .= ' - %s';
+			$this->titleParams[] = $arena->name;
+
 			$query->where('[id_arena] = %i', $arena->id);
 			$userQuery->where('[id_arena] = %i', $arena->id);
 		}

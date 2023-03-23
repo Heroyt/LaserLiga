@@ -19,11 +19,19 @@ class Arenas extends Controller
 {
 
 	public function list() : void {
+		$this->title = 'Seznam arén';
+		$this->description = 'Seznam všech laser game arén, registrovaných v LaserLize.';
+
 		$this->params['arenas'] = Arena::getAll();
 		$this->view('pages/arenas/index');
 	}
 
-	public function show(Arena $arena) : void {
+	public function show(Arena $arena, Request $request) : void {
+		$this->title = 'Detail %s';
+		$this->titleParams[] = $arena->name;
+		$this->description = 'Souhrnné statistiky a informace o aréně - %s';
+		$this->descriptionParams[] = $arena->name;
+
 		$this->params['arena'] = $arena;
 		$queries = [];
 		$this->params['date'] = isset($_GET['date']) ? new DateTime($_GET['date']) : null;

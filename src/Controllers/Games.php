@@ -46,10 +46,24 @@ class Games extends Controller
 		$this->params['addCss'][] = 'pages/result.css';
 		$this->params['game'] = GameFactory::getByCode($code);
 		if (!isset($this->params['game'])) {
+			$this->title = 'Hra nenalezena';
+			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
+
 			http_response_code(404);
 			$this->view('pages/game/empty');
 			return;
 		}
+		$this->title = 'Výsledky ze hry - %s %s';
+		$this->titleParams = [
+			lang($this->params['game']->getMode()?->name, context: 'gameModes'),
+			$this->params['game']->arena?->name,
+		];
+		$this->description = 'Výsledky ze hry laser game z data %s z arény %s.';
+		$this->descriptionParams = [
+			$this->params['game']->start?->format('d.m.Y H:i'),
+			$this->params['game']->arena?->name,
+		];
+
 		$this->params['prevGame'] = '';
 		$this->params['nextGame'] = '';
 		if (isset($this->params['game']->group)) {

@@ -33,6 +33,10 @@ class Dashboard extends Controller
 																															->desc()
 																															->cacheTags('user/games', 'user/'.$this->params['user']->id.'/games', 'user/'.$this->params['user']->id.'/lastGames')
 																															->fetchAll();
+		$this->title = 'Nástěnka hráče - %s';
+		$this->titleParams[] = $this->params['user']->name;
+		$this->description = 'Profil a statistiky všech laser game her hráče %s';
+		$this->descriptionParams[] = $this->params['user']->name;
 		$this->view('pages/dashboard/index');
 	}
 
