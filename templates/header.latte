@@ -3,7 +3,7 @@
 {varType \Lsr\Core\Requests\Request $request}
 
 {define header}
-	<header class="navbar navbar-expand-lg navbar-light bg-light">
+	<header class="navbar navbar-expand-lg navbar-light bg-light position-sticky" style="top:0;z-index:100;">
 		<div class="container-fluid">
 			{*<a href="" class="navbar-brand">My PHP Framework</a>*}
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navBarContent"
@@ -12,24 +12,10 @@
 			</button>
 			<div class="collapse navbar-collapse" id="navBarContent">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-					{foreach Lsr\Core\App::getMenu(\Lsr\Core\App::getService('auth')->loggedIn() ? 'user' : 'menu') as $key => $menuItem}
-						<li class="nav-item{if count($menuItem->children) > 0} dropdown{/if}">
-							{if count($menuItem->children) > 0}
-								<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown{$key}" role="button"
-								   data-bs-toggle="dropdown" aria-expanded="false">
-									{$menuItem->name}
-									<ul class="dropdown-menu" aria-labelledby="navbarDropdown{$key}">
-										<li n:foreach="$menuItem->children as $child"><a class="dropdown-item"
-																						 href="{$child->url}">{$child->name}</a>
-										</li>
-									</ul>
-								</a>
-							{else}
-								<a class="nav-link{if $menuItem->active} active{/if}" aria-current="page"
-								   href="{$menuItem->url}">{$menuItem->name}</a>
-							{/if}
-						</li>
-					{/foreach}
+					{include menu}
+					{if \Lsr\Core\App::getService('auth')->loggedIn()}
+						{include menu 'user'}
+					{/if}
 				</ul>
 			</div>
 			<div class="btn-group ms-auto">
@@ -49,6 +35,7 @@
 								<img class="mx-auto d-block"
 									 src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$country]|escapeUrl}.png"
 									 style="height: 2rem; width: 2rem;"
+									 loading="lazy"
 									 alt="{\Lsr\Core\Constants::COUNTRIES[$country]}">
 							</a>
 						</li>
@@ -57,7 +44,7 @@
 			</div>
 			<div class="btn-group">
 				<button class="btn btn-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown"
-						aria-expanded="false">
+						aria-label="{lang 'Uživatel'}" aria-expanded="false">
 					<i class="fa-solid fa-user"></i>
 				</button>
 				<ul class="dropdown-menu bg-white" style="min-width: 3rem;right:0;left:auto;">
@@ -118,4 +105,25 @@
 			});*/
 		</script>
 	</header>
+{/define}
+
+{define menu string $name = 'menu'}
+	{foreach Lsr\Core\App::getMenu($name) as $key => $menuItem}
+		<li class="nav-item{if count($menuItem->children) > 0} dropdown{/if}">
+			{if count($menuItem->children) > 0}
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown{$key}" role="button"
+				   data-bs-toggle="dropdown" aria-expanded="false">
+					{$menuItem->name}
+					<ul class="dropdown-menu" aria-labelledby="navbarDropdown{$key}">
+						<li n:foreach="$menuItem->children as $child"><a class="dropdown-item"
+																		 href="{$child->url}">{$child->name}</a>
+						</li>
+					</ul>
+				</a>
+			{else}
+				<a class="nav-link{if $menuItem->active} active{/if}" aria-current="page"
+				   href="{$menuItem->url}">{$menuItem->name}</a>
+			{/if}
+		</li>
+	{/foreach}
 {/define}
