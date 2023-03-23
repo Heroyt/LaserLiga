@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Factory\TeamFactory;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use DateTime;
 use Dibi\Exception;

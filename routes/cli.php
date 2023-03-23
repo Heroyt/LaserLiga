@@ -3,6 +3,7 @@
 use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
 use App\Controllers\Cli\Help;
+use App\Controllers\Cli\Regression;
 use App\Controllers\Cli\Translations;
 use Lsr\Core\Routing\CliRoute;
 use Lsr\Helpers\Cli\CliHelper;
@@ -77,4 +78,69 @@ if (PHP_SAPI === 'cli') {
 													'isOptional'  => true,
 													'description' => 'A comma separated list of context names to skip while merging.',
 												]);
+
+	CliRoute::cli('regression/hits', [Regression::class, 'calculateHitRegression'])
+					->description('Calculate regression for player\'s hits.')
+					->usage('<arena> [TEAM|SOLO]')
+					->addArgument(
+						[
+							'name'        => 'arena',
+							'isOptional'  => false,
+							'description' => 'Arena ID',
+						],
+						[
+							'name'        => 'type',
+							'isOptional'  => true,
+							'description' => 'Game type to calculate. Only "TEAM" or "SOLO" values are accepted. Default: "TEAM"',
+						]
+					);
+
+	CliRoute::cli('regression/deaths', [Regression::class, 'calculateDeathRegression'])
+					->description('Calculate regression for player\'s deaths.')
+					->usage('<arena> [TEAM|SOLO]')
+					->addArgument(
+						[
+							'name'        => 'arena',
+							'isOptional'  => false,
+							'description' => 'Arena ID',
+						],
+						[
+							'name'        => 'type',
+							'isOptional'  => true,
+							'description' => 'Game type to calculate. Only "TEAM" or "SOLO" values are accepted. Default: "TEAM"',
+						]
+					);
+
+	CliRoute::cli('regression/hitsOwn', [Regression::class, 'calculateHitOwnRegression'])
+					->description('Calculate regression for player\'s teammate hits.')
+					->usage('<arena>')
+					->addArgument(
+						[
+							'name'        => 'arena',
+							'isOptional'  => false,
+							'description' => 'Arena ID',
+						]
+					);
+
+	CliRoute::cli('regression/deathsOwn', [Regression::class, 'calculateDeathOwnRegression'])
+					->description('Calculate regression for player\'s teammate deaths.')
+					->usage('<arena>')
+					->addArgument(
+						[
+							'name'        => 'arena',
+							'isOptional'  => false,
+							'description' => 'Arena ID',
+						]
+					);
+
+	CliRoute::cli('regression/updateAll', [Regression::class, 'updateRegressionModels'])
+					->description('Recalculate and save all regression models.')
+					->usage('<arena>')
+					->addArgument(
+						[
+							'name'        => 'arena',
+							'isOptional'  => false,
+							'description' => 'Arena ID',
+						]
+					);
 }

@@ -2,8 +2,8 @@
 
 namespace GameModels\Auth;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\Models\Arena;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use Dibi\Exception;
 use Lsr\Core\DB;

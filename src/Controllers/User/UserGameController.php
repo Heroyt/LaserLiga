@@ -2,8 +2,8 @@
 
 namespace App\Controllers\User;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\PlayerFactory;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
 use App\Services\PlayerUserService;

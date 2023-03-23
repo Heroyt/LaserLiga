@@ -4,12 +4,12 @@ namespace App\Controllers\Api;
 
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\GameModeNotFoundException;
-use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
+use App\Models\Auth\LigaPlayer;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Services\PlayerUserService;

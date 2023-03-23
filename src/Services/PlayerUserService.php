@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -264,7 +264,7 @@ class PlayerUserService
 	 * @param array{id_user:int|null,skill:int,rank?:int|null,id_team:int}[] $teammates
 	 * @param array{id_user:int|null,skill:int,rank?:int|null,id_team:int}[] $enemies
 	 * @param string                                                         $code
-	 * @param User|\App\GameModels\Auth\Player                               $user
+	 * @param User|\App\Models\Auth\Player                                   $user
 	 * @param DateTimeInterface                                              $date
 	 *
 	 * @return int Current player's rank after the difference
@@ -274,7 +274,7 @@ class PlayerUserService
 	 * @link https://en.wikipedia.org/wiki/Elo_rating_system
 	 * @link https://ryanmadden.net/adapting-elo/
 	 */
-	protected function calculateRankForGamePlayer(int $skill, int|float $minSkill, int|float $maxSkill, int|float $currentRank, array $teammates, array $enemies, string $code, User|\App\GameModels\Auth\Player $user, DateTimeInterface $date) : int {
+	protected function calculateRankForGamePlayer(int $skill, int|float $minSkill, int|float $maxSkill, int|float $currentRank, array $teammates, array $enemies, string $code, User|\App\Models\Auth\Player $user, DateTimeInterface $date) : int {
 		$ratingDiff = 0.0;
 		$count = 0;
 

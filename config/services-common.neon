@@ -4,6 +4,8 @@ parameters:
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
 services:
+	- App\Services\RegressionCalculator
+	regression.evo5: App\GameModels\Tools\Evo5\RegressionStatCalculator
 	user: App\Models\Auth\User
 	caching.journal: Nette\Caching\Storages\SQLiteJournal('%constants.tempDir%journal.s3db')
 	playerUser: App\Services\PlayerUserService

@@ -2,8 +2,8 @@
 
 namespace App\Controllers\User;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\Models\Arena;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\DB;

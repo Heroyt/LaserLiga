@@ -39,4 +39,5 @@ $apiGroup->group('/devtools')
 				 ->post('/users/stats', [UserGameController::class, 'updateAllUsersStats'])
 				 ->post('/users/{id}/stats', [UserGameController::class, 'updateStats'])
 				 ->post('/relativehits', [DevController::class, 'relativeHits'])
-				 ->post('/game/modes', [DevController::class, 'assignGameModes']);
+				 ->post('/game/modes', [DevController::class, 'assignGameModes'])
+				 ->post('/regression', [DevController::class, 'updateRegressionModels']);

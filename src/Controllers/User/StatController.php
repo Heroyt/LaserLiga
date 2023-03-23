@@ -2,10 +2,10 @@
 
 namespace App\Controllers\User;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\PlayerTrophy;
+use App\Models\Auth\LigaPlayer;
 use DateInterval;
 use DateTimeImmutable;
 use Dibi\Row;

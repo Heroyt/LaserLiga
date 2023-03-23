@@ -2,8 +2,13 @@
 
 namespace App\Controllers\Api;
 
+use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\GameModeFactory;
+use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\Player;
+use App\GameModels\Tools\Evo5\RegressionStatCalculator;
+use App\Models\Arena;
 use Lsr\Core\ApiController;
 use Lsr\Core\Requests\Request;
 
@@ -30,6 +35,34 @@ class DevController extends ApiController
 			$game->save();
 		}
 		$this->respond(['status' => 'ok']);
+	}
+
+	public function updateRegressionModels() : void {
+		$arenas = Arena::getAll();
+		$modes = GameModeFactory::getAll(['rankable' => false]);
+		foreach ($arenas as $arena) {
+			$calculator = new RegressionStatCalculator($arena);
+
+			$calculator->updateHitsModel(GameModeType::SOLO);
+			$calculator->updateHitsModel(GameModeType::TEAM);
+			$calculator->updateDeathsModel(GameModeType::SOLO);
+			$calculator->updateDeathsModel(GameModeType::TEAM);
+			$calculator->updateHitsOwnModel();
+			$calculator->updateDeathsOwnModel();
+			foreach ($modes as $mode) {
+				try {
+					$calculator->updateHitsModel($mode->type, $mode);
+					$calculator->updateDeathsModel($mode->type, $mode);
+					if ($mode->type === GameModeType::TEAM) {
+						$calculator->updateHitsOwnModel($mode);
+						$calculator->updateDeathsOwnModel($mode);
+					}
+				} catch (InsuficientRegressionDataException) {
+				}
+			}
+		}
+
+		$this->respond(['status' => 'Updated all regression models']);
 	}
 
 }

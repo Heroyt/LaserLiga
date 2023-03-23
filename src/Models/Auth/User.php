@@ -2,7 +2,6 @@
 
 namespace App\Models\Auth;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\Models\Arena;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;

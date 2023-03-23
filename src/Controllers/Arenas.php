@@ -2,10 +2,10 @@
 
 namespace App\Controllers;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
+use App\Models\Auth\LigaPlayer;
 use App\Models\MusicMode;
 use DateInterval;
 use DateTime;

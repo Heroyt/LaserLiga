@@ -2,8 +2,8 @@
 
 namespace App\Controllers\Api;
 
-use App\GameModels\Auth\LigaPlayer;
 use App\Models\Auth\Enums\ConnectionType;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\UserConnection;
 use JsonException;
 use Lsr\Core\ApiController;
