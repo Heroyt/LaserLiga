@@ -21,12 +21,12 @@ Route::get('/', [Index::class, 'show'])->name('index');
 
 Route::group('/game')
 		 ->get('/', [Games::class, 'show'])->name('game-empty')    // This will result in HTTP 404 error
-		 ->get('/{game}', [Games::class, 'show'])->name('game');
+		 ->get('/{code}', [Games::class, 'show'])->name('game');
 
 Route::group('/g')
 		 ->get('/', [Games::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
 		 ->get('/abcdefghij', [Dashboard::class, 'bp'])
-		 ->get('/{game}', [Games::class, 'show'])->name('game-alias');
+		 ->get('/{code}', [Games::class, 'show'])->name('game-alias');
 
 Route::group('/players')
 		 ->get('/leaderboard', [Games::class, 'todayLeaderboard'])
