@@ -35,3 +35,4 @@ build/
 logs/
 *.sass-cache/
 docs/
+devHelpers/
