@@ -33,6 +33,7 @@ class Games extends Controller
 	public function init(RequestInterface $request) : void {
 		parent::init($request);
 		$this->params['user'] = $this->auth->getLoggedIn();
+		$this->params['addCss'] = [];
 	}
 
 	/**
@@ -41,9 +42,9 @@ class Games extends Controller
 	 * @return void
 	 * @throws TemplateDoesNotExistException
 	 */
-	public function show(Request $request) : void {
-		$gameCode = $request->params['game'] ?? '';
-		$this->params['game'] = GameFactory::getByCode($gameCode);
+	public function show(string $code, Request $request) : void {
+		$this->params['addCss'][] = 'pages/result.css';
+		$this->params['game'] = GameFactory::getByCode($code);
 		if (!isset($this->params['game'])) {
 			http_response_code(404);
 			$this->view('pages/game/empty');
@@ -56,16 +57,16 @@ class Games extends Controller
 			$codes = $this->params['game']->group->getGamesCodes();
 			// Find previous and next game code from the same group
 			$found = false;
-			foreach ($codes as $code) {
+			foreach ($codes as $gameCode) {
 				if ($found) {
-					$this->params['nextGame'] = $code;
+					$this->params['nextGame'] = $gameCode;
 					break;
 				}
-				if ($code === $gameCode) {
+				if ($gameCode === $code) {
 					$found = true;
 					continue;
 				}
-				$this->params['prevGame'] = $code;
+				$this->params['prevGame'] = $gameCode;
 			}
 		}
 		/*if (!$this->params['game']->visited) {
@@ -78,6 +79,7 @@ class Games extends Controller
 
 	#[Get('/game/group/{groupid}', 'group-results')]
 	public function group(Request $request) : void {
+		$this->params['addCss'][] = 'pages/gameGroup.css';
 		$this->params['groupCode'] = $request->params['groupid'] ?? '4d4330774c54413d'; // Default is '0-0-0'
 		// Decode encoded group ids
 		$decodeGroupId = hex2bin($this->params['groupCode']);

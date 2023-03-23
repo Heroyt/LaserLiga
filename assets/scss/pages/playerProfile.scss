@@ -1,3 +1,10 @@
+@import '~bootstrap/scss/functions';
+@import '~bootstrap/scss/variables';
+@import '~bootstrap/scss/variables-dark';
+@import '../variables/customVariables';
+@import '~bootstrap/scss/maps';
+@import '../mixins';
+
 .player-profile {
 	display: grid;
 	grid-gap: 4rem 1rem;

@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\GameModels\Factory\PlayerFactory;
+use App\Models\Auth\User;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controller;
 use Lsr\Core\Templating\Latte;
@@ -13,6 +13,10 @@ class Dashboard extends Controller
 	protected string $title       = 'Dashboard';
 	protected string $description = '';
 
+	/**
+	 * @param Latte      $latte
+	 * @param Auth<User> $auth
+	 */
 	public function __construct(
 		protected Latte         $latte,
 		protected readonly Auth $auth,
@@ -21,6 +25,7 @@ class Dashboard extends Controller
 	}
 
 	public function show() : void {
+		$this->params['addCss'] = ['pages/playerProfile.css'];
 		$this->params['loggedInUser'] = $this->params['user'] = $this->auth->getLoggedIn();
 		$this->params['lastGames'] = $this->params['user']->player->queryGames()
 																															->limit(10)

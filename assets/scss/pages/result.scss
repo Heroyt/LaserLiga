@@ -1,3 +1,10 @@
+@import '~bootstrap/scss/functions';
+@import '~bootstrap/scss/variables';
+@import '~bootstrap/scss/variables-dark';
+@import '../variables/customVariables';
+@import '~bootstrap/scss/maps';
+@import '../mixins';
+
 .game-results {
 	display: grid;
 	grid-gap: 1rem;
@@ -96,6 +103,10 @@
 				max-width: 5rem;
 				text-align: right;
 			}
+		}
+
+		.player-score-detail {
+			grid-area: score;
 		}
 
 		.player_mines {
@@ -335,6 +346,7 @@
 			'hits'
 			'hitsPlayers'
 			'mines'
+			'score'
 		  'today';
 		grid-template-columns: 1fr;
 
@@ -369,6 +381,7 @@
 					'favourites favourites'
 					'hitsPlayers hitsPlayers'
 					'mines mines'
+					'score score'
 					'today today';
 			grid-template-columns: 1fr 1fr;
 		}
@@ -412,6 +425,7 @@
 					'trophy trophy trophy'
 					'accuracy mines shots'
 					'favourites hits hits'
+					'score score score'
 					'today today today';
 			grid-template-columns: 1fr 1fr 1fr;
 		}

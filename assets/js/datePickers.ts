@@ -1,26 +1,25 @@
 import flatpickr from "flatpickr";
 import {Options} from "flatpickr/dist/types/options.js";
 
-/**
- *
- * @param elem {HTMLElement|Document|null}
- */
 export default function initDatePickers(elem: HTMLElement | HTMLDocument = null) {
-	if (!elem) {
-		elem = document;
-	}
+    if (!elem) {
+        elem = document;
+    }
 
-	import(`../../node_modules/flatpickr/dist/l10n/cs.js`).then(localizationModule => {
-		const lang = localizationModule.default['cs'];
-		flatpickr.localize(lang);
+    import(
+        /* webpackChunkName: "flatpickr-l10n" */
+        `flatpickr/dist/l10n/cs`
+        ).then(localizationModule => {
+        const lang = localizationModule.default['cs'];
+        flatpickr.localize(lang);
 
-		(elem.querySelectorAll('input[type="date"]:not([data-input]), .date-picker') as NodeListOf<HTMLInputElement | HTMLDivElement>).forEach(input => {
-			let value = '', wrap = !(input instanceof HTMLInputElement);
-			if (wrap) {
-				value = (input.querySelector("[data-input]") as HTMLInputElement).value;
-			} else {
-				// @ts-ignore
-				value = input.value;
+        (elem.querySelectorAll('input[type="date"]:not([data-input]), .date-picker') as NodeListOf<HTMLInputElement | HTMLDivElement>).forEach(input => {
+            let value = '', wrap = !(input instanceof HTMLInputElement);
+            if (wrap) {
+                value = (input.querySelector("[data-input]") as HTMLInputElement).value;
+            } else {
+                // @ts-ignore
+                value = input.value;
 			}
 			let options: Options = {
 				defaultDate: value,

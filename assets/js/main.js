@@ -8,6 +8,16 @@ axios.defaults.headers.post['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.get['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+if ('serviceWorker' in navigator) {
+	window.addEventListener('load', () => {
+		navigator.serviceWorker.register('/dist/service-worker.js', {scope: '/'}).then(registration => {
+			console.log('SW registered: ', registration);
+		}).catch(registrationError => {
+			console.log('SW registration failed: ', registrationError);
+		});
+	});
+}
+
 window.addEventListener("load", () => {
 
 	// Auto-format tel

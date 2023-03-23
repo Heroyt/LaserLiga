@@ -10,6 +10,7 @@
 
 // Helpers
 @import '~bootstrap/scss/mixins/breakpoints';
+@import '~bootstrap/scss/mixins/color-mode';
 @import '~bootstrap/scss/mixins/color-scheme';
 @import '~bootstrap/scss/mixins/image';
 @import '~bootstrap/scss/mixins/resize';
@@ -21,14 +22,11 @@
 @import '~bootstrap/scss/mixins/utilities';
 
 // Components
-@import '~bootstrap/scss/mixins/alert';
 @import '~bootstrap/scss/mixins/backdrop';
 @import '~bootstrap/scss/mixins/buttons';
-//@import 'mixins/buttons';
 @import '~bootstrap/scss/mixins/caret';
 @import '~bootstrap/scss/mixins/pagination';
 @import '~bootstrap/scss/mixins/lists';
-@import '~bootstrap/scss/mixins/list-group';
 @import '~bootstrap/scss/mixins/forms';
 @import 'mixins/table-variants';
 
@@ -36,7 +34,6 @@
 @import '~bootstrap/scss/mixins/border-radius';
 @import '~bootstrap/scss/mixins/box-shadow';
 @import '~bootstrap/scss/mixins/gradients';
-//@import 'mixins/gradients';
 @import '~bootstrap/scss/mixins/transition';
 
 // Layout

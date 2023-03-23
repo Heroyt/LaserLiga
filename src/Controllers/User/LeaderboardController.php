@@ -4,6 +4,7 @@ namespace App\Controllers\User;
 
 use App\GameModels\Auth\LigaPlayer;
 use App\Models\Arena;
+use App\Models\Auth\User;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
@@ -12,6 +13,10 @@ use Lsr\Core\Templating\Latte;
 class LeaderboardController extends AbstractUserController
 {
 
+	/**
+	 * @param Latte      $latte
+	 * @param Auth<User> $auth
+	 */
 	public function __construct(
 		protected Latte         $latte,
 		protected readonly Auth $auth,
@@ -20,6 +25,10 @@ class LeaderboardController extends AbstractUserController
 	}
 
 	public function show(Request $request, ?Arena $arena = null) : void {
+		$this->params['addCss'] = ['pages/leaderboard.css'];
+		$this->title = 'Žebříček';
+		$this->description = 'Žebříček všech hráčů laser game podle různých statistik.';
+
 		$user = $this->auth->getLoggedIn();
 
 		$this->params['arena'] = $arena;

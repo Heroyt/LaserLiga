@@ -1,5 +1,6 @@
 @use 'variables/colors' as *;
 @use 'sass:map';
+@import "~bootstrap/scss/maps";
 
 $custom-font-sizes: (
 	'hero': 54px,

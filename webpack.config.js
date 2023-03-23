@@ -3,14 +3,40 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CompressionPlugin = require("compression-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const isDevelopment = true;
+const WorkboxPlugin = require('workbox-webpack-plugin');
+const fs = require("fs");
+const isDevelopment = false;
 
-module.exports = {
-	mode: isDevelopment ? 'development' : 'production',
-	entry: [
+const genRanHex = (size = 24) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+const files = fs.readdirSync(path.resolve(__dirname, 'assets/scss/pages/'))
+	.map(file => {
+		const name = 'pages/' + file.replace('.scss', '');
+		return [
+			name,
+			{
+				import: './assets/scss/pages/' + file,
+				runtime: false,
+			}
+		]
+	});
+
+let entry = {
+	main: [
 		'./assets/js/main.js',
 		'./assets/scss/main.scss',
 	],
+};
+
+files.forEach(([name, data]) => {
+	entry[name] = data;
+});
+
+console.log(entry);
+
+module.exports = {
+	mode: isDevelopment ? 'development' : 'production',
+	entry,
 	output: {
 		filename: '[name].js',
 		path: path.resolve(__dirname, 'dist'),
@@ -23,7 +49,15 @@ module.exports = {
 				loader: 'ts-loader'
 			},
 			{
-				test: /\.(scss)$/,
+				mimetype: 'image/svg+xml',
+				scheme: 'data',
+				type: 'asset/resource',
+				generator: {
+					filename: 'icons/[hash].svg'
+				}
+			},
+			{
+				test: /\.(s?css)$/,
 				use: [
 					MiniCssExtractPlugin.loader,
 					{
@@ -57,16 +91,33 @@ module.exports = {
 		extensions: [".ts", ".tsx", ".js", ".json", ".jsx", ".css", ".scss"]
 	},
 	plugins: [
-		new BundleAnalyzerPlugin({
-			analyzerMode: 'json',
-		}),
 		new ForkTsCheckerWebpackPlugin(),
+		new WorkboxPlugin.GenerateSW({
+			//swSrc: './assets/js/service-worker.js',
+			swDest: 'service-worker.js',
+			navigationPreload: true,
+			clientsClaim: true,
+			skipWaiting: true,
+			cleanupOutdatedCaches: true,
+			cacheId: genRanHex(),
+			runtimeCaching: [
+				{
+					handler: 'NetworkFirst',
+					urlPattern: /\.(?:webm|ogg|oga|mp3|wav|aiff|flac|mp4|m4a|aac|opus|webp)/
+				}
+			]
+		}),
 		new MiniCssExtractPlugin({
-			filename: isDevelopment ? '[name].css' : '[name].[hash].css',
-			chunkFilename: isDevelopment ? '[id].css' : '[id].[hash].css'
+			filename: '[name].css',
+			chunkFilename: '[id].css'
 		}),
 		new CompressionPlugin({
-			//test: /\.(js|ts|css)/
+			test: /\.(js|ts|css)/
+		}),
+		new BundleAnalyzerPlugin({
+			analyzerMode: 'static',
+			generateStatsFile: true,
+			openAnalyzer: false,
 		}),
 	],
 	cache: {
@@ -80,11 +131,17 @@ module.exports = {
 		moduleIds: 'deterministic',
 		splitChunks: {
 			chunks: 'all',
+			usedExports: true,
 			cacheGroups: {
 				vendor: {
-					test: /[\\/]node_modules[\\/]/,
+					test: /[\\/]node_modules[\\/](axios|flatpickr|@fortawesome)[\\/]/,
 					name: 'vendors',
-					//chunks: 'all',
+					chunks: 'all',
+				},
+				bootstrap: {
+					test: /[\\/]node_modules[\\/](bootstrap|@popperjs)[\\/]/,
+					name: 'bootstrap',
+					chunks: 'all',
 				}
 			},
 		},

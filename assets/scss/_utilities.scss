@@ -2,6 +2,16 @@
 // Author: Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>
 // Utility classes for general or common entities.
 
+html,
+body {
+	height: 100%;
+	width: 100%;
+}
+
+* {
+	scroll-behavior: smooth;
+}
+
 :root {
 	--header-height: 52px;
 	--body-min-height: calc(100vh - var(--header-height));

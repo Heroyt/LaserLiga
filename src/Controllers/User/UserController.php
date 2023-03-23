@@ -165,6 +165,7 @@ class UserController extends AbstractUserController
 	 * @throws TemplateDoesNotExistException
 	 */
 	public function public(string $code) : void {
+		$this->params['addCss'] = ['pages/playerProfile.css'];
 		$user = $this->getUser($code);
 		$this->params['user'] = $user;
 		$this->params['lastGames'] = $user->player?->queryGames()
@@ -186,6 +187,7 @@ class UserController extends AbstractUserController
 	 * @throws Throwable
 	 */
 	public function gameHistory(Request $request, string $code = '') : void {
+		$this->params['addCss'] = ['pages/playerHistory.css'];
 		$user = empty($code) ? $this->auth->getLoggedIn() : $this->getUser($code);
 		if (!isset($user)) {
 			$request->addPassError(lang('Uživatel neexistuje'));

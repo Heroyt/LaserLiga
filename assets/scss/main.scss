@@ -6,14 +6,11 @@
 @import '~bootstrap/scss/variables';
 @import '~bootstrap/scss/variables-dark';
 @import 'variables/customVariables';
-@import '~bootstrap/scss/maps';
 
 @import 'custom';
 
 // BS Configuration
 @import 'mixins';
-
-@import 'maps';
 
 // Utilities
 //@import '~bootstrap/scss/utilities';
@@ -36,8 +33,6 @@
 @import '~bootstrap/scss/nav';
 @import '~bootstrap/scss/navbar';
 @import '~bootstrap/scss/card';
-@import '~bootstrap/scss/accordion';
-@import '~bootstrap/scss/breadcrumb';
 @import '~bootstrap/scss/pagination';
 @import '~bootstrap/scss/badge';
 @import '~bootstrap/scss/alert';
@@ -48,10 +43,8 @@
 @import '~bootstrap/scss/modal';
 @import '~bootstrap/scss/tooltip';
 @import '~bootstrap/scss/popover';
-@import '~bootstrap/scss/carousel';
 @import '~bootstrap/scss/spinners';
 @import '~bootstrap/scss/offcanvas';
-@import '~bootstrap/scss/placeholders';
 
 // BS Helpers
 @import '~bootstrap/scss/helpers';
@@ -78,13 +71,6 @@
 @import 'components/arena';
 @import 'components/links';
 @import 'components/dataTable';
-
-// Pages
-@import 'pages/result';
-@import 'pages/gameGroup';
-@import 'pages/playerProfile';
-@import 'pages/playerHistory';
-@import 'pages/leaderboard';
 
 // Font Awesome
 @import '~@fortawesome/fontawesome-free/css/all.css';
