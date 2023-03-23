@@ -1,9 +1,12 @@
 import initDatePickers from "../datePickers";
 import {startLoading, stopLoading} from "../loaders";
 import axios, {AxiosResponse} from "axios";
-import {initTooltips} from "../functions";
+import {initCheckAll, initTooltips} from "../functions";
+import {initClearButtons} from "../pages/utils";
 
 export function initDataTableForm(form: HTMLFormElement) {
+	const updateHistory = (form.dataset.noHistory ?? '') !== '1';
+
 	form.addEventListener('submit', e => {
 		e.preventDefault();
 		updateTable();
@@ -16,8 +19,10 @@ export function initDataTableForm(form: HTMLFormElement) {
 		const orderByInput = document.getElementById('inputOrderBy') as HTMLInputElement;
 		const dirInput = document.getElementById('inputDir') as HTMLInputElement;
 
+		initCheckAll(form);
 		initDatePickers(form);
 		initTooltips(form);
+		initClearButtons(form);
 
 		// Type select
 		const typeInput = document.getElementById('inputActiveType') as HTMLInputElement;
@@ -85,7 +90,9 @@ export function initDataTableForm(form: HTMLFormElement) {
 		axios.get(url)
 			.then((response: AxiosResponse<string>) => {
 				form.innerHTML = response.data;
-				window.history.pushState({}, '', url);
+				if (updateHistory) {
+					window.history.pushState({}, '', url);
+				}
 				initForm();
 				stopLoading(true, true);
 			})
