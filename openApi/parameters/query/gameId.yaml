@@ -1,0 +1,5 @@
+name: id_game
+in: query
+description: If set, games will be filtered by id.
+schema:
+    type: integer

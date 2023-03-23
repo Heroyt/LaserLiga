@@ -1,0 +1,40 @@
+Date:
+    $ref: './Date.yaml'
+Error:
+    $ref: './Error.yaml'
+
+UserCode:
+    $ref: './users/UserCode.yaml'
+UserConnection:
+    $ref: './users/UserConnection.yaml'
+UserConnectionType:
+    $ref: './users/UserConnectionType.yaml'
+UserData:
+    $ref: './users/UserData.yaml'
+UserStats:
+    $ref: './users/UserStats.yaml'
+
+Game:
+    $ref: './game/Game.yaml'
+GameCode:
+    $ref: './game/GameCode.yaml'
+GameData:
+    $ref: './game/GameData.yaml'
+GameScoring:
+    $ref: './game/GameScoring.yaml'
+GameTiming:
+    $ref: './game/GameTiming.yaml'
+GameType:
+    $ref: './game/GameType.yaml'
+System:
+    $ref: './game/System.yaml'
+
+BonusCount:
+    $ref: './player/BonusCount.yaml'
+PlayerData:
+    $ref: './player/PlayerData.yaml'
+PlayerHit:
+    $ref: './player/PlayerHit.yaml'
+
+TeamData:
+    $ref: './team/TeamData.yaml'

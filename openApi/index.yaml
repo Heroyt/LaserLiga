@@ -1,0 +1,36 @@
+openapi: '3.0.0'
+info:
+    version: '1.0.0'
+    title: 'Laser Liga'
+    description: Social network for Laser game players
+
+servers:
+    -   url: https://new.laserliga.cz/api
+
+paths:
+    /games:
+        $ref: './paths/games/index.yaml'
+    /games/stats:
+        $ref: './paths/games/stats.yaml'
+    /games/skills:
+        $ref: './paths/games/skills.yaml'
+    /games/{code}:
+        $ref: './paths/games/game/index.yaml'
+    /games/{code}/users:
+        $ref: './paths/games/game/users.yaml'
+    /games/{code}/skills:
+        $ref: './paths/games/game/skills.yaml'
+    /players:
+        $ref: './paths/players/index.yaml'
+
+components:
+    parameters:
+        $ref: './parameters/_index.yaml'
+    schemas:
+        $ref: './schemas/_index.yaml'
+    securitySchemes:
+        Bearer:
+            type: http
+            scheme: Bearer
+security:
+    -   Bearer: [ ]

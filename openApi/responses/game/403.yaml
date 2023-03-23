@@ -1,0 +1,5 @@
+description: Game info is not accessible to current user (arena)
+content:
+    application/json:
+        schema:
+            $ref: '#/components/schemas/Error'

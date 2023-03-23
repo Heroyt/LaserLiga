@@ -1,0 +1,5 @@
+name: id_arena
+in: query
+description: If set, games will be filtered by arena.
+schema:
+    type: integer

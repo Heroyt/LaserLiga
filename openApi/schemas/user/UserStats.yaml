@@ -1,0 +1,31 @@
+description: User's statistics
+type: object
+properties:
+    rank:
+        type: integer
+    gamesPlayed:
+        type: integer
+    arenasPlayed:
+        type: integer
+    maxAccuracy:
+        type: integer
+    maxScore:
+        type: integer
+    maxSkill:
+        type: integer
+    shots:
+        type: integer
+    hits:
+        type: integer
+    deaths:
+        type: integer
+    averageAccuracy:
+        type: number
+    averagePosition:
+        type: number
+    averageShots:
+        type: number
+    averageShotsPerMinute:
+        type: number
+    kd:
+        type: number

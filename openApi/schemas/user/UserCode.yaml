@@ -1,0 +1,4 @@
+description: A unique registered user code
+type: string
+format: /\d-[\dA-Z]{5}/
+example: 1-ABCDE

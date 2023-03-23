@@ -1,0 +1,38 @@
+parameters:
+    -   $ref: '../../../parameters/path/gameCode.yaml'
+get:
+    summary: Get game's players
+    responses:
+        '200':
+            description: Game's players with skills
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            players:
+                                type: object
+                                additionalProperties:
+                                    type: object
+                                    properties:
+                                        name:
+                                            type: string
+                                        skill:
+                                            type: integer
+                                        user:
+                                            description: User's rank
+                                            type: integer
+                            average:
+                                type: number
+                            averageUser:
+                                type: number
+        400:
+            $ref: '../../../responses/400.yaml'
+        401:
+            $ref: '../../../responses/401.yaml'
+        403:
+            $ref: '../../../responses/game/403.yaml'
+        404:
+            $ref: '../../../responses/game/404.yaml'
+        500:
+            $ref: '../../../responses/500.yaml'

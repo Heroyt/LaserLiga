@@ -1,0 +1,11 @@
+description: How many times did a player hit another player
+type: object
+required:
+    - target
+    - count
+properties:
+    target:
+        description: Target player's ID
+        type: integer
+    count:
+        type: integer

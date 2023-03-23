@@ -1,0 +1,5 @@
+description: Type of a game mode
+type: string
+enum:
+    - TEAM
+    - SOLO

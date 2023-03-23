@@ -1,0 +1,5 @@
+name: arena
+in: query
+description: If set, result will be filtered by arena.
+schema:
+    type: integer

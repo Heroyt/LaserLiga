@@ -1,0 +1,28 @@
+get:
+    summary: Get arenas stats
+    parameters:
+        -   $ref: '../../parameters/query/date.yaml'
+        -   $ref: '../../parameters/query/system.yaml'
+    responses:
+        '200':
+            description: Game's players with skills
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            games:
+                                description: Game count
+                                type: integer
+                            players:
+                                description: Player count
+                                type: integer
+                            teams:
+                                description: Team count
+                                type: integer
+        400:
+            $ref: '../../responses/400.yaml'
+        401:
+            $ref: '../../responses/401.yaml'
+        500:
+            $ref: '../../responses/500.yaml'

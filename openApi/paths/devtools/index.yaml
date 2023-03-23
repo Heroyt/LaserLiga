@@ -1,0 +1,73 @@
+get:
+    summary: List all games
+    parameters:
+        -   name: returnLink
+            in: query
+            description: If set, the response will contain only game URLs.
+            allowEmptyValue: true
+            schema:
+                type: string
+        -   name: returnCodes
+            in: query
+            description: If set, the response will contain only game codes.
+            allowEmptyValue: true
+            schema:
+                type: string
+        -   $ref: '../../parameters/query/date.yaml'
+        -   $ref: '../../parameters/query/system.yaml'
+        -   $ref: '../../parameters/query/gameId.yaml'
+        -   $ref: '../../parameters/query/arenaId.yaml'
+        -   $ref: '../../parameters/query/gameCode.yaml'
+        -   $ref: '../../parameters/query/start.yaml'
+        -   $ref: '../../parameters/query/end.yaml'
+    responses:
+        '200':
+            description: List of games
+            content:
+                application/json:
+                    schema:
+                        type: array
+                        items:
+                            $ref: '../../schemas/game/Game.yaml'
+        400:
+            $ref: '../../responses/400.yaml'
+        401:
+            $ref: '../../responses/401.yaml'
+        500:
+            $ref: '../../responses/500.yaml'
+post:
+    summary: Import a new game
+    requestBody:
+        description: New game data to import
+        content:
+            application/json:
+                schema:
+                    type: object
+                    required:
+                        - system
+                        - games
+                    properties:
+                        system:
+                            $ref: '../../schemas/game/System.yaml'
+                        games:
+                            type: array
+                            items:
+                                $ref: '../../schemas/game/GameData.yaml'
+    responses:
+        201:
+            description: Successfully imported games
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            success:
+                                type: boolean
+                            imported:
+                                type: integer
+        400:
+            $ref: '../../responses/400.yaml'
+        401:
+            $ref: '../../responses/401.yaml'
+        500:
+            $ref: '../../responses/500.yaml'

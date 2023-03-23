@@ -1,0 +1,21 @@
+parameters:
+    -   $ref: '../../../parameters/path/gameCode.yaml'
+get:
+    summary: Get game's info
+    responses:
+        '200':
+            description: Game's info
+            content:
+                application/json:
+                    schema:
+                        $ref: '../../../schemes/game/GameData.yaml'
+        400:
+            $ref: '../../../responses/400.yaml'
+        401:
+            $ref: '../../../responses/401.yaml'
+        403:
+            $ref: '../../../responses/game/403.yaml'
+        404:
+            $ref: '../../../responses/game/404.yaml'
+        500:
+            $ref: '../../../responses/500.yaml'

@@ -1,0 +1,18 @@
+type: object
+required:
+    - id_game
+    - id_arena
+    - code
+    - start
+    - end
+properties:
+    code:
+        $ref: './GameCode.yaml'
+    start:
+        $ref: '../Date.yaml'
+    end:
+        $ref: '../Date.yaml'
+    id_game:
+        type: integer
+    id_arena:
+        type: integer

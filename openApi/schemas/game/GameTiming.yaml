@@ -1,0 +1,16 @@
+description: Time settings for a game
+type: object
+required:
+    - before
+    - gameLength
+    - after
+properties:
+    before:
+        description: Time before the game starts in seconds
+        type: integer
+    gameLength:
+        description: Game's length in minutes
+        type: integer
+    after:
+        description: Time after the game ends in seconds
+        type: integer
