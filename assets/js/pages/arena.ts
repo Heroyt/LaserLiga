@@ -1,6 +1,7 @@
 import {Chart} from "chart.js/auto";
 import axios, {AxiosResponse} from "axios";
 import {Tooltip} from "bootstrap";
+import {initDataTableForm} from "../components/dataTable";
 
 interface PageInfo {
 	type: 'GET' | 'POST',
@@ -19,6 +20,9 @@ export default function initArena() {
 
 	const dateFilter = document.getElementById('date-select') as HTMLSelectElement;
 	const graphFilter = document.getElementById('graph-filter') as HTMLSelectElement;
+
+	const form = document.getElementById('arena-history-form') as HTMLFormElement;
+	initDataTableForm(form);
 
 	const colors = [
 		'rgb(255, 99, 132)',

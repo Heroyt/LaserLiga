@@ -10,10 +10,12 @@ use App\Models\MusicMode;
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
+use Dibi\Row;
 use Exception;
 use Lsr\Core\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
+use Lsr\Core\Requests\Request;
 
 class Arenas extends Controller
 {
@@ -64,12 +66,106 @@ class Arenas extends Controller
 				->select('[p].*, [u].[id_arena], [u].[code]')
 				->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [p]')
 				->leftJoin(LigaPlayer::TABLE, 'u')->on('[p].[id_user] = [u].[id_user]')
-		))->cacheTags('players', 'arena-players', 'best-players', 'leaderboard');
+		))->cacheTags('players', 'arena-players', 'best-players', 'leaderboard', 'arena/'.$arena->id.'/leaderboard/'.$today->format('Y-m-d'), 'arena/'.$arena->id.'/games/'.$today->format('Y-m-d'));
 		$this->params['players'] = $query->orderBy('skill')->desc()->limit(20)->fetchAll();
-		$this->params['todayGames'] = $arena->queryGames($today)->cacheTags('games', 'games-'.$today->format('Y-m-d'))->count();
-		$this->params['todayPlayers'] = $this->params['todayGames'] === 0 ? 0 : $arena->queryPlayers($today)->cacheTags('players', 'games-'.$today->format('Y-m-d'))->count();
+		$this->params['todayGames'] = $arena->queryGames($today)->cacheTags('games', 'games-'.$today->format('Y-m-d'), 'arena/'.$arena->id.'/games/'.$today->format('Y-m-d'))->count();
+		$this->params['todayPlayers'] = $this->params['todayGames'] === 0 ? 0 : $arena->queryPlayers($today)->cacheTags('players', 'games-'.$today->format('Y-m-d'), 'arena/'.$arena->id.'/games/'.$today->format('Y-m-d'))->count();
 		$this->params['music'] = MusicMode::getAll($arena);
+
+		$this->getArenaGames($arena, $request);
+
 		$this->view('pages/arenas/arena');
+	}
+
+	public function games(Arena $arena, Request $request) : void {
+		$this->params['arena'] = $arena;
+		$this->getArenaGames($arena, $request);
+		$this->view('partials/arena/games');
+	}
+
+	private function getArenaGames(Arena $arena, Request $request) : void {
+		$query = $arena->queryGames(extraFields: ['id_mode']);
+
+		// Filters
+		[$modeIds, $date] = $this->filters($request, $query);
+
+		// Pagination
+		$page = (int) $request->getGet('p', 1);
+		$limit = (int) $request->getGet('l', 15);
+		$total = $query->count();
+		$pages = ceil($total / $limit);
+		$query->limit($limit)->offset(($page - 1) * $limit);
+
+		// Order by
+		$allowedOrderFields = ['start', 'modeName', 'id_arena'];
+		$orderBy = $request->getGet('orderBy', 'start');
+		$query->orderBy(
+			is_string($orderBy) && in_array($orderBy, $allowedOrderFields, true) ?
+				$orderBy :
+				'start' // Default
+		);
+		$desc = $request->getGet('dir', 'desc');
+		$desc = !is_string($desc) || strtolower($desc) === 'desc'; // Default true -> the latest game should be first
+		if ($desc) {
+			$query->desc();
+		}
+
+		// Load games
+		/** @var array<string|Row> $rows */
+		$rows = $query->fetchAssoc('code');
+		$games = [];
+		foreach ($rows as $gameCode => $row) {
+			$games[$gameCode] = GameFactory::getByCode($gameCode);
+		}
+
+		// Available dates
+		$rowsDates = $arena->queryGames()->groupBy('DATE([start])')->fetchAll();
+		$dates = [];
+		foreach ($rowsDates as $row) {
+			$dates[$row->start->format('d.m.Y')] = true;
+		}
+
+		// Set params
+		$this->params['dates'] = $dates;
+		$this->params['games'] = $games;
+		$this->params['p'] = $page;
+		$this->params['pages'] = $pages;
+		$this->params['limit'] = $limit;
+		$this->params['total'] = $total;
+		$this->params['orderBy'] = $orderBy;
+		$this->params['desc'] = $desc;
+		$this->params['modeIds'] = $modeIds;
+		$this->params['date'] = $date;
+	}
+
+	/**
+	 * @param Request $request
+	 * @param Fluent  $query
+	 *
+	 * @return array{0:int[],1:DateTimeImmutable|null}
+	 */
+	private function filters(Request $request, Fluent $query) : array {
+		$modeIds = [];
+		/** @var string[] $modes */
+		$modes = $request->getGet('modes', []);
+		if (!empty($modes) && is_array($modes)) {
+			foreach ($modes as $mode) {
+				$modeIds[] = (int) $mode;
+			}
+
+			$query->where('[id_mode] IN %in', $modeIds);
+		}
+		$dateObj = null;
+		$date = $request->getGet('date', '');
+		if (!empty($date) && is_string($date)) {
+			try {
+				$dateObj = new DateTimeImmutable($date);
+				$query->where('DATE([start]) = %d', $dateObj);
+			} catch (Exception) {
+				// Invalid date
+			}
+		}
+		return [$modeIds, $dateObj];
 	}
 
 	public function gameModesStats(Arena $arena) : never {

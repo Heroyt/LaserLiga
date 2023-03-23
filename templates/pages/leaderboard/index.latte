@@ -1,5 +1,6 @@
 {layout '../../@layout.latte'}
 
+{varType App\Models\Arena|null $arena}
 {varType App\GameModels\Auth\Player[] $players}
 {varType App\GameModels\Auth\LigaPlayer|null $searchedPlayer}
 {varType int $p}
@@ -13,9 +14,27 @@
 
 
 {block content}
-	<h2>{lang 'Pořadí hráčů'}</h2>
+	<p n:ifset="$arena" class="mb-5 text-start">
+		<span class="btn-group">
+		<a href="{link ['arena', $arena->id]}" class="btn btn-warning">
+			<i class="fa-solid fa-caret-left"></i>
+			{lang 'Zpět na stránku arény'}
+		</a>
+		<a href="{link ['user', 'leaderboard']}" class="btn btn-info">
+			<i class="fa-solid fa-caret-left"></i>
+			{lang 'Zpět na celkový žebříček'}
+		</a>
+			</span>
+	</p>
+	<h1 class="mb-3">
+		{lang 'Pořadí hráčů'}
+		{ifset $arena}
+			- {$arena->name}
+		{/ifset}
+	</h1>
 
-	<form action="{link ['user', 'leaderboard']}" method="get" id="user-leaderboard-form"
+	<form action="{ifset $arena}{link ['user', 'leaderboard', $arena->id]}{else}{link ['user', 'leaderboard']}{/ifset}"
+		  method="get" id="user-leaderboard-form"
 		  class="player-leaderboard data-table-form">
 		{embed '../../partials/leaderboard/table.latte',
 		user: $user,

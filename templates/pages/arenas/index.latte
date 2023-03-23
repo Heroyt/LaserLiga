@@ -9,10 +9,16 @@
 		<a n:foreach="$arenas as $arena" class="card bg-light p-2 m-3" href="{link ['arena', $arena->id]}">
 			{$arena->getLogoHtml()|noescape}
 			<div class="card-body text-text">
-				<p class="text-decoration-none"><strong>{lang 'Dnes odehráno her'}
-						:</strong> {$arena->queryGames($today)->count(cache: false)}</p>
-				<p class="text-decoration-none"><strong>{lang 'Dnes odehráno hráčů'}
-						:</strong> {$arena->queryPlayers($today, cache: false)->count(cache: false)}</p>
+				<p class="text-decoration-none">
+					<strong>{lang 'Registrováno hráčů'}:</strong> {$arena->getRegisteredPlayerCount()}
+				</p>
+				<p class="text-decoration-none">
+					<strong>{lang 'Dnes odehráno her'}:</strong> {$arena->queryGames($today)->count(cache: false)}
+				</p>
+				<p class="text-decoration-none">
+					<strong>{lang 'Dnes odehráno hráčů'}
+						:</strong> {$arena->queryPlayers($today, cache: false)->count(cache: false)}
+				</p>
 			</div>
 		</a>
 	</div>

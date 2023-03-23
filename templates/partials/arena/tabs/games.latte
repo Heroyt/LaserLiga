@@ -1,0 +1,30 @@
+{varType App\Models\Arena $arena}
+{varType App\GameModels\Game\Game[] $games}
+{varType int $p}
+{varType int $pages}
+{varType int $limit}
+{varType int $total}
+{varType string $orderBy}
+{varType bool $desc}
+{varType int[] $modeIds}
+{varType \DateTimeImmutable|null $date}
+{varType string[] $dates}
+
+<h2 class="mt-3">{sprintf(lang('Historie her arény %s'), $arena->name)}</h2>
+
+<form action="{link ['arena', $arena->id, 'games']}" method="get" id="arena-history-form" data-no-history="1"
+	  class="arena-history data-table-form">
+	{embed '../games.latte',
+	games: $games,
+	p: $p,
+	pages: $pages,
+	limit: $limit,
+	total: $total,
+	orderBy: $orderBy,
+	desc: $desc,
+	modeIds: $modeIds,
+	date: $date,
+	dates: $dates
+	}
+	{/embed}
+</form>

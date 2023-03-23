@@ -7,6 +7,10 @@
 {varType App\Models\MusicMode[] $music}
 {varType \DateTime|null $date}
 
+{define addHead}
+	{\App\Tools\Color::getGamesColor($games)|noescape}
+{/define}
+
 {block content}
 	<div class="card bg-light px-3 pt-3">
 		{$arena->getLogoHtml()|noescape}
@@ -14,6 +18,9 @@
 			<h1 class="card-title fs-3">{$arena->name}</h1>
 		</div>
 		<div class="card-body text-center">
+			<p class="text-decoration-none">
+				<strong>{lang 'Registrováno hráčů'}:</strong> {$arena->getRegisteredPlayerCount()}
+			</p>
 			<label for="date-select">{lang 'Datum'}:</label>
 			<input type="text" value="{ifset $date}{$date->format('d.m.Y')}{else}{date('d.m.Y')}{/ifset}"
 				   class="form-control date-picker mx-auto mb-3 text-center" id="date-select" style="max-width: 10em"
@@ -22,75 +29,50 @@
 			<p class="text-decoration-none"><strong>{lang 'Dnes odehráno hráčů'}:</strong> {$todayPlayers}</p>
 		</div>
 	</div>
-	<div class="row mt-3">
-		<div class="col-md-6">
-			<table n:if="!empty($players)" class="table table-striped caption-top" data-track-content=""
-										   data-content-name="Arena - Top players">
-				<caption class="text-text fs-4">{lang 'Dnešní nejlepší hráči'}:</caption>
-				<thead>
-				<tr>
-					<th></th>
-					<th class="text-center">{lang 'Hráč', context: 'leaderboard'}</th>
-					<th class="text-end">{lang 'Herní úroveň', context: 'leaderboard'}</th>
-				</tr>
-				</thead>
-				<tbody>
-				<tr n:foreach="$players as $player">
-					<th>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</th>
-					<td class="text-center">
-						{$player->name}
-						{ifset $player->code}
-							<a href="{link ['user', ($player->id_arena ?? 0) . '-' . $player->code]}"
-							   class="btn btn-sm btn-primary ms-2" data-content-piece="Profil" data-toggle="tooltip"
-							   title="{lang 'Profil hráče'}">
-								<i class="fa-solid fa-user"></i>
-							</a>
-						{/ifset}
-					</td>
-					<td class="text-end">
-						{$player->skill|number:0,',' . '&nbsp;'|noescape}
-						<i class="fa-solid fa-star"></i>
-					</td>
-				</tr>
-				</tbody>
-			</table>
-		</div>
-		<div class="col-md-6">
-			<label for="graph-filter">{lang 'Období'}:</label>
-			<select id="graph-filter" class="form-select mb-3" data-track-content=""
-					data-content-name="Arena - date filter">
-				<option value="" n:attr="selected: !isset($date)">{lang 'Za celou dobu'}</option>
-				<option value="date" n:attr="selected: isset($date)">{lang 'Den'}</option>
-				<option value="week">{lang 'Tento týden'}</option>
-				<option value="month">{lang 'Tento měsíc'}</option>
-			</select>
-			<h4>{lang 'Herní módy'}:</h4>
-			<canvas id="gameModes" style="max-height: 350px; width: 100%;"></canvas>
-			<h4 class="mt-2">{lang 'Hudební módy'}:</h4>
-			<canvas id="musicModes" style="max-height: 350px; width: 100%;"></canvas>
-		</div>
-	</div>
-	<h4 class="mt-3">{lang 'Hudební módy'}:</h4>
-	<ul class="list-group" id="musicModes"
-		data-track-content=""
-		data-content-name="Arena - Music modes">
-		<li n:foreach="$music as $mode" class="list-group-item music" data-id="{$mode->id}">
-			<div class="w-100 d-flex justify-content-between align-items-center">
-				<strong>{$mode->name}</strong>
-				<div class="d-flex align-items-center">
-					<div class="time-music font-monospace">
-						0:00
-					</div>
-					<button type="button" class="btn btn-success play-music ms-2" data-content-piece="Play"
-							data-content-target="{$mode->getMediaUrl()}"
-							data-file="{$mode->getMediaUrl()}"
-							data-toggle="tooltip" data-play="{lang 'Přehrát', context: 'actions'}"
-							data-stop="{lang 'Zastavit', context: 'actions'}"
-							title="{lang 'Přehrát', context: 'actions'}">
-						<i class="fa-solid fa-play"></i>
-					</button>
-				</div>
-			</div>
+	<ul class="nav nav-tabs mt-4" id="arena-tabs" role="tablist" data-track-content="" data-content-name="Arena tabs">
+		<li class="nav-item" role="presentation">
+			<button class="nav-link active" id="stats-tab-control" data-bs-toggle="tab"
+					data-bs-target="#stats-tab"
+					type="button" role="tab" aria-controls="stats-tab" aria-selected="true"
+					data-content-piece="Stats">
+				{lang 'Statistiky'}
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="music-tab-control" data-bs-toggle="tab"
+					data-bs-target="#music-tab"
+					type="button" role="tab" aria-controls="music-tab" aria-selected="false"
+					data-content-piece="Music">
+				{lang 'Hudební módy'}
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="games-tab-control" data-bs-toggle="tab"
+					data-bs-target="#games-tab"
+					type="button" role="tab" aria-controls="games-tab" aria-selected="false"
+					data-content-piece="Games">
+				{lang 'Všechny hry'}
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<a href="{link ['user', 'leaderboard', $arena->id]}" class="nav-link" id="leaderboard-control"
+			   data-content-piece="Music">
+				{lang 'Žebříček'}
+			</a>
 		</li>
 	</ul>
+	<div class="tab-content" id="arena-tabs">
+		<div class="tab-pane fade show active" id="stats-tab" role="tabpanel" aria-labelledby="stats-tab-control"
+			 data-track-content="" data-content-name="Arena stats tab" tabindex="0">
+			{include '../../partials/arena/tabs/stats.latte'}
+		</div>
+		<div class="tab-pane fade" id="music-tab" role="tabpanel" aria-labelledby="music-tab-control"
+			 data-track-content="" data-content-name="Arena music tab" tabindex="0">
+			{include '../../partials/arena/tabs/music.latte'}
+		</div>
+		<div class="tab-pane fade" id="games-tab" role="tabpanel" aria-labelledby="games-tab-control"
+			 data-track-content="" data-content-name="Arena games tab" tabindex="0">
+			{include '../../partials/arena/tabs/games.latte'}
+		</div>
+	</div>
 {/block}

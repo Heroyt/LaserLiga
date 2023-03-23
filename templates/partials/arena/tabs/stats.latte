@@ -1,0 +1,52 @@
+{varType Dibi\Row[] $players}
+{varType \DateTime|null $date}
+
+<h2 class="my-3">{lang 'Statistiky'}</h2>
+<div class="row mt-3">
+	<div class="col-md-6">
+		<table n:if="!empty($players)" class="table table-striped caption-top" data-track-content=""
+									   data-content-name="Arena - Top players">
+			<caption class="text-text fs-4">{lang 'Dnešní nejlepší hráči'}:</caption>
+			<thead>
+			<tr>
+				<th></th>
+				<th class="text-center">{lang 'Hráč', context: 'leaderboard'}</th>
+				<th class="text-end">{lang 'Herní úroveň', context: 'leaderboard'}</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr n:foreach="$players as $player">
+				<th>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</th>
+				<td class="text-center">
+					{$player->name}
+						{ifset $player->code}
+						<a href="{link ['user', ($player->id_arena ?? 0) . '-' . $player->code]}"
+						   class="btn btn-sm btn-primary ms-2" data-content-piece="Profil" data-toggle="tooltip"
+						   title="{lang 'Profil hráče'}">
+							<i class="fa-solid fa-user"></i>
+						</a>
+					{/ifset}
+				</td>
+				<td class="text-end">
+					{$player->skill|number:0,',' . '&nbsp;'|noescape}
+					<i class="fa-solid fa-star"></i>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="col-md-6">
+		<label for="graph-filter">{lang 'Období'}:</label>
+		<select id="graph-filter" class="form-select mb-3" data-track-content=""
+				data-content-name="Arena - date filter">
+			<option value="" n:attr="selected: !isset($date)">{lang 'Za celou dobu'}</option>
+			<option value="date" n:attr="selected: isset($date)">{lang 'Den'}</option>
+			<option value="week">{lang 'Tento týden'}</option>
+			<option value="month">{lang 'Tento měsíc'}</option>
+		</select>
+		<h3>{lang 'Herní módy'}:</h3>
+		<canvas id="gameModes" style="max-height: 350px; width: 100%;"></canvas>
+		<h3 class="mt-2">{lang 'Hudební módy'}:</h3>
+		<canvas id="musicModes" style="max-height: 350px; width: 100%;"></canvas>
+	</div>
+</div>
