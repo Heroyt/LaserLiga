@@ -177,7 +177,7 @@ export function selectInputDescriptionSetup(input: HTMLSelectElement) {
 	}
 }
 
-export function initTooltips(dom: HTMLElement) {
+export function initTooltips(dom: HTMLElement | Document) {
 	const tooltipTriggerList = [].slice.call(dom.querySelectorAll('[data-toggle="tooltip"]'))
 	tooltipTriggerList.map(function (tooltipTriggerEl: HTMLElement) {
 		return new Tooltip(tooltipTriggerEl)
@@ -300,5 +300,51 @@ export function initCopyToClipboard(elem: HTMLElement | null | Document = null):
 			navigator.clipboard.writeText(targetElement.value);
 			console.log('Copy', targetElement.value);
 		});
+	});
+}
+
+export function initCheckAll(elem: HTMLElement | null | Document = null): void {
+	if (!elem) {
+		elem = document;
+	}
+	(elem.querySelectorAll('[data-action="check-all"]') as NodeListOf<HTMLElement>).forEach(triggerElem => {
+		if (!(triggerElem instanceof HTMLInputElement)) {
+			return;
+		}
+		const targetSelector = triggerElem.dataset.target ?? '';
+		if (!targetSelector) {
+			return;
+		}
+		const targetElements = document.querySelectorAll(targetSelector) as NodeListOf<HTMLInputElement>;
+
+		const uncheckSelector = triggerElem.dataset.uncheck ?? '';
+		const uncheckElements: NodeListOf<HTMLInputElement> | HTMLInputElement[] = uncheckSelector ? document.querySelectorAll(uncheckSelector) as NodeListOf<HTMLInputElement> : [];
+		console.log(triggerElem, 'target', targetElements, 'uncheck', uncheckElements);
+
+		triggerElem.addEventListener('change', () => {
+			targetElements.forEach(target => {
+				target.checked = triggerElem.checked;
+			});
+			if (uncheckElements.length > 0) {
+				uncheckElements.forEach(elem => {
+					elem.checked = !triggerElem.checked;
+				});
+			}
+		});
+
+		targetElements.forEach(target => {
+			target.addEventListener('change', () => {
+				triggerElem.checked = isAllChecked();
+			});
+		});
+
+		function isAllChecked(): boolean {
+			for (let i = 0; i < targetElements.length; i++) {
+				if (!targetElements[i].checked) {
+					return false;
+				}
+			}
+			return true;
+		}
 	});
 }
