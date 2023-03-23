@@ -12,9 +12,15 @@
 {varType \DateTimeImmutable|null $date}
 {varType string[] $dates}
 
-{define addHead}
-	{\App\Tools\Color::getGamesColor($games)|noescape}
-{/define}
+{varType array[] $allFields}
+
+{default array $fields = [
+'start' => ['name' => lang('Datum'), 'sortable' => true],
+'id_arena' => ['name' => lang('Aréna'), 'sortable' => true],
+'modeName' => ['name' => lang('Herní mód'), 'sortable' => true],
+'players' => ['name' => lang('Hráči'), 'sortable' => false],
+'skill' => ['name' => lang('Herní úroveň'), 'sortable' => true],
+]}
 
 {block content}
 	<p class="text-start">
@@ -27,6 +33,8 @@
 	<form action="{link ['user', $user->player->getCode(), 'history']}" method="get" id="user-history-form"
 		  class="player-history data-table-form">
 		{embed '../../partials/user/history.latte',
+		allFields: $allFields,
+		fields: $fields,
 		user: $user,
 		games: $games,
 		p: $p,

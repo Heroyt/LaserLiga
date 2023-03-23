@@ -9,6 +9,7 @@
 {varType int[] $modeIds}
 {varType \DateTimeImmutable|null $date}
 {varType string[] $dates}
+{varType array[] $allFields}
 
 {import '../dataTable.latte'}
 
@@ -20,8 +21,45 @@
 'skill' => ['name' => lang('Herní úroveň'), 'sortable' => true],
 ]}
 
+{\App\Tools\Color::getGamesColor($games)|noescape}
+
 {block filters}
 	<h4>{lang 'Filtry'}</h4>
+	<div class="row my-3">
+		<button type="button" class="btn btn-secondary w-100 collapsed d-flex justify-content-center"
+				data-bs-toggle="collapse" data-bs-target="#fields-filters">
+			{lang 'Upravit zobrazené sloupce'}
+			<div class="collapse-indicator ms-3">
+				<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+				<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+			</div>
+		</button>
+		<div class="collapse p-2" id="fields-filters">
+			<div class="d-flex justify-content-center mt-2">
+				<div class="form-check">
+					<input class="form-check-input" data-action="check-all" data-target=".field-check"
+						   type="checkbox" id="allFields"
+						   {if count($fields) === count($allFields)}checked{/if}>
+					<label class="form-check-label" for="allFields">
+						{lang 'Vše'}
+					</label>
+				</div>
+			</div>
+			<hr>
+			<div class="d-flex flex-wrap justify-content-evenly">
+				<div n:foreach="$allFields as $name => $field" class="form-check m-2">
+					<input class="form-check-input field-check" type="checkbox" value="{$name}"
+						   id="fieldFilter{$name}"
+						   name="fields[]"
+						   {if $field['mandatory']}disabled{/if}
+						   {if $field['mandatory'] || isset($fields[$name])}checked{/if}>
+					<label class="form-check-label" for="fieldFilter{$name}">
+						{$field['name']}
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="row">
 		<div class="col-md-8 col-lg-7 my-3">
 			<button type="button" class="btn btn-info w-100 collapsed d-flex justify-content-center"
@@ -32,10 +70,40 @@
 					<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
 				</div>
 			</button>
+			{var App\GameModels\Game\GameModes\AbstractMode[] $allModes = \App\GameModels\Factory\GameModeFactory::getAll()}
+			{var bool $checkedAllRanked = true}
+			{foreach $allModes as $mode}
+				{if ($mode->rankable && !in_array($mode->id, $modeIds, true)) || (!$mode->rankable && in_array($mode->id, $modeIds, true))}
+					{do $checkedAllRanked = false}
+					{breakIf true}
+				{/if}
+			{/foreach}
 			<div class="collapse p-2" id="modes-filters">
+				<div class="d-flex justify-content-center mt-2">
+					<div class="form-check m-2">
+						<input class="form-check-input" data-action="check-all" data-target=".mode-check"
+							   type="checkbox" id="allModes"
+							   {if empty($modeIds) || count($modeIds) === count($allModes)}checked{/if}>
+						<label class="form-check-label" for="allModes">
+							{lang 'Vše'}
+						</label>
+					</div>
+					<div class="form-check m-2">
+						<input class="form-check-input" data-action="check-all" data-target=".mode-check-ranked"
+							   data-uncheck=".mode-check-unranked"
+							   type="checkbox" id="rankedModes"
+							   {if $checkedAllRanked}checked{/if}>
+						<label class="form-check-label" for="rankedModes">
+							{lang 'Klasické módy'}
+						</label>
+					</div>
+				</div>
+				<hr>
 				<div class="d-flex flex-wrap justify-content-evenly">
-					<div n:foreach="\App\GameModels\Factory\GameModeFactory::getAll() as $mode" class="form-check">
-						<input class="form-check-input" type="checkbox" value="{$mode->id}" id="modeFilter{$mode->id}"
+					<div n:foreach="$allModes as $mode" class="form-check m-2">
+						<input class="form-check-input mode-check {if $mode->rankable}mode-check-ranked{else}mode-check-unranked{/if}"
+							   type="checkbox" value="{$mode->id}"
+							   id="modeFilter{$mode->id}"
 							   name="modes[]"
 							   {if empty($modeIds) || in_array($mode->id, $modeIds, true)}checked{/if}>
 						<label class="form-check-label" for="modeFilter{$mode->id}">
@@ -76,25 +144,49 @@
 			</thead>
 			<tbody>
 			<tr n:foreach="$games as $game" data-code="{$game->code}">
+				{var App\GameModels\Game\Player $userPlayer = null}
+				{foreach $game->getPlayers() as $player}
+					{varType App\GameModels\Game\Player $player}
+					{if isset($player->user) && $player->user->id === $user->id}
+						{do $userPlayer = $player}
+						{breakIf true}
+					{/if}
+				{/foreach}
 				<td>{$game->start->format('d.m.Y H:i')}</td>
 				<td>{$game->arena->getLogoHtml()|noescape}</td>
 				<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
-				<td>
+				<td n:ifset="$fields['players']">
 						<span n:foreach="$game->getPlayersSorted() as $player"
+							n:tag="isset($player->user) ? 'a' : 'span'"
+								{ifset $player->user}
+							href="{link ['user', $player->user->getCode()]}"
+						{/ifset}
 						data-toggle="tooltip"
 						title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
 						class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
 					{$player->position}.&nbsp;{$player->name}
 				</span>
 				</td>
-				<td>
-					{foreach $game->getPlayers() as $player}
-						{varType App\GameModels\Game\Player $player}
-						{if isset($player->user) && $player->user->id === $user->id}
-							{$player->skill} <i class="fa-solid fa-star"></i>
-							{breakIf true}
-						{/if}
-					{/foreach}
+				<td n:ifset="$fields['score']">
+					{$userPlayer->score} <i class="fa-solid fa-star"></i>
+				</td>
+				<td n:ifset="$fields['accuracy']">
+					{$userPlayer->accuracy}&nbsp;%
+				</td>
+				<td n:ifset="$fields['shots']">
+					{$userPlayer->shots}
+				</td>
+				<td n:ifset="$fields['hits']">
+					{$userPlayer->hits}
+				</td>
+				<td n:ifset="$fields['deaths']">
+					{$userPlayer->deaths}
+				</td>
+				<td n:ifset="$fields['kd']">
+					{($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
+				</td>
+				<td n:ifset="$fields['skill']">
+					{$userPlayer->skill} <i class="fa-solid fa-star"></i>
 				</td>
 				<td>
 					<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"

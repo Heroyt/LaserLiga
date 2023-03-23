@@ -204,7 +204,62 @@ class UserController extends AbstractUserController
 			$request->addPassError(lang('Uživatel neexistuje'));
 			App::redirect([], $request);
 		}
-		$query = $user->createOrGetPlayer()->queryGames();
+		$player = $user->createOrGetPlayer();
+		$query = PlayerFactory::queryPlayersWithGames(
+			playerFields: [
+											'vest',
+											'hits',
+											'deaths',
+											'accuracy',
+											'score',
+											'shots',
+											'skill',
+											'kd' => ['first' => 'hits', 'second' => 'deaths', 'operation' => '/']
+										]
+		)
+													->where('[id_user] = %i', $user->id)
+													->cacheTags('user/'.$user->id.'/games');
+
+		// Filter fields to display
+		$allFields = [
+			'start'    => ['name' => lang('Datum'), 'mandatory' => true, 'sortable' => true],
+			'id_arena' => ['name' => lang('Aréna'), 'mandatory' => true, 'sortable' => true],
+			'modeName' => ['name' => lang('Herní mód'), 'mandatory' => true, 'sortable' => true],
+			'players'  => ['name' => lang('Hráči'), 'mandatory' => false, 'sortable' => false],
+			'score'    => ['name' => lang('Skóre'), 'mandatory' => false, 'sortable' => true],
+			'accuracy' => ['name' => lang('Přesnost'), 'mandatory' => false, 'sortable' => true],
+			'shots'    => ['name' => lang('Výstřely'), 'mandatory' => false, 'sortable' => true],
+			'hits'     => ['name' => lang('Zásahy'), 'mandatory' => false, 'sortable' => true],
+			'deaths'   => ['name' => lang('Smrti'), 'mandatory' => false, 'sortable' => true],
+			'kd'       => ['name' => lang('K:D'), 'mandatory' => false, 'sortable' => true],
+			'skill'    => ['name' => lang('Herní úroveň'), 'mandatory' => false, 'sortable' => true],
+		];
+
+		$allowedOrderFields = [];
+
+		/** @var string|string[] $selectedFields */
+		$selectedFields = $request->getGet('fields', ['players', 'skill']);
+		if (is_string($selectedFields)) {
+			if (empty($selectedFields)) {
+				$selectedFields = ['players', 'skill'];
+			}
+			else {
+				$selectedFields = [$selectedFields];
+			}
+		}
+		$fields = [];
+		foreach ($allFields as $name => $field) {
+			if ($field['sortable']) {
+				$allowedOrderFields[] = $name;
+			}
+			if ($field['mandatory'] || in_array($name, $selectedFields, true)) {
+				$fields[$name] = $field;
+			}
+		}
+		$this->params['allFields'] = $allFields;
+		$this->params['fields'] = $fields;
+
+		$this->params['arenas'] = $player->getPlayedArenas();
 
 		// Filters
 		[$modeIds, $date] = $this->filters($request, $query);
@@ -217,7 +272,6 @@ class UserController extends AbstractUserController
 		$query->limit($limit)->offset(($page - 1) * $limit);
 
 		// Order by
-		$allowedOrderFields = ['start', 'modeName', 'id_arena', 'skill'];
 		$orderBy = $request->getGet('orderBy', 'start');
 		$query->orderBy(
 			is_string($orderBy) && in_array($orderBy, $allowedOrderFields, true) ?
@@ -285,6 +339,18 @@ class UserController extends AbstractUserController
 
 			$query->where('[id_mode] IN %in', $modeIds);
 		}
+
+		$arenaIds = [];
+		/** @var string[] $arenas */
+		$arenas = $request->getGet('arenas', []);
+		if (!empty($arenas) && is_array($arenas)) {
+			foreach ($arenas as $arena) {
+				$arenaIds[] = (int) $arena;
+			}
+
+			$query->where('[id_arena] IN %in', $arenaIds);
+		}
+
 		$dateObj = null;
 		$date = $request->getGet('date', '');
 		if (!empty($date) && is_string($date)) {

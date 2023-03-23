@@ -2,6 +2,7 @@
 
 namespace App\Controllers\User;
 
+use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\PlayerFactory;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
@@ -106,5 +107,16 @@ class UserGameController extends AbstractUserController
 	public function updateStats(User $user) : never {
 		$this->playerUserService->updatePlayerStats($user);
 		$this->respond($user->createOrGetPlayer()->stats);
+	}
+
+	public function updateAllUsersStats(Request $request) : never {
+		$from = (int) $request->getGet('from', 0);
+		$players = LigaPlayer::query()->where('[id_user] >= %i', $from)->get();
+		$response = [];
+		foreach ($players as $player) {
+			$this->playerUserService->updatePlayerStats($player->user);
+			$response[$player->getCode()] = $player->stats;
+		}
+		$this->respond($response);
 	}
 }
