@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Factory\TeamFactory;
@@ -256,7 +257,7 @@ class Arena extends Model
 	 * @return Fluent
 	 */
 	public function queryGames(?DateTime $date = null, array $extraFields = []) : Fluent {
-		return GameFactory::queryGames(true, $date, $extraFields)->where('[id_arena] = %i', $this->id);
+		return GameFactory::queryGames(true, $date, $extraFields)->where('[id_arena] = %i', $this->id)->cacheTags('arena/'.$this->id.'/games');
 	}
 
 	/**
@@ -285,5 +286,9 @@ class Arena extends Model
 			->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
 			->groupBy('date');
 		return (new Fluent($query))->cacheTags('games', 'games/counts');
+	}
+
+	public function getRegisteredPlayerCount() : int {
+		return DB::select(LigaPlayer::TABLE, 'COUNT(*)')->where('[id_arena] = %i', $this->id)->fetchSingle(false);
 	}
 }
