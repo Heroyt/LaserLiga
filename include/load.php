@@ -41,26 +41,6 @@ require_once ROOT.'include/config.php';
 
 Timer::start('core.init');
 
-// Translations update
-$translationChange = false;
-if (!PRODUCTION) {
-	Timer::start('core.init.translations');
-	$poLoader = new PoLoader();
-	/** @var Translations[] $translations */
-	$translations = [];
-	/** @var string[] $languages */
-	$languages = glob(LANGUAGE_DIR.'*');
-	foreach ($languages as $path) {
-		if (!is_dir($path)) {
-			continue;
-		}
-		$lang = str_replace(LANGUAGE_DIR, '', $path);
-		$file = $path.'/LC_MESSAGES/'.LANGUAGE_FILE_NAME.'.po';
-		$translations[$lang] = $poLoader->loadFile($file);
-	}
-	Timer::stop('core.init.translations');
-}
-
 if (!is_dir(LOG_DIR) && !mkdir(LOG_DIR) && (!file_exists(LOG_DIR) || !is_dir(LOG_DIR))) {
 	throw new RuntimeException(sprintf('Directory "%s" was not created', LOG_DIR));
 }
@@ -81,6 +61,8 @@ Debugger::getBar()
 
 Loader::init();
 
+define('CHECK_TRANSLATIONS', (bool) (App::getConfig()['General']['TRANSLATIONS'] ?? false));
+
 if (defined('INDEX')) {
 	// Register library tracy panels
 	if (!isset($_ENV['noDb'])) {
@@ -94,5 +76,25 @@ if (defined('INDEX')) {
 }
 
 BlueScreenPanel::initialize();
+
+// Translations update
+$translationChange = false;
+if (!PRODUCTION) {
+	Timer::start('core.init.translations');
+	$poLoader = new PoLoader();
+	/** @var Translations[] $translations */
+	$translations = [];
+	/** @var string[] $languages */
+	$languages = glob(LANGUAGE_DIR.'*');
+	foreach ($languages as $path) {
+		if (!is_dir($path)) {
+			continue;
+		}
+		$lang = str_replace(LANGUAGE_DIR, '', $path);
+		$file = $path.'/LC_MESSAGES/'.LANGUAGE_FILE_NAME.'.po';
+		$translations[$lang] = $poLoader->loadFile($file);
+	}
+	Timer::stop('core.init.translations');
+}
 
 Timer::stop('core.init');

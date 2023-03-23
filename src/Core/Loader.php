@@ -58,14 +58,9 @@ class Loader
 	 * @version 1.0
 	 */
 	public static function init() : void {
-
-		if (defined('INDEX') && INDEX) {
-			// Initialize config
-			self::initConfig();
-
-			// Initialize app
-			App::init();
-		}
+		// Initialize app
+		App::prettyUrl();
+		App::init();
 
 		// Setup database connection
 		self::initDB();
@@ -88,23 +83,7 @@ class Loader
 				}
 			}
 		}
-	}
 
-	/**
-	 * Initialize configuration constants
-	 *
-	 * @since   1.0
-	 * @version 1.0
-	 */
-	private static function initConfig() : void {
-		$config = App::getConfig();
-
-		if ($config['General']['PRETTY_URL'] ?? false) {
-			App::prettyUrl();
-		}
-		else {
-			App::uglyUrl();
-		}
 	}
 
 	/**

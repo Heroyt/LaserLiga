@@ -36,3 +36,4 @@ logs/
 *.sass-cache/
 docs/
 devHelpers/
+.env
