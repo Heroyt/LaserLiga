@@ -7,6 +7,8 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Factory\TeamFactory;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
+use App\Models\Tournament\League;
+use App\Models\Tournament\Tournament;
 use DateTime;
 use Dibi\Exception;
 use Dibi\Row;
@@ -36,6 +38,12 @@ class Arena extends Model
 	public ?User $user = null;
 	/** @var array<string,array<string, int[]>> */
 	private array $gameIds = [];
+
+	/** @var League[] */
+	private array $leagues = [];
+
+	/** @var Tournament[] */
+	private array $tournaments = [];
 
 	/**
 	 * Try to get the Arena object for given API key
@@ -290,5 +298,41 @@ class Arena extends Model
 
 	public function getRegisteredPlayerCount() : int {
 		return DB::select(LigaPlayer::TABLE, 'COUNT(*)')->where('[id_arena] = %i', $this->id)->fetchSingle(false);
+	}
+
+	/**
+	 * @return Tournament[]
+	 * @throws ValidationException
+	 */
+	public function getTournaments() : array {
+		if (empty($this->tournaments)) {
+			$this->tournaments = Tournament::query()->where('id_arena = %i AND active = 1', $this->id)->orderBy('start')->get();
+		}
+		return $this->tournaments;
+	}
+
+	/** @var Tournament[] */
+	private array $plannedTournaments = [];
+
+	/**
+	 * @return Tournament[]
+	 * @throws ValidationException
+	 */
+	public function getPlannedTournaments() : array {
+		if (empty($this->plannedTournaments)) {
+			$this->plannedTournaments = Tournament::query()->where('id_arena = %i AND start > NOW() AND active = 1', $this->id)->orderBy('start')->get();
+		}
+		return $this->plannedTournaments;
+	}
+
+	/**
+	 * @return League[]
+	 * @throws ValidationException
+	 */
+	public function getLeagues() : array {
+		if (empty($this->leagues)) {
+			$this->leagues = League::query()->where('id_arena = %i', $this->id)->get();
+		}
+		return $this->leagues;
 	}
 }

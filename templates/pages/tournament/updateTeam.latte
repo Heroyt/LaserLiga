@@ -1,0 +1,43 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Tournament\Tournament $tournament}
+{varType App\Models\Tournament\Team $team}
+{varType array $values}
+{varType array $errors}
+{varType array $_REQUEST}
+
+{define content}
+	<p class="text-start">
+		<a href="{link 'tournament', $tournament->id}" class="btn btn-info">
+			<i class="fa-solid fa-angle-left"></i>
+			{lang 'Zpět'}
+		</a>
+	</p>
+	<h1>{lang 'Tým'} - {$team->name}</h1>
+	<h2>{$tournament->name}</h2>
+	<div class="registration-switch collapse show" id="tournament-register-team-detail">
+		<h3>{lang 'Hráči'}</h3>
+		<div class="list-group">
+			<div n:foreach="$team->getPlayers() as $player" class="list-group-item">
+				<h4>{$player->nickname}{ifset $player->user} - {$player->user->getCode()}{/ifset}</h4>
+			</div>
+		</div>
+	</div>
+	<p class="my-3">
+		<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target=".registration-switch"
+				aria-controls="tournament-register-team-form tournament-register-team-detail">
+			{lang 'Upravit registraci'}
+		</button>
+	</p>
+	<form action="{link 'tournament', 'registration', $tournament->id, $team->id}" method="post"
+		  id="tournament-register-team-form" class="collapse registration-switch">
+		{ifset $_REQUEST['h']}
+			<input type="hidden" name="h" value="{$_REQUEST['h']}">
+		{/ifset}
+		{csrfInput 'tournament-update-register'}
+		{include '../../partials/tournament/registerTeam.latte', $tournament, $errors, $values}
+		<p class="text-center">
+			<button type="submit" class="btn btn-lg btn-primary">{lang 'Odeslat'}</button>
+		</p>
+	</form>
+{/define}

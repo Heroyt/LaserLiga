@@ -1,0 +1,25 @@
+{varType App\Models\Arena $arena}
+
+<h2 class="my-3">{lang 'Plánované turnaje'}:</h2>
+
+<div class="d-flex flex-column align-items-center" data-track-content="" data-content-name="Arena - Tournaments">
+	<a n:foreach="$arena->getPlannedTournaments() as $tournament" href="{link 'tournament', $tournament->id}"
+																  class="card my-3 w-100" style="max-width: 50rem;">
+		<div class="row g-0 {if $iterator->counter0 % 2 === 1}flex-md-row-reverse{/if}">
+			<div class="col-md-4">
+				<img n:ifset="$tournament->image" src="{$tournament->getImageUrl()}" alt="{$tournament->name}"
+												  class="img-fluid">
+			</div>
+			<div class="col-md-8 d-flex align-items-center">
+				<div class="card-body">
+					<h3 class="card-title">{$tournament->name}</h3>
+					<div class="text-center">{$tournament->start->format('d.m.Y')}</div>
+					<div class="text-center mt-4">
+						<button href="{link 'tournament', $tournament->id}"
+								class="btn btn-primary">{lang 'Informace'}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</a>
+</div>

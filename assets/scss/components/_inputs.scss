@@ -48,3 +48,14 @@
 		@include border-start-radius(0);
 	}
 }
+
+.required > label,
+label.required {
+	&:before {
+		color: var(--bs-danger);
+		content: '*';
+		display: inline-block;
+		font-size: 1em;
+		margin-right: .1rem;
+	}
+}

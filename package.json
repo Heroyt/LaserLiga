@@ -17,7 +17,8 @@
 		"chart.js": "^4.2.1",
 		"chartjs-adapter-date-fns": "^3.0.0",
 		"date-fns": "^2.29.3",
-		"flatpickr": "^4.6.13"
+		"flatpickr": "^4.6.13",
+		"autocompleter": "^8.0.3"
 	},
 	"devDependencies": {
 		"@types/bootstrap": "^5.2.6",

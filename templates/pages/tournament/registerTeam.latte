@@ -1,0 +1,41 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Tournament\Tournament $tournament}
+{varType array $_POST}
+{varType array $errors}
+
+{define content}
+	<p class="text-start">
+		<a href="{link 'tournament', $tournament->id}" class="btn btn-info">
+			<i class="fa-solid fa-angle-left"></i>
+			{lang 'Zpět'}
+		</a>
+	</p>
+	<h1>{lang 'Registrace týmu'}</h1>
+	<h2>{$tournament->name}</h2>
+	<form action="{link 'tournament', $tournament->id, 'register'}" method="post" id="tournament-register-team-form">
+		{csrfInput 'tournament-register'}
+		{include '../../partials/tournament/registerTeam.latte', $tournament, $errors, $_POST}
+		<div class="d-flex justify-content-center my-3">
+			<div class="form-check">
+				<input class="form-check-input {ifset $errors['gdpr']}is-invalid{/ifset}" type="checkbox" value="1"
+					   name="gdpr" {if !empty($_POST['gdpr'])}checked{/if} id="gdpr" required>
+				<label class="form-check-label required" for="gdpr">
+					{sprintf(lang('Souhlasím se <a href="%s" target="_blank">zpracováním osobních údajů</a>'), 'https://www.lasergameclub.cz/files/documents/GDPR-podminky_zpracovani_osobnich_udaju.pdf')|noescape}
+				</label>
+				<div n:ifset="$errors['gdpr']" id="gdpr-feedback" class="invalid-feedback">
+					{if is_array($errors['gdpr'])}
+						<ul>
+							<li n:foreach="$errors['gdpr'] as $error">{$error}</li>
+						</ul>
+					{else}
+						{$errors['gdpr']}
+					{/if}
+				</div>
+			</div>
+		</div>
+		<p class="text-center">
+			<button type="submit" class="btn btn-lg btn-primary">{lang 'Odeslat'}</button>
+		</p>
+	</form>
+{/define}

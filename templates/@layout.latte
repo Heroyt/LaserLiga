@@ -104,6 +104,7 @@
 {if !isset($_GET['iframe'])}
 	{include header}
 {/if}
+
 <main class="container {include containerClasses|trim}">
 		{include errors}
 	{include content}
@@ -111,6 +112,7 @@
 
 {include footer}
 {include loader}
+
 
 <div class="toast-container position-fixed end-0 p-3" id="toasts" style="top: 5rem;">
 		{foreach $notices as $notice}
@@ -141,16 +143,21 @@
 		{/foreach}
 </div>
 
+
 <script>
 	const page = {\Lsr\Core\App::getRequest()};
 	const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
 </script>
 
+
 <script src="/dist/runtime~main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+
 
 <script src="/dist/bootstrap.js?{\Lsr\Core\App::getCacheVersion()}"></script>
 
+
 <script src="/dist/vendors.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+
 
 <script src="/dist/main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
 {include svgSymbols}

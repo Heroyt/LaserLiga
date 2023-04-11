@@ -1,0 +1,32 @@
+{layout '../@layout.latte'}
+
+{varType App\Models\Tournament\Team $team}
+
+{block body}
+	<h1>{lang 'Vaše registrace na turnaj'}: {$team->name}</h1>
+
+	<h2>{$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}</h2>
+
+	<div n:foreach="$team->getPlayers() as $player">
+		{if $player->captain}<strong>{lang 'Kapitán'}</strong>{/if}
+		{if $player->sub}<strong>{lang 'Náhradník'}</strong>{/if}
+		{$player->name} <i>{$player->nickname}</i> {$player->surname}
+		<ul>
+			<li n:ifset="$player->email">{$player->email}</li>
+			<li n:ifset="$player->phone">{$player->phone}</li>
+			<li>{$player->skill->getReadable()}</li>
+		</ul>
+	</div>
+
+	{ifset $team->tournament->prices}
+		<h3>{lang 'Platba'}</h3>
+		{$team->tournament->prices|noescape}
+	{/ifset}
+
+	<p class="mt-5">
+		<a href="{link 'tournament', 'registration', $team->tournament->id, $team->id, 'h' => $team->getHash()}"
+		   class="btn">
+			{lang 'Upravit registraci'}
+		</a>
+	</p>
+{/block}

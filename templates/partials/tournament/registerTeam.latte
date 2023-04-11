@@ -1,0 +1,259 @@
+{parameters App\Models\Tournament\Tournament $tournament, array $errors, array $values = []}
+
+{var string[] $teamNames = ['Borci', 'Četa 24', 'Velký kluci', 'Bruteforce', 'Šmoulata', 'Akta X', 'Bořiči mýtů', 'Bratři v triku', 'Laser bomby']}
+{var array $playerNames = [
+['Karel', 'Novák'],
+['Alena', 'Procházková'],
+['David', 'Svoboda'],
+['Kristýna', 'Dvořáková'],
+['Jan', 'Nový'],
+['Alexand', 'Malý'],
+['Klára', 'Horáková'],
+['Kateřina', 'Černá'],
+['Tomáš', 'Krejčí'],
+['Lubomír', 'Veselý'],
+['Andrea', 'Němcová'],
+['Kamil', 'Vávra'],
+['Dalibor', 'Horák'],
+['Eliška', 'Pokorná'],
+]}
+{var string $nickNames = ['Borec', 'Predátor', 'Terminátor', 'Princezna', 'Hulk', '007', 'Bábovka', 'Jeníček', 'Mařenka', 'Mrzout', 'Taťka šmoula', 'Šmoulinka', 'Rohlík', 'Drákula', 'Asterix', 'Obelix']}
+
+{var int $playerNameCount = count($playerNames)}
+{var int $nickNameCount = count($nickNames)}
+
+{do shuffle($playerNames)}
+{do shuffle($nickNames)}
+
+{dump $values}
+
+<div>
+	<label for="team-name" class="form-label required">
+		{lang 'Název týmu'}:
+	</label>
+	<input type="text" class="form-control {ifset $errors['team-name']}is-invalid{/ifset}"
+		   {ifset $errors['team-name']}aria-describedby="team-name-feedback"{/ifset} name="team-name" id="team-name"
+		   placeholder="{$teamNames|random}" value="{if !empty($values['team-name'])}{$values['team-name']}{/if}">
+	<div n:ifset="$errors['team-name']" id="team-name-feedback" class="invalid-feedback">
+		{if is_array($errors['team-name'])}
+			<ul>
+				<li n:foreach="$errors['team-name'] as $error">{$error}</li>
+			</ul>
+		{else}
+			{$errors['team-name']}
+		{/if}
+	</div>
+</div>
+
+<hr>
+
+<h3>{lang 'Hráči'}</h3>
+
+{for $i = 0; $i < $tournament->teamSize; $i++}
+	{include playerFields $i, $values, $playerNames, $playerNameCount, $nickNames, $nickNameCount}
+{/for}
+
+{if $tournament->subCount > 0}
+	<hr>
+
+	<h4>{lang 'Náhradníci'} ({lang 'nepovinné'})</h4>
+	{for $i = $tournament->teamSize; $i < $tournament->teamSize+$tournament->subCount; $i++}
+		{include playerFields $i, $values, $playerNames, $playerNameCount, $nickNames, $nickNameCount, true}
+	{/for}
+{/if}
+
+{define playerFields int $i, array $values, array $playerNames, int $playerNameCount, array $nickNames, int $nickNameCount, bool $sub = false}
+	{var bool $captain = $i === 0}
+	<div class="player-row my-3 pb-3 border-bottom">
+		<h5 n:if="$captain" class="text-start">
+			{lang 'Kapitán'}:
+			<a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm ms-2" data-bs-html="true"
+			   data-bs-toggle="popover" data-bs-title="{lang 'Kdo je kapitán?'}"
+			   data-track-content=""
+			   data-content-name="Tournament - register - Captain"
+			   data-content-piece="info button"
+			   data-bs-content="{lang 'Kapitán je velmi důležitá část týmu. On bude pravděpodobně ten, který bude za tým všechno řešit a komunikovat.<br>Proto bývají jeho kontaktní údaje vyžadovány více než u ostatních hráčů.'}">
+				<i class="fa-solid fa-question"></i>
+			</a>
+		</h5>
+		<h5 n:if="!$captain && !$sub" class="text-start">{lang 'Hráč'} {$i+1}:</h5>
+		<div class="form-check form-switch mb-3 align-items-center d-flex">
+			<input class="form-check-input mb-2" type="checkbox" role="switch" id="player-{$i}-registered"
+				   name="players[{$i}][registered]" value="1"
+				   {if !empty($values['players'][$i]['user'])}checked{/if}>
+			<label class="form-check-label mx-2" for="player-{$i}-registered">
+				{lang 'Registrovaný hráč'}
+			</label>
+			<a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm" data-bs-html="true"
+			   data-bs-toggle="popover" data-bs-title="{lang 'Co je to registrovaný hráč?'}"
+			   data-track-content=""
+			   data-content-name="Tournament - register - Registered player"
+			   data-content-piece="info button"
+			   data-bs-content="{sprintf(lang('Registrovaný hráč, je takový boží tvor, který má založený účet v portálu LaserLiga a čerpá jeho výhody (jako například souhrnné statistiky, historii her...).<br>Registrovaný hráč, ale nebyl vždy registrovaným hráčem.<br>Stal se jím pomocí <a href="%s" target="_blank">odkazu</a> v právém horním rohu v menu.'), Lsr\Core\App::getLink(['login']))}">
+				<i class="fa-solid fa-question"></i>
+			</a>
+		</div>
+		<input n:if="!empty($values['players'][$i]['id'])" type="hidden" name="players[{$i}][id]"
+														   value="{$values['players'][$i]['id']}">
+		<input n:if="$sub" type="hidden" name="players[{$i}][sub]" value="1">
+		<input n:if="$captain" type="hidden" name="players[{$i}][captain]" value="1">
+		<input type="hidden" class="player-user" name="players[{$i}][user]" id="player-{$i}-user"
+			   value="{if !empty($values['players'][$i]['user'])}{$values['players'][$i]['user']}{/if}">
+		<div class="d-flex flex-wrap justify-content-between align-items-start">
+			<div class="mb-2 mx-2 flex-fill-same registered-show {if empty($values['players'][$i]['user'])}d-none{/if}"
+				 style="min-width: 200px;">
+				<label for="player-{$i}-search" class="form-label required">
+					{lang 'Hledat hráče'}:
+				</label>
+				<input type="search" class="form-control" autocomplete="off"
+					   id="player-{$i}-search"
+					   placeholder="{lang 'Hledat...'}"
+					   value="{if !empty($values['players'][$i]['user'])}{$values['players'][$i]['user']} - {$values['players'][$i]['nickname'] ?? ''}{/if}">
+			</div>
+			{if $tournament->requirements->playerName !== App\Models\Tournament\Requirement::HIDDEN}
+				{embed playerField, $i, 'name', 'Jméno', $playerNames[$i % $playerNameCount][0], $errors['players-' . $i . '-name'] ?? null, $values['players'][$i]['name'] ?? null}
+					{block wrapperClass}
+						{if (!$sub && $tournament->requirements->playerName === App\Models\Tournament\Requirement::REQUIRED) || ($tournament->requirements->playerName === App\Models\Tournament\Requirement::CAPTAIN && $captain)}
+							required
+						{/if}
+					{/block}
+				{/embed}
+			{/if}
+			{if $tournament->requirements->playerSurname !== App\Models\Tournament\Requirement::HIDDEN}
+				{embed playerField, $i, 'surname', 'Příjmení', $playerNames[$i % $playerNameCount][1], $errors['players-' . $i . '-surname'] ?? null, $values['players'][$i]['surname'] ?? null}
+					{block wrapperClass}
+						{if (!$sub && $tournament->requirements->playerSurname === App\Models\Tournament\Requirement::REQUIRED) || ($tournament->requirements->playerSurname === App\Models\Tournament\Requirement::CAPTAIN && $captain)}
+							required
+						{/if}
+					{/block}
+				{/embed}
+			{/if}
+			{embed playerField, $i, 'nickname', 'Přezdívka', $nickNames[$i % $nickNameCount], $errors['players-' . $i . '-nickname'] ?? null, $values['players'][$i]['nickname'] ?? null}
+				{block wrapperClass}
+					registered-hide {if !empty($values['players'][$i]['user'])}d-none{/if} {if !$sub}required{/if}
+				{/block}
+				{block afterLabel}
+					<a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm ms-2"
+					   data-bs-html="true"
+					   data-bs-toggle="popover" data-bs-title="{lang 'Jak poznat dobrou přezdívku?'}"
+					   data-track-content=""
+					   data-content-name="Tournament - register - Nickname"
+					   data-content-piece="info button"
+					   data-bs-content="{lang 'Dobrá přezdívka je klíčovou součástí každého hráče.<br>Pokud přezdívku ještě nemáte, je dobré myslet na následující body:<ol><li><strong>Unikátní</strong> - Přezdívka není křestní jméno. Je jen vaše. Snažte se vyvarovat běžným přezdívkám jako <i>Terminátor</i>, ale i jménům jako <i>Honza</i>.</li><li><strong>Dobře vyslovitelná</strong> - Náhodná směť čísel a písmen také není ideální.</li><li><strong>Osobní</strong> - Přezdívka se vám musí líbit. Přemýšlejte nad tím, že vás ostatní hráči budou přezdívkou oslovovat.</li></ol>'}">
+						<i class="fa-solid fa-question"></i>
+					</a>
+				{/block}
+			{/embed}
+			{if $tournament->requirements->playerEmail !== App\Models\Tournament\Requirement::HIDDEN}
+				{embed playerField, $i, 'email', 'E-mail', 'mail@mail.cz', $errors['players-' . $i . '-email'] ?? null, $values['players'][$i]['email'] ?? null, 'email'}
+					{block wrapperClass}
+						registered-hide {if !empty($values['players'][$i]['user'])}d-none{/if}
+						{if (!$sub && $tournament->requirements->playerEmail === App\Models\Tournament\Requirement::REQUIRED) || ($tournament->requirements->playerEmail === App\Models\Tournament\Requirement::CAPTAIN && $captain)}
+							required
+						{/if}
+					{/block}
+				{/embed}
+			{/if}
+			{if $tournament->requirements->playerPhone !== App\Models\Tournament\Requirement::HIDDEN}
+				{embed playerField, $i, 'phone', 'Telefon', '123456789', $errors['players-' . $i . '-phone'] ?? null, $values['players'][$i]['phone'] ?? null, 'tel'}
+					{block wrapperClass}
+						{if (!$sub && $tournament->requirements->playerPhone === App\Models\Tournament\Requirement::REQUIRED) || ($tournament->requirements->playerPhone === App\Models\Tournament\Requirement::CAPTAIN && $captain)}
+							required
+						{/if}
+					{/block}
+				{/embed}
+			{/if}
+			{if $tournament->requirements->playerBirthYear !== App\Models\Tournament\Requirement::HIDDEN}
+				{embed playerField, $i, 'birthYear', 'Rok narození', date('Y'), $errors['players-' . $i . '-birthYear'] ?? null, $values['players'][$i]['birthYear'] ?? null, 'number'}
+					{block wrapperClass}
+						{if (!$sub && $tournament->requirements->playerBirthYear === App\Models\Tournament\Requirement::REQUIRED) || ($tournament->requirements->playerBirthYear === App\Models\Tournament\Requirement::CAPTAIN && $captain)}
+							required
+						{/if}
+					{/block}
+				{/embed}
+			{/if}
+			<div n:if="$tournament->requirements->playerSkill !== App\Models\Tournament\Requirement::HIDDEN"
+					class="mb-2 mx-2 flex-fill-same {if (!$sub && $tournament->requirements->playerSkill === App\Models\Tournament\Requirement::REQUIRED) || ($tournament->requirements->playerSkill === App\Models\Tournament\Requirement::CAPTAIN && $captain)}required{/if}"
+					style="min-width: 200px;">
+				<label for="player-{$i}-skill" class="form-label">
+					{lang 'Herní úroveň hráče'}:
+				</label>
+				<a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm ms-2"
+				   data-bs-html="true"
+				   data-bs-toggle="popover" data-bs-title="{lang 'Jak poznám svou herní úroveň?'}"
+				   data-track-content=""
+				   data-bs-placement="top"
+				   data-content-name="Tournament - register - Skill"
+				   data-content-piece="info button"
+				   data-bs-content="{lang 'Herní úroveň označuje odhadovanou schopnost hráče v aréně.<br>Pro registrované hráče se snaží odhadnout sama na základě jejich hodnocení.'}
+				   {='<div class="my-3">' . lang('<strong>Začátečník</strong> je někdo, kdo má většinou odehráno jen pár her a v aréně se stále rozkoukává.') . '</div>'}
+				   {='<div class="my-3">' . lang('<strong>Částečně pokročilý</strong> už má pár her za sebou. Zvládá lépe střílet a neběhá jen slepě po aréně.') . '</div>'}
+				   {='<div class="my-3">' . lang('<strong>Pokročilý hráč</strong> většinou hraje alespoň trochu pravidelně. Nad svou hrou přemýšlí a nemá problém svůj cíl trefit i na větší vzdálenost.') . '</div>'}
+				   {='<div class="my-3">' . lang('<strong>Profík</strong> je ztělesněním laseru samotného. Své cíle trefuje s chirurgicou přesností a aréna je jeho domovem. Někteří legendární střelcí prý ohýbají laser i za roh.<br>Každopádně je to pravidelný hráč s bohatou zkušeností.') . '</div>'}
+					">
+					<i class="fa-solid fa-question"></i>
+				</a>
+				<select name="players[{$i}][skill]" id="player-{$i}-skill"
+						class="form-select player-skill {ifset $errors['players-' . $i . '-skill']}is-invalid{/ifset}"
+						{ifset $errors['players-' . $i . '-skill']}aria-describedby="player-{$i}-skill-feedback"{/ifset}>
+					<option {if isset($values['players'][$i]['skill']) && $values['players'][$i]['skill'] === 'BEGINNER'}selected{/if}
+							value="BEGINNER">
+						{lang 'Začátečník'}
+					</option>
+					<option {if isset($values['players'][$i]['skill']) && $values['players'][$i]['skill'] === 'SOMEWHAT_ADVANCED'}selected{/if}
+							value="SOMEWHAT_ADVANCED">
+						{lang 'Částečně pokročilý'}
+					</option>
+					<option {if isset($values['players'][$i]['skill']) && $values['players'][$i]['skill'] === 'ADVANCED'}selected{/if}
+							value="ADVANCED">
+						{lang 'Pokročilý'}
+					</option>
+					<option {if isset($values['players'][$i]['skill']) && $values['players'][$i]['skill'] === 'PRO'}selected{/if}
+							value="PRO">
+						{lang 'Profík'}
+					</option>
+				</select>
+				<div n:ifset="$errors['players-' . $i . '-skill']" id="player-{$i}-skill-feedback"
+																   class="invalid-feedback">
+					{if is_array($errors['players-' . $i . '-skill'])}
+						<ul>
+							<li n:foreach="$errors['players-' . $i . '-skill'] as $error">{$error}</li>
+						</ul>
+					{else}
+						{$errors['players-' . $i . '-skill']}
+					{/if}
+				</div>
+			</div>
+		</div>
+	</div>
+{/define}
+
+{define playerField int $i, string $name, string $label, string $placeholder, string|string[]|null $errors, string|null $value, string $type = 'text'}
+	<div class="mb-2 mx-2 flex-fill-same {block wrapperClass}{/block}" style="min-width: 200px;">
+		{block label}
+			<label for="player-{$i}-{$name}" class="form-label">
+				{lang $label}:
+			</label>
+		{/block}
+		{block afterLabel}
+		{/block}
+		{block input}
+			<input type="{$type}" class="form-control player-{$name} {ifset $errors}is-invalid{/ifset}"
+				   {ifset $errors}aria-describedby="player-{$i}-{$name}-feedback"{/ifset}
+				   name="players[{$i}][{$name}]" id="player-{$i}-{$name}"
+				   placeholder="{$placeholder}"
+				   value="{if !empty($value)}{$value}{/if}">
+		{/block}
+		{block errors}
+			<div n:ifset="$errors" id="player-{$i}-{$name}-feedback" class="invalid-feedback">
+				{if is_array($errors)}
+					<ul>
+						<li n:foreach="$errors as $error">{$error}</li>
+					</ul>
+				{else}
+					{$errors}
+				{/if}
+			</div>
+		{/block}
+	</div>
+{/define}

@@ -3,6 +3,7 @@ import axios from 'axios';
 import route from "./router";
 import initDatePickers from "./datePickers";
 import {initClearButtons} from "./pages/utils";
+import {Popover, Tab} from 'bootstrap';
 
 axios.defaults.headers.post['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.get['X-Requested-With'] = 'XMLHttpRequest';
@@ -46,6 +47,10 @@ window.addEventListener("load", () => {
 	// Auto-save
 	initAutoSaveForm();
 
+	// Popovers
+	const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+	const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl))
+
 	// Toggles
 	document.querySelectorAll('[data-toggle="submit"]').forEach(element => {
 		element.addEventListener("change", () => {
@@ -63,7 +68,23 @@ window.addEventListener("load", () => {
 				window.scrollTo(0, target.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop));
 			}, delay);
 		});
-	})
+	});
+
+	document.querySelectorAll('[role="tablist"]').forEach(wrap => {
+		const tabs = wrap.querySelectorAll('[data-bs-toggle="tab"]');
+		console.log(wrap, window.location.hash);
+		tabs.forEach(tabEl => {
+			const target = tabEl.dataset.bsTarget ?? tabEl.getAttribute('href');
+			const tab = Tab.getOrCreateInstance(tabEl);
+			console.log(target, tab, tabEl);
+			if (window.location.hash === target) {
+				tab.show();
+			}
+			tabEl.addEventListener('shown.bs.tab', () => {
+				window.location.hash = target;
+			});
+		});
+	});
 
 	initCopyToClipboard();
 

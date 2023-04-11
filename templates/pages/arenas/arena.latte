@@ -31,33 +31,45 @@
 	</div>
 	<ul class="nav nav-tabs mt-4" id="arena-tabs" role="tablist" data-track-content="" data-content-name="Arena tabs">
 		<li class="nav-item" role="presentation">
-			<button class="nav-link active" id="stats-tab-control" data-bs-toggle="tab"
-					data-bs-target="#stats-tab"
-					type="button" role="tab" aria-controls="stats-tab" aria-selected="true"
-					data-content-piece="Stats">
+			<a class="nav-link active" id="stats-tab-control" data-bs-toggle="tab"
+			   data-bs-target="#stats-tab"
+			   href="#stats-tab"
+			   role="tab" aria-controls="stats-tab" aria-selected="true"
+			   data-content-piece="Stats">
 				{lang 'Statistiky'}
-			</button>
+			</a>
 		</li>
 		<li class="nav-item" role="presentation">
-			<button class="nav-link" id="music-tab-control" data-bs-toggle="tab"
-					data-bs-target="#music-tab"
-					type="button" role="tab" aria-controls="music-tab" aria-selected="false"
-					data-content-piece="Music">
+			<a class="nav-link" id="music-tab-control" data-bs-toggle="tab"
+			   data-bs-target="#music-tab"
+			   href="#music-tab"
+			   role="tab" aria-controls="music-tab" aria-selected="false"
+			   data-content-piece="Music">
 				{lang 'Hudební módy'}
-			</button>
+			</a>
 		</li>
 		<li class="nav-item" role="presentation">
-			<button class="nav-link" id="games-tab-control" data-bs-toggle="tab"
-					data-bs-target="#games-tab"
-					type="button" role="tab" aria-controls="games-tab" aria-selected="false"
-					data-content-piece="Games">
+			<a class="nav-link" id="games-tab-control" data-bs-toggle="tab"
+			   data-bs-target="#games-tab"
+			   href="#games-tab"
+			   role="tab" aria-controls="games-tab" aria-selected="false"
+			   data-content-piece="Games">
 				{lang 'Všechny hry'}
-			</button>
+			</a>
 		</li>
 		<li class="nav-item" role="presentation">
 			<a href="{link ['user', 'leaderboard', $arena->id]}" class="nav-link" id="leaderboard-control"
 			   data-content-piece="Music">
 				{lang 'Žebříček'}
+			</a>
+		</li>
+		<li n:if="count($arena->getPlannedTournaments()) > 0" class="nav-item" role="presentation">
+			<a class="nav-link" id="tournaments-tab-control" data-bs-toggle="tab"
+			   data-bs-target="#tournaments-tab"
+			   href="#tournaments-tab"
+			   role="tab" aria-controls="tournaments-tab" aria-selected="false"
+			   data-content-piece="Tournaments">
+				{lang 'Plánované turnaje'}
 			</a>
 		</li>
 	</ul>
@@ -73,6 +85,11 @@
 		<div class="tab-pane fade" id="games-tab" role="tabpanel" aria-labelledby="games-tab-control"
 			 data-track-content="" data-content-name="Arena games tab" tabindex="0">
 			{include '../../partials/arena/tabs/games.latte'}
+		</div>
+		<div n:if="count($arena->getPlannedTournaments()) > 0"
+				class="tab-pane fade" id="tournaments-tab" role="tabpanel" aria-labelledby="tournaments-tab-control"
+				data-track-content="" data-content-name="Arena tournaments tab" tabindex="0">
+			{include '../../partials/arena/tabs/tournaments.latte'}
 		</div>
 	</div>
 {/block}

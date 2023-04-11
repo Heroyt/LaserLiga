@@ -1,0 +1,39 @@
+.autocomplete {
+	background: var(--background);
+	border: none;
+	border-bottom-left-radius: var(--bs-border-radius);
+	border-bottom-right-radius: var(--bs-border-radius);
+	box-sizing: border-box;
+	font-size: .9rem;
+	max-height: 150px !important;
+	opacity: .9;
+	overflow: auto;
+	z-index: 1000;
+
+	* {
+		font: inherit;
+	}
+
+	> div {
+		border: 1px solid var(--bs-border-color);
+		padding: .4rem;
+
+		&:hover:not(.group),
+		&.selected {
+			background: var(--background-subtle);
+			cursor: pointer;
+			font-weight: bold;
+		}
+
+		&:nth-last-child(1) {
+			border-bottom-left-radius: var(--bs-border-radius);
+			border-bottom-right-radius: var(--bs-border-radius);
+		}
+	}
+
+	// Reset selected styles on hover
+	&:hover > .selected:not(:hover) {
+		background: transparent;
+		font-weight: normal;
+	}
+}

@@ -72,5 +72,16 @@ export default function route(pageInfo: PageInfo): void {
 				module.default();
 			});
 			break;
+		case 'tournament-register':
+		case 'tournament-register-process':
+		case 'tournament-register-update':
+		case 'tournament-register-update-process':
+			import(
+				/* webpackChunkName: "tournament-register" */
+				'./pages/tournament/register'
+				).then(module => {
+				module.default();
+			});
+			break;
 	}
 }

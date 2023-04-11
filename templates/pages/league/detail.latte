@@ -1,0 +1,42 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Tournament\League $league}
+
+{define content}
+	<p class="text-start">
+		<a href="{link 'arena', $league->arena->id}" class="btn btn-info">
+			<i class="fa-solid fa-angle-left"></i>
+			{lang 'Zpět na arénu'}
+		</a>
+	</p>
+	<img n:ifset="$league->image" src="{$league->getImageUrl()}" alt="{$league->name}"
+								  class="img-fluid mx-auto d-block mb-4" style="max-height: 400px;">
+	<h1>{$league->name}</h1>
+
+	<section n:ifset="$league->description" id="league-description" class="mt-5">
+		{$league->description|noescape}
+	</section>
+
+	<h2 class="mt-5">{lang 'Turnaje'}</h2>
+	<div class="d-flex flex-column align-items-center">
+		<a n:foreach="$league->getTournaments() as $tournament" href="{link 'tournament', $tournament->id}"
+																class="card my-3 w-100" style="max-width: 50rem;">
+			<div class="row g-0 {if $iterator->counter0 % 2 === 1}flex-md-row-reverse{/if}">
+				<div class="col-md-4">
+					<img n:ifset="$tournament->image" src="{$tournament->getImageUrl()}" alt="{$tournament->name}"
+													  class="img-fluid">
+				</div>
+				<div class="col-md-8 d-flex align-items-center">
+					<div class="card-body">
+						<h3 class="card-title">{$tournament->name}</h3>
+						<div class="text-center">{$tournament->start->format('d.m.Y')}</div>
+						<div class="text-center mt-4">
+							<button href="{link 'tournament', $tournament->id}"
+									class="btn btn-primary">{lang 'Informace'}</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</a>
+	</div>
+{/define}

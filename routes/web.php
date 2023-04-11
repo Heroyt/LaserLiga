@@ -1,14 +1,17 @@
 <?php
 
+use App\Controllers\Api\Players;
 use App\Controllers\Arenas;
 use App\Controllers\Dashboard;
 use App\Controllers\ForgotPassword;
 use App\Controllers\Games;
 use App\Controllers\Index;
 use App\Controllers\Lang;
+use App\Controllers\LeagueController;
 use App\Controllers\Login;
 use App\Controllers\MailTestController;
 use App\Controllers\Questionnaire;
+use App\Controllers\TournamentController;
 use App\Core\Middleware\CSRFCheck;
 use Lsr\Core\Auth\Middleware\LoggedOut;
 use Lsr\Core\Routing\Route;
@@ -29,6 +32,7 @@ Route::group('/g')
 		 ->get('/{code}', [Games::class, 'show'])->name('game-alias');
 
 Route::group('/players')
+		 ->get('/find', [Players::class, 'find'])
 		 ->get('/leaderboard', [Games::class, 'todayLeaderboard'])
 		 ->get('/leaderboard/{system}', [Games::class, 'todayLeaderboard'])
 		 ->get('/leaderboard/{system}/{date}', [Games::class, 'todayLeaderboard'])
@@ -77,3 +81,14 @@ Route::group()
 		 ->post('/login/forgot/reset', [ForgotPassword::class, 'reset'])->middleware(new CSRFCheck('reset'))
 		 ->get('/register', [Login::class, 'register'])->name('register')
 		 ->post('/register', [Login::class, 'processRegister']);
+
+// Tournament
+Route::group('/tournament')
+		 ->get('/{id}', [TournamentController::class, 'detail'])
+		 ->get('/{id}/register', [TournamentController::class, 'register'])->name('tournament-register')
+		 ->post('/{id}/register', [TournamentController::class, 'processRegister'])->name('tournament-register-process')->middleware(new CSRFCheck('tournament-register'))
+		 ->get('/registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])->name('tournament-register-update')
+		 ->post('/registration/{tournamentId}/{registration}', [TournamentController::class, 'processUpdateRegister'])->name('tournament-register-update-process')->middleware(new CSRFCheck('tournament-update-register'));
+
+Route::group('/league')
+		 ->get('/{id}', [LeagueController::class, 'detail']);

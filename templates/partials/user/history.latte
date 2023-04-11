@@ -136,26 +136,27 @@
 	{else}
 		<input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
 		<input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
-		<table class="table table-striped data-table" id="user-history-table">
-			<thead>
-			<tr>
-				{include tableHead, $fields, $orderBy, $desc}
-			</tr>
-			</thead>
-			<tbody>
-			<tr n:foreach="$games as $game" data-code="{$game->code}">
-				{var App\GameModels\Game\Player $userPlayer = null}
+		<div class="table-responsive">
+			<table class="table table-striped data-table" id="user-history-table">
+				<thead>
+				<tr>
+					{include tableHead, $fields, $orderBy, $desc}
+				</tr>
+				</thead>
+				<tbody>
+				<tr n:foreach="$games as $game" data-code="{$game->code}">
+					{var App\GameModels\Game\Player $userPlayer = null}
 				{foreach $game->getPlayers() as $player}
-					{varType App\GameModels\Game\Player $player}
-					{if isset($player->user) && $player->user->id === $user->id}
-						{do $userPlayer = $player}
-						{breakIf true}
-					{/if}
-				{/foreach}
-				<td>{$game->start->format('d.m.Y H:i')}</td>
-				<td>{$game->arena->getLogoHtml()|noescape}</td>
-				<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
-				<td n:ifset="$fields['players']">
+						{varType App\GameModels\Game\Player $player}
+						{if isset($player->user) && $player->user->id === $user->id}
+							{do $userPlayer = $player}
+							{breakIf true}
+						{/if}
+					{/foreach}
+					<td>{$game->start->format('d.m.Y H:i')}</td>
+					<td>{$game->arena->getLogoHtml()|noescape}</td>
+					<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
+					<td n:ifset="$fields['players']">
 						<span n:foreach="$game->getPlayersSorted() as $player"
 							n:tag="isset($player->user) ? 'a' : 'span'"
 								{ifset $player->user}
@@ -166,37 +167,38 @@
 						class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
 					{$player->position}.&nbsp;{$player->name}
 				</span>
-				</td>
-				<td n:ifset="$fields['score']">
-					{$userPlayer->score} <i class="fa-solid fa-star"></i>
-				</td>
-				<td n:ifset="$fields['accuracy']">
-					{$userPlayer->accuracy}&nbsp;%
-				</td>
-				<td n:ifset="$fields['shots']">
-					{$userPlayer->shots}
-				</td>
-				<td n:ifset="$fields['hits']">
-					{$userPlayer->hits}
-				</td>
-				<td n:ifset="$fields['deaths']">
-					{$userPlayer->deaths}
-				</td>
-				<td n:ifset="$fields['kd']">
-					{($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
-				</td>
-				<td n:ifset="$fields['skill']">
-					{$userPlayer->skill} <i class="fa-solid fa-star"></i>
-				</td>
-				<td>
-					<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
-					   title="{lang 'Výsledky'}">
-						<i class="fa-solid fa-eye"></i>
-					</a>
-				</td>
-			</tr>
-			</tbody>
-		</table>
+					</td>
+					<td n:ifset="$fields['score']">
+						{$userPlayer->score} <i class="fa-solid fa-star"></i>
+					</td>
+					<td n:ifset="$fields['accuracy']">
+						{$userPlayer->accuracy}&nbsp;%
+					</td>
+					<td n:ifset="$fields['shots']">
+						{$userPlayer->shots}
+					</td>
+					<td n:ifset="$fields['hits']">
+						{$userPlayer->hits}
+					</td>
+					<td n:ifset="$fields['deaths']">
+						{$userPlayer->deaths}
+					</td>
+					<td n:ifset="$fields['kd']">
+						{($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
+					</td>
+					<td n:ifset="$fields['skill']">
+						{$userPlayer->skill} <i class="fa-solid fa-star"></i>
+					</td>
+					<td>
+						<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
+						   title="{lang 'Výsledky'}">
+							<i class="fa-solid fa-eye"></i>
+						</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
 	{/if}
 {/block}
 
