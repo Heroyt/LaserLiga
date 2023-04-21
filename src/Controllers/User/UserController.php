@@ -10,6 +10,7 @@ use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\Models\Arena;
 use App\Models\Auth\User;
+use App\Services\PlayerUserService;
 use DateTimeImmutable;
 use Dibi\Row;
 use Exception;
@@ -40,6 +41,7 @@ class UserController extends AbstractUserController
 		protected Latte              $latte,
 		protected readonly Auth      $auth,
 		protected readonly Passwords $passwords,
+		private readonly PlayerUserService $userService
 	) {
 		parent::__construct($latte);
 	}
@@ -641,11 +643,23 @@ class UserController extends AbstractUserController
 		];
 		$trends['sumDeaths'] = [
 			'before' => $lastMonthSumDeaths,
-			'now'    => $thisMonthSumDeaths,
-			'diff'   => $thisMonthSumDeaths - $lastMonthSumDeaths,
+			'now' => $thisMonthSumDeaths,
+			'diff' => $thisMonthSumDeaths - $lastMonthSumDeaths,
 		];
 
 		$this->respond($trends);
+	}
+
+	public function findGames(): void {
+		$this->title = 'Najít hry - %s';
+		$this->titleParams[] = $this->params['loggedInUser']->name;
+		$this->description = 'Najít další hry hráče pro přiřazení.';
+		$this->params['possibleMatches'] = $this->userService->scanPossibleMatches($this->params['loggedInUser']);
+		$this->params['games'] = [];
+		foreach ($this->params['possibleMatches'] as $match) {
+			$this->params['games'][] = $match->getGame();
+		}
+		$this->view('pages/profile/findGames');
 	}
 
 }

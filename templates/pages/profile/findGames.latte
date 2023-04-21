@@ -1,0 +1,84 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Auth\User $loggedInUser}
+{varType App\Models\PossibleMatch[] $possibleMatches}
+{varType App\GameModels\Game\Game[] $games}
+
+{block addHead}
+	{\App\Tools\Color::getGamesColor($games)|noescape}
+{/block}
+
+{block content}
+	<p class="text-start">
+		<a href="{link ['user', $loggedInUser->player->getCode()]}" class="btn btn-warning">
+			<i class="fa-solid fa-angle-left"></i> {lang 'Profil hráče'}
+		</a>
+	</p>
+	<h2>{lang 'Najít mé hry'} ({count($possibleMatches)})</h2>
+	<p class="my-5">{lang 'Zde se zobrazují všechny hry, které nemáte přiřazené k účtu, ale mohli by být vaše. Hry se párují podle domovské arény a přezdívky.'}</p>
+
+	{if empty($possibleMatches)}
+		<p class="text-center my-5 fs-3">{lang 'Žádné další hry nebyli nalezeny'}</p>
+	{else}
+		<div class="table-responsive">
+			<table class="table table-striped data-table" id="user-possible-matches-table">
+				<thead>
+				<tr>
+					<th>
+						{lang 'Datum'}
+					</th>
+					<th>
+						{lang 'Herní mód'}
+					</th>
+					<th>
+						{lang 'Hráči'}
+					</th>
+					<th></th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr n:foreach="$possibleMatches as $match" data-code="{$match->code}" data-id="{$match->id}">
+					{var App\GameModels\Game\Game $game = $match->getGame()}
+					{var App\GameModels\Game\Player|null $playerMatch = null}
+					<td>{$game->start->format('d.m.Y H:i')}</td>
+					<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
+					<td>
+						<span n:foreach="$game->getPlayersSorted() as $player"
+								{varType App\GameModels\Game\Player $player}
+								n:tag="isset($player->user) ? 'a' : 'span'"
+								{ifset $player->user}
+									href="{link ['user', $player->user->getCode()]}"
+								{/ifset}
+								data-toggle="tooltip"
+								title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
+								class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+							{if !isset($player->user) && comparePlayerNames($loggedInUser->name, $player->name)}
+								{do $playerMatch = $player}
+							{/if}
+							{$player->position}.&nbsp;{$player->name}
+						</span>
+					</td>
+					<td>
+					<span class="btn-group">
+					<button class="setMe btn btn-success" data-id="{$playerMatch->id}" data-system="{$game::SYSTEM}"
+							title="{lang 'Přivlastnit'}"
+							data-toggle="tooltip">
+						<i class="fa-solid fa-check"></i>
+					</button>
+					<button class="setNotMe btn btn-danger" data-id="{$playerMatch->id}" data-system="{$game::SYSTEM}"
+							title="{lang 'To nejsem já'}"
+							data-toggle="tooltip">
+						<i class="fa-regular fa-xmark"></i>
+					</button>
+					<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
+					   title="{lang 'Výsledky'}">
+						<i class="fa-solid fa-eye"></i>
+					</a>
+						</span>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	{/if}
+{/block}

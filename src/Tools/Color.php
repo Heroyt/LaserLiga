@@ -3,6 +3,7 @@
 namespace App\Tools;
 
 use App\GameModels\Game\Game;
+use Lsr\Helpers\Tools\Strings;
 
 class Color
 {

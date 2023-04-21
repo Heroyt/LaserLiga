@@ -6,7 +6,9 @@ use App\GameModels\Factory\PlayerFactory;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
+use App\Models\PossibleMatch;
 use App\Services\PlayerUserService;
+use JsonException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -29,11 +31,39 @@ class UserGameController extends AbstractUserController
 		$this->user = $this->auth->getLoggedIn();
 	}
 
-	public function setMe(Request $request) : never {
+	/**
+	 * @param Request $request
+	 * @return never
+	 * @throws ValidationException
+	 * @throws JsonException
+	 */
+	public function setNotMe(Request $request): never {
 		if (!isset($this->user)) {
 			$this->respond(['error' => 'User is not logged in'], 401);
 		}
-		$playerId = (int) $request->getPost('id', 0);
+		// @phpstan-ignore-next-line
+		$matchId = (int)$request->getPost('id', 0);
+		try {
+			$match = PossibleMatch::get($matchId);
+		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
+			$this->respond(['error' => 'Possible match not found'], 404);
+		}
+		if ($match->user->id !== $this->user->id) {
+			$this->respond(['error' => 'Cannot set match. The match ID and logged in user do not match.'], 400);
+		}
+
+		$match->matched = false;
+		if (!$match->save()) {
+			$this->respond(['error' => 'Save failed'], 500);
+		}
+		$this->respond(['status' => 'ok']);
+	}
+
+	public function setMe(Request $request): never {
+		if (!isset($this->user)) {
+			$this->respond(['error' => 'User is not logged in'], 401);
+		}
+		$playerId = (int)$request->getPost('id', 0);
 		$player = PlayerFactory::getById($playerId, ['system' => $request->getPost('system', 'evo5')]);
 		if (!isset($player)) {
 			$this->respond(['error' => 'Player not found'], 404);
@@ -54,11 +84,11 @@ class UserGameController extends AbstractUserController
 		$this->respond(['status' => 'ok']);
 	}
 
-	public function setGroupMe(Request $request) : never {
+	public function setGroupMe(Request $request): never {
 		if (!isset($this->user)) {
 			$this->respond(['errors' => ['User is not logged in']], 401);
 		}
-		$groupId = (int) $request->getPost('id', 0);
+		$groupId = (int)$request->getPost('id', 0);
 		try {
 			$group = GameGroup::get($groupId);
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
@@ -88,7 +118,7 @@ class UserGameController extends AbstractUserController
 			foreach ($game->getPlayers() as $player) {
 				if (comparePlayerNames($normalizedName, $player->name)) {
 					if (!$this->playerUserService->setPlayerUser($this->user, $player)) {
-						$errors[] = 'Failed to save player '.$player::SYSTEM.' #'.$player->id;
+						$errors[] = 'Failed to save player ' . $player::SYSTEM . ' #' . $player->id;
 					}
 					break;
 				}
@@ -104,13 +134,13 @@ class UserGameController extends AbstractUserController
 		$this->respond(['status' => 'ok']);
 	}
 
-	public function updateStats(User $user) : never {
+	public function updateStats(User $user): never {
 		$this->playerUserService->updatePlayerStats($user);
 		$this->respond($user->createOrGetPlayer()->stats);
 	}
 
-	public function updateAllUsersStats(Request $request) : never {
-		$from = (int) $request->getGet('from', 0);
+	public function updateAllUsersStats(Request $request): never {
+		$from = (int)$request->getGet('from', 0);
 		$players = LigaPlayer::query()->where('[id_user] >= %i', $from)->get();
 		$response = [];
 		foreach ($players as $player) {

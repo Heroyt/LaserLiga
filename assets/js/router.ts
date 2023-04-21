@@ -45,6 +45,14 @@ export default function route(pageInfo: PageInfo): void {
 				module.default();
 			});
 			break;
+		case 'find-my-games':
+			import(
+				/* webpackChunkName: "find-my-games" */
+				'./pages/user/findGames'
+				).then(module => {
+				module.default();
+			});
+			break;
 		case 'dashboard':
 		case 'public-profile':
 			import(

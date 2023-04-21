@@ -4,6 +4,7 @@
 {varType Dibi\Row[] $lastGames}
 
 {var bool $showCompare = isset($loggedInUser) && $loggedInUser->id !== $user->id}
+{var bool $currentUser = isset($loggedInUser) && $loggedInUser->id === $user->id}
 
 <div class="player-profile">
 	<header>
@@ -102,6 +103,12 @@
 
 	<section class="last-games">
 		<h2 class="mb-3">{lang 'Poslední hry'}:</h2>
+		<p n:if="$currentUser">
+			<a href="{link 'user', 'findgames'}" class="btn btn-primary">
+				<i class="fa-solid fa-magnifying-glass-plus"></i>
+				{lang 'Najít další hry'}
+			</a>
+		</p>
 		{if empty($lastGames)}
 			<p class="text-center">{lang 'Hráč nemá zatím žádné hry'}</p>
 		{else}
