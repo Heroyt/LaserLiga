@@ -100,24 +100,28 @@
 		</div>
 	</div>
 
-	{*<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="false">
+	<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="true">
 		<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title">{lang 'Velký květnový turnaj 2022!'}</h5>
+					<h5 class="modal-title">{lang 'Písecký pohár 2023!'}</h5>
 					<button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
 							aria-label="{lang 'Close', context: 'actions'}">
 						<i class="fa-solid fa-xmark"></i>
 					</button>
 				</div>
 				<div class="modal-body text-center">
+					<img src="{getUrl}upload/tournament/1-6432805c4a1d2.png" alt="Písecký pohár 2023"
+						 class="img-fluid mb-3">
 					<h3 class="text-center">{lang 'Přihlaš i svůj (vý)herní tým na pravidelný turnaj!'}</h3>
-					<h4>29.5.2022</h4>
+					<h4>{lang 'Začátečníci'} - 30.4.2023</h4>
+					<h4>{lang 'Pokročilí'} - 28.5.2023</h4>
+					<h4>{lang 'Mazáci'} - 25.6.2023</h4>
 					<p>{lang '3 kategorie - začátečníci, pokročilí a mazáci'}</p>
 					<p>{lang 'Možnost tréninkových her za 50 Kč / hráč / hra'}</p>
 					<p>{lang 'Domluv si trénink s profíky!'}</p>
 					<p class="mt-3">
-						<a href="https://www.lasergameclub.cz/akce/turnaj" class="btn btn-primary btn-lg"
+						<a href="{link 'league', 1}" class="btn btn-primary btn-lg"
 						   target="_blank">
 							Informace a přihláška
 						</a>
@@ -125,7 +129,7 @@
 				</div>
 			</div>
 		</div>
-	</div>*}
+	</div>
 {/define}
 
 {define resultsWin}

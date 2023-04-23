@@ -28,17 +28,19 @@ class Tournament extends Model
 	#[OneToMany(class: Group::class)]
 	public array $groups = [];
 
-	public string  $name;
+	public string $name;
 	public ?string $description = null;
 
-	public ?string      $image          = null;
-	public ?string      $prices         = null;
-	public ?string      $resultsSummary = null;
-	public GameModeType $format         = GameModeType::TEAM;
-	public int          $teamSize       = 1;
-	public int          $subCount       = 0;
+	public ?int $teamLimit = null;
 
-	public bool $active              = true;
+	public ?string $image = null;
+	public ?string $prices = null;
+	public ?string $resultsSummary = null;
+	public GameModeType $format = GameModeType::TEAM;
+	public int $teamSize = 1;
+	public int $subCount = 0;
+
+	public bool $active = true;
 	public bool $registrationsActive = true;
 
 	public DateTimeInterface  $start;

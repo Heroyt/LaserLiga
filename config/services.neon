@@ -2,10 +2,10 @@ includes:
 	- services-common.neon
 parameters:
 	mail:
-		host: mx.hotnet.cz
-		username: app@laserliga.cz
-		password: z#LWJrF7g5y
-		encryption: 'ssl'
+		host: 'mx.hotnet.cz'
+		username: 'app@laserliga.cz'
+		password: 'z#LWJrF7g5y'
+		encryption: 'tsl'
 services:
 	mailer: Nette\Mail\SmtpMailer(
 		host: %mail.host%,

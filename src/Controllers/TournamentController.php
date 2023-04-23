@@ -19,9 +19,11 @@ use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
+use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\AuthInterface;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Logging\Logger;
 use Nette\Mail\SendException;
 use Nette\Utils\Validators;
 
@@ -108,6 +110,9 @@ class TournamentController extends Controller
 		if (empty($_POST['gdpr'])) {
 			$this->params['errors']['gdpr'] = lang('Je potřeba souhlasit se zpracováním osobních údajů.');
 		}
+		if (isset($tournament->teamLimit) && count($tournament->getTeams()) >= $tournament->teamLimit) {
+			$this->params['errors'][] = lang('Na turnaj se již nelze přihlásit. Turnaj je plný.');
+		}
 
 		if (empty($this->params['errors'])) {
 			DB::getConnection()->begin();
@@ -119,11 +124,11 @@ class TournamentController extends Controller
 		if (empty($this->params['errors'])) {
 			DB::getConnection()->commit();
 			$request->addPassNotice(lang('Tým byl úspěšně registrován.'));
-			$message = new Message('tournament/registrationTeam');
+			$message = new Message('mails/tournament/registrationTeam');
 			$message->setSubject(
 				sprintf(
 					lang('Registrace na turnaj - %s'),
-					$tournament->name.' '.$tournament->start->format('d.m.Y')
+					$tournament->name . ' ' . $tournament->start->format('d.m.Y')
 				)
 			);
 			$message->params['team'] = $team;
@@ -135,7 +140,9 @@ class TournamentController extends Controller
 			}
 			try {
 				$this->mail->send($message);
-			} catch (SendException) {
+			} catch (SendException $e) {
+				$logger = new Logger(LOG_DIR, 'mail');
+				$logger->exception($e);
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
 			App::redirect(['tournament', 'registration', $tournament->id, $team->id, 'h' => $team->getHash()], $request);
@@ -260,14 +267,38 @@ class TournamentController extends Controller
 	private function updateRegistrationTeamData(Request $request, Team $team, Tournament $tournament) : void {
 		// @phpstan-ignore-next-line
 		$team->name = $request->getPost('team-name');
+
+		// Process team logo upload
+		if (isset($_FILES['team-image'])) {
+			$image = UploadedFile::parseUploaded('team-image');
+			if (isset($image) && $image->getError() !== UPLOAD_ERR_NO_FILE) {
+				if ($image->getError() !== UPLOAD_ERR_OK) {
+					$this->params['errors'][] = $image->getErrorMessage();
+				} else {
+					// Remove old image
+					if (!empty($team->image) && file_exists(ROOT . $team->image)) {
+						unlink(ROOT . $team->image);
+					}
+
+					$imgPath = UPLOAD_DIR . 'tournament/teams/' . uniqid('t-', false) . '.' . $image->getExtension();
+					if ($image->save($imgPath)) {
+						$team->image = str_replace(ROOT, '', $imgPath);
+					} else {
+						$this->params['errors'][] = lang('Nepodařilo se uložit obrázek', context: 'errors');
+					}
+				}
+			}
+		}
+
 		try {
 			if ($team->save()) {
+
 				/** @var array{id?:numeric-string,registered?:string,captain?:string,sub?:string,name:string,surname:string,nickname:string,phone?:string,birthYear?:numeric-string,user?:string,email:string,skill:string}[] $players */
 				$players = $request->getPost('players', []);
 				foreach ($players as $playerData) {
 					if (!empty($playerData['id'])) {
 						try {
-							$player = Player::get((int) $playerData['id']);
+							$player = Player::get((int)$playerData['id']);
 						} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 							$player = new Player();
 						}
@@ -404,12 +435,12 @@ class TournamentController extends Controller
 				if (isset($_REQUEST['h'])) {
 					$link['h'] = $_REQUEST['h'];
 				}
-				$message = new Message('tournament/registrationTeam');
+				$message = new Message('mails/tournament/registrationTeam');
 				$message->setSubject(
-					lang('Změny').': '.
+					lang('Změny') . ': ' .
 					sprintf(
 						lang('Registrace na turnaj - %s'),
-						$tournament->name.' '.$tournament->start->format('d.m.Y')
+						$tournament->name . ' ' . $tournament->start->format('d.m.Y')
 					)
 				);
 				$message->params['team'] = $team;
@@ -421,7 +452,9 @@ class TournamentController extends Controller
 				}
 				try {
 					$this->mail->send($message);
-				} catch (SendException) {
+				} catch (SendException $e) {
+					$logger = new Logger(LOG_DIR, 'mail');
+					$logger->exception($e);
 					$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 				}
 				App::redirect($link, $request);

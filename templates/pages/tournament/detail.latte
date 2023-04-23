@@ -1,6 +1,7 @@
 {layout '../../@layout.latte'}
 
 {varType App\Models\Tournament\Tournament $tournament}
+{varType Lsr\Core\Auth\Models\User|null $user}
 
 {define content}
 	<p class="text-start">
@@ -18,11 +19,15 @@
 	<h1>{ifset $tournament->league}{$tournament->league->name}<br>{/ifset}{$tournament->name}</h1>
 	<p>
 		{if $tournament->registrationsActive}
-			<a href="{link 'tournament', $tournament->id, 'register'}"
-			   class="btn btn-lg btn-primary">
-				<i class="fa-solid fa-user-plus"></i>
-				{lang 'Registrace'}
-			</a>
+			{if isset($tournament->teamLimit) && count($tournament->getTeams()) >= $tournament->teamLimit}
+				{lang 'Turnaj je plně obsazený'}
+			{else}
+				<a href="{link 'tournament', $tournament->id, 'register'}"
+				   class="btn btn-lg btn-primary">
+					<i class="fa-solid fa-user-plus"></i>
+					{lang 'Registrace'}
+				</a>
+			{/if}
 		{else}
 			{lang 'Registrace nejsou ještě povoleny'}
 		{/if}
@@ -66,8 +71,12 @@
 							<h3 class="card-title mb-3">{lang 'Informace'}</h3>
 							<p><strong>{lang 'Datum'}:</strong> {$tournament->start->format('d.m.Y')}</p>
 							<p><strong>{lang 'Začátek'}:</strong> {$tournament->start->format('H:i')}</p>
-							<p n:ifset="$tournament->end"><strong>{lang 'Konec'}
-									:</strong> {$tournament->end->format('H:i')}</p>
+							<p n:ifset="$tournament->end">
+								<strong>{lang 'Konec'}:</strong> {$tournament->end->format('H:i')}
+							</p>
+							<p n:ifset="$tournament->teamLimit">
+								<strong>{lang 'Maximum týmů'}:</strong> {$tournament->teamLimit}
+							</p>
 							<p>
 								<strong>{lang 'Formát'}:</strong>
 								{if $tournament->format === App\GameModels\Game\Enums\GameModeType::TEAM}
@@ -109,20 +118,35 @@
 																						 aria-labelledby="teams-tab-control"
 																						 data-track-content=""
 																						 data-content-name="Tournament teams tab"
-																						 tabindex="0">
-			<h3>{lang 'Týmy'}</h3>
-			{var App\Models\Tournament\Team[] $teams = $tournament->getTeams()}
+
+				{var App\Models\Tournament\Team[] $teams = $tournament->getTeams()} tabindex="0">
+			<h3>
+				{lang 'Týmy'}
+				{ifset $tournament->teamLimit}
+					({count($teams)}/{$tournament->teamLimit})
+				{/ifset}
+			</h3>
 			{if count($teams) > 0}
 				<div class="list-group">
-					<div n:foreach="$teams as $team" class="list-group-item">
+					<div n:foreach="$teams as $team" class="list-group-item text-center">
+						{ifset $team->image}
+							<img class="team-logo mb-3" src="{$team->getImageUrl()}" alt="Logo týmu - {$team->name}">
+						{/ifset}
 						<h4>{$team->name}</h4>
+
 						<div class="d-flex justify-content-center align-items-center flex-wrap">
 							<div n:foreach="$team->getPlayers() as $player" n:tag="isset($player->user) ? 'a' : 'div'" {ifset $player->user}href="{link 'user', $player->user->getCode()}"{/ifset}
-								data-toggle="tooltip" title="{lang $player->skill->getReadable()}"
+									data-toggle="tooltip" title="{lang $player->skill->getReadable()}"
 									n:class="'rounded', 'p-2', 'm-2', $player->skill === App\Models\Tournament\PlayerSkill::BEGINNER ? 'text-bg-secondary', $player->skill === App\Models\Tournament\PlayerSkill::SOMEWHAT_ADVANCED ? 'text-bg-light-cyan', $player->skill === App\Models\Tournament\PlayerSkill::ADVANCED ? 'text-bg-company-blue', $player->skill === App\Models\Tournament\PlayerSkill::PRO ? 'text-bg-primary'">
 								{$player->nickname}
 							</div>
 						</div>
+						{if isset($user) && $team->validateAccess($user)}
+							<a href="{link 'tournament', 'registration', $tournament->id, $team->id}"
+							   class="btn btn-info">
+								{lang 'Upravit přihlášku'}
+							</a>
+						{/if}
 					</div>
 				</div>
 			{else}

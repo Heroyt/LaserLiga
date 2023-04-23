@@ -2,6 +2,7 @@
 
 namespace App\Models\Tournament;
 
+use App\Models\Auth\User;
 use Exception;
 use Lsr\Core\Exceptions\ValidationException;
 
@@ -11,12 +12,23 @@ trait WithTokenValidation
 	public string $hash = '';
 
 	/**
+	 * @param User|null $user
+	 * @param string|null $hash
+	 *
+	 * @return bool
+	 * @throws Exception
+	 */
+	public function validateAccess(?User $user = null, ?string $hash = ''): bool {
+		return $this->validateHash($hash);
+	}
+
+	/**
 	 * @param string $hash
 	 *
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function validateHash(string $hash) : bool {
+	public function validateHash(string $hash): bool {
 		return hash_equals($this->getHash(), $hash);
 	}
 

@@ -4,6 +4,7 @@ use App\Controllers\Api\DevController;
 use App\Controllers\Api\Games;
 use App\Controllers\Api\Music;
 use App\Controllers\Api\Players;
+use App\Controllers\Api\TournamentsController;
 use App\Controllers\User\UserGameController;
 use App\Core\Middleware\ApiToken;
 use Lsr\Core\Routing\Route;
@@ -13,25 +14,30 @@ $apiToken = new ApiToken();
 $apiGroup = Route::group('/api')->middlewareAll($apiToken);
 
 $apiGroup->group('/games')
-				 ->get('/', [Games::class, 'listGames'])
-				 ->post('/', [Games::class, 'import'])
-				 ->get('/{code}', [Games::class, 'getGame'])
-				 ->get('/{code}/users', [Games::class, 'getGameUsers'])
-				 ->get('/{code}/skills', [Games::class, 'recalcGameSkill'])
-				 ->get('/skills', [Games::class, 'recalcMultipleGameSkills'])
-				 ->group('/stats')
-				 ->get('/', [Games::class, 'stats'])
-				 ->endGroup();
+	->get('/', [Games::class, 'listGames'])
+	->post('/', [Games::class, 'import'])
+	->get('/{code}', [Games::class, 'getGame'])
+	->get('/{code}/users', [Games::class, 'getGameUsers'])
+	->get('/{code}/skills', [Games::class, 'recalcGameSkill'])
+	->get('/skills', [Games::class, 'recalcMultipleGameSkills'])
+	->group('/stats')
+	->get('/', [Games::class, 'stats'])
+	->endGroup();
+
+$apiGroup->group('/tournaments')
+	->get('/', [TournamentsController::class, 'getAll'])
+	->get('/{id}', [TournamentsController::class, 'get'])
+	->get('/{id}/teams', [TournamentsController::class, 'getTournamentTeams']);
 
 
 $apiGroup->group('/music')
-				 ->post('/', [Music::class, 'import'])
-				 ->delete('/{id}', [Music::class, 'removeMode'])
-				 ->post('/{id}/upload', [Music::class, 'uploadFile'])
-				 ->endGroup();
+	->post('/', [Music::class, 'import'])
+	->delete('/{id}', [Music::class, 'removeMode'])
+	->post('/{id}/upload', [Music::class, 'uploadFile'])
+	->endGroup();
 
 $apiGroup->group('/players')
-				 ->get('/', [Players::class, 'find'])
+	->get('/', [Players::class, 'find'])
 				 ->get('/{code}', [Players::class, 'player'])
 				 ->endGroup();
 

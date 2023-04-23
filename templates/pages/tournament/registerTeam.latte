@@ -13,7 +13,8 @@
 	</p>
 	<h1>{lang 'Registrace týmu'}</h1>
 	<h2>{$tournament->name}</h2>
-	<form action="{link 'tournament', $tournament->id, 'register'}" method="post" id="tournament-register-team-form">
+	<form action="{link 'tournament', $tournament->id, 'register'}" method="post" id="tournament-register-team-form"
+		  enctype="multipart/form-data">
 		{csrfInput 'tournament-register'}
 		{include '../../partials/tournament/registerTeam.latte', $tournament, $errors, $_POST}
 		<div class="d-flex justify-content-center my-3">

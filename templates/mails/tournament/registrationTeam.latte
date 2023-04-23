@@ -5,6 +5,11 @@
 {block body}
 	<h1>{lang 'Vaše registrace na turnaj'}: {$team->name}</h1>
 
+	{ifset $team->image}
+		<img class="team-logo mb-3" src="{$team->getImageUrl()}" alt="Logo týmu - {$team->name}"
+			 style="max-width:100%;max-height:300px;aspect-ratio: 1;object-fit: cover;">
+	{/ifset}
+
 	<h2>{$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}</h2>
 
 	<div n:foreach="$team->getPlayers() as $player">

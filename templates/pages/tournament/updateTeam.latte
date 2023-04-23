@@ -13,6 +13,9 @@
 			{lang 'Zpět'}
 		</a>
 	</p>
+	{ifset $team->image}
+		<img class="team-logo mb-3" src="{$team->getImageUrl()}" alt="Logo týmu - {$team->name}">
+	{/ifset}
 	<h1>{lang 'Tým'} - {$team->name}</h1>
 	<h2>{$tournament->name}</h2>
 	<div class="registration-switch collapse show" id="tournament-register-team-detail">
@@ -30,6 +33,7 @@
 		</button>
 	</p>
 	<form action="{link 'tournament', 'registration', $tournament->id, $team->id}" method="post"
+		  enctype="multipart/form-data"
 		  id="tournament-register-team-form" class="collapse registration-switch">
 		{ifset $_REQUEST['h']}
 			<input type="hidden" name="h" value="{$_REQUEST['h']}">
