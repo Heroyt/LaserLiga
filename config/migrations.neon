@@ -159,3 +159,150 @@ tables:
 			CONSTRAINT `game_modes-names_ibfk_1` FOREIGN KEY (`id_mode`) REFERENCES `game_modes` (`id_mode`) ON DELETE CASCADE ON UPDATE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
+	App\Models\Tournament\League:
+		definition: '''
+		(
+          `id_league` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_arena` int(11) unsigned NOT NULL,
+          `name` varchar(100) NOT NULL,
+          `description` text,
+          `image` varchar(200) DEFAULT NULL,
+          PRIMARY KEY (`id_league`),
+          KEY `id_arena` (`id_arena`),
+          CONSTRAINT `leagues_ibfk_1` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+	App\Models\Tournament\Tournament:
+		definition: '''
+		(
+          `id_tournament` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_arena` int(11) unsigned NOT NULL,
+          `id_league` int(11) unsigned DEFAULT NULL,
+          `name` varchar(100) NOT NULL,
+          `description` text,
+          `prices` text,
+          `image` varchar(200) DEFAULT NULL,
+          `results_summary` longtext,
+          `format` enum('TEAM','SOLO') NOT NULL DEFAULT 'TEAM',
+          `start` datetime NOT NULL,
+          `end` datetime DEFAULT NULL,
+          `team_size` int(10) unsigned NOT NULL DEFAULT '1',
+          `sub_count` int(10) unsigned NOT NULL DEFAULT '0',
+          `player_name` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'required',
+          `player_surname` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'required',
+          `player_email` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'captain',
+          `player_phone` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'captain',
+          `player_birth_year` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'hidden',
+          `player_skill` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'required',
+          `active` tinyint(1) NOT NULL DEFAULT '1',
+          `registrations_active` tinyint(1) NOT NULL DEFAULT '1',
+          `team_limit` int(10) unsigned DEFAULT NULL,
+          PRIMARY KEY (`id_tournament`),
+          KEY `id_arena` (`id_arena`),
+          KEY `id_league` (`id_league`),
+          CONSTRAINT `tournaments_ibfk_1` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `tournaments_ibfk_2` FOREIGN KEY (`id_league`) REFERENCES `leagues` (`id_league`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        '''
+	App\Models\Tournament\Group:
+		definition: '''
+		(
+          `id_group` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_tournament` int(11) unsigned NOT NULL,
+          `name` varchar(100) NOT NULL,
+          PRIMARY KEY (`id_group`),
+          KEY `id_tournament` (`id_tournament`),
+          CONSTRAINT `tournament_groups_ibfk_1` FOREIGN KEY (`id_tournament`) REFERENCES `tournaments` (`id_tournament`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+	App\Models\Tournament\Team:
+		definition: '''
+		(
+          `id_team` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_tournament` int(11) unsigned NOT NULL,
+          `name` varchar(100) NOT NULL,
+          `hash` varchar(200) NOT NULL,
+          `image` varchar(200) DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id_team`),
+          KEY `id_tournament` (`id_tournament`),
+          CONSTRAINT `tournament_teams_ibfk_1` FOREIGN KEY (`id_tournament`) REFERENCES `tournaments` (`id_tournament`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+	App\Models\Tournament\Player:
+		definition: '''
+		(
+          `id_player` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_tournament` int(11) unsigned NOT NULL,
+          `id_team` int(11) unsigned DEFAULT NULL,
+          `id_user` int(11) unsigned DEFAULT NULL,
+          `nickname` varchar(50) DEFAULT NULL,
+          `image` varchar(200) DEFAULT NULL,
+          `captain` tinyint(1) NOT NULL DEFAULT '0',
+          `sub` tinyint(1) NOT NULL DEFAULT '0',
+          `email` varchar(50) DEFAULT NULL,
+          `phone` varchar(20) DEFAULT NULL,
+          `name` varchar(50) DEFAULT NULL,
+          `surname` varchar(50) DEFAULT NULL,
+          `skill` enum('BEGINNER','SOMEWHAT_ADVANCED','ADVANCED','PRO') NOT NULL DEFAULT 'BEGINNER',
+          `birth_year` tinyint(4) DEFAULT NULL,
+          `hash` varchar(200) NOT NULL,
+          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `updated_at` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id_player`),
+          KEY `id_tournament` (`id_tournament`),
+          KEY `id_team` (`id_team`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `tournament_players_ibfk_1` FOREIGN KEY (`id_tournament`) REFERENCES `tournaments` (`id_tournament`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `tournament_players_ibfk_2` FOREIGN KEY (`id_team`) REFERENCES `tournament_teams` (`id_team`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `tournament_players_ibfk_3` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        '''
+	App\Models\Tournament\Game:
+		definition: '''
+		(
+          `id_game` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_tournament` int(11) unsigned NOT NULL,
+          `id_group` int(11) unsigned DEFAULT NULL,
+          `code` varchar(50) DEFAULT NULL COMMENT 'Connection to results',
+          `start` datetime DEFAULT NULL,
+          PRIMARY KEY (`id_game`),
+          KEY `id_tournament` (`id_tournament`),
+          KEY `id_group` (`id_group`),
+          CONSTRAINT `tournament_games_ibfk_1` FOREIGN KEY (`id_tournament`) REFERENCES `tournaments` (`id_tournament`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `tournament_games_ibfk_2` FOREIGN KEY (`id_group`) REFERENCES `tournament_groups` (`id_group`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+	tournament_game_teams:
+		definition: '''
+		(
+          `id_game` int(11) unsigned NOT NULL,
+          `key` int(10) unsigned NOT NULL DEFAULT '0',
+          `id_team` int(11) unsigned DEFAULT NULL,
+          `position` int(10) unsigned DEFAULT NULL,
+          `score` int(11) DEFAULT NULL,
+          `points` int(11) DEFAULT NULL,
+          PRIMARY KEY (`id_game`,`key`),
+          KEY `id_team` (`id_team`),
+          KEY `id_game` (`id_game`),
+          CONSTRAINT `tournament_game_teams_ibfk_1` FOREIGN KEY (`id_game`) REFERENCES `tournament_games` (`id_game`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `tournament_game_teams_ibfk_2` FOREIGN KEY (`id_team`) REFERENCES `tournament_teams` (`id_team`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+	tournament_game_players:
+		definition: '''
+		(
+          `id_game` int(11) unsigned NOT NULL,
+          `key` int(10) unsigned NOT NULL DEFAULT '0',
+          `id_player` int(11) unsigned NOT NULL,
+          `position` int(10) unsigned DEFAULT NULL,
+          `score` int(11) DEFAULT NULL,
+          `points` int(11) DEFAULT NULL,
+          PRIMARY KEY (`id_game`,`key`),
+          KEY `id_player` (`id_player`),
+          KEY `id_game` (`id_game`),
+          CONSTRAINT `tournament_game_players_ibfk_1` FOREIGN KEY (`id_game`) REFERENCES `tournament_games` (`id_game`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `tournament_game_players_ibfk_2` FOREIGN KEY (`id_player`) REFERENCES `tournament_players` (`id_player`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
