@@ -14,9 +14,9 @@ class League extends Model
 
 	public const TABLE = 'leagues';
 
-	public string  $name;
+	public string $name;
 	public ?string $description = null;
-	public ?string $image       = null;
+	public ?string $image = null;
 
 	#[ManyToOne]
 	public Arena $arena;
@@ -24,21 +24,34 @@ class League extends Model
 	/** @var Tournament[] */
 	private array $tournaments = [];
 
-	public function getImageUrl() : ?string {
+	/** @var LeagueCategory[] */
+	private array $categories = [];
+
+	public function getImageUrl(): ?string {
 		if (!isset($this->image)) {
 			return null;
 		}
-		return App::getUrl().$this->image;
+		return App::getUrl() . $this->image;
 	}
 
 	/**
 	 * @return Tournament[]
 	 */
-	public function getTournaments() : array {
+	public function getTournaments(): array {
 		if (empty($this->tournaments)) {
 			$this->tournaments = Tournament::query()->where('id_league = %i AND active = 1', $this->id)->get();
 		}
 		return $this->tournaments;
+	}
+
+	/**
+	 * @return LeagueCategory[]
+	 */
+	public function getCategories(): array {
+		if (empty($this->categories)) {
+			$this->categories = LeagueCategory::query()->where('id_league = %i', $this->id)->get();
+		}
+		return $this->categories;
 	}
 
 }

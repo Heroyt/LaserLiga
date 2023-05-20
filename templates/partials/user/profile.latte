@@ -2,6 +2,7 @@
 {varType App\Models\Auth\User|null $loggedInUser}
 {varType App\Models\Auth\User $user}
 {varType Dibi\Row[] $lastGames}
+{varType App\Models\DataObjects\PlayerRank $rankOrder}
 
 {var bool $showCompare = isset($loggedInUser) && $loggedInUser->id !== $user->id}
 {var bool $currentUser = isset($loggedInUser) && $loggedInUser->id === $user->id}
@@ -128,7 +129,7 @@
 						<td>{$game->start->format('d.m.Y H:i')}</td>
 						<td>{ifset $game->id_arena}{\App\Models\Arena::get($game->id_arena)->getLogoHtml()|noescape}{/ifset}</td>
 						<td class="text-center">{lang $game->modeName, context: 'gameModes'}</td>
-						<td class="text-center">{$game->skill}&nbsp;<i class="fa-solid fa-star"></i></td>
+						<td class="text-center">{$game->skill}&nbsp;<i class="fa-solid fa-medal"></i></td>
 						<td class="text-end">
 							<a href="{link ['g', $game->code]}" class="btn btn-info" data-toggle="tooltip"
 							   title="{lang 'Výsledky'}">

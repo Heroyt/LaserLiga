@@ -39,6 +39,8 @@
 'sums' => ['name' => lang('Sumy'), 'fields' => ['games_played', 'total_minutes', 'arenas_played', 'shots', 'hits', 'deaths']],
 ]}
 
+{default array $ranks = []}
+
 {default string $activeType = 'rank'}
 
 {var array $activeFields = []}
@@ -104,11 +106,29 @@
 				<tr n:foreach="$players as $player"
 						n:class="$player->id === $user->id ? table-primary, isset($searchedPlayer) && $player->id === $searchedPlayer->id ? table-success"
 						data-code="{$player->getCode()}">
-					<td>{$iterator->counter + (($p-1) * $limit)}.</td>
+					<td>
+						{ifset $ranks[$player->id]}
+							<span {ifset $ranks[$player->id]['difference']}data-toggle="tooltip"
+								  title="{if $ranks[$player->id]['difference'] < 0}+{elseif $ranks[$player->id]['difference'] === 0}+-{/if}{(-$ranks[$player->id]['difference'])}"{/ifset}>
+								{$ranks[$player->id]['rank']|replace:'. - ','-'}
+								{ifset $ranks[$player->id]['difference']}
+									{if $ranks[$player->id]['difference'] < 0}
+										<i class="fa-solid fa-angle-up text-success"></i>
+								{elseif $ranks[$player->id]['difference'] > 0}
+									<i class="fa-solid fa-angle-down text-danger"></i>
+								{else}
+									<i class="fa-solid fa-minus text-secondary"></i>
+									{/if}
+								{/ifset}
+							</span>
+						{else}
+							{$iterator->counter + (($p-1) * $limit)}.
+						{/ifset}
+					</td>
 					<td n:foreach="$activeFields as $field => $info" class="text-center"
 							{if $field === 'code'}
 						style="min-width:100px;"
-							{elseif $field === 'total_minutes'}
+					{elseif $field === 'total_minutes'}
 						style="min-width:140px;"
 							{/if}>
 						{switch $field}
@@ -122,7 +142,7 @@
 							{case 'games_played'}
 							{$player->stats->gamesPlayed}
 							{case 'rank'}
-							{$player->stats->rank}&nbsp;<i class="fa-solid fa-star"></i>
+							{$player->stats->rank}&nbsp;<i class="fa-solid fa-medal"></i>
 						{case 'average_accuracy'}
 						{$player->stats->averageAccuracy|number:2,',',''}&nbsp;%
 						{case 'average_shots'}
@@ -136,7 +156,7 @@
 						{case 'max_score'}
 						{$player->stats->maxScore|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'star', '', '1rem'}
 						{case 'max_skill'}
-						{$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-star"></i>
+						{$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-medal"></i>
 							{case 'shots'}
 							{$player->stats->shots|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1rem'}
 							{case 'total_minutes'}

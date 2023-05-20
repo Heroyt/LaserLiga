@@ -6,6 +6,7 @@ class Index extends \Lsr\Core\Controller
 {
 
 	public function show() : void {
+		$this->params['addCss'][] = 'pages/index.css';
 		$this->view('pages/index/index');
 	}
 

@@ -1,0 +1,99 @@
+{varType App\GameModels\Game\Game $game}
+{var int $playerCount = $game->getPlayerCount()}
+{var array $colors = $game::getTeamColors()}
+{var int $padding = 50}
+{var int $playerMargin = 20}
+{var int $headerHeight = 120}
+{var int $contentWidth = 1200 - ($padding * 2)}
+{var int $contentHeight = 600 - ($padding * 2) - $headerHeight - $playerMargin}
+{var int $maxPerRow = 6}
+{var int $playerRows = ceil($playerCount / $maxPerRow)}
+{var int $playerColumns = $playerCount < $maxPerRow ? $playerCount : ceil($playerCount / $playerRows)}
+{var int $playerHeight = ($contentHeight / $playerRows) - ($playerMargin * ($playerRows - 1))}
+{var int $playerWidth = (($contentWidth - ($playerMargin * ($playerColumns - 1))) / $playerColumns)}
+{var array[] $images = [
+['assets/images/img-laser.jpeg', 1200, 1600, 0, -600],
+['assets/images/img-vesta-zbran.jpeg', 1200, 800, 0, -50],
+['assets/images/brana.jpeg', 1200, 675, 0, 0],
+['assets/images/cesta.jpeg', 1200, 900, 0, 0],
+['assets/images/sloup.jpeg', 1600, 1600, 0,-600],
+['assets/images/vesta_blue.jpeg', 1200, 800, 0, 0],
+['assets/images/vesta_green.jpeg', 1200, 800, 0, 0],
+['assets/images/vesta_red.jpeg', 1200, 800, 0, 0],
+]}
+{var array $image = $images[$game->codeToNum() % count($images)]}
+<svg width="1200" height="600" viewbox="0 0 1200 600" data-width="{$contentWidth}" data-height="{$contentHeight}"
+	 data-cols="{$playerColumns}" data-rows="{$playerRows}" data-player-width="{($contentWidth / $playerColumns)}">
+	<image x="{$image[3]}" y="{$image[4]}" width="{$image[1]}" height="{$image[2]}" href="{getUrl}{$image[0]}"/>
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0%" stop-color="#000" stop-opacity="90%"/>
+			<stop offset="100%" stop-color="#212529" stop-opacity="40%"/>
+		</linearGradient>
+	</defs>
+	<rect x="0" y="0" width="1200" height="600" fill="url(#bg)"/>
+	<g class="header">
+		<image x="{$padding}" y="{$padding}" height="{$headerHeight}" width="{$headerHeight}"
+			   href="{$game->arena->getLogoUrl()}"/>
+		<text x="{$padding + $headerHeight + 30}" y="{$padding + 30}" text-anchor="start" font-size="20"
+			  font-family="sans-serif" fill="#fff">
+			<tspan font-weight="bold">
+				{lang 'Kód hry', context: 'results.info'}:
+			</tspan>
+			{$game->code}
+		</text>
+		<text x="{$padding + $headerHeight + 30}" y="{$padding + ($headerHeight / 2) + 10}" text-anchor="start"
+			  font-size="20" font-family="sans-serif" fill="#fff">
+			<tspan font-weight="bold">
+				{lang 'Datum', context: 'results.info'}:
+			</tspan>
+			{$game->start->format('d.m.Y H:i')}
+		</text>
+		<text x="{$padding + $headerHeight + 30}" y="{$padding + $headerHeight - 10}" text-anchor="start" font-size="20"
+			  font-family="sans-serif" fill="#fff">
+			<tspan font-weight="bold">
+				{lang 'Herní mód', context: 'results.info'}:
+			</tspan>
+			{lang $game->mode->name, context: 'gameModes'}
+		</text>
+	</g>
+	{foreach $game->getPlayersSorted() as $player}
+		<g class="player">
+			{varType App\GameModels\Game\Player $player}
+			{var array $trophy = $player->getBestAt()}
+			{var int $col = $iterator->counter0 % $playerColumns}
+			{var int $row = floor($iterator->counter0 / $playerColumns)}
+			{var int $x = $padding + ($col * ($playerWidth + $playerMargin))}
+			{var int $y = $padding + $playerMargin + $headerHeight + ($row * ($playerHeight + $playerMargin))}
+			{var string $textColor = \App\Tools\Color::getFontColor($colors[$player->getColor()])}
+			<rect x="{$x}" y="{$y}" rx="10" ry="10" width="{$playerWidth}" height="{$playerHeight}"
+				  fill="{$colors[$player->getColor()]}"/>
+			<text x="{$x + ($playerWidth / 2)}" y="{$y + ($playerHeight / 2) - 28}" text-anchor="middle" font-size="20"
+				  font-family="sans-serif" fill="{$textColor}">
+				{$iterator->counter}.
+			</text>
+			{var int $playerNameLen = getSvgStringWidth($player->name)}
+			{var float $nameY = $y + ($playerHeight / 2) - 6}
+			{svgIconThumb($trophy['icon'], 22, $x + ($playerWidth / 2) - ($playerNameLen / 2)-6, $nameY - 18, [], $textColor === '#fff')|noescape}
+			<text x="{$x + ($playerWidth / 2) + 12}" y="{$nameY}" text-anchor="middle" font-size="20"
+				  textLength="{$playerNameLen}"
+				  font-family="sans-serif" fill="{$textColor}" font-weight="bold">{$player->name}</text>
+			{var int $scoreDigits = strlen((string)abs($player->score))}
+			{var int $scoreLen = ($player->score < 0 ? 7 : 0) + $scoreDigits*11 + ((floor($scoreDigits/3)-1)*6)}
+			<text x="{$x + ($playerWidth / 2)}" y="{$y + ($playerHeight / 2) + 8}" text-anchor="middle" font-size="13"
+				  font-family="sans-serif" fill="{$textColor}">
+				{$trophy['name']}
+			</text>
+			<text x="{$x + ($playerWidth / 2) - 10}" y="{$y + ($playerHeight / 2) + 32}" text-anchor="middle"
+				  font-size="20"
+				  font-family="sans-serif" fill="{$textColor}">
+				{$player->score|number:0,',',' '}
+			</text>
+			<svg x="{$x + ($playerWidth / 2) + ($scoreLen / 2) - 5}" y="{$y + ($playerHeight / 2) + 14}" height="20"
+				 width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+				<path fill="{$textColor}"
+					  d="M316.9 18C311.6 7 300.4 0 288.1 0s-23.4 7-28.8 18L195 150.3 51.4 171.5c-12 1.8-22 10.2-25.7 21.7s-.7 24.2 7.9 32.7L137.8 329 113.2 474.7c-2 12 3 24.2 12.9 31.3s23 8 33.8 2.3l128.3-68.5 128.3 68.5c10.8 5.7 23.9 4.9 33.8-2.3s14.9-19.3 12.9-31.3L438.5 329 542.7 225.9c8.6-8.5 11.7-21.2 7.9-32.7s-13.7-19.9-25.7-21.7L381.2 150.3 316.9 18z"/>
+			</svg>
+		</g>
+	{/foreach}
+</svg>

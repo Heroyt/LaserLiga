@@ -1,0 +1,131 @@
+{layout '../../../@layout.latte'}
+
+{varType App\Models\Arena[] $arenas}
+{varType App\GameModels\Game\GameModes\AbstractMode[] $modes}
+
+{block content}
+	<form action="{link 'admin', 'games', 'create'}" method="post" novalidate>
+		<h2>{lang 'Nová hra'}</h2>
+		<div class="row">
+			<div class="form-group my-2 col-md-6">
+				<label for="arena" class="form-label">{lang 'Aréna'}:</label>
+				<select name="arena" id="arena" class="form-select">
+					<option n:foreach="$arenas as $arena" value="{$arena->id}">{$arena->name}</option>
+				</select>
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="gameMode" class="form-label">{lang 'Herní mód'}:</label>
+				<select name="gameMode" id="gameMode" class="form-select">
+					<option n:foreach="$modes as $mode" value="{$mode->id}">{$mode->name}</option>
+				</select>
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="start" class="form-label">{lang 'Začátek'}:</label>
+				<input type="text" class="form-control datetime-picker" data-max="today" name="start" id="start">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="fileNumber" class="form-label">{lang 'Číslo souboru'}:</label>
+				<input type="number" class="form-control" name="fileNumber" id="fileNumber" value="{rand(1,999)}">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="code" class="form-label">{lang 'Kód'}:</label>
+				<input type="text" class="form-control" name="code" id="code" value="{uniqid('g', false)}">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="lives" class="form-label">{lang 'Životy'}:</label>
+				<input type="number" class="form-control" name="lives" id="lives" value="999">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="ammo" class="form-label">{lang 'Náboje'}:</label>
+				<input type="number" class="form-control" name="ammo" id="ammo" value="9999">
+			</div>
+		</div>
+		<h3 class="mt-4">{lang 'Časování'}</h3>
+		<div class="row">
+			<div class="form-group my-2 col-md-6">
+				<label for="timing-before" class="form-label">{lang 'Čas před hrou'}:</label>
+				<input type="number" class="form-control" name="timing-before" id="timing-before" value="15">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="timing-game" class="form-label">{lang 'Délka hry'}:</label>
+				<input type="number" class="form-control" name="timing-game" id="timing-game" value="15">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="timing-end" class="form-label">{lang 'Čas konce'}:</label>
+				<input type="number" class="form-control" name="timing-end" id="timing-end" value="10">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="respawn" class="form-label">{lang 'Respawn'}:</label>
+				<input type="number" class="form-control" name="respawn" id="respawn" value="5">
+			</div>
+		</div>
+		<h3 class="mt-4">{lang 'Bodování'}</h3>
+		<div class="row">
+			<div class="form-group my-2 col-md-6">
+				<label for="score-hit" class="form-label">{lang 'Skóre za zásah'}:</label>
+				<input type="number" class="form-control" name="score-hit" id="score-hit" value="100">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-death" class="form-label">{lang 'Skóre za smrt'}:</label>
+				<input type="number" class="form-control" name="score-death" id="score-death" value="-50">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-hit-own" class="form-label">{lang 'Skóre za zásah vlastního'}:</label>
+				<input type="number" class="form-control" name="score-hit-own" id="score-hit-own" value="-25">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-death-own" class="form-label">{lang 'Skóre za smrt od vlastního'}:</label>
+				<input type="number" class="form-control" name="score-death-own" id="score-death-own" value="-50">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-death-pod" class="form-label">{lang 'Skóre za smrt od miny'}:</label>
+				<input type="number" class="form-control" name="score-death-pod" id="score-death-pod" value="-50">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-shot" class="form-label">{lang 'Skóre za výstřel'}:</label>
+				<input type="number" class="form-control" name="score-shot" id="score-shot" value="0">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-machine-gun" class="form-label">{lang 'Skóre za samopal'}:</label>
+				<input type="number" class="form-control" name="score-machine-gun" id="score-machine-gun" value="75">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-invisibility" class="form-label">{lang 'Skóre za neviditelnost'}:</label>
+				<input type="number" class="form-control" name="score-invisibility" id="score-invisibility" value="75">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-shield" class="form-label">{lang 'Skóre za štít'}:</label>
+				<input type="number" class="form-control" name="score-shield" id="score-shield" value="75">
+			</div>
+			<div class="form-group my-2 col-md-6">
+				<label for="score-spy" class="form-label">{lang 'Skóre za agenta'}:</label>
+				<input type="number" class="form-control" name="score-spy" id="score-spy" value="75">
+			</div>
+		</div>
+		<h3 class="mt-4">{lang 'Týmy'}</h3>
+		<div id="team-wrapper"></div>
+		<p>
+			<button type="button" class="btn btn-primary" id="addTeam"><i class="fa-solid fa-plus"></i></button>
+		</p>
+		<h3 class="mt-4">{lang 'Hráči'}</h3>
+		<div id="player-wrapper"></div>
+		<p>
+			<button type="button" class="btn btn-primary" id="addPlayer"><i class="fa-solid fa-plus"></i></button>
+		</p>
+		<h3 class="mt-4">{lang 'Zásahy'}</h3>
+		<table class="table table-striped" id="player-hits">
+			<thead>
+			<tr id="player-hits-head">
+				<th></th>
+			</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+		<p class="mt-5">
+			<button type="button" id="debugPrint" class="btn btn-danger">Debug</button>
+		</p>
+		<p class="mt-5">
+			<button type="submit" class="btn btn-success">{lang 'Odeslat'}</button>
+		</p>
+	</form>
+{/block}

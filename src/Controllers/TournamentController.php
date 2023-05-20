@@ -3,15 +3,19 @@
 namespace App\Controllers;
 
 use App\GameModels\Game\Enums\GameModeType;
+use App\GameModels\Game\Evo5\Player;
 use App\Mails\Message;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
-use App\Models\Tournament\Player;
+use App\Models\Tournament\LeagueTeam;
+use App\Models\Tournament\Player as TournamentPlayer;
 use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\Requirement;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use App\Services\MailService;
+use DateTimeImmutable;
+use Exception;
 use Lsr\Core\App;
 use Lsr\Core\Controller;
 use Lsr\Core\DB;
@@ -31,7 +35,7 @@ class TournamentController extends Controller
 {
 
 	/**
-	 * @param Latte               $latte
+	 * @param Latte $latte
 	 * @param AuthInterface<User> $auth
 	 */
 	public function __construct(
@@ -42,51 +46,117 @@ class TournamentController extends Controller
 		parent::__construct($latte);
 	}
 
-	public function init(RequestInterface $request) : void {
+	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->params['user'] = $this->auth->getLoggedIn();
 	}
 
-	public function detail(Tournament $tournament) : void {
+	public function show(): void {
+		$this->params['tournaments'] = Tournament::query()
+																						 ->where('DATE([start]) > CURDATE()')
+																						 ->orderBy('start')
+																						 ->get();
+		$this->view('pages/tournament/index');
+	}
+
+	public function detail(Tournament $tournament): void {
 		$this->title = 'Turnaj %s - %s';
 		$this->titleParams[] = $tournament->start->format('d.m.Y');
 		$this->titleParams[] = $tournament->name;
 		$this->description = 'Turnaj %s v %s. Turnaj se odehrává %s od %s.';
-		$this->descriptionParams[] = (isset($tournament->league) ? $tournament->league->name.' ' : '').$tournament->name;
+		$this->descriptionParams[] = (isset($tournament->league) ? $tournament->league->name . ' ' : '') . $tournament->name;
 		$this->descriptionParams[] = $tournament->arena->name;
 		$this->descriptionParams[] = $tournament->start->format('d.m.Y');
 		$this->descriptionParams[] = $tournament->start->format('H:i');
 		$this->params['tournament'] = $tournament;
+
+		$this->params['bestPlayers'] = [];
+		$this->params['accuracyPlayers'] = [];
+		$this->params['shotsPlayers'] = [];
+		$this->params['hitsOwnPlayers'] = [];
+
+		if ($tournament->start <= (new DateTimeImmutable('+1 days'))) {
+			$playerIds = [];
+			foreach ($tournament->getTeams() as $team) {
+				foreach ($team->getPlayers() as $player) {
+					$playerIds[] = $player->id;
+				}
+			}
+
+			$bestPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], AVG([skill]) as [skill]')
+											 ->where('[id_tournament_player] IN %in', $playerIds)
+											 ->groupBy('id_tournament_player')
+											 ->orderBy('skill')
+											 ->desc()
+											 ->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
+											 ->fetchAll();
+			foreach ($bestPlayers as $row) {
+				$this->params['bestPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->skill];
+			}
+
+			$accuracyPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], MAX([accuracy]) as [accuracy]')
+													 ->where('[id_tournament_player] IN %in', $playerIds)
+													 ->groupBy('id_tournament_player')
+													 ->orderBy('accuracy')
+													 ->desc()
+													 ->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
+													 ->fetchAll();
+			foreach ($accuracyPlayers as $row) {
+				$this->params['accuracyPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->accuracy];
+			}
+
+			$shotsPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], SUM([shots]) as [shots]')
+												->where('[id_tournament_player] IN %in', $playerIds)
+												->groupBy('id_tournament_player')
+												->orderBy('shots')
+												->desc()
+												->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
+												->fetchAll();
+			foreach ($shotsPlayers as $row) {
+				$this->params['shotsPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->shots];
+			}
+
+			$hitsOwnPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], SUM([hits_own]) as [hitsOwn]')
+													->where('[id_tournament_player] IN %in', $playerIds)
+													->groupBy('id_tournament_player')
+													->orderBy('hitsOwn')
+													->desc()
+													->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
+													->fetchAll();
+			foreach ($hitsOwnPlayers as $row) {
+				$this->params['hitsOwnPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->hitsOwn];
+			}
+		}
 		$this->view('pages/tournament/detail');
 	}
 
-	public function register(Tournament $tournament) : void {
+	public function register(Tournament $tournament): void {
 		$this->setRegisterTitleDescription($tournament);
 		if ($tournament->format === GameModeType::TEAM) {
 			$this->registerTeam($tournament);
 		}
 	}
 
-	private function setRegisterTitleDescription(Tournament $tournament) : void {
+	private function setRegisterTitleDescription(Tournament $tournament): void {
 		$this->title = '%s - Registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
 		$this->description = 'Turnaj %s v %s. Turnaj se odehrává %s od %s.';
-		$this->descriptionParams[] = (isset($tournament->league) ? $tournament->league->name.' ' : '').$tournament->name;
+		$this->descriptionParams[] = (isset($tournament->league) ? $tournament->league->name . ' ' : '') . $tournament->name;
 		$this->descriptionParams[] = $tournament->arena->name;
 		$this->descriptionParams[] = $tournament->start->format('d.m.Y');
 		$this->descriptionParams[] = $tournament->start->format('H:i');
 	}
 
-	private function registerTeam(Tournament $tournament) : void {
+	private function registerTeam(Tournament $tournament): void {
 		$this->params['tournament'] = $tournament;
 		if (isset($this->params['user'])) {
 			$rank = $this->params['user']->player->stats->rank;
 			$_POST['players'] = [
 				0 => [
 					'nickname' => $this->params['user']->name,
-					'email'    => $this->params['user']->email,
-					'user'     => $this->params['user']->player->getCode(),
-					'skill'    => match (true) {
+					'email' => $this->params['user']->email,
+					'user' => $this->params['user']->player->getCode(),
+					'skill' => match (true) {
 						$rank > 600 => PlayerSkill::PRO->value,
 						$rank > 400 => PlayerSkill::ADVANCED->value,
 						$rank > 200 => PlayerSkill::SOMEWHAT_ADVANCED->value,
@@ -98,14 +168,14 @@ class TournamentController extends Controller
 		$this->view('pages/tournament/registerTeam');
 	}
 
-	public function processRegister(Tournament $tournament, Request $request) : void {
+	public function processRegister(Tournament $tournament, Request $request): void {
 		if ($tournament->format === GameModeType::TEAM) {
 			$this->processRegisterTeam($tournament, $request);
 		}
 
 	}
 
-	private function processRegisterTeam(Tournament $tournament, Request $request) : void {
+	private function processRegisterTeam(Tournament $tournament, Request $request): void {
 		$this->validateRegisterTeam($tournament, $request);
 		if (empty($_POST['gdpr'])) {
 			$this->params['errors']['gdpr'] = lang('Je potřeba souhlasit se zpracováním osobních údajů.');
@@ -136,7 +206,7 @@ class TournamentController extends Controller
 				if (empty($player->email)) {
 					continue;
 				}
-				$message->addTo($player->email, $player->name.' "'.$player->nickname.'" '.$player->surname);
+				$message->addTo($player->email, $player->name . ' "' . $player->nickname . '" ' . $player->surname);
 			}
 			try {
 				$this->mail->send($message);
@@ -153,7 +223,7 @@ class TournamentController extends Controller
 		$this->view('pages/tournament/registerTeam');
 	}
 
-	private function validateRegisterTeam(Tournament $tournament, Request $request) : void {
+	private function validateRegisterTeam(Tournament $tournament, Request $request): void {
 		if (empty($request->post['team-name'])) {
 			$this->params['errors']['team-name'] = lang('Jméno týmu je povinné');
 		}
@@ -172,7 +242,7 @@ class TournamentController extends Controller
 				) &&
 				empty($data['name'])
 			) {
-				$this->params['errors']['players-'.$key.'-name'] = lang('Jméno je povinné');
+				$this->params['errors']['players-' . $key . '-name'] = lang('Jméno je povinné');
 			}
 			if (
 				!$sub &&
@@ -182,13 +252,13 @@ class TournamentController extends Controller
 				) &&
 				empty($data['surname'])
 			) {
-				$this->params['errors']['players-'.$key.'-surname'] = lang('Příjmení je povinné');
+				$this->params['errors']['players-' . $key . '-surname'] = lang('Příjmení je povinné');
 			}
 			if (
 				!$sub &&
 				empty($data['nickname'])
 			) {
-				$this->params['errors']['players-'.$key.'-nickname'] = lang('Přezdívka je povinná');
+				$this->params['errors']['players-' . $key . '-nickname'] = lang('Přezdívka je povinná');
 			}
 			if (
 				!$sub &&
@@ -198,13 +268,15 @@ class TournamentController extends Controller
 				) &&
 				empty($data['email'])
 			) {
-				$this->params['errors']['players-'.$key.'-email'] = lang('Email je povinný');
+				$this->params['errors']['players-' . $key . '-email'] = lang('Email je povinný');
 			}
-			else if (
-				!empty($data['email']) &&
-				!Validators::isEmail($data['email'])
-			) {
-				$this->params['errors']['players-'.$key.'-email'] = lang('Email není platný');
+			else {
+				if (
+					!empty($data['email']) &&
+					!Validators::isEmail($data['email'])
+				) {
+					$this->params['errors']['players-' . $key . '-email'] = lang('Email není platný');
+				}
 			}
 			if (
 				!$sub &&
@@ -214,13 +286,15 @@ class TournamentController extends Controller
 				) &&
 				empty($data['phone'])
 			) {
-				$this->params['errors']['players-'.$key.'-phone'] = lang('Telefon je povinný');
+				$this->params['errors']['players-' . $key . '-phone'] = lang('Telefon je povinný');
 			}
-			else if (
-				!empty($data['phone']) &&
-				preg_match('/\+?[\d ]{6,19}/', $data['phone']) !== 1
-			) {
-				$this->params['errors']['players-'.$key.'-phone'] = lang('Telefon není platný');
+			else {
+				if (
+					!empty($data['phone']) &&
+					preg_match('/\+?[\d ]{6,19}/', $data['phone']) !== 1
+				) {
+					$this->params['errors']['players-' . $key . '-phone'] = lang('Telefon není platný');
+				}
 			}
 			if (
 				!$sub &&
@@ -230,13 +304,15 @@ class TournamentController extends Controller
 				) &&
 				empty($data['birthYear'])
 			) {
-				$this->params['errors']['players-'.$key.'-birthYear'] = lang('Rok narození je povinný');
+				$this->params['errors']['players-' . $key . '-birthYear'] = lang('Rok narození je povinný');
 			}
-			else if (
-				!empty($data['birthYear']) &&
-				(((int) $data['birthYear']) < 1900 || ((int) $data['birthYear']) >= (((int) date('Y')) - 2))
-			) {
-				$this->params['errors']['players-'.$key.'-birthYear'] = lang('Rok narození není platný');
+			else {
+				if (
+					!empty($data['birthYear']) &&
+					(((int)$data['birthYear']) < 1900 || ((int)$data['birthYear']) >= (((int)date('Y')) - 2))
+				) {
+					$this->params['errors']['players-' . $key . '-birthYear'] = lang('Rok narození není platný');
+				}
 			}
 			if (
 				!$sub &&
@@ -246,25 +322,27 @@ class TournamentController extends Controller
 				) &&
 				empty($data['skill'])
 			) {
-				$this->params['errors']['players-'.$key.'-skill'] = lang('Herní úroveň hráče je povinná');
+				$this->params['errors']['players-' . $key . '-skill'] = lang('Herní úroveň hráče je povinná');
 			}
-			else if (
-				!empty($data['skill']) &&
-				PlayerSkill::tryFrom($data['skill']) === null
-			) {
-				$this->params['errors']['players-'.$key.'-skill'] = lang('Herní úroveň hráče není platná');
+			else {
+				if (
+					!empty($data['skill']) &&
+					PlayerSkill::tryFrom($data['skill']) === null
+				) {
+					$this->params['errors']['players-' . $key . '-skill'] = lang('Herní úroveň hráče není platná');
+				}
 			}
 		}
 	}
 
 	/**
-	 * @param Request    $request
-	 * @param Team       $team
+	 * @param Request $request
+	 * @param Team $team
 	 * @param Tournament $tournament
 	 *
 	 * @return void
 	 */
-	private function updateRegistrationTeamData(Request $request, Team $team, Tournament $tournament) : void {
+	private function updateRegistrationTeamData(Request $request, Team $team, Tournament $tournament): void {
 		// @phpstan-ignore-next-line
 		$team->name = $request->getPost('team-name');
 
@@ -298,13 +376,13 @@ class TournamentController extends Controller
 				foreach ($players as $playerData) {
 					if (!empty($playerData['id'])) {
 						try {
-							$player = Player::get((int)$playerData['id']);
+							$player = TournamentPlayer::get((int)$playerData['id']);
 						} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
-							$player = new Player();
+							$player = new TournamentPlayer();
 						}
 					}
 					else {
-						$player = new Player();
+						$player = new TournamentPlayer();
 					}
 
 					$player->captain = !empty($playerData['captain']);
@@ -316,7 +394,7 @@ class TournamentController extends Controller
 					$player->nickname = $playerData['nickname'];
 					$player->email = empty($playerData['email']) ? null : $playerData['email'];
 					$player->phone = empty($playerData['phone']) ? null : str_replace(' ', '', $playerData['phone']);
-					$player->birthYear = empty($playerData['birthYear']) ? null : (int) $playerData['birthYear'];
+					$player->birthYear = empty($playerData['birthYear']) ? null : (int)$playerData['birthYear'];
 					$player->skill = PlayerSkill::tryFrom($playerData['skill']) ?? PlayerSkill::BEGINNER;
 					if (!empty($playerData['registered']) && !empty($playerData['user'])) {
 						$user = LigaPlayer::getByCode($playerData['user']);
@@ -338,7 +416,7 @@ class TournamentController extends Controller
 		}
 	}
 
-	public function updateRegistration(Tournament $tournament, int $registration, Request $request) : void {
+	public function updateRegistration(Tournament $tournament, int $registration, Request $request): void {
 		$this->title = '%s - Úprava registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
 		if ($tournament->format === GameModeType::TEAM) {
@@ -356,7 +434,7 @@ class TournamentController extends Controller
 		}
 	}
 
-	private function validateRegistrationAccess(Team|Player $registration) : bool {
+	private function validateRegistrationAccess(Team|Player $registration): bool {
 		if (isset($this->params['user'])) {
 			// Check if registration's player is the currently registered player
 			if ($registration instanceof Player && $registration->user?->id === $this->params['user']->id) {
@@ -377,38 +455,38 @@ class TournamentController extends Controller
 			if ($registration->validateHash($_REQUEST['h'] ?? '')) {
 				return true;
 			}
-		} catch (\Exception) {
+		} catch (Exception) {
 		}
 		return false;
 	}
 
-	private function updateTeam(Team $team, Request $request) : void {
+	private function updateTeam(Team $team, Request $request): void {
 		$this->params['team'] = $team;
 		$this->params['tournament'] = $team->tournament;
 
 		$this->params['values'] = [
 			'team-name' => $team->name,
-			'players'   => [],
+			'players' => [],
 		];
 		bdump($team->getPlayers());
 		foreach ($team->getPlayers() as $player) {
 			$this->params['values']['players'][] = [
-				'id'        => $player->id,
-				'user'      => $player->user?->getCode(),
-				'name'      => $player->name,
-				'surname'   => $player->surname,
-				'nickname'  => $player->nickname,
-				'email'     => $player->email,
-				'phone'     => $player->phone,
+				'id' => $player->id,
+				'user' => $player->user?->getCode(),
+				'name' => $player->name,
+				'surname' => $player->surname,
+				'nickname' => $player->nickname,
+				'email' => $player->email,
+				'phone' => $player->phone,
 				'birthYear' => $player->birthYear,
-				'skill'     => $player->skill->value,
+				'skill' => $player->skill->value,
 			];
 		}
 
 		$this->view('pages/tournament/updateTeam');
 	}
 
-	public function processUpdateRegister(Tournament $tournament, int $registration, Request $request) : void {
+	public function processUpdateRegister(Tournament $tournament, int $registration, Request $request): void {
 		$this->title = '%s - Úprava registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
 		if ($tournament->format === GameModeType::TEAM) {
@@ -448,7 +526,7 @@ class TournamentController extends Controller
 					if (empty($player->email)) {
 						continue;
 					}
-					$message->addTo($player->email, $player->name.' "'.$player->nickname.'" '.$player->surname);
+					$message->addTo($player->email, $player->name . ' "' . $player->nickname . '" ' . $player->surname);
 				}
 				try {
 					$this->mail->send($message);

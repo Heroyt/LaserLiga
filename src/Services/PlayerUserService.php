@@ -62,7 +62,7 @@ class PlayerUserService
 					'user/' . $user->id . '/stats',
 					'user/' . $user->id . '/games',
 					'user/' . $user->id . '/lastGames',
-				]
+				],
 			]);
 			$this->updatePlayerStats($user);
 			try {
@@ -93,8 +93,8 @@ class PlayerUserService
 			->fetchSingle();
 
 		$player->stats->arenasPlayed = $player->queryPlayedArenas()
-			->cacheTags('user/stats', 'user/stats/arenaCount', 'user/' . $user->id . '/stats', 'user/' . $user->id . '/stats/arenaCount')
-			->count();
+																					->cacheTags('user/stats', 'user/stats/arenaCount', 'user/' . $user->id . '/stats', 'user/' . $user->id . '/stats/arenaCount')
+																					->count();
 
 		$player->stats->rank = $this->calculatePlayerRating($user);
 
@@ -167,9 +167,9 @@ class PlayerUserService
 					->where('[b].[id_user] = [a].[id_user] AND [b].[date] < %dt', $date)
 					->fluent
 			)
-				->where('[a].[id_game] = %i', $gameId)
-				->cacheTags('games', 'games/' . $system, 'games/' . $code, 'averageSkill')
-				->fetchAssoc('id_team|[]');
+									->where('[a].[id_game] = %i', $gameId)
+									->cacheTags('games', 'games/' . $system, 'games/' . $code, 'averageSkill')
+									->fetchAssoc('id_team|[]');
 
 
 			/** @var array{id_user:int|null,skill:int,id_team:int}[] $teammates */
@@ -197,7 +197,8 @@ class PlayerUserService
 					}
 					$enemies[] = $player->toArray();
 				}
-			} else {
+			}
+			else {
 				$foundPlayer = false;
 				foreach ($values as $team) {
 					foreach ($team as $key => $player) {
@@ -336,7 +337,8 @@ class PlayerUserService
 		$insertData = ['code' => $code, 'id_user' => $user->id, 'difference' => $ratingDiff, 'date' => $date];
 		if ($test > 0) {
 			DB::update('player_game_rating', $insertData, ['[code] = %s AND [id_user] = %i', $code, $user->id]);
-		} else {
+		}
+		else {
 			DB::insert('player_game_rating', $insertData);
 		}
 
@@ -403,13 +405,13 @@ class PlayerUserService
 		$player = $user->createOrGetPlayer();
 
 		$rows = $player->queryGames()
-			->where(
-				'[code] NOT IN %sql',
-				DB::select('player_trophies_count', 'game')
-					->where('[id_user] = %i', $user->id)
-					->fluent
-			)
-			->fetchAll(cache: false);
+									 ->where(
+										 '[code] NOT IN %sql',
+										 DB::select('player_trophies_count', 'game')
+											 ->where('[id_user] = %i', $user->id)
+											 ->fluent
+									 )
+									 ->fetchAll(cache: false);
 		foreach ($rows as $row) {
 			$game = GameFactory::getById($row->id_game, ['system' => $row->system]);
 			if (!isset($game)) {
@@ -448,7 +450,7 @@ class PlayerUserService
 	 */
 	public function recalculateUsersRanksFromDifference(): void {
 		DB::getConnection()
-			->query("UPDATE %n [a] SET [RANK] = (SELECT 100 + SUM([b].[difference]) FROM [player_game_rating] [b] WHERE [a].[id_user] = [b].[id_user]) ", LigaPlayer::TABLE);
+			->query("UPDATE %n [a] SET [rank] = 100 + COALESCE((SELECT SUM([b].[difference]) FROM [player_game_rating] [b] WHERE [a].[id_user] = [b].[id_user]),0)", LigaPlayer::TABLE);
 		App::getContainer()->getByType(Cache::class)?->clean([Cache::Tags => LigaPlayer::TABLE]);
 	}
 
@@ -472,8 +474,8 @@ class PlayerUserService
 		$game = $player->getGame();
 
 		$rating = DB::select('player_game_rating', '*')
-			->where('[code] = %s AND [id_user] = %i', $game->code, $user->id)
-			->fetch(cache: false);
+								->where('[code] = %s AND [id_user] = %i', $game->code, $user->id)
+								->fetch(cache: false);
 		if (isset($rating)) {
 			// Reset already calculated rating
 			$user->stats->rank -= $rating->difference;
@@ -505,7 +507,8 @@ class PlayerUserService
 			];
 			if ($game->mode->isSolo() || $gamePlayer->team->id !== $player->team->id) {
 				$enemies[] = $playerData;
-			} else {
+			}
+			else {
 				$teammates[] = $playerData;
 			}
 		}
@@ -577,7 +580,8 @@ class PlayerUserService
 					}
 					$enemies[] = $playerInfo;
 				}
-			} else {
+			}
+			else {
 				$enemyTeams = [];
 				$teammates = $teams[$player->team->id];
 				foreach ($teams as $id => $team) {
@@ -611,14 +615,14 @@ class PlayerUserService
 	 */
 	public function scanPossibleMatches(User $user): array {
 		$possibleMatchesQuery = PlayerFactory::queryPlayersWithGames()
-			->where('[id_user] IS NULL')
-			->where(
-				'[code] NOT IN %sql',
-				DB::select(PossibleMatch::TABLE, 'code')
-					->where('[id_user] = %i', $user->id)
-					->fluent
-			)
-			->where('[name] LIKE %s', $user->name);
+																				 ->where('[id_user] IS NULL')
+																				 ->where(
+																					 '[code] NOT IN %sql',
+																					 DB::select(PossibleMatch::TABLE, 'code')
+																						 ->where('[id_user] = %i', $user->id)
+																						 ->fluent
+																				 )
+																				 ->where('[name] LIKE %s', $user->name);
 		if (isset($user->player->arena)) {
 			$possibleMatchesQuery->where('[id_arena] = %i', $user->player->arena->id);
 		}
@@ -633,11 +637,18 @@ class PlayerUserService
 
 		$this->cache->clean([
 			CacheParent::Tags => [
-				'user/' . $user->id . '/possibleMatches'
-			]
+				'user/' . $user->id . '/possibleMatches',
+			],
 		]);
 
 		return PossibleMatch::getForUser($user);
+	}
+
+	/**
+	 * @return Cache
+	 */
+	public function getCache(): Cache {
+		return $this->cache;
 	}
 
 }

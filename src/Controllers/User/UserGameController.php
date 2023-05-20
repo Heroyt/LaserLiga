@@ -7,7 +7,10 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
 use App\Models\PossibleMatch;
+use App\Services\PlayerRankOrderService;
 use App\Services\PlayerUserService;
+use DateInterval;
+use DateTimeImmutable;
 use JsonException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -23,9 +26,10 @@ class UserGameController extends AbstractUserController
 	private readonly ?User $user;
 
 	public function __construct(
-		protected Latte                      $latte,
-		protected readonly Auth              $auth,
-		protected readonly PlayerUserService $playerUserService,
+		protected Latte                         $latte,
+		protected readonly Auth                 $auth,
+		protected readonly PlayerUserService    $playerUserService,
+		private readonly PlayerRankOrderService $rankOrderService,
 	) {
 		parent::__construct($latte);
 		$this->user = $this->auth->getLoggedIn();
@@ -146,6 +150,30 @@ class UserGameController extends AbstractUserController
 		foreach ($players as $player) {
 			$this->playerUserService->updatePlayerStats($player->user);
 			$response[$player->getCode()] = $player->stats;
+		}
+		$this->respond($response);
+	}
+
+	public function calculateDayRanks(Request $request): never {
+		$dateString = $request->getGet('date', '');
+		$fromString = $request->getGet('from', '');
+		if (empty($dateString) && empty($fromString)) {
+			$this->respond(['error' => 'Missing date or from parameter.'], 400);
+		}
+
+		if (!empty($dateString)) {
+			$date = new DateTimeImmutable($dateString);
+			$this->respond($this->rankOrderService->getDateRanks($date));
+		}
+
+		$date = new DateTimeImmutable($fromString);
+		$today = new DateTimeImmutable('00:00:00');
+		$day = new DateInterval('P1D');
+
+		$response = [];
+		while ($date <= $today) {
+			$response = $this->rankOrderService->getDateRanks($date);
+			$date = $date->add($day);
 		}
 		$this->respond($response);
 	}

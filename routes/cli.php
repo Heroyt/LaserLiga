@@ -2,6 +2,7 @@
 
 use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
+use App\Controllers\Cli\Cron;
 use App\Controllers\Cli\Help;
 use App\Controllers\Cli\Regression;
 use App\Controllers\Cli\Translations;
@@ -14,15 +15,15 @@ if (PHP_SAPI === 'cli') {
 					->description('Lists all available CLI commands.')
 					->usage('[commandGroup]')
 					->addArgument([
-													'name'        => 'commandGroup',
-													'isOptional'  => true,
-													'description' => 'Optional filter for command groups',
-												])
+						'name' => 'commandGroup',
+						'isOptional' => true,
+						'description' => 'Optional filter for command groups',
+					])
 					->help(
-						static function() {
-							echo Colors::color(ForegroundColors::LIGHT_PURPLE).lang('Examples', context: 'cli.messages').':'.Colors::reset().PHP_EOL;
-							echo Colors::color(ForegroundColors::LIGHT_BLUE).CliHelper::getCaller().' list'.Colors::reset().PHP_EOL."\tLists all available commands.".PHP_EOL;
-							echo Colors::color(ForegroundColors::LIGHT_BLUE).CliHelper::getCaller().' list results'.Colors::reset().PHP_EOL."\tLists all available commands from the 'results' group (starting with 'results/').".PHP_EOL;
+						static function () {
+							echo Colors::color(ForegroundColors::LIGHT_PURPLE) . lang('Examples', context: 'cli.messages') . ':' . Colors::reset() . PHP_EOL;
+							echo Colors::color(ForegroundColors::LIGHT_BLUE) . CliHelper::getCaller() . ' list' . Colors::reset() . PHP_EOL . "\tLists all available commands." . PHP_EOL;
+							echo Colors::color(ForegroundColors::LIGHT_BLUE) . CliHelper::getCaller() . ' list results' . Colors::reset() . PHP_EOL . "\tLists all available commands from the 'results' group (starting with 'results/')." . PHP_EOL;
 						}
 					);
 
@@ -30,21 +31,21 @@ if (PHP_SAPI === 'cli') {
 					->description('Print help for a command.')
 					->usage('<command>')
 					->addArgument([
-													'name'        => 'command',
-													'isOptional'  => false,
-													'description' => 'A command to get information about.',
-													'suggestions' => [
-														'autocomplete/get',
-														'list',
-														'help',
-														'results/load',
-														'event/server',
-													],
-												])
+						'name' => 'command',
+						'isOptional' => false,
+						'description' => 'A command to get information about.',
+						'suggestions' => [
+							'autocomplete/get',
+							'list',
+							'help',
+							'results/load',
+							'event/server',
+						],
+					])
 					->help(
-						static function() {
-							Colors::color(ForegroundColors::LIGHT_PURPLE).lang('Examples', context: 'cli.messages').':'.Colors::reset().PHP_EOL;
-							echo Colors::color(ForegroundColors::LIGHT_BLUE).CliHelper::getCaller().' help results/load'.Colors::reset().PHP_EOL."\tPrints out information about the command '".Colors::color(ForegroundColors::LIGHT_BLUE)."results/load".Colors::reset()."'".PHP_EOL;
+						static function () {
+							Colors::color(ForegroundColors::LIGHT_PURPLE) . lang('Examples', context: 'cli.messages') . ':' . Colors::reset() . PHP_EOL;
+							echo Colors::color(ForegroundColors::LIGHT_BLUE) . CliHelper::getCaller() . ' help results/load' . Colors::reset() . PHP_EOL . "\tPrints out information about the command '" . Colors::color(ForegroundColors::LIGHT_BLUE) . "results/load" . Colors::reset() . "'" . PHP_EOL;
 						}
 					);
 
@@ -52,11 +53,11 @@ if (PHP_SAPI === 'cli') {
 					->description('Generate an autocomplete JSON for all available commands.')
 					->usage('[out]')
 					->addArgument([
-													'name'        => 'out',
-													'isOptional'  => true,
-													'description' => 'If set, output will be written to the [out] file. Otherwise, output will be written to stdout.',
-													'template'    => 'filepaths',
-												]);
+						'name' => 'out',
+						'isOptional' => true,
+						'description' => 'If set, output will be written to the [out] file. Otherwise, output will be written to stdout.',
+						'template' => 'filepaths',
+					]);
 
 	CliRoute::cli('translations/compile', [Translations::class, 'compile'])
 					->description('Compile all translation files.');
@@ -68,29 +69,29 @@ if (PHP_SAPI === 'cli') {
 					->description('Merge translations from this and one other project.')
 					->usage('<dir> [contextSkip]')
 					->addArgument([
-													'name'        => 'dir',
-													'isOptional'  => false,
-													'description' => 'A language directory from the other project.',
-													'template'    => 'filepaths',
-												],
-												[
-													'name'        => 'contextSkip',
-													'isOptional'  => true,
-													'description' => 'A comma separated list of context names to skip while merging.',
-												]);
+						'name' => 'dir',
+						'isOptional' => false,
+						'description' => 'A language directory from the other project.',
+						'template' => 'filepaths',
+					],
+						[
+							'name' => 'contextSkip',
+							'isOptional' => true,
+							'description' => 'A comma separated list of context names to skip while merging.',
+						]);
 
 	CliRoute::cli('regression/hits', [Regression::class, 'calculateHitRegression'])
 					->description('Calculate regression for player\'s hits.')
 					->usage('<arena> [TEAM|SOLO]')
 					->addArgument(
 						[
-							'name'        => 'arena',
-							'isOptional'  => false,
+							'name' => 'arena',
+							'isOptional' => false,
 							'description' => 'Arena ID',
 						],
 						[
-							'name'        => 'type',
-							'isOptional'  => true,
+							'name' => 'type',
+							'isOptional' => true,
 							'description' => 'Game type to calculate. Only "TEAM" or "SOLO" values are accepted. Default: "TEAM"',
 						]
 					);
@@ -100,13 +101,13 @@ if (PHP_SAPI === 'cli') {
 					->usage('<arena> [TEAM|SOLO]')
 					->addArgument(
 						[
-							'name'        => 'arena',
-							'isOptional'  => false,
+							'name' => 'arena',
+							'isOptional' => false,
 							'description' => 'Arena ID',
 						],
 						[
-							'name'        => 'type',
-							'isOptional'  => true,
+							'name' => 'type',
+							'isOptional' => true,
 							'description' => 'Game type to calculate. Only "TEAM" or "SOLO" values are accepted. Default: "TEAM"',
 						]
 					);
@@ -116,8 +117,8 @@ if (PHP_SAPI === 'cli') {
 					->usage('<arena>')
 					->addArgument(
 						[
-							'name'        => 'arena',
-							'isOptional'  => false,
+							'name' => 'arena',
+							'isOptional' => false,
 							'description' => 'Arena ID',
 						]
 					);
@@ -127,8 +128,8 @@ if (PHP_SAPI === 'cli') {
 					->usage('<arena>')
 					->addArgument(
 						[
-							'name'        => 'arena',
-							'isOptional'  => false,
+							'name' => 'arena',
+							'isOptional' => false,
 							'description' => 'Arena ID',
 						]
 					);
@@ -138,9 +139,12 @@ if (PHP_SAPI === 'cli') {
 					->usage('<arena>')
 					->addArgument(
 						[
-							'name'        => 'arena',
-							'isOptional'  => false,
+							'name' => 'arena',
+							'isOptional' => false,
 							'description' => 'Arena ID',
 						]
 					);
+
+	CliRoute::cli('cron/daily', [Cron::class, 'daily'])
+					->description('Run daily cron tasks.');
 }

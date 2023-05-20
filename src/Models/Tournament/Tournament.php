@@ -4,6 +4,7 @@ namespace App\Models\Tournament;
 
 use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Arena;
+use App\Models\GameGroup;
 use DateTimeInterface;
 use Lsr\Core\App;
 use Lsr\Core\Exceptions\ValidationException;
@@ -12,6 +13,7 @@ use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\OneToMany;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
+use Lsr\Core\Models\ModelQuery;
 
 #[PrimaryKey('id_tournament')]
 class Tournament extends Model
@@ -20,9 +22,14 @@ class Tournament extends Model
 	public const TABLE = 'tournaments';
 
 	#[ManyToOne]
-	public Arena   $arena;
+	public Arena $arena;
 	#[ManyToOne]
 	public ?League $league = null;
+	#[ManyToOne]
+	public ?LeagueCategory $category = null;
+
+	#[ManyToOne]
+	public ?GameGroup $group = null;
 
 	/** @var Group[] */
 	#[OneToMany(class: Group::class)]
@@ -43,7 +50,10 @@ class Tournament extends Model
 	public bool $active = true;
 	public bool $registrationsActive = true;
 
-	public DateTimeInterface  $start;
+	#[Instantiate]
+	public TournamentPoints $points;
+
+	public DateTimeInterface $start;
 	public ?DateTimeInterface $end = null;
 
 	#[Instantiate]
@@ -54,18 +64,44 @@ class Tournament extends Model
 	/** @var Player[] */
 	private array $players = [];
 
-	public function getImageUrl() : ?string {
+	/** @var Game[] */
+	private array $games = [];
+	/** @var Progression[] */
+	private array $progressions = [];
+	/** @var Team[] */
+	private array $sortedTeams = [];
+
+	public function getImageUrl(): ?string {
 		if (!isset($this->image)) {
 			return null;
 		}
-		return App::getUrl().$this->image;
+		return App::getUrl() . $this->image;
 	}
 
 	/**
 	 * @return Team[]
 	 * @throws ValidationException
 	 */
-	public function getTeams() : array {
+	public function getSortedTeams(): array {
+		if (empty($this->sortedTeams)) {
+			$teams = $this->getTeams();
+			usort($teams, static function (Team $a, Team $b) {
+				$diff = $b->points - $a->points;
+				if ($diff !== 0) {
+					return $diff;
+				}
+				return $b->getScore() - $a->getScore();
+			});
+			$this->sortedTeams = $teams;
+		}
+		return $this->sortedTeams;
+	}
+
+	/**
+	 * @return Team[]
+	 * @throws ValidationException
+	 */
+	public function getTeams(): array {
 		if ($this->format === GameModeType::SOLO) {
 			return [];
 		}
@@ -79,7 +115,7 @@ class Tournament extends Model
 	 * @return Player[]
 	 * @throws ValidationException
 	 */
-	public function getPlayers() : array {
+	public function getPlayers(): array {
 		if ($this->format === GameModeType::TEAM) {
 			return [];
 		}
@@ -87,6 +123,75 @@ class Tournament extends Model
 			$this->players = Player::query()->where('id_tournament = %i', $this->id)->get();
 		}
 		return $this->players;
+	}
+
+	/**
+	 * @return Game[]
+	 * @throws ValidationException
+	 */
+	public function getGames(): array {
+		if (empty($this->games)) {
+			$this->games = $this->queryGames()->get();
+		}
+		return $this->games;
+	}
+
+	/**
+	 * @return ModelQuery<Game>
+	 */
+	public function queryGames(): ModelQuery {
+		return Game::query()->where('id_tournament = %i', $this->id);
+	}
+
+	/**
+	 * @return Progression[]
+	 * @throws ValidationException
+	 */
+	public function getProgressions(): array {
+		if (empty($this->progressions)) {
+			$this->progressions = Progression::query()->where('id_tournament = %i', $this->id)->get();
+		}
+		return $this->progressions;
+	}
+
+	/**
+	 * @return GameGroup
+	 * @throws ValidationException
+	 */
+	public function getGroup(): GameGroup {
+		if (!isset($this->group)) {
+			$this->group = new GameGroup();
+			$this->group->name = $this->name;
+			$this->group->active = false;
+			$this->group->save();
+		}
+		return $this->group;
+	}
+
+	public function jsonSerialize(): array {
+		$data = parent::jsonSerialize();
+		if (isset($data['league'])) {
+			$data['league'] = [
+				'id' => $this->league->id,
+				'name' => $this->league->name,
+			];
+		}
+		return $data;
+	}
+
+	private bool $started;
+
+	public function isStarted(): bool {
+		$this->started ??= $this->start < (new \DateTimeImmutable());
+		return $this->started;
+	}
+
+	public function isRegistrationActive(): bool {
+		return $this->registrationsActive && !$this->isStarted();
+	}
+
+	public function isFull(): bool {
+		return isset($this->teamLimit) && count($this->getTeams()) >= $this->teamLimit;
 	}
 
 }

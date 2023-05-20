@@ -10,6 +10,7 @@ use App\Controllers\Lang;
 use App\Controllers\LeagueController;
 use App\Controllers\Login;
 use App\Controllers\MailTestController;
+use App\Controllers\PushController;
 use App\Controllers\Questionnaire;
 use App\Controllers\TournamentController;
 use App\Core\Middleware\CSRFCheck;
@@ -29,7 +30,8 @@ Route::group('/game')
 Route::group('/g')
 		 ->get('/', [Games::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
 		 ->get('/abcdefghij', [Dashboard::class, 'bp'])
-		 ->get('/{code}', [Games::class, 'show'])->name('game-alias');
+		 ->get('/{code}', [Games::class, 'show'])->name('game-alias')
+		 ->get('/{code}/thumb', [Games::class, 'thumb']);
 
 Route::group('/players')
 		 ->get('/find', [Players::class, 'find'])
@@ -84,11 +86,20 @@ Route::group()
 
 // Tournament
 Route::group('/tournament')
-		 ->get('/{id}', [TournamentController::class, 'detail'])
+		 ->get('/', [TournamentController::class, 'show'])->name('tournaments')
+		 ->get('/{id}', [TournamentController::class, 'detail'])->name('tournament-detail')
 		 ->get('/{id}/register', [TournamentController::class, 'register'])->name('tournament-register')
 		 ->post('/{id}/register', [TournamentController::class, 'processRegister'])->name('tournament-register-process')->middleware(new CSRFCheck('tournament-register'))
 		 ->get('/registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])->name('tournament-register-update')
 		 ->post('/registration/{tournamentId}/{registration}', [TournamentController::class, 'processUpdateRegister'])->name('tournament-register-update-process')->middleware(new CSRFCheck('tournament-update-register'));
 
 Route::group('/league')
-		 ->get('/{id}', [LeagueController::class, 'detail']);
+		 ->get('/{id}', [LeagueController::class, 'detail'])
+		 ->get('/team/{id}', [LeagueController::class, 'teamDetail']);
+
+// Push
+Route::group('/push')
+		 ->get('/test', [PushController::class, 'sendTest'])
+		 ->post('/subscribe', [PushController::class, 'subscribe'])
+		 ->post('/update', [PushController::class, 'updateUser'])
+		 ->post('/unsubscribe', [PushController::class, 'unsubscribe']);

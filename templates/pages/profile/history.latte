@@ -11,6 +11,7 @@
 {varType int[] $modeIds}
 {varType \DateTimeImmutable|null $date}
 {varType string[] $dates}
+{varType bool $currentUser}
 
 {varType array[] $allFields}
 
@@ -29,6 +30,12 @@
 		</a>
 	</p>
 	<h2>{sprintf(lang('Historie her hráče %s'), $user->name)}</h2>
+	<p n:if="$currentUser">
+		<a href="{link 'user', 'findgames'}" class="btn btn-primary">
+			<i class="fa-solid fa-magnifying-glass-plus"></i>
+			{lang 'Najít další hry'}
+		</a>
+	</p>
 
 	<form action="{link ['user', $user->player->getCode(), 'history']}" method="get" id="user-history-form"
 		  class="player-history data-table-form">

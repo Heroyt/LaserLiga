@@ -1,0 +1,50 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Tournament\Tournament[] $tournaments}
+
+{define content}
+	<h2>{lang 'Plánované turnaje'}</h2>
+	<div class="d-flex flex-column align-items-center">
+		<div n:foreach="$tournaments as $tournament"
+				class="card my-3 w-100"
+				style="max-width: 50rem;">
+			<div class="row g-0 {if $iterator->counter0 % 2 === 1}flex-md-row-reverse{/if}">
+				<div class="col-md-4">
+					<img n:ifset="$tournament->image" src="{$tournament->getImageUrl()}"
+													  alt="{$tournament->name}"
+													  class="img-fluid">
+				</div>
+				<div class="col-md-8 d-flex align-items-center">
+					<div class="card-body">
+						<img src="{$tournament->arena->getLogoUrl()}" alt="{$tournament->arena->name} - logo"
+							 class="img-fluid" style="max-height: 5rem;">
+						{ifset $tournament->league}
+							<h3 class="card-title">{$tournament->league->name}</h3>
+							<h4 class="card-subtitle">{$tournament->name}</h4>
+						{else}
+							<h3 class="card-title">{$tournament->name}</h3>
+						{/ifset}
+						<div class="text-center">{$tournament->start->format('d.m.Y')}</div>
+						<div class="text-center mt-4">
+							<a n:ifset="$tournament->league" href="{link 'league', $tournament->league->id}"
+															 class="btn btn-primary">
+								<i class="fa-solid fa-trophy"></i>
+								{lang 'Liga'}
+							</a>
+							<a href="{link 'tournament', $tournament->id}" class="btn btn-info">
+								<i class="fa-solid fa-circle-info"></i>
+								{lang 'Informace'}
+							</a>
+							<a n:if="$tournament->isRegistrationActive() && !$tournament->isFull()"
+									href="{link 'tournament', $tournament->id, 'register'}"
+									class="btn btn-primary">
+								<i class="fa-solid fa-user-plus"></i>
+								{lang 'Registrace'}
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{/define}

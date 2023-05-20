@@ -252,4 +252,16 @@ class GameGroup extends Model
 		return $this->modes;
 	}
 
+	public static function getOrCreateFromLocalId(int $localId, string $name, Arena $arena): GameGroup {
+		$gameGroup = GameGroup::query()->where('[id_arena] = %i AND [id_local] = %i', $arena->id, $localId)->first();
+		if (!isset($gameGroup)) {
+			$gameGroup = new GameGroup();
+			$gameGroup->arena = $arena;
+			$gameGroup->idLocal = $localId;
+			$gameGroup->name = $name;
+			$gameGroup->save();
+		}
+		return $gameGroup;
+	}
+
 }

@@ -3,9 +3,10 @@
 {varType App\Models\Auth\User|null $loggedInUser}
 {varType App\Models\Auth\User $user}
 {varType Dibi\Row[] $lastGames}
+{varType App\Models\DataObjects\PlayerRank $rankOrder}
 
 {block content}
-	{embed '../../partials/user/profile.latte', loggedIn: true, user: $user, lastGames: $lastGames, loggedInUser: $loggedInUser}
+	{embed '../../partials/user/profile.latte', loggedIn: true, user: $user, lastGames: $lastGames, loggedInUser: $loggedInUser, rankOrder: $rankOrder}
 
 	{/embed}
 {/block}

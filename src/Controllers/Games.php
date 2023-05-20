@@ -8,6 +8,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Today;
 use App\Models\GameGroup;
+use Imagick;
 use JsonException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controller;
@@ -30,10 +31,44 @@ class Games extends Controller
 		parent::__construct($latte);
 	}
 
-	public function init(RequestInterface $request) : void {
+	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->params['user'] = $this->auth->getLoggedIn();
 		$this->params['addCss'] = [];
+	}
+
+	public function thumb(string $code): void {
+		$this->params['game'] = GameFactory::getByCode($code);
+		if (!isset($this->params['game'])) {
+			$this->title = 'Hra nenalezena';
+			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
+
+			http_response_code(404);
+			$this->view('pages/game/empty');
+			return;
+		}
+		if (!isset($_GET['svg']) && extension_loaded('imagick')) {
+			// Check cache
+			$tmpdir = TMP_DIR . 'thumbs/';
+			if (file_exists($tmpdir) || (mkdir($tmpdir) && is_dir($tmpdir))) {
+				$filename = $tmpdir . $this->params['game']->code . '.png';
+				if (isset($_GET['nocache']) || !file_exists($filename)) {
+					// Convert generated svg to a png image
+					$image = new Imagick();
+					$image->readImageBlob($this->latte->viewToString('pages/game/thumb', $this->params));
+					$image->setImageFormat('png24');
+					$image->resizeImage(1200, 600, imagick::FILTER_LANCZOS, 1);
+					$image->writeImage($filename);
+				}
+
+				header('Content-Type: image/png');
+				header("Content-Disposition: inline; filename='{$this->params['game']->code}.png'");
+				readfile($filename);
+				exit;
+			}
+		}
+
+		$this->view('pages/game/thumb');
 	}
 
 	/**
@@ -42,7 +77,7 @@ class Games extends Controller
 	 * @return void
 	 * @throws TemplateDoesNotExistException
 	 */
-	public function show(string $code, Request $request) : void {
+	public function show(string $code, Request $request): void {
 		$this->params['addCss'][] = 'pages/result.css';
 		$this->params['game'] = GameFactory::getByCode($code);
 		if (!isset($this->params['game'])) {

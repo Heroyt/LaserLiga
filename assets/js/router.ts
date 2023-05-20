@@ -29,6 +29,14 @@ export default function route(pageInfo: PageInfo): void {
 				module.default();
 			});
 			break;
+		case 'admin-create-game':
+			import(
+				/* webpackChunkName: "admin-create-game" */
+				'./pages/admin/createGame'
+				).then(module => {
+				module.default();
+			});
+			break;
 		case 'arenas-detail':
 			import(
 				/* webpackChunkName: "arenas-detail" */
@@ -87,6 +95,14 @@ export default function route(pageInfo: PageInfo): void {
 			import(
 				/* webpackChunkName: "tournament-register" */
 				'./pages/tournament/register'
+				).then(module => {
+				module.default();
+			});
+			break;
+		case 'profile':
+			import(
+				/* webpackChunkName: "user-settings" */
+				'./pages/user/settings'
 				).then(module => {
 				module.default();
 			});

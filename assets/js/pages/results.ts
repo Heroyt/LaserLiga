@@ -29,9 +29,15 @@ export default function initResults() {
 
 	// Auto-open tournament modal
 	const modalDom = document.getElementById('tournament-modal') as HTMLDivElement;
+	const dontShow = modalDom.querySelector('#dont-show') as HTMLButtonElement;
 	const modal = new Modal(modalDom);
-	if (modalDom.dataset.show && modalDom.dataset.show === 'true') {
+	const hide = window.localStorage.getItem('hide-tournament-modal') === 'true';
+	if (modalDom.dataset.show && modalDom.dataset.show === 'true' && !hide) {
 		modal.show();
+		dontShow.addEventListener('click', () => {
+			window.localStorage.setItem('hide-tournament-modal', 'true');
+			modal.hide();
+		});
 	}
 
 	initQuestionnaire();

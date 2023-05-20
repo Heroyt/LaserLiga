@@ -14,7 +14,7 @@ class LeaderboardController extends AbstractUserController
 {
 
 	/**
-	 * @param Latte      $latte
+	 * @param Latte $latte
 	 * @param Auth<User> $auth
 	 */
 	public function __construct(
@@ -24,7 +24,7 @@ class LeaderboardController extends AbstractUserController
 		parent::__construct($latte);
 	}
 
-	public function show(Request $request, ?Arena $arena = null) : void {
+	public function show(Request $request, ?Arena $arena = null): void {
 		$this->params['addCss'] = ['pages/leaderboard.css'];
 		$this->title = 'Žebříček';
 		$this->description = 'Žebříček všech hráčů laser game podle různých statistik.';
@@ -32,7 +32,7 @@ class LeaderboardController extends AbstractUserController
 		$user = $this->auth->getLoggedIn();
 
 		$this->params['arena'] = $arena;
-		$query = LigaPlayer::query()->where('[games_played] > 0');
+		$query = LigaPlayer::query();
 		$userQuery = DB::select(LigaPlayer::TABLE, 'COUNT([id_user]) as count');
 
 		if (isset($arena)) {
@@ -45,10 +45,10 @@ class LeaderboardController extends AbstractUserController
 
 		// Types
 		$allowedTypes = [
-			'rank'     => ['games_played' => '%i', 'rank' => '%i'],
+			'rank' => ['games_played' => '%i', 'rank' => '%i'],
 			'averages' => ['average_accuracy' => '%f', 'average_position' => '%f', 'average_shots' => '%f', 'average_shots_per_minute' => '%f', 'kd' => '%f'],
-			'max'      => ['max_score' => '%i', 'max_skill' => '%i', 'max_accuracy' => '%i', 'hits' => '%i', 'deaths' => '%i'],
-			'sums'     => ['games_played' => '%i', 'total_minutes' => '%i', 'arenas_played' => '%i', 'shots' => '%i'],
+			'max' => ['max_score' => '%i', 'max_skill' => '%i', 'max_accuracy' => '%i', 'hits' => '%i', 'deaths' => '%i'],
+			'sums' => ['games_played' => '%i', 'total_minutes' => '%i', 'arenas_played' => '%i', 'shots' => '%i'],
 		];
 		/** @var string $tableType */
 		$tableType = $request->getGet('type', 'rank');
@@ -78,10 +78,14 @@ class LeaderboardController extends AbstractUserController
 			$userQuery->desc();
 		}
 
+		if ($orderByField !== 'rank' || isset($arena)) {
+			$query->where('[games_played] > 0');
+		}
+
 		// Pagination + search
-		$search = (string) $request->getGet('search', '');
-		$page = (int) $request->getGet('p', 1);
-		$limit = (int) $request->getGet('l', 15);
+		$search = (string)$request->getGet('search', '');
+		$page = (int)$request->getGet('p', 1);
+		$limit = (int)$request->getGet('l', 15);
 		$this->params['searchedPlayer'] = null;
 		if (!empty($search)) {
 			/** @var LigaPlayer|null $player */
@@ -97,10 +101,10 @@ class LeaderboardController extends AbstractUserController
 				if ($desc) {
 					$searchQuery->desc();
 				}
-				$searchQuery->where('%n '.($desc ? '>' : '<').' '.$type, $orderByField, $value)
-										->cacheTags(LigaPlayer::TABLE, LigaPlayer::TABLE.'/query', ...LigaPlayer::CACHE_TAGS);
+				$searchQuery->where('%n ' . ($desc ? '>' : '<') . ' ' . $type, $orderByField, $value)
+										->cacheTags(LigaPlayer::TABLE, LigaPlayer::TABLE . '/query', ...LigaPlayer::CACHE_TAGS);
 				$order = $searchQuery->fetchSingle() + 1;
-				$page = (int) ceil($order / $limit);
+				$page = (int)ceil($order / $limit);
 			}
 		}
 		$total = $query->count();
@@ -111,8 +115,8 @@ class LeaderboardController extends AbstractUserController
 		if (isset($user, $user->id)) {
 			$player = LigaPlayer::get($user->id);
 			$value = $this->getOrderByValueFromPlayer($orderByField, $player);
-			$userQuery->where('%n '.($desc ? '>' : '<').' '.$type, $orderByField, $value)
-								->cacheTags(LigaPlayer::TABLE, LigaPlayer::TABLE.'/query', ...LigaPlayer::CACHE_TAGS);
+			$userQuery->where('%n ' . ($desc ? '>' : '<') . ' ' . $type, $orderByField, $value)
+								->cacheTags(LigaPlayer::TABLE, LigaPlayer::TABLE . '/query', ...LigaPlayer::CACHE_TAGS);
 
 			$this->params['userOrder'] = $userQuery->fetchSingle() + 1;
 		}
@@ -129,16 +133,36 @@ class LeaderboardController extends AbstractUserController
 		$this->params['orderBy'] = $orderByField;
 		$this->params['desc'] = $desc;
 
+		if ($orderByField === 'rank' && !isset($arena)) {
+			$today = new \DateTimeImmutable();
+			$monthAgo = new \DateTimeImmutable('-30 days');
+			$this->params['ranks'] = [];
+			$ranksNow = DB::select('player_date_rank', 'id_user, position, position_text')
+										->where('[date] = %d', $today)
+										->cacheTags('date_rank', 'date_rank_' . $today->format('Y-m-d'))
+										->fetchAssoc('id_user');
+			$ranksBefore = DB::select('player_date_rank', 'id_user, position, position_text')
+											 ->where('[date] = %d', $monthAgo)
+											 ->cacheTags('date_rank', 'date_rank_' . $monthAgo->format('Y-m-d'))
+											 ->fetchAssoc('id_user');
+			foreach ($ranksNow as $id => $row) {
+				$this->params['ranks'][$id] = [
+					'rank' => $row->position_text,
+					'difference' => $row->position - $ranksBefore[$id]->position,
+				];
+			}
+		}
+
 		$this->view($request->isAjax() ? 'partials/leaderboard/table' : 'pages/leaderboard/index');
 	}
 
 	/**
-	 * @param mixed      $orderByField
+	 * @param mixed $orderByField
 	 * @param LigaPlayer $player
 	 *
 	 * @return float|int|string
 	 */
-	private function getOrderByValueFromPlayer(string $orderByField, LigaPlayer $player) : string|int|float {
+	private function getOrderByValueFromPlayer(string $orderByField, LigaPlayer $player): string|int|float {
 		return match ($orderByField) {
 			'nickname' => $player->nickname,
 			'code' => $player->getCode(),

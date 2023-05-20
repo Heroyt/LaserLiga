@@ -39,7 +39,9 @@
 		"lsr/auth": "^0.2",
 		"ext-simplexml": "*",
 		"nette/mail": "^4.0",
-		"ext-curl": "*"
+		"ext-curl": "*",
+		"ext-openssl": "*",
+		"minishlink/web-push": "^8.0"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

@@ -15,7 +15,7 @@
 {/define}
 
 {define containerClasses}
-	game-group py-5
+	game-group py-5 mb-5 mb-lg-0
 {/define}
 
 {define content}
@@ -81,7 +81,7 @@
 
 				<div class="score" data-toggle="tooltip" title="{lang 'Průměrné ohodnocení hráče'}"
 					 data-skills="{json_encode($player->skills)}">
-					<i class="fa-solid fa-star"></i>
+					<i class="fa-solid fa-medal"></i>
 					{if empty($modes)}
 						{$player->getSkill()|number:0,',','&nbsp;'|noescape}
 					{else}

@@ -12,7 +12,11 @@
 		"allowSyntheticDefaultImports": true,
 		"lib": [
 			"es2021",
-			"dom"
+			"dom",
+			"WebWorker"
 		]
-	}
+	},
+	"exclude": [
+		"assets/js/sw/service-worker.ts"
+	]
 }

@@ -2,6 +2,7 @@
 
 namespace App\Controllers\User;
 
+use _PHPStan_532094bc1\Nette\Utils\DateTime;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
@@ -10,6 +11,8 @@ use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\Models\Arena;
 use App\Models\Auth\User;
+use App\Models\DataObjects\PlayerRank;
+use App\Services\PlayerRankOrderService;
 use App\Services\PlayerUserService;
 use DateTimeImmutable;
 use Dibi\Row;
@@ -38,10 +41,11 @@ class UserController extends AbstractUserController
 	 * @param Passwords  $passwords
 	 */
 	public function __construct(
-		protected Latte              $latte,
-		protected readonly Auth      $auth,
-		protected readonly Passwords $passwords,
-		private readonly PlayerUserService $userService
+		protected Latte                         $latte,
+		protected readonly Auth                 $auth,
+		protected readonly Passwords            $passwords,
+		private readonly PlayerUserService      $userService,
+		private readonly PlayerRankOrderService $rankOrderService
 	) {
 		parent::__construct($latte);
 	}
@@ -175,11 +179,12 @@ class UserController extends AbstractUserController
 		$this->params['addCss'] = ['pages/playerProfile.css'];
 		$user = $this->getUser($code);
 		$this->params['user'] = $user;
+		$this->params['rankOrder'] = $this->rankOrderService->getDateRankForPlayer($user->createOrGetPlayer(), new DateTimeImmutable());
 		$this->params['lastGames'] = $user->player?->queryGames()
 																							->limit(10)
 																							->orderBy('start')
 																							->desc()
-																							->cacheTags('user/games', 'user/'.$this->params['user']->player?->getCode().'/games', 'user/'.$this->params['user']->player?->getCode().'/lastGames')
+																							->cacheTags('user/games', 'user/' . $this->params['user']->player?->getCode() . '/games', 'user/' . $this->params['user']->player?->getCode() . '/lastGames')
 																							->fetchAll() ?? [];
 
 		$this->title = 'Nástěnka hráče - %s';
@@ -206,18 +211,19 @@ class UserController extends AbstractUserController
 			$request->addPassError(lang('Uživatel neexistuje'));
 			App::redirect([], $request);
 		}
+		$this->params['currentUser'] = $this->auth->getLoggedIn()?->id === $user->id;
 		$player = $user->createOrGetPlayer();
 		$query = PlayerFactory::queryPlayersWithGames(
 			playerFields: [
-											'vest',
-											'hits',
-											'deaths',
-											'accuracy',
-											'score',
-											'shots',
-											'skill',
-											'kd' => ['first' => 'hits', 'second' => 'deaths', 'operation' => '/']
-										]
+				'vest',
+				'hits',
+				'deaths',
+				'accuracy',
+				'score',
+				'shots',
+				'skill',
+				'kd' => ['first' => 'hits', 'second' => 'deaths', 'operation' => '/']
+			]
 		)
 													->where('[id_user] = %i', $user->id)
 													->cacheTags('user/'.$user->id.'/games');
@@ -377,14 +383,14 @@ class UserController extends AbstractUserController
 
 		// Get games together
 		$gamesQuery = DB::getConnection()->select("[id_game], [type], [code], [id_mode], GROUP_CONCAT([vest] SEPARATOR ',') as [vests], GROUP_CONCAT([id_team] SEPARATOR ',') as [teams], GROUP_CONCAT([id_user] SEPARATOR ',') as [users], GROUP_CONCAT([name] SEPARATOR ',') as [names]")
-										->from(
-											PlayerFactory::queryPlayersWithGames(playerFields: ['vest'], modeFields: ['type'])
-																	 ->where('[id_user] IN %in', [$user->id, $currentUser->id])
-												->fluent,
-											'players'
-										)
-										->groupBy('id_game')
-										->having('COUNT([id_game]) = 2');
+			->from(
+				PlayerFactory::queryPlayersWithGames(playerFields: ['vest'], modeFields: ['type'])
+					->where('[id_user] IN %in', [$user->id, $currentUser->id])
+					->fluent,
+				'players'
+			)
+			->groupBy('id_game')
+			->having('COUNT([id_game]) = 2');
 
 		// Filter by game modes
 		/** @var numeric-string|numeric-string[] $modes */
@@ -547,23 +553,23 @@ class UserController extends AbstractUserController
 
 		// Get rankable modes
 		$modes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
-							 ->where('[rankable] = 1')
-							 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
-							 ->fetchPairs('id_mode', 'name');
+			->where('[rankable] = 1')
+			->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+			->fetchPairs('id_mode', 'name');
 
 		$totalGamesCount = $player->queryGames()
-															->where('[id_mode] IN %in', array_keys($modes))
-															->count();
+			->where('[id_mode] IN %in', array_keys($modes))
+			->count();
 		$trends['totalGamesCount'] = $totalGamesCount;
 		$trends['lookBack'] = $lookBackGames;
 		$lastGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots'])
-															->where('[id_user] = %i', $user->id)
-															->where('[id_mode] IN %in', array_keys($modes))
-															->orderBy('start')
-															->desc()
-															->limit($lookBackGames)
-															->cacheTags('user/'.$user->id.'/games')
-															->fetchAssoc('code');
+			->where('[id_user] = %i', $user->id)
+			->where('[id_mode] IN %in', array_keys($modes))
+			->orderBy('start')
+			->desc()
+			->limit($lookBackGames)
+			->cacheTags('user/'.$user->id.'/games')
+			->fetchAssoc('code');
 		$sumAccuracy = 0;
 		$sumShots = 0;
 		foreach ($lastGames as $game) {
@@ -594,26 +600,26 @@ class UserController extends AbstractUserController
 			'diff'   => $thisMonthGamesCount - $lastMonthGamesCount,
 		];
 		$thisMonthGamesCount = $player->queryGames()
-																	->where('[id_mode] IN %in', array_keys($modes))
-																	->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)->count();
+			->where('[id_mode] IN %in', array_keys($modes))
+			->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)->count();
 		$lastMonthGamesCount = $player->queryGames()
-																	->where('[id_mode] IN %in', array_keys($modes))
-																	->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)->count();
+			->where('[id_mode] IN %in', array_keys($modes))
+			->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)->count();
 		$trends['rankableGames'] = [
 			'before' => $lastMonthGamesCount,
 			'now'    => $thisMonthGamesCount,
 			'diff'   => $thisMonthGamesCount - $lastMonthGamesCount,
 		];
 		$thisMonthGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots', 'hits', 'deaths'])
-																	 ->where('[id_user] = %i', $user->id)
-																	 ->where('[id_mode] IN %in', array_keys($modes))
-																	 ->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)
-																	 ->fetchAll();
+			->where('[id_user] = %i', $user->id)
+			->where('[id_mode] IN %in', array_keys($modes))
+			->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)
+			->fetchAll();
 		$lastMonthGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots', 'hits', 'deaths'])
-																	 ->where('[id_user] = %i', $user->id)
-																	 ->where('[id_mode] IN %in', array_keys($modes))
-																	 ->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)
-																	 ->fetchAll();
+			->where('[id_user] = %i', $user->id)
+			->where('[id_mode] IN %in', array_keys($modes))
+			->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)
+			->fetchAll();
 
 		$thisMonthSumShots = 0;
 		$lastMonthSumShots = 0;
@@ -638,13 +644,36 @@ class UserController extends AbstractUserController
 		];
 		$trends['sumHits'] = [
 			'before' => $lastMonthSumHits,
-			'now'    => $thisMonthSumHits,
-			'diff'   => $thisMonthSumHits - $lastMonthSumHits,
+			'now' => $thisMonthSumHits,
+			'diff' => $thisMonthSumHits - $lastMonthSumHits,
 		];
 		$trends['sumDeaths'] = [
 			'before' => $lastMonthSumDeaths,
 			'now' => $thisMonthSumDeaths,
 			'diff' => $thisMonthSumDeaths - $lastMonthSumDeaths,
+		];
+
+		/** @var Row|PlayerRank $rankOrderBefore */
+		$rankOrderBefore = DB::select('player_date_rank', '*')
+												 ->where('id_user = %i AND [date] = %d', $user->id, $monthAgo)
+												 ->cacheTags('date_rank', 'date_rank_' . $monthAgo->format('Y-m-d'))
+												 ->fetch();
+		if (!isset($rankOrderBefore)) {
+			$rankOrderBefore = ($this->rankOrderService->getDateRanks($monthAgo)[$user->id]);
+		}
+		/** @var Row|PlayerRank $rankOrderToday */
+		$rankOrderToday = DB::select('player_date_rank', '*')
+												->where('id_user = %i AND [date] = %d', $user->id, $today)
+												->cacheTags('date_rank', 'date_rank_' . $today->format('Y-m-d'))
+												->fetch();
+		if (!isset($rankOrderToday)) {
+			$rankOrderToday = ($this->rankOrderService->getDateRanks($today)[$user->id]);
+		}
+
+		$trends['rankOrder'] = [
+			'before' => $rankOrderBefore->position,
+			'now' => $rankOrderToday->position,
+			'diff' => $rankOrderBefore->position - $rankOrderToday->position,
 		];
 
 		$this->respond($trends);

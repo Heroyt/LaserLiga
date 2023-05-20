@@ -12,19 +12,19 @@
 {/define}
 
 {define containerClasses}
-	game-results {if $game->mode->isSolo()}solo{/if} py-5
+	game-results {if $game->mode->isSolo()}solo{/if} py-5 mb-5 mb-lg-0
 {/define}
 
 {define addHead}
 	{ifset $game}
 		<style>
 			:root {
-			{foreach $game->getTeamColors() as $key => $color} {var string $varName1 = '--team-'.$key} {var string $varName2 = '--team-'.$key.'-text'} {$varName1}: {$color|noescape};
+			{foreach $game::getTeamColors() as $key => $color} {var string $varName1 = '--team-'.$key} {var string $varName2 = '--team-'.$key.'-text'} {$varName1}: {$color|noescape};
 			{$varName2}:{\App\Tools\Color::getFontColor($color)|noescape};
 			{/foreach}
 			}
 
-			{foreach $game->getTeamColors() as $key => $color}
+			{foreach $game::getTeamColors() as $key => $color}
 			.bg-team-{$key} {
 				--bg-color: var(--team-{$key});
 				--text-color: var(--team-{$key}-text);
@@ -126,6 +126,11 @@
 							Informace a přihláška
 						</a>
 					</p>
+					<p class="mt-3">
+						<button type="button" class="btn btn-secondary" id="dont-show" data-bs-dismiss="modal">
+							{lang 'Nezobrazovat'}
+						</button>
+					</p>
 				</div>
 			</div>
 		</div>
@@ -176,75 +181,91 @@
 					{$game->group->name}
 				</div>
 			</div>
-			<div class="scoring p-3 rounded-10 shadow bg-white">
-				<h4>{lang 'Bodování', context: 'results'}</h4>
-				<div class="d-flex flex-wrap justify-content-evenly">
-					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
-						<strong class="d-block w-50">
-							{lang 'Body za zásah', context: 'results.info'}:
-						</strong>
-						<div class="w-50 text-end">{$game->scoring->hitOther} {svgIcon 'star', '1em'}</div>
+			<div class="scoring p-0">
+				<div class="rounded-10 bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+					 data-bs-toggle="collapse"
+					 data-bs-target="#scoring-body"
+					 data-track-content="" data-content-name="Results - Legenda">
+					<h5 class="m-0"><i class="fas fa-star"></i> {lang 'Bodování', context: 'results'}</h5>
+					<div class="collapse-indicator">
+						<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+						<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
 					</div>
-					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
-						<strong class="d-block w-50">
-							{lang 'Body za smrt', context: 'results.info'}:
-						</strong>
-						<div class="w-50 text-end">{$game->scoring->deathOther} {svgIcon 'star', '1em'}</div>
-					</div>
-					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
-						<strong class="d-block w-50">
-							{lang 'Body za zásah vlastního', context: 'results.info'}:
-						</strong>
-						<div class="w-50 text-end">{$game->scoring->hitOwn} {svgIcon 'star', '1em'}</div>
-					</div>
-					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
-						<strong class="d-block w-50">
-							{lang 'Body za smrt od vlastního hráče', context: 'results.info'}:
-						</strong>
-						<div class="w-50 text-end">{$game->scoring->deathOwn} {svgIcon 'star', '1em'}</div>
-					</div>
-					<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom" n:if="$game->scoring->shot !== 0">
-						<strong class="d-block w-50">
-							{lang 'Body za výstřel', context: 'results.info'}:
-						</strong>
-						<div class="w-50 text-end">{$game->scoring->shot} {svgIcon 'star', '1em'}</div>
-					</div>
-					{if method_exists($game, 'isMinesOn') && $game->isMinesOn()}
+				</div>
+				<div class="bg-white collapse shadow rounded-bottom-10 text-center"
+					 id="scoring-body">
+					<div class="d-flex flex-wrap justify-content-evenly">
 						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
 							<strong class="d-block w-50">
-								{lang 'Body smrt od miny', context: 'results.info'}:
+								{lang 'Body za zásah', context: 'results.info'}:
 							</strong>
-							<div class="w-50 text-end">{$game->scoring->hitPod} {svgIcon 'star', '1em'}</div>
+							<div class="w-50 text-end">{$game->scoring->hitOther} {svgIcon 'star', '1em'}</div>
 						</div>
 						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
 							<strong class="d-block w-50">
-								{lang 'Body za bonus', context: 'results.info'} - {lang 'agent', context: 'results.bonus'}
-								:
+								{lang 'Body za smrt', context: 'results.info'}:
 							</strong>
-							<div class="w-50 text-end">{$game->scoring->agent} {svgIcon 'star', '1em'}</div>
+							<div class="w-50 text-end">{$game->scoring->deathOther} {svgIcon 'star', '1em'}</div>
 						</div>
 						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
 							<strong class="d-block w-50">
-								{lang 'Body za bonus', context: 'results.info'} - {lang 'neviditelnost', context: 'results.bonus'}
-								:
+								{lang 'Body za zásah vlastního', context: 'results.info'}:
 							</strong>
-							<div class="w-50 text-end">{$game->scoring->invisibility} {svgIcon 'star', '1em'}</div>
+							<div class="w-50 text-end">{$game->scoring->hitOwn} {svgIcon 'star', '1em'}</div>
 						</div>
 						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
 							<strong class="d-block w-50">
-								{lang 'Body za bonus', context: 'results.info'} - {lang 'samopal', context: 'results.bonus'}
-								:
+								{lang 'Body za smrt od vlastního hráče', context: 'results.info'}:
 							</strong>
-							<div class="w-50 text-end">{$game->scoring->machineGun} {svgIcon 'star', '1em'}</div>
+							<div class="w-50 text-end">{$game->scoring->deathOwn} {svgIcon 'star', '1em'}</div>
 						</div>
-						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+						<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom" n:if="$game->scoring->shot !== 0">
 							<strong class="d-block w-50">
-								{lang 'Body za bonus', context: 'results.info'} - {lang 'štít', context: 'results.bonus'}
-								:
+								{lang 'Body za výstřel', context: 'results.info'}:
 							</strong>
-							<div class="w-50 text-end">{$game->scoring->shield} {svgIcon 'star', '1em'}</div>
+							<div class="w-50 text-end">{$game->scoring->shot} {svgIcon 'star', '1em'}</div>
 						</div>
-					{/if}
+						{if method_exists($game, 'isMinesOn') && $game->isMinesOn()}
+							<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+								<strong class="d-block w-50">
+									{lang 'Body smrt od miny', context: 'results.info'}:
+								</strong>
+								<div class="w-50 text-end">{$game->scoring->hitPod} {svgIcon 'star', '1em'}</div>
+							</div>
+							<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+								<strong class="d-block w-50">
+									{lang 'Body za bonus', context: 'results.info'}
+									- {lang 'agent', context: 'results.bonus'}
+									:
+								</strong>
+								<div class="w-50 text-end">{$game->scoring->agent} {svgIcon 'star', '1em'}</div>
+							</div>
+							<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+								<strong class="d-block w-50">
+									{lang 'Body za bonus', context: 'results.info'}
+									- {lang 'neviditelnost', context: 'results.bonus'}
+									:
+								</strong>
+								<div class="w-50 text-end">{$game->scoring->invisibility} {svgIcon 'star', '1em'}</div>
+							</div>
+							<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+								<strong class="d-block w-50">
+									{lang 'Body za bonus', context: 'results.info'}
+									- {lang 'samopal', context: 'results.bonus'}
+									:
+								</strong>
+								<div class="w-50 text-end">{$game->scoring->machineGun} {svgIcon 'star', '1em'}</div>
+							</div>
+							<div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
+								<strong class="d-block w-50">
+									{lang 'Body za bonus', context: 'results.info'}
+									- {lang 'štít', context: 'results.bonus'}
+									:
+								</strong>
+								<div class="w-50 text-end">{$game->scoring->shield} {svgIcon 'star', '1em'}</div>
+							</div>
+						{/if}
+					</div>
 				</div>
 			</div>
 			<div class="icon-legend p-0">
@@ -263,6 +284,9 @@
 					<div class="d-flex flex-wrap justify-content-evenly align-items-center">
 						<div class="legend m-3">
 							{svgIcon 'star', '', '1em'} - {lang 'Skóre', context: 'results'}
+						</div>
+						<div class="legend m-3">
+							<i class="fa-solid fa-medal"></i> - {lang 'Herní úroveň'}
 						</div>
 						<div class="legend m-3">
 							{svgIcon 'bullets', '', '1em'} - {lang 'Výstřely', context: 'results'}
@@ -297,12 +321,23 @@
 				</div>
 			</div>
 		</div>
+		<div class="text-center">
+			<button type="button" class="btn-lg btn btn-success d-none my-3" data-trigger="share"
+					data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->getMode()?->name, context: 'gameModes'), $game->arena?->name)}"
+					data-url="{link 'g', $game->code}">
+				<i class="fa-solid fa-share"></i>
+				{lang 'Sdílet'}
+			</button>
+		</div>
 		<div n:if="isset($game->group)" class="col-12 mt-3 text-center">
 			<div class="btn-group btn-group-lg">
-				<a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-info" data-track-content=""
+				<a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-primary"
+											data-track-content=""
 											data-content-name="Results - Previous game">
 					<i class="fa-solid fa-caret-left"></i>
+					<span class="d-none d-lg-inline">
 					{lang 'Předchozí hra', context: 'results.group'}
+					</span>
 				</a>
 				<a href="{link ['game', 'group', $game->group->getEncodedId()]}" class="btn btn-secondary"
 				   data-track-content="" data-content-name="Results - Group">
@@ -311,7 +346,9 @@
 				</a>
 				<a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-primary"
 											data-track-content="" data-content-name="Results - Next game">
+					<span class="d-none d-lg-inline">
 					{lang 'Následující hra', context: 'results.group'}
+					</span>
 					<i class="fa-solid fa-caret-right"></i>
 				</a>
 			</div>
@@ -338,24 +375,10 @@
 						</div>
 						<div class="player-rank">
 							{var array $rank = $player->getBestAt()}
-						{svgIcon $rank['icon'], '', 15}
+							{svgIcon $rank['icon'], '', 15}
 							<div class="rank-name">{$rank['name']}</div>
 						</div>
 					</div>
-
-					{if isset($user) && !isset($player->user) && comparePlayerNames($user->name, $player->name)}
-						<button class="btn btn-primary setMe" type="button" data-id="{$player->id}"
-								data-system="{$player::SYSTEM}"
-								data-content-piece="Přivlastnit">
-							{lang 'Přivlastnit'}
-						</button>
-					{elseif isset($player->user)}
-						<a href="{link ['user', $player->user->getCode()]}" class="btn btn-primary"
-						   data-toggle="tooltip" title="{lang 'Profil hráče'}"
-						   data-content-piece="Profile">
-							<i class="fa-solid fa-user"></i>
-						</a>
-					{/if}
 
 					{include playerScore}
 
@@ -365,6 +388,27 @@
 					</div>
 				</div>
 				<div class="player-body rounded-bottom-10 collapse bg-white p-3" id="player-body-{$key}">
+					<div class="player-actions">
+						{if isset($user) && !isset($player->user) && comparePlayerNames($user->name, $player->name)}
+							<p class="text-center">
+								<button class="btn btn-primary setMe" type="button" data-id="{$player->id}"
+										data-system="{$player::SYSTEM}"
+										data-content-piece="Přivlastnit">
+									{lang 'Přivlastnit'}
+								</button>
+							</p>
+						{elseif isset($player->user)}
+							<p class="text-center">
+								<a href="{link ['user', $player->user->getCode()]}" class="btn btn-primary"
+								   data-toggle="tooltip" title="{lang 'Profil hráče'}"
+								   data-content-piece="Profile">
+									<i class="fa-solid fa-user"></i>
+									{lang 'Profil hráče'}
+								</a>
+							</p>
+						{/if}
+					</div>
+
 					{include playerTrophies}
 					{include playerScoreDetail}
 					{include playerAccuracy}
@@ -394,41 +438,41 @@
 					<i class="fa-solid fa-star"></i>
 				</h5>
 				{var int $hitScore = ($game->getMode()->isSolo() || !isset($player->hitsOther) ? $player->hits : $player->hitsOther) * $game->scoring->hitOther}
-		{include playerScoreDetailPart 'Zásahy', $hitScore}
-		{var int $deathScore =
+				{include playerScoreDetailPart 'Zásahy', $hitScore}
+				{var int $deathScore =
 				(($game->getMode()->isSolo() || !isset($player->deathsOther) ? $player->deaths : $player->deathsOther) * $game->scoring->deathOther) +
 				($game->getMode()->isSolo() || !isset($player->deathsOther) ? 0 : $player->deathsOwn) * $game->scoring->deathOwn}
-		{include playerScoreDetailPart 'Smrti', $deathScore}
-		{if $game->getMode()->isTeam() && isset($player->hitsOwn) && $player->hitsOwn > 0}
+				{include playerScoreDetailPart 'Smrti', $deathScore}
+				{if $game->getMode()->isTeam() && isset($player->hitsOwn) && $player->hitsOwn > 0}
 					{var int $hitOwnScore = $player->hitsOwn * $game->scoring->hitOwn}
 					{include playerScoreDetailPart 'Zásahy spoluhráčů', $hitOwnScore}
 				{/if}
-		{if isset($player->scoreMines) && $player->scoreMines !== 0}
+				{if isset($player->scoreMines) && $player->scoreMines !== 0}
 					{include playerScoreDetailPart 'Smrti od min', $player->scoreMines}
 				{/if}
-		{if isset($player->bonus) && $player->bonus->getSum() > 0}
+				{if isset($player->bonus) && $player->bonus->getSum() > 0}
 					{var int $bonusScore = ($player->bonus->agent * $game->scoring->agent) + ($player->bonus->machineGun * $game->scoring->machineGun) + ($player->bonus->invisibility * $game->scoring->invisibility) + ($player->bonus->shield * $game->scoring->shield)}
 					{include playerScoreDetailPart 'Bonusy', $bonusScore}
 				{/if}
-		{if isset($player->shotPoints) && $player->shotPoints !== 0}
+				{if isset($player->shotPoints) && $player->shotPoints !== 0}
 					{include playerScoreDetailPart 'Výstřely', $player->shotPoints}
 				{/if}
 			</div>
 			<div class="col-12 col-md-6">
 				<h5 class="border-bottom py-2 mt-3">
 					{lang 'Herní úroveň'}: {$player->getSkill()|number:0,',','&nbsp;'|noescape}
-				<i class="fa-solid fa-star"></i>
-				{ifset $diff}
+					<i class="fa-solid fa-medal"></i>
+					{ifset $diff}
 						<br>
 						<span class="fs-6">({sprintf(lang('%s k herní úrovni hráče'), ($diff > 0 ? '+' : '') . number_format($diff,2,',',''))})</span>
 					{/ifset}
 				</h5>
 				{var int $sum = 0}
-			{foreach $player->getSkillParts() as $key => $skill}
+				{foreach $player->getSkillParts() as $key => $skill}
 					{do $sum += $skill}
 					{include playerSkillDetailPart, $key, $skill}
 				{/foreach}
-			{include playerSkillDetailPart, 'rounding', $player->getSkill() - $sum}
+				{include playerSkillDetailPart, 'rounding', $player->getSkill() - $sum}
 			</div>
 		</div>
 	</div>
@@ -457,12 +501,13 @@
 		{/switch}
 		<span n:class="$skill > 0 ? text-success, $skill < 0 ? text-danger">
 			{if $skill > 0}+{/if}{round($skill)|number:0,',','&nbsp;'|noescape}
-			<i class="fa-solid fa-star"></i>
+			<i class="fa-solid fa-medal"></i>
 		</span>
 	</p>
 {/define}
 
 {define playerTrophies}
+	{varType App\GameModels\Game\Player $player}
 	{var array $trophies = $player->getAllBestAt()}
 	<div class="player-trophies text-center mb-3" data-content-piece="Trophies">
 		<h4 class="caption">
@@ -488,6 +533,7 @@
 {/define}
 
 {define playerToday}
+	{varType App\GameModels\Game\Player $player}
 	<div class="player-today mt-4" data-content-piece="Today">
 		<h4 class="caption">
 			<i class="fa-solid fa-calendar"></i><br>
@@ -508,13 +554,13 @@
 				 data-track-content="" data-content-name="Results - Leaderboard"
 				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score', 'highlight' => $player->id]}">
-					<div class="label">
-						{svgIcon 'star', '2em'}<br>
+				<div class="label">
+					{svgIcon 'star', '2em'}<br>
 					{lang 'Skóre', context: 'results.today'}:
-					</div>
-					<div class="position">
-						{$order}.
-					</div>
+				</div>
+				<div class="position">
+					{$order}.
+				</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'accuracy')}
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
@@ -526,13 +572,13 @@
 				 data-track-content="" data-content-name="Results - Leaderboard"
 				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy', 'highlight' => $player->id]}">
-					<div class="label">
-						{svgIcon 'target', '2em'}<br>
+				<div class="label">
+					{svgIcon 'target', '2em'}<br>
 					{lang 'Přesnosti', context: 'results.today'}:
-					</div>
-					<div class="position">
-						{$order}.
-					</div>
+				</div>
+				<div class="position">
+					{$order}.
+				</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'hits')}
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
@@ -544,13 +590,13 @@
 				 data-track-content="" data-content-name="Results - Leaderboard"
 				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits', 'highlight' => $player->id]}">
-					<div class="label">
-						{svgIcon 'kill', '3em'}<br>
+				<div class="label">
+					{svgIcon 'kill', '3em'}<br>
 					{lang 'Zásahů', context: 'results.today'}:
-					</div>
-					<div class="position">
-						{$order}.
-					</div>
+				</div>
+				<div class="position">
+					{$order}.
+				</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'deaths')}
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
@@ -562,13 +608,13 @@
 				 data-track-content="" data-content-name="Results - Leaderboard"
 				 data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths', 'highlight' => $player->id]}"
 				 data-href="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths', 'highlight' => $player->id]}">
-					<div class="label">
-						{svgIcon 'skull', '2em'}<br>
+				<div class="label">
+					{svgIcon 'skull', '2em'}<br>
 					{lang 'Smrtí', context: 'results.today'}:
-					</div>
-					<div class="position">
-						{$order}.
-					</div>
+				</div>
+				<div class="position">
+					{$order}.
+				</div>
 			</div>
 			{do $order = $today->getPlayerOrder($player,'shots')}
 			<div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
@@ -606,6 +652,8 @@
 {/define}
 
 {define playerShots}
+	{varType App\GameModels\Game\Player $player}
+	{varType int $maxShots}
 	<div n:if="$game->mode->settings->playerShots" class="player-shots" data-content-piece="Shots">
 		{var int $step = ceil($maxShots / 10)}
 		{var int $count = ceil($player->shots / $step)}
@@ -627,12 +675,15 @@
 				</g>
 			</g>
 		</svg>
-		<div class="number">{lang 'Výstřely', context: 'results'}: {svgIcon 'bullets', '', '1em'} {$player->shots|number:0,',','&nbsp;'|noescape}</div>
-		<div class="number">{lang 'Střely do prázdna', context: 'results'}: {svgIcon 'bullet_2', '', '1em'} {$player->getMiss()|number:0,',','&nbsp;'|noescape}</div>
+		<div class="number">{lang 'Výstřely', context: 'results'}
+			: {svgIcon 'bullets', '', '1em'} {$player->shots|number:0,',','&nbsp;'|noescape}</div>
+		<div class="number">{lang 'Střely do prázdna', context: 'results'}
+			: {svgIcon 'bullet_2', '', '1em'} {$player->getMiss()|number:0,',','&nbsp;'|noescape}</div>
 	</div>
 {/define}
 
 {define playerAccuracy}
+	{varType App\GameModels\Game\Player $player}
 	<svg n:if="$game->mode->settings->playerAccuracy" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
 													  class="accuracy" xml:space="preserve"
 													  data-content-piece="Accuracy"
@@ -674,7 +725,7 @@
 				</div>
 				<div class="graph text-dark">
 					{var int $hits = $game->mode->isTeam() ? $player->hitsOther : $player->hits}
-				{var int $deaths = $game->mode->isTeam() ? $player->deathsOther : $player->deaths}
+					{var int $deaths = $game->mode->isTeam() ? $player->deathsOther : $player->deaths}
 					<div class="kills" style="width:{100*$hits / ($total > 0 ? $total : 1)|noescape}%">
 						<div class="main">
 							<div class="icon">
@@ -749,7 +800,7 @@
 		<div class="hits-my col-12 col-sm-5">
 			<h4 class="caption mt-3">
 				{svgIcon 'kill', '', '1rem'}<br>
-			{lang 'Zásahy do hráčů', context: 'results.hits'}
+				{lang 'Zásahy do hráčů', context: 'results.hits'}
 			</h4>
 			<div class="row g-1">
 				{foreach $game->getPlayersSorted()->getAll() as $player2}
@@ -771,7 +822,7 @@
 		<div class="deaths-my col-12 col-sm-5 ">
 			<h4 class="caption mt-3">
 				{svgIcon 'skull', '', '1rem'}<br>
-			{lang 'Smrti od hráčů', context: 'results.hits'}
+				{lang 'Smrti od hráčů', context: 'results.hits'}
 			</h4>
 			<div class="row g-1">
 				{foreach $game->getPlayersSorted()->getAll() as $player2}
@@ -793,16 +844,19 @@
 {/define}
 
 {define playerScore}
+	{varType App\GameModels\Game\Player $player}
 	<div n:if="$game->mode->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
 		<i class="fa-solid fa-star"></i>
 		<b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
 	</div>
 	<div class="skill text-end ps-1" style="max-width:3.5rem;" data-toggle="tooltip" title="{lang 'Herní úroveň'}">
-		({$player->getSkill()|number:0,',','&nbsp;'|noescape})
+		<i class="fa-solid fa-medal"></i>
+		{$player->getSkill()|number:0,',','&nbsp;'|noescape}
 	</div>
 {/define}
 
 {define playerFavourites}
+	{varType App\GameModels\Game\Player $player}
 	{var App\GameModels\Game\Player|null $favourite = $player->getFavouriteTarget()}
 	{var App\GameModels\Game\Player|null $favouriteOf = $player->getFavouriteTargetOf()}
 	<div n:if="$game->mode->settings->playerFavourites" class="player-favourites text-center"
@@ -844,6 +898,7 @@
 {/define}
 
 {define resultsHits}
+	{varType App\GameModels\Game\Player $player}
 	{var float $width = 87.5 / count($game->getPlayers())}
 	<section class="results-hits align-self-end d-none d-md-block">
 		<h4 class="caption">

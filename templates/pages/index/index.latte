@@ -1,7 +1,70 @@
 {layout '../../@layout.latte'}
 
+{block containerClasses}
+	pb-5 mb-5 mb-lg-0
+{/block}
+
 {block content}
 
-	<h1>Laser liga</h1>
+	<section class="px-5 text-white-forced" id="main-banner">
+		<h1 class="text-start">Laser liga</h1>
+		<p class="text-start">
+			{lang 'Portál pro hráče laser game.'}
+			<br>
+			<a href="{link 'login'}" class="btn btn-primary mt-2 btn-lg">
+				<i class="fa-solid fa-right-to-bracket"></i>
+				{lang 'Přihlásit'}
+			</a>
+		</p>
+	</section>
+
+	<section id="arenas" class="p-5 text-end">
+		<h2 class="text-end">{lang 'Zapojené arény'}</h2>
+		<a href="{link 'arena'}" class="btn btn-info btn-lg mb-2">
+			<i class="fa-solid fa-location-dot"></i>
+			{lang 'Zobrazit'}
+		</a>
+		<p class="text-muted text-end">{sprintf(lang('Chybí tu Vaše aréna? Řekněte jí, ať nás kontaktuje na e-mail: %s'), '<a href="mailto:info@laserliga.cz">info@laserliga.cz</a>')|noescape}</p>
+	</section>
+
+	<section id="how-it-works" class="p-5 text-start">
+		<h2 class="text-start">{lang 'Jak to funguje?'}</h2>
+
+		<h3 class="mt-4 text-start">
+			<span class="text-center d-inline-block fs-4 bg-blue-300 text-black-forced rounded-circle"
+				  style="width: 1.5em;height:1.5em;line-height:1.5;">
+				1.
+			</span>
+			{lang 'Registrujete se'}
+		</h3>
+		<p class="text-start">{lang 'Při registraci si vyberete domovskou arénu, přezdívku a dostanete přiřazený váš unikátní kód.'}</p>
+		<a href="{link 'register'}" class="btn btn-primary">
+			<i class="fa-solid fa-right-to-bracket"></i>
+			{lang 'Registrovat se'}
+		</a>
+		<h3 class="mt-4 text-start">
+			<span class="text-center d-inline-block fs-4 bg-blue-400 text-black-forced rounded-circle"
+				  style="width: 1.5em;height:1.5em;line-height:1.5;">
+				2.
+			</span>
+			{lang 'Hrajete ve vaší aréně'}
+		</h3>
+		<p class="text-start">{lang 'Obsluze nahlásíte, že jste registrovaní a ona vás najde pomocí přezdívky, nebo kódu.'}</p>
+		<a href="{link 'arena'}" class="btn btn-primary">
+			<i class="fa-solid fa-location-dot"></i>
+			{lang 'Podporované arény'}
+		</a>
+		<h3 class="mt-4 text-start">
+			<span class="text-center d-inline-block fs-4 bg-blue-500 text-black-forced rounded-circle"
+				  style="width: 1.5em;height:1.5em;line-height:1.5;">
+				3.
+			</span>
+			{lang 'Sbíráte statistiky'}</h3>
+		<p class="text-start">{lang 'Hned po hře máte výsledky na svém profilu!'}</p>
+		<a href="{link 'user', 'leaderboard'}" class="btn btn-primary">
+			<i class="fa-solid fa-ranking-star"></i>
+			{lang 'Žebříček'}
+		</a>
+	</section>
 
 {/block}

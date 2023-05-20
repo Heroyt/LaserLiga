@@ -19,7 +19,7 @@
 				<th>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</th>
 				<td class="text-center">
 					{$player->name}
-						{ifset $player->code}
+					{ifset $player->code}
 						<a href="{link ['user', ($player->id_arena ?? 0) . '-' . $player->code]}"
 						   class="btn btn-sm btn-primary ms-2" data-content-piece="Profil" data-toggle="tooltip"
 						   title="{lang 'Profil hráče'}">
@@ -28,8 +28,10 @@
 					{/ifset}
 				</td>
 				<td class="text-end">
-					{$player->skill|number:0,',' . '&nbsp;'|noescape}
-					<i class="fa-solid fa-star"></i>
+					<a href="{link 'g', $player->game_code}">
+						{$player->skill|number:0,',' . '&nbsp;'|noescape}
+						<i class="fa-solid fa-medal"></i>
+					</a>
 				</td>
 			</tr>
 			</tbody>

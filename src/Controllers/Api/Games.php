@@ -8,12 +8,17 @@ use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\Player;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
+use App\Models\Push\Notification;
+use App\Services\PlayerRankOrderService;
 use App\Services\PlayerUserService;
+use App\Services\PushService;
 use DateTime;
+use DateTimeImmutable;
 use Exception;
 use InvalidArgumentException;
 use JsonException;
@@ -38,8 +43,10 @@ class Games extends ApiController
 	public Arena $arena;
 
 	public function __construct(
-		Latte                                $latte,
-		protected readonly PlayerUserService $playerUserService,
+		Latte                                   $latte,
+		protected readonly PlayerUserService    $playerUserService,
+		private readonly PushService            $pushService,
+		private readonly PlayerRankOrderService $rankOrderService,
 	) {
 		parent::__construct($latte);
 	}
@@ -47,7 +54,7 @@ class Games extends ApiController
 	/**
 	 * @throws ValidationException
 	 */
-	public function init(RequestInterface $request) : void {
+	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->arena = Arena::getForApiKey(ApiToken::getBearerToken());
 	}
@@ -62,7 +69,7 @@ class Games extends ApiController
 	 * @pre Must be authorized
 	 *
 	 */
-	public function listGames(Request $request) : void {
+	public function listGames(Request $request): void {
 		$notFilters = ['date', 'system', 'sql', 'returnLink', 'returnCodes'];
 		try {
 			$date = null;
@@ -92,7 +99,7 @@ class Games extends ApiController
 					continue;
 				}
 				if (is_array($value)) {
-					$query->where('%n '.($not ? 'NOT ' : '').'IN %in', Strings::toSnakeCase($field), $value);
+					$query->where('%n ' . ($not ? 'NOT ' : '') . 'IN %in', Strings::toSnakeCase($field), $value);
 					continue;
 				}
 
@@ -116,9 +123,9 @@ class Games extends ApiController
 					if ($cmp !== '<>' && $cmp !== '=') {
 						$this->respond(
 							[
-								'error'       => 'Invalid filter',
-								'description' => 'Field "'.$field.'" is formatted to use a `BETWEEN` operator and a `'.$cmp.'` operator.',
-								'value'       => $request->get['field'],
+								'error' => 'Invalid filter',
+								'description' => 'Field "' . $field . '" is formatted to use a `BETWEEN` operator and a `' . $cmp . '` operator.',
+								'value' => $request->get['field'],
 							],
 							400);
 					}
@@ -129,9 +136,9 @@ class Games extends ApiController
 					if (count($values) !== 2) {
 						$this->respond(
 							[
-								'error'       => 'Invalid filter',
-								'description' => 'Field "'.$field.'" must have exactly two values to use the `BETWEEN` operator.',
-								'value'       => $request->get['field'],
+								'error' => 'Invalid filter',
+								'description' => 'Field "' . $field . '" must have exactly two values to use the `BETWEEN` operator.',
+								'value' => $request->get['field'],
 							],
 							400);
 					}
@@ -147,9 +154,9 @@ class Games extends ApiController
 							}
 							$this->respond(
 								[
-									'error'       => 'Invalid filter',
-									'description' => 'Field "'.$field.'" must be a number or a date to use the BETWEEN operator.',
-									'value'       => $request->get['field'],
+									'error' => 'Invalid filter',
+									'description' => 'Field "' . $field . '" must be a number or a date to use the BETWEEN operator.',
+									'value' => $request->get['field'],
 								],
 								400);
 						}
@@ -160,9 +167,9 @@ class Games extends ApiController
 							}
 							$this->respond(
 								[
-									'error'       => 'Invalid filter',
-									'description' => 'First value is a date, but the second is a number in field "'.$field.'" for the BETWEEN operator.',
-									'value'       => $request->get['field'],
+									'error' => 'Invalid filter',
+									'description' => 'First value is a date, but the second is a number in field "' . $field . '" for the BETWEEN operator.',
+									'value' => $request->get['field'],
 								],
 								400);
 						}
@@ -172,54 +179,56 @@ class Games extends ApiController
 							}
 							$this->respond(
 								[
-									'error'       => 'Invalid filter',
-									'description' => 'First value is a number, but the second is a date in field "'.$field.'" for the BETWEEN operator.',
-									'value'       => $request->get['field'],
+									'error' => 'Invalid filter',
+									'description' => 'First value is a number, but the second is a date in field "' . $field . '" for the BETWEEN operator.',
+									'value' => $request->get['field'],
 								],
 								400);
 						}
 						$this->respond(
 							[
-								'error'       => 'Invalid filter',
-								'description' => 'Invalid type for BETWEEN operator for field "'.$field.'". The only accepted values are dates and numbers.',
-								'value'       => $request->get['field'],
+								'error' => 'Invalid filter',
+								'description' => 'Invalid type for BETWEEN operator for field "' . $field . '". The only accepted values are dates and numbers.',
+								'value' => $request->get['field'],
 							],
 							400);
 					}
 
 					if ($type === 'int') {
-						$query->where('%n '.($not ? 'NOT ' : '').'BETWEEN %i AND %i', Strings::toSnakeCase($field), $values[0], $values[1]);
+						$query->where('%n ' . ($not ? 'NOT ' : '') . 'BETWEEN %i AND %i', Strings::toSnakeCase($field), $values[0], $values[1]);
 					}
-					else if ($type === 'date') {
-						$query->where('%n '.($not ? 'NOT ' : '').'BETWEEN %dt AND %dt', Strings::toSnakeCase($field), new DateTime($values[0]), new DateTime($values[1]));
+					else {
+						if ($type === 'date') {
+							$query->where('%n ' . ($not ? 'NOT ' : '') . 'BETWEEN %dt AND %dt', Strings::toSnakeCase($field), new DateTime($values[0]), new DateTime($values[1]));
+						}
 					}
 					continue;
 				}
 
 				if (is_numeric($value)) { // Number
-					$query->where('%n '.$cmp.' %i', Strings::toSnakeCase($field), $value);
+					$query->where('%n ' . $cmp . ' %i', Strings::toSnakeCase($field), $value);
 				}
 				else if (strtotime($value) > 0) { // Date (time)
-					$query->where('%n '.$cmp.' %dt', Strings::toSnakeCase($field), new DateTime($value));
+					$query->where('%n ' . $cmp . ' %dt', Strings::toSnakeCase($field), new DateTime($value));
 				}
 				else { // String
 					if ($cmp !== '=' && $cmp !== '<>') {
 						$this->respond(
 							[
-								'error'       => 'Invalid filter',
-								'description' => 'Invalid comparator "'.$cmp.'" for string in field "'.$field.'".',
-								'value'       => $request->get['field'],
+								'error' => 'Invalid filter',
+								'description' => 'Invalid comparator "' . $cmp . '" for string in field "' . $field . '".',
+								'value' => $request->get['field'],
 							],
 							400);
 					}
-					$query->where('%n '.$cmp.' %s', Strings::toSnakeCase($field), $value);
+					$query->where('%n ' . $cmp . ' %s', Strings::toSnakeCase($field), $value);
 				}
 			}
 
 			// Return a raw SQL
 			// TODO: Limit this to admin access
 			if (isset($request->get['sql'])) {
-				$this->respond((string) $query);
+				$this->respond((string)$query);
 			}
 
 			$games = $query->fetchAll();
@@ -234,7 +243,7 @@ class Games extends ApiController
 			$links = [];
 			$prefix = trailingSlashIt(App::getLink(['g']));
 			foreach ($games as $game) {
-				$links[] = $prefix.$game->code;
+				$links[] = $prefix . $game->code;
 			}
 			$this->respond($links);
 		}
@@ -252,9 +261,6 @@ class Games extends ApiController
 	}
 
 	/**
-	 * Get one game's data by its code
-	 *
-	 *
 	 * @param string $code
 	 *
 	 * @return never
@@ -262,29 +268,7 @@ class Games extends ApiController
 	 * @throws Throwable
 	 * @pre Must be authorized
 	 */
-	public function getGame(string $code) : never {
-		if (empty($code)) {
-			$this->respond(['error' => 'Invalid code'], 400);
-		}
-		$game = GameFactory::getByCode($code);
-		if (!isset($game)) {
-			$this->respond(['error' => 'Game not found'], 404);
-		}
-		if ($game->arena->id !== $this->arena->id) {
-			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
-		}
-		$this->respond($game);
-	}
-
-	/**
-	 * @param string $code
-	 *
-	 * @return never
-	 * @throws JsonException
-	 * @throws Throwable
-	 * @pre Must be authorized
-	 */
-	public function getGameUsers(string $code) : never {
+	public function getGameUsers(string $code): never {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
 			$this->respond(['error' => 'Game not found'], 404);
@@ -301,7 +285,7 @@ class Games extends ApiController
 		$this->respond($users);
 	}
 
-	public function recalcMultipleGameSkills(Request $request) : never {
+	public function recalcMultipleGameSkills(Request $request): never {
 		$games = $this->recalcMultipleGameSkillsGetGames($request);
 
 		$rankOnly = !empty($request->getGet('rankonly'));
@@ -321,7 +305,7 @@ class Games extends ApiController
 			}
 			foreach ($game->getPlayers()->getAll() as $player) {
 				$playerSkills[$game->code][$player->vest] = [
-					'name'  => $player->name,
+					'name' => $player->name,
 					'skill' => $player->getSkill(),
 				];
 			}
@@ -336,7 +320,7 @@ class Games extends ApiController
 	 * @throws JsonException
 	 * @throws Throwable
 	 */
-	private function recalcMultipleGameSkillsGetGames(Request $request) : array {
+	private function recalcMultipleGameSkillsGetGames(Request $request): array {
 		$games = [];
 
 		/** @var string|string[] $codes */
@@ -358,7 +342,7 @@ class Games extends ApiController
 		$date = $request->getGet('date');
 		if (isset($date)) {
 			try {
-				$dateObject = new \DateTimeImmutable($date);
+				$dateObject = new DateTimeImmutable($date);
 				return GameFactory::getByDate($dateObject, true);
 			} catch (Exception) {
 				$this->respond(['error' => 'Invalid date'], 400);
@@ -373,7 +357,7 @@ class Games extends ApiController
 								 ->fetchPairs('id_mode', 'name');
 		}
 
-		$user = (int) $request->getGet('user', 0);
+		$user = (int)$request->getGet('user', 0);
 		if ($user > 0) {
 			$player = LigaPlayer::get($user);
 			if (!isset($user)) {
@@ -385,7 +369,7 @@ class Games extends ApiController
 			}
 			$rows = $query->fetchAll();
 			foreach ($rows as $row) {
-				$game = GameFactory::getById((int) $row->id_game, ['system' => $row->system]);
+				$game = GameFactory::getById((int)$row->id_game, ['system' => $row->system]);
 				if (isset($game)) {
 					$games[] = $game;
 				}
@@ -394,7 +378,7 @@ class Games extends ApiController
 		}
 		$hasUser = !empty($request->getGet('hasuser'));
 		if ($hasUser) {
-			$since = (string) $request->getGet('since', '');
+			$since = (string)$request->getGet('since', '');
 			$query = PlayerFactory::queryPlayersWithGames()->where('[id_user] IS NOT NULL')->orderBy('start');
 			if (isset($modes)) {
 				$query->where('[id_mode] IN %in', array_keys($modes));
@@ -404,7 +388,7 @@ class Games extends ApiController
 			}
 			$rows = $query->fetchAll();
 			foreach ($rows as $row) {
-				$game = GameFactory::getById((int) $row->id_game, ['system' => $row->system]);
+				$game = GameFactory::getById((int)$row->id_game, ['system' => $row->system]);
 				if (isset($game)) {
 					$games[] = $game;
 				}
@@ -412,8 +396,8 @@ class Games extends ApiController
 			return $games;
 		}
 
-		$offset = (int) $request->getGet('offset', 0);
-		$limit = (int) $request->getGet('limit', 0);
+		$offset = (int)$request->getGet('offset', 0);
+		$limit = (int)$request->getGet('limit', 0);
 		if ($limit === 0) {
 			$this->respond(['error' => 'Limit cannot be empty'], 400);
 		}
@@ -426,7 +410,7 @@ class Games extends ApiController
 		}
 		$rows = $query->fetchAll();
 		foreach ($rows as $row) {
-			$game = GameFactory::getById((int) $row->id_game, ['system' => $row->system]);
+			$game = GameFactory::getById((int)$row->id_game, ['system' => $row->system]);
 			if (isset($game)) {
 				$games[] = $game;
 			}
@@ -443,7 +427,7 @@ class Games extends ApiController
 	 * @throws Throwable
 	 * @pre Must be authorized
 	 */
-	public function recalcGameSkill(string $code) : never {
+	public function recalcGameSkill(string $code): never {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
 			$this->respond(['error' => 'Game not found'], 404);
@@ -463,9 +447,9 @@ class Games extends ApiController
 		$min = 99999;
 		foreach ($game->getPlayers()->getAll() as $player) {
 			$playerSkills[$player->vest] = [
-				'name'  => $player->name,
+				'name' => $player->name,
 				'skill' => $player->getSkill(),
-				'user'  => $player->user?->stats->rank ?? $player->getSkill(),
+				'user' => $player->user?->stats->rank ?? $player->getSkill(),
 			];
 			if ($playerSkills[$player->vest]['skill'] > $max) {
 				$max = $playerSkills[$player->vest]['skill'];
@@ -508,13 +492,13 @@ class Games extends ApiController
 	 * @pre Must be authorized
 	 *
 	 */
-	public function import(Request $request) : void {
+	public function import(Request $request): void {
 		$logger = new Logger(LOG_DIR, 'api-import');
 		/** @var string $system */
 		$system = $request->post['system'] ?? '';
 		$supported = GameFactory::getSupportedSystems();
 		/** @var class-string<Game> $gameClass */
-		$gameClass = '\App\GameModels\Game\\'.Strings::toPascalCase($system).'\Game';
+		$gameClass = '\App\GameModels\Game\\' . Strings::toPascalCase($system) . '\Game';
 		if (!class_exists($gameClass) || !in_array($system, $supported, true)) {
 			$this->respond(['error' => 'Invalid game system', 'class' => $gameClass], 400);
 		}
@@ -571,29 +555,27 @@ class Games extends ApiController
 		 * }[] $games
 		 */
 		$games = $request->post['games'] ?? [];
-		$logger->info('Importing '.$system.' system - '.count($games).' games.');
-		/** @var array<int,LigaPlayer> $users */
+		$logger->info('Importing ' . $system . ' system - ' . count($games) . ' games.');
+		/** @var array<int,array{user:LigaPlayer,games:Player[]}> $users */
 		$users = [];
+
 		foreach ($games as $gameInfo) {
 			$start = microtime(true);
 			try {
+				// Parse game
 				$game = $gameClass::fromJson($gameInfo);
 				$game->arena = $this->arena;
+
+				// Check music mode
 				if (!empty($gameInfo['music']['id'])) {
 					$musicMode = MusicMode::query()->where('[id_arena] = %i AND [id_local] = %i', $this->arena->id, $gameInfo['music']['id'])->first();
 					if (isset($musicMode)) {
 						$game->music = $musicMode;
 					}
 				}
+				// Check group
 				if (!empty($gameInfo['group']['id'])) {
-					$gameGroup = GameGroup::query()->where('[id_arena] = %i AND [id_local] = %i', $this->arena->id, $gameInfo['group']['id'])->first();
-					if (!isset($gameGroup)) {
-						$gameGroup = new GameGroup();
-						$gameGroup->arena = $this->arena;
-						$gameGroup->idLocal = $gameInfo['group']['id'];
-						$gameGroup->name = $gameInfo['group']['name'];
-						$gameGroup->save();
-					}
+					$gameGroup = GameGroup::getOrCreateFromLocalId($gameInfo['group']['id'], $gameInfo['group']['name'], $this->arena);
 					if (isset($gameGroup->id)) {
 						$game->group = $gameGroup;
 						if ($gameGroup->name !== $gameInfo['group']['name']) {
@@ -611,11 +593,22 @@ class Games extends ApiController
 				$this->respond(['error' => 'Invalid game mode', 'exception' => $e->getMessage()], 400);
 			}
 			$parseTime = microtime(true) - $start;
+
+			// Find logged-in users
+			/** @var Player $player */
 			foreach ($game->getPlayers() as $player) {
 				if (isset($player->user)) {
-					$users[$player->user->id] = $player->user;
+					if (!isset($users[$player->user->id])) {
+						$users[$player->user->id] = [
+							'user' => $player->user,
+							'games' => [],
+						];
+					}
+					$users[$player->user->id]['games'][] = $player;
 				}
 			}
+
+			// Save game
 			try {
 				if ($game->save() === false) {
 					$this->respond(['error' => 'Failed saving the game'], 500);
@@ -628,22 +621,68 @@ class Games extends ApiController
 			} catch (ValidationException $e) {
 				$this->respond(['error' => 'Invalid game data', 'exception' => $e->getMessage()], 400);
 			}
+
 			$dbTime = microtime(true) - $start - $parseTime;
-			$logger->debug('Game '.$game->code.' imported in '.(microtime(true) - $start).'s - parse: '.$parseTime.'s, save: '.$dbTime.'s');
+			$logger->debug('Game ' . $game->code . ' imported in ' . (microtime(true) - $start) . 's - parse: ' . $parseTime . 's, save: ' . $dbTime . 's');
 		}
+
+		// Update logged-in users if any
 		Timer::start('user.stats');
-		foreach ($users as $user) {
+		$ranksBefore = $this->rankOrderService->getTodayRanks();
+		$now = new DateTimeImmutable();
+		foreach ($users as $userData) {
+			$user = $userData['user'];
 			$user->clearCache();
 			$this->playerUserService->updatePlayerStats($user->user);
+			foreach ($userData['games'] as $game) {
+				$this->pushService->sendNewGameNotification($game, $user);
+			}
+		}
+		// Update today's ranks
+		if (!empty($users)) {
+			try {
+				$ranksNow = $this->rankOrderService->getDateRanks($now);
+				$this->pushService->sendRankChangeNotifications($ranksBefore, $ranksNow);
+			} catch (Exception $e) {
+				$logger->exception($e);
+			}
 		}
 		Timer::stop('user.stats');
+
+		// Log import times
 		foreach (Timer::$timers as $key => $times) {
-			$logger->debug($key.': '.Timer::get($key).'s');
+			$logger->debug($key . ': ' . Timer::get($key) . 's');
 		}
+
 		$this->respond(['success' => true, 'imported' => $imported]/*, 201*/);
 	}
 
-	public function stats(Request $request) : void {
+	/**
+	 * Get one game's data by its code
+	 *
+	 *
+	 * @param string $code
+	 *
+	 * @return never
+	 * @throws JsonException
+	 * @throws Throwable
+	 * @pre Must be authorized
+	 */
+	public function getGame(string $code): never {
+		if (empty($code)) {
+			$this->respond(['error' => 'Invalid code'], 400);
+		}
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->respond(['error' => 'Game not found'], 404);
+		}
+		if ($game->arena->id !== $this->arena->id) {
+			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
+		}
+		$this->respond($game);
+	}
+
+	public function stats(Request $request): void {
 		$date = null;
 		if (isset($request->get['date'])) {
 			$date = new DateTime($request->get['date']);
@@ -654,10 +693,10 @@ class Games extends ApiController
 		$teamCount = $this->arena->queryTeams($date)->count();
 
 		$this->respond([
-										 'games'   => $gameCount,
-										 'players' => $playerCount,
-										 'teams'   => $teamCount,
-									 ]);
+			'games' => $gameCount,
+			'players' => $playerCount,
+			'teams' => $teamCount,
+		]);
 	}
 
 }

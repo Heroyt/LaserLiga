@@ -109,6 +109,10 @@
 			grid-area: score;
 		}
 
+		.player-actions {
+			grid-area: actions;
+		}
+
 		.player_mines {
 			grid-area: mines;
 
@@ -339,6 +343,7 @@
 		align-items: center;
 		grid-row-gap: 1.5rem;
 		grid-template-areas:
+		  'actions'
 			'trophy'
 			'accuracy'
 			'shots'
@@ -375,6 +380,7 @@
 	.game-results {
 		.player-body {
 			grid-template-areas:
+					'actions actions'
 					'trophy trophy'
 					'accuracy shots'
 					'hits hits'
@@ -422,6 +428,7 @@
 
 		.player-body {
 			grid-template-areas:
+					'actions actions actions'
 					'trophy trophy trophy'
 					'accuracy mines shots'
 					'favourites hits hits'

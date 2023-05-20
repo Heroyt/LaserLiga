@@ -237,7 +237,23 @@ export default function initProfile() {
 			}
 			startLoading(true);
 			axios.get('/user/' + code + '/compare')
-				.then((response: AxiosResponse<{ gameCount: number, gameCountTogether: number, gameCountEnemy: number, gameCountEnemyTeam: number, gameCountEnemySolo: number, winsTogether: number, lossesTogether: number, drawsTogether: number, winsEnemy: number, lossesEnemy: number, drawsEnemy: number, hitsEnemy: number, deathsEnemy: number, hitsTogether: number, deathsTogether: number }>) => {
+				.then((response: AxiosResponse<{
+					gameCount: number,
+					gameCountTogether: number,
+					gameCountEnemy: number,
+					gameCountEnemyTeam: number,
+					gameCountEnemySolo: number,
+					winsTogether: number,
+					lossesTogether: number,
+					drawsTogether: number,
+					winsEnemy: number,
+					lossesEnemy: number,
+					drawsEnemy: number,
+					hitsEnemy: number,
+					deathsEnemy: number,
+					hitsTogether: number,
+					deathsTogether: number
+				}>) => {
 					stopLoading(true, true);
 					compareLoaderWrapper.classList.add('d-none');
 					if (response.data.gameCount <= 0) {
@@ -329,7 +345,17 @@ export default function initProfile() {
 			}
 			startLoading(true);
 			axios.get('/user/' + code + '/stats/trends')
-				.then((response: AxiosResponse<{ accuracy: number, averageShots: number, rank: number, games: TrendData, rankableGames: TrendData, sumShots: TrendData, sumHits: TrendData, sumDeaths: TrendData }>) => {
+				.then((response: AxiosResponse<{
+					accuracy: number,
+					averageShots: number,
+					rank: number,
+					games: TrendData,
+					rankableGames: TrendData,
+					sumShots: TrendData,
+					sumHits: TrendData,
+					sumDeaths: TrendData,
+					rankOrder: TrendData
+				}>) => {
 					stopLoading(true, true);
 					trendsLoaderWrapper.classList.add('d-none');
 					trendsStatsWrapper.classList.remove('d-none');
@@ -365,6 +391,10 @@ export default function initProfile() {
 					initTrend(
 						document.getElementById('sum-deaths-trend') as HTMLDivElement,
 						response.data.sumDeaths.diff
+					);
+					initTrend(
+						document.getElementById('rank-order-trend') as HTMLDivElement,
+						response.data.rankOrder.diff
 					);
 
 					trendsLoaded = true;
@@ -406,7 +436,9 @@ export default function initProfile() {
 		function updateTrophies() {
 			startLoading(true);
 			axios.get('/user/' + code + '/stats/trophies' + (trophiesRankableModesCheck.checked ? '?rankable=1' : ''))
-				.then((response: AxiosResponse<{ [index: string]: { name: string, icon: string, description: string, count: number } }>) => {
+				.then((response: AxiosResponse<{
+					[index: string]: { name: string, icon: string, description: string, count: number }
+				}>) => {
 					stopLoading(true, true);
 					trophiesLoaderWrapper.classList.add('d-none');
 					trophiesStatsWrapper.classList.remove('d-none');
@@ -436,150 +468,12 @@ export default function initProfile() {
 	const graphsTabBtn = document.getElementById('graphs-tab') as HTMLLIElement | null;
 	const graphsTabWrapper = document.getElementById('graphs-stats-tab') as HTMLDivElement | null;
 	if (graphsTabBtn && graphsTabWrapper) {
-		const graphsHistoryFilter = document.getElementById('graphsHistoryFilter') as HTMLSelectElement;
-		const userCode = graphsTabBtn.dataset.user;
-		const gameCountsCanvas = document.getElementById('games-graphs-graph') as HTMLCanvasElement;
-		const gameCountsChart = new Chart(
-			gameCountsCanvas,
-			{
-				type: "bar",
-				data: {
-					labels: [],
-					datasets: [],
-				},
-				options: {
-					maintainAspectRatio: false,
-					responsive: true,
-					scales: {
-						x: {
-							stacked: true,
-						},
-						y: {
-							stacked: true
-						}
-					}
-				}
-			}
-		);
-		const radarCanvas = document.getElementById('radar-graphs-graph') as HTMLCanvasElement;
-		const radarCategories: { [index: string]: string } = JSON.parse(radarCanvas.dataset.categories);
-		const radarCompare = radarCanvas.dataset.compare ?? '';
-		const radarChart = new Chart(
-			radarCanvas,
-			{
-				type: "radar",
-				data: {
-					labels: Object.values(radarCategories),
-					datasets: [],
-				},
-				options: {
-					maintainAspectRatio: false,
-					responsive: true,
-					elements: {
-						line: {
-							borderWidth: 2,
-						}
-					},
-					scales: {
-						r: {
-							grid: {
-								display: true,
-								color: '#777',
-							},
-							angleLines: {
-								display: true,
-								color: '#aaa',
-							},
-							ticks: {
-								backdropColor: null,
-								color: '#aaa',
-							}
-						}
-					}
-				}
-			}
-		);
-		const graphsLoader = document.getElementById('graphs-loader') as HTMLDivElement;
-		const graphsStatsWrapper = document.getElementById('graphs-stats') as HTMLDivElement;
-		let graphsLoaded = false;
-		graphsTabBtn.addEventListener('show.bs.tab', e => {
-			loadGraphs();
+		import(
+			/* webpackChunkName: "profile-graphs" */
+			'./profile/graphs'
+			).then(module => {
+			module.default(graphsTabBtn, colors);
 		});
-
-		graphsHistoryFilter.addEventListener('change', () => {
-			loadGraphs();
-		});
-
-		function loadGraphs() {
-			let loaded = 0;
-			const graphCount = 2;
-			startLoading(true);
-			axios.get(`/user/${userCode}/stats/gamecounts?limit=${graphsHistoryFilter.value}`)
-				.then((response: AxiosResponse<{ [index: string]: { label: string, modes: { count: number, id_mode: number, modeName: string }[] } }>) => {
-					loaded++;
-					if (!graphsLoaded) {
-						graphsLoader.classList.add('d-none');
-						graphsStatsWrapper.classList.remove('d-none');
-						graphsLoaded = true;
-					}
-					let datasets = new Map();
-					gameCountsChart.data.labels = [];
-					let i = 0;
-					Object.values(response.data).forEach((values) => {
-						gameCountsChart.data.labels.push(values.label);
-						values.modes.forEach(modeData => {
-							if (!datasets.has(modeData.id_mode)) {
-								datasets.set(
-									modeData.id_mode,
-									{
-										label: modeData.modeName,
-										backgroundColor: colors[i % colors.length],
-										data: [],
-									}
-								)
-								i++;
-							}
-							let data = datasets.get(modeData.id_mode);
-							data.data.push(modeData.count);
-							datasets.set(modeData.id_mode, data);
-						});
-					});
-					gameCountsChart.data.datasets = Array.from(datasets.values());
-					gameCountsChart.update();
-					if (loaded >= graphCount) {
-						stopLoading(true, true);
-					}
-				})
-				.catch(e => {
-					console.error(e);
-					stopLoading(false, true);
-				})
-			axios.get(`/user/${userCode}/stats/radar?compare=${radarCompare}`)
-				.then((response: AxiosResponse<{ [index: string]: { [index: string]: number } }>) => {
-					loaded++;
-					if (!graphsLoaded) {
-						graphsLoader.classList.add('d-none');
-						graphsStatsWrapper.classList.remove('d-none');
-						graphsLoaded = true;
-					}
-					radarChart.data.datasets = [];
-					let i = 0;
-					Object.entries(response.data).forEach(([label, values]) => {
-						radarChart.data.datasets.push({
-							label,
-							data: Object.values(values),
-						});
-					});
-					radarChart.update();
-					if (loaded >= graphCount) {
-						stopLoading(true, true);
-					}
-				})
-				.catch(e => {
-					console.error(e);
-					stopLoading(false, true);
-				})
-		}
 	}
 
 	function initTrend(elem: HTMLDivElement, value: number) {

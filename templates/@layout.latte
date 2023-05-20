@@ -12,7 +12,7 @@
 {default string[] $addCss = []}
 
 {define containerClasses}
-	py-5
+	py-5 mb-5 mb-lg-0
 {/define}
 {define content}
 {/define}
@@ -100,6 +100,7 @@
 </head>
 <body>
 
+{include refreshLoader}
 {include smallLoader}
 {if !isset($_GET['iframe'])}
 	{include header}
@@ -146,7 +147,9 @@
 
 <script>
 	const page = {\Lsr\Core\App::getRequest()};
+	const usr = {$auth->getLoggedIn()?->id};
 	const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
+	const assetVersion = {\Lsr\Core\App::getCacheVersion()};
 </script>
 
 

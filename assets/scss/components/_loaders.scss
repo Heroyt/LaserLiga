@@ -1,3 +1,29 @@
+#refreshLoader {
+	height: 4rem;
+	left: 50%;
+	position: fixed;
+	top: 30px;
+	transform: translateX(-50%) translateY(-100px);
+	transition: transform 300ms ease-out;
+	width: 4rem;
+	will-change: transform;
+	z-index: 9999;
+
+	.loader {
+		border: 6px solid var(--light);
+		border-top: 6px solid var(--grey);
+		height: 50px;
+		margin: 0;
+		width: 50px;
+	}
+}
+
+.refreshing {
+	#refreshLoader {
+		transform: translateX(-50%) translateY(0);
+	}
+}
+
 #smallLoader {
 	height: 50px;
 	position: fixed;

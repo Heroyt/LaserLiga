@@ -187,7 +187,7 @@
 						{($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
 					</td>
 					<td n:ifset="$fields['skill']">
-						{$userPlayer->skill} <i class="fa-solid fa-star"></i>
+						{$userPlayer->skill} <i class="fa-solid fa-medal"></i>
 					</td>
 					<td>
 						<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"

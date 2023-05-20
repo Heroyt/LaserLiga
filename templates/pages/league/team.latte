@@ -1,0 +1,264 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Auth\User|null $user}
+{varType App\Models\Tournament\LeagueTeam $currTeam}
+
+{define content}
+
+	<p class="text-start">
+		<a href="{link 'league', $currTeam->league->id}" class="btn btn-info">
+			<i class="fa-solid fa-caret-left"></i> {lang 'Zpět'}
+		</a>
+	</p>
+
+	<h2>{sprintf(lang('Statistiky týmu - %s'), $currTeam->name)}</h2>
+
+	<ul class="nav nav-tabs mt-4" id="league-tabs" role="tablist" data-track-content=""
+		data-content-name="League tabs">
+		<li class="nav-item" role="presentation">
+			<button class="nav-link active" id="tournaments-tab-control" data-bs-toggle="tab"
+					data-bs-target="#tournaments-tab"
+					type="button" role="tab" aria-controls="tournaments-tab" aria-selected="true"
+					data-content-piece="Tournaments">
+				{lang 'Turnaje'}
+			</button>
+		</li>
+		<li class="nav-item" role="presentation">
+			<button class="nav-link" id="games-tab-control" data-bs-toggle="tab"
+					data-bs-target="#games-tab"
+					type="button" role="tab" aria-controls="games-tab" aria-selected="false"
+					data-content-piece="Games">
+				{lang 'Hry'}
+			</button>
+		</li>
+	</ul>
+	<div class="tab-content" id="league-team-tabs">
+		<div class="tab-pane py-4 fade show active" id="tournaments-tab" role="tabpanel"
+			 aria-labelledby="tournaments-tab-control"
+			 data-track-content="" data-content-name="League team tournaments tab" tabindex="0">
+			<div class="d-flex flex-wrap justify-content-evenly align-items-start" style="gap: 2rem">
+				<div class="card my-2" n:foreach="$currTeam->getTeams() as $team" style="max-width: 25rem;">
+					{ifset $team->image}
+						<img class="team-logo card-img-top" src="{$team->getImageUrl()}"
+							 alt="Logo týmu - {$team->name}">
+					{/ifset}
+					<div class="card-header py-3">
+						<h3 class="card-title">
+							{$team->name}
+
+						</h3>
+						<h4 class="card-subtitle">
+							{$team->tournament->name}
+							<a href="{link 'tournament', $team->tournament->id}" class="btn btn-info">
+								<i class="fa-solid fa-eye"></i>
+							</a>
+						</h4>
+						<p class="mb-0">{$team->tournament->start->format('d.m.Y')}</p>
+					</div>
+					<div class="card-body">
+						{if $team->tournament->isStarted()}
+							<div class="d-flex justify-content-evenly flex-wrap text-center mb-4">
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Umístění'}
+										:</strong> {$team->getPosition()}.
+								</div>
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Výhry'}:</strong> {$team->getWins()}
+								</div>
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Remízy'}:</strong> {$team->getDraws()}
+								</div>
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Prohry'}:</strong> {$team->getLosses()}
+								</div>
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Body'}:</strong> {$team->points}</div>
+							</div>
+							{if isset($user) && !$team->tournament->isStarted() && $team->validateAccess($user)}
+								<a href="{link 'tournament', 'registration', $team->tournament->id, $team->id}"
+								   class="btn btn-info">
+									{lang 'Upravit přihlášku'}
+								</a>
+							{/if}
+							<div class="d-flex flex-wrap justify-content-evenly" style="gap: 1rem;">
+								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+									 data-toggle="tooltip" title="{lang 'Průměrná herní úroveň'}">
+									<div class="fs-1"><i class="fa-solid fa-medal"></i></div>
+									<div>
+										{$team->getSkill()|number:2,',','&nbsp;'|noescape}
+									</div>
+								</div>
+								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+									 data-toggle="tooltip" title="{lang 'Celkem skóre'}">
+									<div class="fs-1"><i class="fa-solid fa-star"></i></div>
+									<div>
+										{$team->getScore()|number:0,',','&nbsp;'|noescape}
+									</div>
+								</div>
+								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+									 data-toggle="tooltip" title="{lang 'Celkem zásahů'}">
+									<div class="custom-icon mt-2">{svgIcon 'kill', 'auto', '2.5rem'}</div>
+									<div>
+										{$team->getKills()|number:0,',','&nbsp;'|noescape}
+									</div>
+								</div>
+								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+									 data-toggle="tooltip" title="{lang 'Celkem smrtí'}">
+									<div class="custom-icon mt-2">{svgIcon 'skull', 'auto', '2.5rem'}</div>
+									<div>
+										{$team->getDeaths()|number:0,',','&nbsp;'|noescape}
+									</div>
+								</div>
+								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+									 data-toggle="tooltip" title="{lang 'Celkem výstřelů'}">
+									<div class="custom-icon mt-2">{svgIcon 'bullets', 'auto', '2.5rem'}</div>
+									<div>
+										{$team->getShots()|number:0,',','&nbsp;'|noescape}
+									</div>
+								</div>
+								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+									 data-toggle="tooltip" title="{lang 'Průměrná přesnost'}">
+									<div class="custom-icon mt-2">{svgIcon 'target', 'auto', '2.5rem'}</div>
+									<div>
+										{$team->getAccuracy()|number:2,',',''}%
+									</div>
+								</div>
+							</div>
+						{else}
+							<p>{lang 'Turnaj se ještě nehrál'}</p>
+						{/if}
+
+						<hr>
+
+						{foreach $team->getPlayers() as $player}
+							{include playerStats, $player, $team}
+						{/foreach}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="tab-pane py-4 fade" id="games-tab" role="tabpanel"
+			 aria-labelledby="games-tab-control"
+			 data-track-content="" data-content-name="League team games tab" tabindex="0">
+			<div class="table-responsive">
+				<table class="table table-striped tournament-games-content-header">
+					<thead>
+					<tr>
+						<th>{lang 'Začátek'}</th>
+						<th>{lang 'Domácí'}</th>
+						<th>{lang 'Hosté'}</th>
+						<th>{lang 'Výsledky'}</th>
+						<th></th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr n:foreach="$currTeam->getGames() as $gameTournament">
+						{var string[] $scores = []}
+						<td>{$gameTournament->start->format('H:i')}</td>
+						<td n:foreach="$gameTournament->teams as $team">
+							{$team->getName()}
+							{do $scores[] = number_format($team->score ?? 0, 0, ',', '&nbsp;')}
+						</td>
+						<td>
+							{ifset $gameTournament->code}
+								{$scores|implode:' <i class="fa-solid fa-star"></i>&nbsp;:&nbsp;'|noescape}
+								<i class="fa-solid fa-star"></i>
+							{/ifset}
+						</td>
+						<td>
+							{ifset $gameTournament->code}
+								<a href="{link 'g', $gameTournament->code}" class="btn btn-info">
+									<i class="fa-solid fa-eye"></i>
+								</a>
+							{/ifset}
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+{/define}
+
+{define playerStats, App\Models\Tournament\Player $player, App\Models\Tournament\Team $team}
+	<h5 class="mt-4">
+		<span class="fs-2 mb-1 d-block">
+			<i class="fa-solid fa-user"></i>
+		</span>
+		{$player->nickname}
+	</h5>
+	<p n:ifset="$player->user">
+		<a href="{link 'user', $player->user->getCode()}" class="btn btn-primary">
+			<i class="fa-solid fa-user"></i>
+			{lang 'Profil'}
+		</a>
+	</p>
+	{if $team->tournament->isStarted() && $player->getShots() > 0}
+		<p>
+			<button type="button" class="btn btn-info collapsed" data-bs-toggle="collapse"
+					data-bs-target="#player-{$player->id}-stats">
+				<i class="fa-solid fa-chart-simple"></i>
+				{lang 'Statistiky'}
+				<span class="collapse-indicator">
+									<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+									<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+								</span>
+			</button>
+		</p>
+		<div class="collapse" id="player-{$player->id}-stats">
+			<div class="d-flex flex-wrap justify-content-evenly collapse" style="gap: 1rem;">
+				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+					 data-toggle="tooltip" title="{lang 'Počet her'}">
+					<div class="custom-icon mt-2">{svgIcon 'Vesta', 'auto', '2.5rem'}</div>
+					<div>
+						{$player->getGameCount()|number:0,',','&nbsp;'|noescape}
+					</div>
+				</div>
+				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+					 data-toggle="tooltip" title="{lang 'Průměrná herní úroveň'}">
+					<div class="fs-1"><i class="fa-solid fa-medal"></i></div>
+					<div>
+						( {$player->getGameSkillPosition()}. )
+						{$player->getGameSkill()|number:2,',','&nbsp;'|noescape}
+					</div>
+				</div>
+				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+					 data-toggle="tooltip" title="{lang 'Celkové skóre'}">
+					<div class="fs-1"><i class="fa-solid fa-star"></i></div>
+					<div>
+						( {$player->getScorePosition()}. )
+						{$player->getScore()|number:0,',','&nbsp;'|noescape}
+					</div>
+				</div>
+				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+					 data-toggle="tooltip" title="{lang 'Celkem zásahů'}">
+					<div class="custom-icon mt-2">{svgIcon 'kill', 'auto', '2.5rem'}</div>
+					<div>
+						( {$player->getKillsPosition()}. )
+						{$player->getKills()|number:0,',','&nbsp;'|noescape}
+					</div>
+				</div>
+				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+					 data-toggle="tooltip" title="{lang 'Celkem smrtí'}">
+					<div class="custom-icon mt-2">{svgIcon 'skull', 'auto', '2.5rem'}</div>
+					<div>
+						( {$player->getDeathsPosition()}. )
+						{$player->getDeaths()|number:0,',','&nbsp;'|noescape}
+					</div>
+				</div>
+				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+					 data-toggle="tooltip" title="{lang 'Celkem výstřelů'}">
+					<div class="custom-icon mt-2">{svgIcon 'bullets', 'auto', '2.5rem'}</div>
+					<div>
+						( {$player->getShotsPosition()}. )
+						{$player->getShots()|number:0,',','&nbsp;'|noescape}
+					</div>
+				</div>
+				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
+					 data-toggle="tooltip" title="{lang 'Průměrná přesnost'}">
+					<div class="custom-icon mt-2">{svgIcon 'target', 'auto', '2.5rem'}</div>
+					<div>
+						( {$player->getAccuracyPosition()}. )
+						{$player->getAccuracy()}%
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
+{/define}

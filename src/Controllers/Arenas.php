@@ -45,10 +45,11 @@ class Arenas extends Controller
 			$gameTable = $system.'_games';
 			$queries[] = DB::select(
 				[$playerTable, 'p'.$key],
-				'[p'.$key.'].[id_player],
-			[p'.$key.'].[id_user],
-			[g'.$key.'].[id_game],
-			[g'.$key.'].[start] as [date],
+				'[p' . $key . '].[id_player],
+			[p' . $key . '].[id_user],
+			[g' . $key . '].[id_game],
+			[g' . $key . '].[start] as [date],
+			[g' . $key . '].[code] as [game_code],
 			[p'.$key.'].[name],
 			[p'.$key.'].[skill],
 			(('.DB::select([$playerTable, 'pp1'.$key], 'COUNT(*) as [count]')

@@ -23,7 +23,7 @@ const files = fs.readdirSync(path.resolve(__dirname, 'assets/scss/pages/'))
 
 let entry = {
 	main: [
-		'./assets/js/main.js',
+		'./assets/js/main.ts',
 		'./assets/scss/main.scss',
 	],
 };
@@ -92,20 +92,9 @@ module.exports = {
 	},
 	plugins: [
 		new ForkTsCheckerWebpackPlugin(),
-		new WorkboxPlugin.GenerateSW({
-			//swSrc: './assets/js/service-worker.js',
-			swDest: 'service-worker.js',
-			navigationPreload: true,
-			clientsClaim: true,
-			skipWaiting: true,
-			cleanupOutdatedCaches: true,
-			cacheId: genRanHex(),
-			runtimeCaching: [
-				{
-					handler: 'NetworkFirst',
-					urlPattern: /\.(?:webm|ogg|oga|mp3|wav|aiff|flac|mp4|m4a|aac|opus|webp)/
-				}
-			]
+		new WorkboxPlugin.InjectManifest({
+			swSrc: './assets/js/sw/service-worker.ts',
+			swDest: 'service-worker.js'
 		}),
 		new MiniCssExtractPlugin({
 			filename: '[name].css',

@@ -16,7 +16,7 @@ class LoggedIn extends \Lsr\Core\Auth\Middleware\LoggedIn
 	 *
 	 * @return bool
 	 */
-	public function handle(RequestInterface $request) : bool {
+	public function handle(RequestInterface $request): bool {
 		/** @var Auth $auth */
 		$auth = App::getService('auth');
 		if (!$auth->loggedIn()) {
@@ -27,10 +27,12 @@ class LoggedIn extends \Lsr\Core\Auth\Middleware\LoggedIn
 			/** @var User $user */
 			$user = $auth->getLoggedIn();
 			$allow = true;
-			foreach ($this->rights as $right) {
-				if (!$user->hasRight($right)) {
-					$allow = false;
-					break;
+			if (!$user->type->superAdmin) {
+				foreach ($this->rights as $right) {
+					if (!$user->hasRight($right)) {
+						$allow = false;
+						break;
+					}
 				}
 			}
 			if (!$allow) {

@@ -6,6 +6,8 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\PlayerTrophy;
 use App\Models\Auth\LigaPlayer;
+use App\Services\PlayerRankOrderService;
+use App\Services\PlayerUserService;
 use DateInterval;
 use DateTimeImmutable;
 use Dibi\Row;
@@ -13,6 +15,7 @@ use JsonException;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Requests\Request;
+use Lsr\Core\Templating\Latte;
 
 class StatController extends AbstractUserController
 {
@@ -21,9 +24,16 @@ class StatController extends AbstractUserController
 	 * @var array<int,string>
 	 */
 	private array $rankableModes;
-	private int   $maxRank;
+	private int $maxRank;
 
-	public function modes(string $code, Request $request) : never {
+	public function __construct(
+		Latte                                   $latte,
+		private readonly PlayerRankOrderService $rankOrderService,
+	) {
+		parent::__construct($latte);
+	}
+
+	public function modes(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		$since = match ($request->getGet('limit', 'month')) {
 			'year' => new DateTimeImmutable('-1 years'),
@@ -96,14 +106,67 @@ class StatController extends AbstractUserController
 		$this->respond($history);
 	}
 
+	public function rankOrderHistory(string $code, Request $request): never {
+		$user = $this->getUser($code);
+		$since = match ($request->getGet('limit', 'month')) {
+			'year' => new DateTimeImmutable('-1 years'),
+			'6 months' => new DateTimeImmutable('-6 months'),
+			'3 months' => new DateTimeImmutable('-3 months'),
+			'week' => new DateTimeImmutable('-7 days'),
+			'day' => new DateTimeImmutable('-1 days'),
+			'all' => new DateTimeImmutable('2022-01-01 00:00:00'),
+			default => new DateTimeImmutable('-1 months'),
+		};
+		$since = $since->setTime(0, 0);
+
+		$player = $user->createOrGetPlayer();
+		$history = [];
+
+		$rows = DB::select('player_date_rank', '[date], [position], [position_text]')
+							->where('[id_user] = %i', $user->id)
+							->where('[date] >= %d', $since)
+							->orderBy('[date]')
+							->desc()
+							->cacheTags(
+								'date_rank',
+								'user/' . $user->id . '/stats/date_rank',
+								'user/' . $user->id . '/stats',
+							)
+							->fetchAssoc('date');
+
+		$today = new DateTimeImmutable('00:00:00');
+		$date = clone $since;
+		$day = new DateInterval('P1D');
+		while ($date <= $today) {
+			$row = $rows[$date->format('Y-m-d')] ?? null;
+			if (isset($row)) {
+				$history[$date->format('c')] = [
+					'position' => $row->position,
+					'label' => $row->position_text,
+				];
+			}
+			else {
+				$row = $this->rankOrderService->getDateRankForPlayer($player, $date);
+
+				$history[$date->format('c')] = [
+					'position' => $row->position,
+					'label' => $row->positionFormatted,
+				];
+			}
+			$date = $date->add($day);
+		}
+
+		$this->respond($history);
+	}
+
 	/**
-	 * @param string  $code
+	 * @param string $code
 	 * @param Request $request
 	 *
 	 * @return never
 	 * @throws JsonException
 	 */
-	public function games(string $code, Request $request) : never {
+	public function games(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		/** @var LigaPlayer $player */
 		$player = $user->player;

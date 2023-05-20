@@ -73,6 +73,50 @@
 @import 'components/dataTable';
 @import 'components/autocomplete';
 @import 'components/tournaments';
+@import 'components/mobileMenu';
 
 // Font Awesome
 @import '~@fortawesome/fontawesome-free/css/all.css';
+
+.custom-icon {
+	path,
+	circle,
+	rect {
+		fill: currentColor;
+	}
+}
+
+#modeSwitch {
+	font-size: 1.3rem;
+	overflow: hidden;
+	position: relative;
+	width: 3rem;
+	height: 3rem;
+
+	i {
+		left: 50%;
+		position: absolute;
+		top: .8rem;
+		transition: translate .3s ease;
+	}
+
+	&.btn-dark {
+		.fa-moon {
+			translate: 4rem;
+		}
+
+		.fa-sun {
+			translate: -50%;
+		}
+	}
+
+	&.btn-light {
+		.fa-moon {
+			translate: -50%;
+		}
+
+		.fa-sun {
+			translate: -4rem;
+		}
+	}
+}

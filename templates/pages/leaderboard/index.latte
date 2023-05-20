@@ -11,6 +11,7 @@
 {varType bool $desc}
 {varType int $userOrder}
 {default string $activeType = 'rank'}
+{default array $ranks = []}
 
 
 {block content}
@@ -47,7 +48,8 @@
 		orderBy: $orderBy,
 		desc: $desc,
 		activeType: $activeType,
-		searchedPlayer: $searchedPlayer
+		searchedPlayer: $searchedPlayer,
+		ranks: $ranks,
 		}
 		{/embed}
 	</form>

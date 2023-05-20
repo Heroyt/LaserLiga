@@ -4,9 +4,28 @@ import axios from "axios";
 
 declare global {
 	const prettyUrl: boolean;
+
+	interface String {
+		replaceMultiple(chars: string[]): String
+
+		decodeEntities(): String
+	}
+
+	interface Element {
+		findParentElement(elemName: string): HTMLElement | null
+
+		findParentElementByClassName(className: string): HTMLElement | null
+	}
+
+	interface Math {
+		easeInOutQuad(t: number, b: number, c: number, d: number): number
+	}
+
+	interface Window {
+		scrollSmooth(to: number, duration: number): void
+	}
 }
 
-// @ts-ignore
 String.prototype.replaceMultiple = function (chars: string[]) {
 	let retStr = this;
 	chars.forEach(ch => {
@@ -14,7 +33,6 @@ String.prototype.replaceMultiple = function (chars: string[]) {
 	});
 	return retStr;
 };
-// @ts-ignore
 String.prototype.decodeEntities = function () {
 	const element = document.createElement('div');
 	let str = this;
@@ -30,7 +48,6 @@ String.prototype.decodeEntities = function () {
  *
  * @param elemName {String}
  */
-// @ts-ignore
 Element.prototype.findParentElement = function (elemName: string) {
 	let currElem = this;
 	while (currElem.tagName.toLowerCase() !== elemName.toLowerCase()) {
@@ -41,14 +58,7 @@ Element.prototype.findParentElement = function (elemName: string) {
 	}
 	return currElem;
 }
-/**
- * Finds a parent element
- *
- * @param className {String}
- *
- * @return {Element}
- */
-// @ts-ignore
+
 Element.prototype.findParentElementByClassName = function (className: string): HTMLElement | null {
 	let currElem = this;
 	while (!currElem.classList.contains(className)) {
@@ -68,7 +78,6 @@ Element.prototype.findParentElementByClassName = function (className: string): H
  *
  * @return {number}
  */
-// @ts-ignore
 Math.easeInOutQuad = function (t: number, b: number, c: number, d: number): number {
 	t /= d / 2;
 	if (t < 1) return c / 2 * t * t + b;
@@ -82,7 +91,6 @@ Math.easeInOutQuad = function (t: number, b: number, c: number, d: number): numb
  * @param {number} to Pixel value from top
  * @param {number} duration Time in ms
  */
-// @ts-ignore
 window.scrollSmooth = function (to: number, duration: number) {
 	let start = window.scrollY,
 		change = to - start,
@@ -347,4 +355,17 @@ export function initCheckAll(elem: HTMLElement | null | Document = null): void {
 			return true;
 		}
 	});
+}
+
+export function urlBase64ToUint8Array(base64String: string): Uint8Array {
+	const padding = '='.repeat((4 - base64String.length % 4) % 4);
+	const base64 = (base64String + padding)
+		.replace(/-/g, '+')
+		.replace(/_/g, '/');
+	const rawData = window.atob(base64);
+	const outputArray = new Uint8Array(rawData.length);
+	for (let i = 0; i < rawData.length; ++i) {
+		outputArray[i] = rawData.charCodeAt(i);
+	}
+	return outputArray;
 }

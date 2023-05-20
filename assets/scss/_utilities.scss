@@ -5,6 +5,7 @@
 html,
 body {
 	height: 100%;
+	overscroll-behavior-y: contain; // disable pull to refresh
 	width: 100%;
 }
 
@@ -13,8 +14,8 @@ body {
 }
 
 :root {
-	--header-height: 52px;
 	--body-min-height: calc(100vh - var(--header-height));
+	--header-height: 52px;
 }
 
 header {
