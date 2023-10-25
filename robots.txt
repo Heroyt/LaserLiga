@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /manual/
+Disallow: /lang/
 
 Sitemap: https://laserliga.cz/sitemap.xml
