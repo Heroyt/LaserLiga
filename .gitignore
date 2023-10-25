@@ -38,3 +38,5 @@ docs/
 devHelpers/
 .env
 upload
+.unlighthouse
+sitemap.xml
