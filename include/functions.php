@@ -71,6 +71,35 @@ function svgIconThumb(string $name, int|float $size, int|float $x = 0, int|float
 	if (!file_exists($file)) {
 		throw new InvalidArgumentException('Icon "' . $name . '" does not exist in "' . ASSETS_DIR . 'icons/".');
 	}
+	$out = extractSvg(
+		$file,
+		[
+			'width'  => $size,
+			'height' => $size,
+			'x'      => $x,
+			'y'      => $y,
+			'class'  => 'icon-' . $name,
+		]
+	);
+	if ($invertColors) {
+		$out = str_replace(['#fff', '#FFF', '#ffffff', '#FFFFFF', 'white', '#000', '#000000', 'black'],
+		                   ['#000', '#000', '#000', '#000', '#000', '#fff', '#fff', '#fff'],
+		                   $out);
+	}
+	return $out;
+}
+
+/**
+ * @param string              $file
+ * @param array<string,mixed> $attrs
+ *
+ * @return string
+ * @throws FileException
+ */
+function extractSvg(string $file, array $attrs = []): string {
+	if (!file_exists($file)) {
+		throw new InvalidArgumentException('File "' . $file . '" does not exist..');
+	}
 	$contents = file_get_contents($file);
 	if ($contents === false) {
 		throw new FileException('Failed to read file ' . $file);
@@ -79,31 +108,23 @@ function svgIconThumb(string $name, int|float $size, int|float $x = 0, int|float
 	if ($xml === false) {
 		throw new FileException('File (' . $file . ') does not contain valid SVG');
 	}
-	unset($xml['width'], $xml['height']);
-	/** @phpstan-ignore-next-line */
-	$xml['id'] = '';
-	/** @phpstan-ignore-next-line */
-	$xml['class'] = 'icon-' . $name;
-	/** @phpstan-ignore-next-line */
-	$xml['width'] = '14';
-	/** @phpstan-ignore-next-line */
-	$xml['height'] = $size;
-	/** @phpstan-ignore-next-line */
-	$xml['x'] = $x;
-	/** @phpstan-ignore-next-line */
-	$xml['y'] = $y;
 	foreach ($attrs as $key => $value) {
-		/** @phpstan-ignore-next-line */
 		$xml[$key] = $value;
 	}
 	$out = $xml->asXML();
 	if ($out === false) {
 		return '';
 	}
-	if ($invertColors) {
-		$out = str_replace(['fff', 'FFF', 'ffffff', 'FFFFFF', 'white', '000', '000000', 'black'], ['000', '000', '000', '000', '000', 'fff', 'fff', 'fff'], $out);
-	}
-	return $out;
+	return str_replace(
+		[
+			'<?xml version="1.0"?>',
+			'<?xml version="1.0" encoding="iso-8859-1"?>',
+			'<?xml version="1.0" encoding="utf-8"?>',
+			'<?xml version="1.0" encoding="UTF-8" standalone="no"?>',
+			'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">',
+		],
+		'',
+		$out);
 }
 
 function getSvgStringWidth(string $string, float $multiplier = 1): float {
