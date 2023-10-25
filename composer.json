@@ -17,14 +17,14 @@
 		"build": "composer update && composer dump-autoload && npm install && npm run buildDev"
 	},
 	"require": {
-		"tracy/tracy": ">2.8",
+    "tracy/tracy": ">2.10",
 		"dibi/dibi": ">4.2",
-		"latte/latte": ">2.10",
-		"nette/utils": ">3.2",
-		"psr/log": ">1.1",
+    "latte/latte": ">3.0",
+    "nette/utils": ">4.0",
+    "psr/log": ">3.0",
 		"nette/security": ">3.1",
 		"ext-zip": "*",
-		"php": "^8.1",
+    "php": "^8.2",
 		"nette/http": ">3.1",
 		"ext-gettext": "*",
 		"nette/di": ">3.0",
@@ -41,7 +41,9 @@
 		"nette/mail": "^4.0",
 		"ext-curl": "*",
 		"ext-openssl": "*",
-		"minishlink/web-push": "^8.0"
+    "minishlink/web-push": "^8.0",
+    "ext-imagick": "*",
+    "ext-gd": "*"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

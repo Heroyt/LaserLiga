@@ -7,8 +7,6 @@ const WorkboxPlugin = require('workbox-webpack-plugin');
 const fs = require("fs");
 const isDevelopment = false;
 
-const genRanHex = (size = 24) => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
-
 const files = fs.readdirSync(path.resolve(__dirname, 'assets/scss/pages/'))
 	.map(file => {
 		const name = 'pages/' + file.replace('.scss', '');
@@ -26,6 +24,8 @@ let entry = {
 		'./assets/js/main.ts',
 		'./assets/scss/main.scss',
 	],
+    fontawesome: ['./assets/scss/fontawesome.scss'],
+    bootstrap: ['./assets/scss/bootstrap.scss'],
 };
 
 files.forEach(([name, data]) => {
@@ -123,13 +123,13 @@ module.exports = {
 			usedExports: true,
 			cacheGroups: {
 				vendor: {
-					test: /[\\/]node_modules[\\/](axios|flatpickr|@fortawesome)[\\/]/,
+                    test: /[\\/]node_modules[\\/](axios|flatpickr)[\\/]/,
 					name: 'vendors',
 					chunks: 'all',
 				},
 				bootstrap: {
 					test: /[\\/]node_modules[\\/](bootstrap|@popperjs)[\\/]/,
-					name: 'bootstrap',
+                    name: 'bootstrap-lib',
 					chunks: 'all',
 				}
 			},
