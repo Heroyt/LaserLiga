@@ -60,7 +60,7 @@
                 <h4 class="stat-title fs-5">{lang 'Odehráno her'}</h4>
                 <div class="stat-value fs-2">{$user->player?->stats->gamesPlayed ?? 0}</div>
             </div>
-            <div class="stat rounded bg-background-2 p-3 text-center">
+            <div n:ifset="$user->player->arena" class="stat rounded bg-background-2 p-3 text-center">
                 <h4 class="stat-title fs-5">{lang 'Domovská aréna'}</h4>
                 <a class="stat-value" href="{link ['arena', $user->player->arena->id]}"
                    aria-label="{lang 'Zobrazit statistiky domovské arény'}">
