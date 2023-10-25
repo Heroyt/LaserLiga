@@ -7,6 +7,7 @@ services:
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
 	regression.evo5: App\GameModels\Tools\Evo5\RegressionStatCalculator
+	rankCalculator: App\Services\Player\RankCalculator
 	user: App\Models\Auth\User
 	caching.journal: Nette\Caching\Storages\SQLiteJournal('%constants.tempDir%journal.s3db')
 	playerUser: App\Services\Player\PlayerUserService
@@ -14,5 +15,37 @@ services:
 	mailer: Nette\Mail\SendmailMailer
 	mail: App\Services\MailService
 	image: App\Services\ImageService
+	playerDistribution: App\Services\PlayerDistribution\PlayerDistributionService
 	playerGamesTogether: App\Services\Player\PlayersGamesTogetherService
 	playerStatsProvider: App\Services\Player\PlayerStatsProvider
+	avatars: App\Services\Avatar\AvatarService
+
+	evo5HighlightChecker:
+		type: App\Services\GameHighlight\Evo5HighlightChecker
+		tags:
+			- highlightChecker
+	userHighlightChecker:
+		type: App\Services\GameHighlight\UserHighlightChecker
+		tags:
+			- highlightChecker
+	hitsHighlightChecker:
+		type: App\Services\GameHighlight\HitsHighlightChecker
+		tags:
+			- highlightChecker
+	trophyHighlightChecker:
+		type: App\Services\GameHighlight\TrophyHighlightChecker
+		tags:
+			- highlightChecker
+
+	gameHighlight: App\Services\GameHighlight\GameHighlightService(tagged(highlightChecker))
+	achievementChecker: App\Services\Achievements\AchievementChecker
+	achievementProvider: App\Services\Achievements\AchievementProvider
+	titleProvider: App\Services\Achievements\TitleProvider
+
+search:
+	achievementCheckers:
+		in: %constants.appDir%/src/Services/Achievements/Checkers
+		implements:
+			- App\Services\Achievements\CheckerInterface
+		tags:
+			- achievementChecker
