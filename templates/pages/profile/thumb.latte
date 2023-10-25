@@ -17,7 +17,182 @@
         </linearGradient>
     </defs>
     <rect x="0" y="0" width="1200" height="600" fill="url(#bg)"/>
-    {svgIconThumb('Vesta', 200, $padding, $padding, [], false)|noescape}
+    {extractSvgFromString($user->player->getAvatar(), ['width' => 200, 'height' => 200, 'x' => $padding, 'y' => $padding])|noescape}
+    {var App\Models\Achievements\Title $title = $user->player->getTitle()}
+    {var float $titleLength = strlen($title->name) * 18}
+    {var float $titleWidth = $titleLength + 40}
+    {var int $titleTop = $padding + 320}
+    {switch $title->rarity}
+        {case App\Models\Rarity::COMMON}
+        <rect width="{$titleWidth}" height="40" fill="#495057" x="{$padding}" y="{$titleTop}"/>
+        <text x="{$padding + 20}" y="{$titleTop + 30}" textLength="{$titleLength}" word-spacing="1" letter-spacing="1"
+              text-anchor="start" font-size="25" font-family="monospace"
+              fill="#fff" font-weight="bold">
+            {$title->name|upper}
+        </text>
+    {case App\Models\Rarity::UNCOMMON}
+        <svg x="{$padding}" y="{$titleTop}" width="{$titleWidth}" height="40"
+             viewBox="0 0 {$titleWidth} 40" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <g filter="url(#filter0_i_10_36)">
+                <rect width="{$titleWidth}" height="40" rx="10" fill="#198754"/>
+            </g>
+            <defs>
+                <filter id="filter0_i_10_36" x="0" y="0" width="{$titleWidth}" height="42" filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                                   result="hardAlpha"/>
+                    <feOffset dy="2"/>
+                    <feGaussianBlur stdDeviation="1.5"/>
+                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+                    <feBlend mode="normal" in2="shape" result="effect1_innerShadow_10_36"/>
+                </filter>
+            </defs>
+        </svg>
+        <text x="{$padding + 20}" y="{$titleTop + 30}" textLength="{$titleLength}" word-spacing="1" letter-spacing="1"
+              text-anchor="start" font-size="25" font-family="monospace"
+              fill="#fff" font-weight="bold">
+            {$title->name|upper}
+        </text>
+    {case App\Models\Rarity::RARE}
+        <svg x="{$padding}" y="{$titleTop}" width="{$titleWidth}" height="40"
+             viewBox="0 0 {$titleWidth} 40" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <g filter="url(#filter0_ii_10_38)">
+                <rect width="{$titleWidth}" height="40" rx="10" fill="#1847D5"/>
+            </g>
+            <defs>
+                <filter id="filter0_ii_10_38" x="0" y="0" width="{$titleWidth}" height="42" filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                                   result="hardAlpha"/>
+                    <feMorphology radius="1" operator="erode" in="SourceAlpha" result="effect1_innerShadow_10_38"/>
+                    <feOffset dy="1"/>
+                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.4 0"/>
+                    <feBlend mode="normal" in2="shape" result="effect1_innerShadow_10_38"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                                   result="hardAlpha"/>
+                    <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="effect2_innerShadow_10_38"/>
+                    <feOffset dy="-2"/>
+                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.25 0"/>
+                    <feBlend mode="normal" in2="effect1_innerShadow_10_38" result="effect2_innerShadow_10_38"/>
+                </filter>
+            </defs>
+        </svg>
+        <text x="{$padding + 20}" y="{$titleTop + 30}" textLength="{$titleLength}" word-spacing="1" letter-spacing="1"
+              text-anchor="start" font-size="25" font-family="monospace"
+              fill="#fff" font-weight="bold">
+            {$title->name|upper}
+        </text>
+    {case App\Models\Rarity::EPIC}
+        <svg x="{$padding}" y="{$titleTop}" width="{$titleWidth}" height="40"
+             viewBox="0 0 {$titleWidth} 40" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="paint0_linear_10_40" x1="116" y1="15" x2="2.68606e-07" y2="15"
+                                gradientUnits="userSpaceOnUse">
+                    <stop offset="0.328125" stop-color="#8832F0"/>
+                    <stop offset="1" stop-color="#4F1495"/>
+                </linearGradient>
+            </defs>
+            <path d="M0 20C0 10 10 0 20 0H{$titleWidth}V40H15C6.71573 40 0 23.2843 0 20Z"
+                  fill="url(#paint0_linear_10_40)"/>
+        </svg>
+        <text x="{$padding + 20}" y="{$titleTop + 30}" textLength="{$titleLength}" word-spacing="1" letter-spacing="1"
+              text-anchor="start" font-size="25" font-family="monospace"
+              fill="#fff" font-weight="bold">
+            {$title->name|upper}
+        </text>
+    {case App\Models\Rarity::LEGENDARY}
+        <svg x="{$padding}" y="{$titleTop}" width="{$titleWidth}" height="40"
+             viewBox="0 0 {$titleWidth} 40" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="paint0_diamond_10_42" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+                                gradientTransform="translate({($titleWidth)/2} 20) scale({$titleLength - 10} 14.7505)">
+                    <stop stop-color="#F8F9F0"/>
+                    <stop offset="0.467781" stop-color="#C2B21D"/>
+                    <stop offset="1" stop-color="#D3CA75"/>
+                </radialGradient>
+
+                <filter id="filter0_i_10_42" x="0" y="0" width="{$titleWidth}" height="40" filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                                   result="hardAlpha"/>
+                    <feMorphology radius="2" operator="erode" in="SourceAlpha" result="effect1_innerShadow_10_42"/>
+                    <feOffset/>
+                    <feGaussianBlur stdDeviation="1.5"/>
+                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
+                    <feBlend mode="normal" in2="shape" result="effect1_innerShadow_10_42"/>
+                </filter>
+            </defs>
+            <path filter="url(#filter0_i_10_42)"
+                  d="M0 0H{$titleWidth}V20C{$titleWidth} 40 {$titleWidth - 10} 40 {$titleWidth - 10} 40H10C4.47715 40 0 40 0 20V0Z"
+                  fill="url(#paint0_diamond_10_42)"/>
+        </svg>
+        <text x="{$padding + 20}" y="{$titleTop + 30}" textLength="{$titleLength}" word-spacing="1" letter-spacing="1"
+              text-anchor="start" font-size="25" font-family="monospace"
+              fill="#000" font-weight="bold">
+            {$title->name|upper}
+        </text>
+    {case App\Models\Rarity::MYTHIC}
+        <svg x="{$padding}" y="{$titleTop}" width="{$titleWidth}" height="40"
+             viewBox="0 0 {$titleWidth} 40" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <g filter="url(#filter0_i_10_44)">
+                <path d="M0 20C0 10 10 0 20 0H{$titleWidth}V10C{$titleWidth} 21.0457 {$titleWidth-10} 40 {$titleWidth-30} 40H0V20Z"
+                      fill="url(#paint0_diamond_10_44)"/>
+                <path d="M0.5 20C0.5 10 10 0.5 20 0.5H{$titleWidth}V10C{$titleWidth} 20.7696 {$titleWidth-10} 40 {$titleWidth-30} 40H0.5V20Z"
+                      stroke="white"/>
+            </g>
+            <defs>
+                <filter id="filter0_i_10_44" x="0" y="0" width="{$titleWidth}" height="40" filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                                   result="hardAlpha"/>
+                    <feOffset dy="15"/>
+                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.25 0"/>
+                    <feBlend mode="normal" in2="shape" result="effect1_innerShadow_10_44"/>
+                </filter>
+                <filter id="filter1_d_10_44" x="8.43317" y="5.34" width="101.688" height="17.66"
+                        filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB">
+                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                                   result="hardAlpha"/>
+                    <feOffset/>
+                    <feGaussianBlur stdDeviation="2"/>
+                    <feComposite in2="hardAlpha" operator="out"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.8 0"/>
+                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_10_44"/>
+                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_10_44" result="shape"/>
+                </filter>
+                <radialGradient id="paint0_diamond_10_44" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+                                gradientTransform="translate({$titleWidth/2} 20) rotate(90) scale({$titleWidth/20} {$titleWidth/3})">
+                    <stop stop-color="#F7B5B5"/>
+                    <stop offset="1" stop-color="#C92626"/>
+                </radialGradient>
+            </defs>
+        </svg>
+        <text x="{$padding + 20}" y="{$titleTop + 30}" textLength="{$titleLength}" word-spacing="1" letter-spacing="1"
+              text-anchor="start" font-size="25" font-family="monospace"
+              fill="#fff" font-weight="bold">
+            {$title->name|upper}
+        </text>
+    {/switch}
     <text x="{$padding}" y="{600 - $padding - 70}" text-anchor="start" font-size="60"
           font-family="sans-serif" fill="#fff" font-weight="bold">
         {$user->name}

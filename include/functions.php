@@ -107,9 +107,20 @@ function extractSvg(string $file, array $attrs = []): string {
 	if ($contents === false) {
 		throw new FileException('Failed to read file ' . $file);
 	}
+	return extractSvgFromString($contents, $attrs);
+}
+
+/**
+ * @param string $contents
+ * @param array<string,mixed> $attrs
+ *
+ * @return string
+ * @throws FileException
+ */
+function extractSvgFromString(string $contents, array $attrs = []): string {
 	$xml = simplexml_load_string($contents);
 	if ($xml === false) {
-		throw new FileException('File (' . $file . ') does not contain valid SVG');
+		throw new FileException('Input does not contain valid SVG');
 	}
 	foreach ($attrs as $key => $value) {
 		$xml[$key] = $value;
