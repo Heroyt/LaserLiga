@@ -23,10 +23,11 @@ class ApiToken implements Middleware
 	public static function getBearerToken() : string {
 		if (!isset(self::$bearerToken)) {
 			$headers = apache_request_headers();
-			if (empty($headers['Authorization'])) {
-				throw new RuntimeException('Missing Authorization header.');
+			$auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+			if (empty($auth)) {
+				throw new RuntimeException('Missing Authorization header.' . json_encode($headers));
 			}
-			preg_match('/([a-zA-Z\d]+) (.*)/', $headers['Authorization'], $matches);
+			preg_match('/([a-zA-Z\d]+) (.*)/', $auth, $matches);
 			$authMethod = strtolower($matches[1] ?? '');
 			$authParams = trim($matches[2] ?? '');
 			if ($authMethod !== 'bearer') {
@@ -43,14 +44,16 @@ class ApiToken implements Middleware
 	 */
 	public function handle(RequestInterface $request) : bool {
 		$headers = apache_request_headers();
-		if (empty($headers['Authorization'])) {
+		$auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+		if (empty($auth)) {
 			http_response_code(401);
 			header('Content-type: application/json');
-			echo json_encode(['error' => 'Missing Authorization header'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+			echo json_encode(['error' => 'Missing Authorization header', 'headers' => $headers],
+			                 JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 			exit;
 		}
 
-		preg_match('/([a-zA-Z\d]+) (.*)/', $headers['Authorization'], $matches);
+		preg_match('/([a-zA-Z\d]+) (.*)/', $auth, $matches);
 		$authMethod = strtolower($matches[1] ?? '');
 		$authParams = trim($matches[2] ?? '');
 		if ($authMethod !== 'bearer') {
