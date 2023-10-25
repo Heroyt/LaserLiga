@@ -21,8 +21,8 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 {
 
 	/** @var CollectionQueryFilterInterface<T>[] */
-	protected array  $filters       = [];
-	protected string $sortBy        = '';
+	protected array  $filters = [];
+	protected string $sortBy  = '';
 	protected string $sortDirection = Constants::SORT_ASC;
 	/** @var callable|null */
 	protected $mapCallback;
@@ -40,7 +40,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return T|null
 	 */
-	public function first() : ?Model {
+	public function first(): ?Model {
 		/** @noinspection LoopWhichDoesNotLoopInspection */
 		foreach ($this->get() as $data) {
 			return $data;
@@ -53,7 +53,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return CollectionInterface<T>|array
 	 */
-	public function get() : CollectionInterface|array {
+	public function get(): CollectionInterface|array {
 		$collection = clone $this->collection;
 		$this
 			->applyFilters($collection)
@@ -71,7 +71,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 * @return $this
 	 * @pre AbstractCollectionQuery::$sortBy must be validated to exist before
 	 */
-	protected function sort(CollectionInterface $collection) : AbstractCollectionQuery {
+	protected function sort(CollectionInterface $collection): AbstractCollectionQuery {
 		if (empty($this->sortBy)) {
 			return $this;
 		}
@@ -108,7 +108,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	/**
 	 * @return string
 	 */
-	protected function getType() : string {
+	protected function getType(): string {
 		return $this->collection->getType();
 	}
 
@@ -117,7 +117,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return $this
 	 */
-	protected function applyFilters(CollectionInterface $collection) : AbstractCollectionQuery {
+	protected function applyFilters(CollectionInterface $collection): AbstractCollectionQuery {
 		foreach ($this->filters as $filer) {
 			$filer->apply($collection);
 		}
@@ -129,7 +129,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return CollectionQueryInterface<T>
 	 */
-	public function sortBy(string $param) : CollectionQueryInterface {
+	public function sortBy(string $param): CollectionQueryInterface {
 		$method = 'get' . Strings::firstUpper($param);
 		if (method_exists($this->getType(), $method)) {
 			$this->sortBy = $method;
@@ -144,11 +144,11 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 
 	/**
 	 * @param string $param
-	 * @param T      ...$values
+	 * @param mixed  ...$values
 	 *
 	 * @return CollectionQueryInterface<T>
 	 */
-	public function filter(string $param, ...$values) : CollectionQueryInterface {
+	public function filter(string $param, ...$values): CollectionQueryInterface {
 		$method = 'get' . Strings::firstUpper($param);
 		if (method_exists($this->getType(), $method)) {
 			$this->filters[] = new CollectionQueryFilter($method, $values, true);
@@ -168,7 +168,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return CollectionQueryInterface<T>
 	 */
-	public function addFilter(CollectionQueryFilterInterface $filter) : CollectionQueryInterface {
+	public function addFilter(CollectionQueryFilterInterface $filter): CollectionQueryInterface {
 		$this->filters[] = $filter;
 		return $this;
 	}
@@ -178,7 +178,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return CollectionQueryInterface<T>
 	 */
-	public function pluck(string $param) : CollectionQueryInterface {
+	public function pluck(string $param): CollectionQueryInterface {
 		$method = 'get' . Strings::firstUpper($param);
 		if (method_exists($this->getType(), $method)) {
 			$this->mapCallback = static function (Model $model) use ($method) {
@@ -200,7 +200,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return CollectionQueryInterface<T>
 	 */
-	public function map(callable $callback) : CollectionQueryInterface {
+	public function map(callable $callback): CollectionQueryInterface {
 		$this->mapCallback = $callback;
 		return $this;
 	}
@@ -210,7 +210,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return CollectionQueryInterface<T>
 	 */
-	public function asc() : CollectionQueryInterface {
+	public function asc(): CollectionQueryInterface {
 		$this->sortDirection = Constants::SORT_ASC;
 		return $this;
 	}
@@ -220,7 +220,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	 *
 	 * @return CollectionQueryInterface<T>
 	 */
-	public function desc() : CollectionQueryInterface {
+	public function desc(): CollectionQueryInterface {
 		$this->sortDirection = Constants::SORT_DESC;
 		return $this;
 	}
