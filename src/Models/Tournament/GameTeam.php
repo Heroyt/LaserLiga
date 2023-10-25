@@ -40,7 +40,16 @@ class GameTeam extends Model
 				$keys = $progression->getKeys();
 				foreach ($keys as $i => $key) {
 					if ($this->key === $key) {
-						$this->name = sprintf(lang('%d. tým ze skupiny: %s'), $i + ($progression->start ?? 0) + 1, $progression->from->name);
+						if (isset($progression->from)) {
+							$this->name = sprintf(
+								lang('%d. tým ze skupiny: %s'),
+								$i + ($progression->start ?? 0) + 1,
+								$progression->from->name
+							);
+						}
+						else {
+							$this->name = lang('Postupující tým');
+						}
 						return $this->name;
 					}
 				}

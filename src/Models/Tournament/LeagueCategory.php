@@ -2,6 +2,7 @@
 
 namespace App\Models\Tournament;
 
+use Lsr\Core\DB;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
@@ -44,7 +45,21 @@ class LeagueCategory extends Model
 	 */
 	public function getTeams(): array {
 		if (empty($this->teams)) {
-			$this->teams = LeagueTeam::query()->where('id_category = %i', $this->id)->orderBy('points')->desc()->get();
+			$this->teams = LeagueTeam::query()
+			                         ->join(
+				                         DB::select([GameTeam::TABLE, 'g'],
+				                                    'tt.[id_league_team], SUM(g.[score]) as score')
+				                           ->join(Team::TABLE, 'tt')
+				                           ->on('tt.[id_team] = g.[id_team]')
+				                           ->groupBy('id_league_team')
+					                         ->fluent
+				                         ,
+				                         't'
+			                         )
+			                         ->on('t.id_league_team = a.id_team')
+			                         ->where('id_category = %i', $this->id)
+			                         ->orderBy('[points] DESC, [score] DESC')
+			                         ->get();
 		}
 		return $this->teams;
 	}

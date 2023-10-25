@@ -36,10 +36,11 @@ $apiGroup->group('/tournaments')
 				 ->get('/{id}', [TournamentsController::class, 'get'])
 				 ->get('/{id}/teams', [TournamentsController::class, 'getTournamentTeams']);
 
-$apiGroup->group('/league')
-				 ->get('/', [LeaguesController::class, 'getAll'])
-				 ->get('/{id}', [LeaguesController::class, 'get'])
-				 ->get('/{id}/tournaments', [LeaguesController::class, 'getTournaments']);
+$apiGroup->group('league')
+         ->get('', [LeaguesController::class, 'getAll'])
+         ->get('{id}', [LeaguesController::class, 'get'])
+         ->get('{id}/points', [LeaguesController::class, 'recountPoints'])
+         ->get('{id}/tournaments', [LeaguesController::class, 'getTournaments']);
 
 $apiGroup->group('/music')
 	->post('/', [Music::class, 'import'])

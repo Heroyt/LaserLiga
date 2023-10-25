@@ -1,0 +1,55 @@
+{layout '../../../@layout.latte'}
+
+{varType App\Models\Tournament\League $league}
+{varType App\Models\Tournament\LeagueCategory $category}
+{varType App\Models\Tournament\Stats[] $stats}
+
+{block content}
+    <h3>{lang 'Výsledky ligy'} - {$league->name}</h3>
+    <h4 n:ifset="$category">{$category->name}</h4>
+    <div class="row align-items-start">
+        <div class="col-md-6 col-lg-3 my-2 bg-background-1 shadow" n:foreach="$stats as $stat">
+            <div class="p-2 collapsed" data-bs-toggle="collapse" data-bs-target="#stat-{$stat->id}">
+                <h4 class="text-center" n:ifset="$stat->name">
+                    {lang $stat->type === App\Models\Tournament\StatType::SOLO ? 'Individuální' : 'Týmové'}<br>
+                    {lang $stat->name}
+                    ({$stat->aggregate->label()})<br>
+                    <span class="collapse-indicator">
+						<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+						<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+					</span>
+                </h4>
+            </div>
+            <div class="collapse" id="stat-{$stat->id}">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>
+                            {lang ($stat->type === App\Models\Tournament\StatType::SOLO ? 'Hráč' : 'Tým')}
+                        </th>
+                        <th class="text-end">{$stat->getFieldName()}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr n:foreach="$stat->getStats($category) as ['model' => $model, 'value' => $value]">
+                        <td>{$iterator->counter}.</td>
+                        <td>
+                            {$stat->type === App\Models\Tournament\StatType::SOLO ? $model->nickname : $model->name}
+                            {if $stat->type === App\Models\Tournament\StatType::SOLO && isset($model->user)}
+                                <a href="{link 'user', $model->user->getCode()}" class="btn btn-primary ms-2 btn-sm">
+                                    <i class="fa-solid fa-user"></i>
+                                </a>
+                            {/if}
+                        </td>
+                        <td class="text-end">
+                            {$value|number:2,',','&nbsp;'|noescape}
+                            {$stat->getFieldIcon()|noescape}
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{/block}

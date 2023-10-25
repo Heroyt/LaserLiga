@@ -1,0 +1,91 @@
+{varType App\Models\Tournament\Tournament $tournament}
+{varType string $results}
+{varType App\Models\Tournament\Stats[] $stats}
+
+{var App\Models\Tournament\Team[] $teams = $tournament->getSortedTeams()}
+<h3>
+    {lang 'Výsledky turnaje'}
+</h3>
+<div class="summary" n:if="!empty($results)">{$results|noescape}</div>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th></th>
+            <th>{lang 'Tým'}</th>
+            <th class="text-center">{lang 'Výhry'}</th>
+            <th class="text-center">{lang 'Remízy'}</th>
+            <th class="text-center">{lang 'Prohry'}</th>
+            <th class="text-center">{lang 'Body'}</th>
+            <th class="text-center">{lang 'Skóre'}</th>
+            <th class="text-center">{lang 'Průměrná herní úroveň'}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr n:foreach="$teams as $team" {ifset $team->leagueTeam}data-href="{link 'league', 'team', $team->leagueTeam->id}"{/ifset}>
+            <td>{$iterator->counter}.</td>
+            <td>
+                <img {ifset $team->image}
+                    src="{$team->getImageUrl()}"
+                    srcset="{$team->getImageSrcSet()}"
+                {else}
+                    src="{getUrl}assets/images/questionmark.jpg"
+                {/ifset}
+                        alt="{$team->name}" class="team-logo object-fit-cover rounded-circle d-inline-block"
+                        style="width: 2rem;" loading="lazy">
+                <span class="team-name">{$team->name}</span>
+                {ifset $team->leagueTeam}
+                    <a href="{link 'league', 'team', $team->leagueTeam->id}" class="visually-hidden">
+                        {sprintf(lang('Statistiky týmu %s'),$team->name)}
+                    </a>
+                {/ifset}
+            </td>
+            <td class="text-center">{$team->getWins()}</td>
+            <td class="text-center">{$team->getDraws()}</td>
+            <td class="text-center">{$team->getLosses()}</td>
+            <td class="text-center">{$team->points}</td>
+            <td class="text-center">{$team->getScore()|number:0,',','&nbsp;'|noescape}</td>
+            <td class="text-center">{$team->getSkill()|number:2,',','&nbsp;'|noescape}
+                <i class="fa-solid fa-medal"></i>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<h3>{lang 'Individuální výsledky'}</h3>
+<div class="row">
+    <div n:foreach="$stats as $stat" class="col-md-6 col-lg-3 pt-4">
+        <h3 class="text-center">{lang $stat->name}</h3>
+        <p class="text-muted text-center">
+            {$stat->aggregate->label()} - {$stat->getFieldDescription()}
+        </p>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th></th>
+                <th>
+                    {lang ($stat->type === App\Models\Tournament\StatType::SOLO ? 'Hráč' : 'Tým')}
+                </th>
+                <th class="text-end">{$stat->getFieldName()}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr n:foreach="$stat->getStats(tournament: $tournament) as ['model' => $model, 'value' => $value]">
+                <td>{$iterator->counter}.</td>
+                <td>
+                    {$stat->type === App\Models\Tournament\StatType::SOLO ? $model->nickname : $model->name}
+                    {if $stat->type === App\Models\Tournament\StatType::SOLO && isset($model->user)}
+                        <a href="{link 'user', $model->user->getCode()}" class="btn btn-primary ms-2 btn-sm">
+                            <i class="fa-solid fa-user"></i>
+                        </a>
+                    {/if}
+                </td>
+                <td class="text-end">
+                    {$value|number:$stat->decimals,',','&nbsp;'|noescape}
+                    {$stat->getFieldIcon()|noescape}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

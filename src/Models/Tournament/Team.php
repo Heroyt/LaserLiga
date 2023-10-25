@@ -3,9 +3,9 @@
 namespace App\Models\Tournament;
 
 use App\Models\Auth\User;
+use App\Models\DataObjects\Image;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Lsr\Core\App;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -46,10 +46,15 @@ class Team extends Model
 	private int $deaths;
 	private int $shots;
 	private float $accuracy;
+	private float $avgPlayerRank;
+
+	private Image $imageObj;
 
 	public function getScore(): int {
 		if (!isset($this->score)) {
-			$this->score = DB::select(GameTeam::TABLE, 'SUM([score])')->where('[id_team] = %i', $this->id)->fetchSingle(false) ?? 0;
+			$this->score = DB::select(GameTeam::TABLE, 'SUM([score])')->where('[id_team] = %i', $this->id)->fetchSingle(
+				$this->tournament->isFinished()
+			) ?? 0;
 		}
 		return $this->score;
 	}
@@ -118,10 +123,20 @@ class Team extends Model
 	 * @return string|null
 	 */
 	public function getImageUrl(): ?string {
-		if (empty($this->image)) {
+		$image = $this->getImageObj();
+		if (!isset($image)) {
 			return null;
 		}
-		return App::getUrl() . $this->image;
+		$optimized = $image->getOptimized();
+		return $optimized['webp'] ?? $optimized['original'];
+	}
+
+	public function getImageSrcSet(): ?string {
+		$image = $this->getImageObj();
+		if (!isset($image)) {
+			return null;
+		}
+		return getImageSrcSet($image);
 	}
 
 	/**
@@ -129,7 +144,11 @@ class Team extends Model
 	 */
 	public function getWins(): int {
 		if (!isset($this->wins)) {
-			$this->wins = DB::select(GameTeam::TABLE, 'COUNT(*)')->where('[id_team] = %i AND [points] = %i', $this->id, $this->tournament->points->win)->fetchSingle(false) ?? 0;
+			$this->wins = DB::select(GameTeam::TABLE, 'COUNT(*)')->where(
+				'[id_team] = %i AND [points] = %i',
+				$this->id,
+				$this->tournament->points->win
+			)->fetchSingle($this->tournament->isFinished()) ?? 0;
 		}
 		return $this->wins;
 	}
@@ -139,7 +158,11 @@ class Team extends Model
 	 */
 	public function getLosses(): int {
 		if (!isset($this->losses)) {
-			$this->losses = DB::select(GameTeam::TABLE, 'COUNT(*)')->where('[id_team] = %i AND [points] = %i', $this->id, $this->tournament->points->loss)->fetchSingle(false) ?? 0;
+			$this->losses = DB::select(GameTeam::TABLE, 'COUNT(*)')->where(
+				'[id_team] = %i AND [points] = %i',
+				$this->id,
+				$this->tournament->points->loss
+			)->fetchSingle($this->tournament->isFinished()) ?? 0;
 		}
 		return $this->losses;
 	}
@@ -149,7 +172,11 @@ class Team extends Model
 	 */
 	public function getDraws(): int {
 		if (!isset($this->draws)) {
-			$this->draws = DB::select(GameTeam::TABLE, 'COUNT(*)')->where('[id_team] = %i AND [points] = %i', $this->id, $this->tournament->points->draw)->fetchSingle(false) ?? 0;
+			$this->draws = DB::select(GameTeam::TABLE, 'COUNT(*)')->where(
+				'[id_team] = %i AND [points] = %i',
+				$this->id,
+				$this->tournament->points->draw
+			)->fetchSingle($this->tournament->isFinished()) ?? 0;
 		}
 		return $this->draws;
 	}
@@ -159,7 +186,10 @@ class Team extends Model
 	 */
 	public function getSkill(): float {
 		if (!isset($this->skill)) {
-			$this->skill = (float)(DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'AVG(skill)')->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id))->fetchSingle(false) ?? 0.0);
+			$this->skill = (float)(DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'AVG(skill)')->where(
+				'id_tournament_player IN %sql',
+				DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)
+			)->fetchSingle($this->tournament->isFinished()) ?? 0.0);
 		}
 		return $this->skill;
 	}
@@ -182,29 +212,57 @@ class Team extends Model
 	public function getKills(): int {
 		$this->kills ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(hits)')
 											 ->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-											 ->fetchSingle(false) ?? 0;
+											 ->fetchSingle($this->tournament->isFinished()) ?? 0;
 		return $this->kills;
 	}
 
 	public function getDeaths(): int {
 		$this->deaths ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(deaths)')
 												->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-												->fetchSingle(false) ?? 0;
+												->fetchSingle($this->tournament->isFinished()) ?? 0;
 		return $this->deaths;
 	}
 
 	public function getShots(): int {
 		$this->shots ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(shots)')
 											 ->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-											 ->fetchSingle(false) ?? 0;
+											 ->fetchSingle($this->tournament->isFinished()) ?? 0;
 		return $this->shots;
 	}
 
 	public function getAccuracy(): float {
 		$this->accuracy ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'AVG(accuracy)')
 													->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-													->fetchSingle(false) ?? 0.0;
+													->fetchSingle($this->tournament->isFinished()) ?? 0.0;
 		return $this->accuracy;
+	}
+
+	public function getAveragePlayerRank(): float {
+		if (!isset($this->avgPlayerRank)) {
+			$sum = 0;
+			$count = 0;
+			foreach ($this->getPlayers() as $player) {
+				if (isset($player->user)) {
+					$count++;
+					$sum += $player->user->stats->rank;
+				}
+			}
+			$this->avgPlayerRank = $count === 0 ? 0 : $sum / $count;
+		}
+		return $this->avgPlayerRank;
+	}
+
+	/**
+	 * @return Image|null
+	 */
+	public function getImageObj(): ?Image {
+		if (!isset($this->imageObj)) {
+			if (!isset($this->image)) {
+				return null;
+			}
+			$this->imageObj = new Image($this->image);
+		}
+		return $this->imageObj;
 	}
 
 }

@@ -1,4 +1,5 @@
 import {initUserAutocomplete} from "../../components/userPlayerSearch";
+import {Collapse} from "bootstrap";
 
 export default function initRegister() {
 	const playerRows = document.querySelectorAll('.player-row') as NodeListOf<HTMLDivElement>;
@@ -19,7 +20,7 @@ export default function initRegister() {
 			playerUser.value = data.code;
 			playerNickname.value = data.nickname;
 			playerEmail.value = data.email;
-			if (data.stats.rank > 600) {
+            if (data.stats.rank > 550) {
 				playerSkill.value = 'PRO';
 			} else if (data.stats.rank > 400) {
 				playerSkill.value = 'ADVANCED';
@@ -48,4 +49,18 @@ export default function initRegister() {
 			}
 		});
 	});
+
+    const previousTeamSelect = document.getElementById('previousTeam') as HTMLSelectElement | undefined;
+    if (previousTeamSelect) {
+        const newTeamCollapseSection = document.getElementById('new-team-form') as HTMLDivElement;
+        const newTeamCollapse = Collapse.getOrCreateInstance(newTeamCollapseSection, {toggle: false});
+
+        previousTeamSelect.addEventListener('change', () => {
+            if (previousTeamSelect.value === '') {
+                newTeamCollapse.show();
+            } else {
+                newTeamCollapse.hide();
+            }
+        });
+    }
 }

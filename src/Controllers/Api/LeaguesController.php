@@ -5,10 +5,8 @@ namespace App\Controllers\Api;
 use App\Core\Middleware\ApiToken;
 use App\Models\Arena;
 use App\Models\Tournament\League;
-use App\Models\Tournament\Tournament;
 use Lsr\Core\ApiController;
 use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 
 class LeaguesController extends ApiController
@@ -44,6 +42,24 @@ class LeaguesController extends ApiController
 		}
 
 		$this->respond($league->getTournaments());
+	}
+
+	public function recountPoints(League $league): never {
+		$league->countPoints();
+
+		$response = [];
+
+		foreach ($league->getCategories() as $category) {
+			$response[$category->name] = [];
+			foreach ($category->getTeams() as $team) {
+				$response[$category->name][] = ['team'      => $team->name,
+				                                'points'    => $team->points,
+				                                'positions' => $team->getTournamentPositions(),
+				];
+			}
+		}
+
+		$this->respond($response);
 	}
 
 }

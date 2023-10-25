@@ -3,6 +3,7 @@
 {varType App\Models\Tournament\Tournament $tournament}
 {varType array $_POST}
 {varType array $errors}
+{varType App\Models\Auth\User|null $user}
 
 {define content}
 	<p class="text-start">
@@ -16,7 +17,7 @@
 	<form action="{link 'tournament', $tournament->id, 'register'}" method="post" id="tournament-register-team-form"
 		  enctype="multipart/form-data">
 		{csrfInput 'tournament-register'}
-		{include '../../partials/tournament/registerTeam.latte', $tournament, $errors, $_POST}
+        {include '../../partials/tournament/registerTeam.latte', $tournament, $errors, $_POST, $user}
 		<div class="d-flex justify-content-center my-3">
 			<div class="form-check">
 				<input class="form-check-input {ifset $errors['gdpr']}is-invalid{/ifset}" type="checkbox" value="1"

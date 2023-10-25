@@ -55,10 +55,10 @@ class TournamentsController extends ApiController
 		$teamsData = [];
 		foreach ($teams as $team) {
 			$teamData = [
-				'id' => $team->id,
-				'name' => $team->name,
+				'id'    => $team->id,
+				'name'  => $team->name,
 				'image' => $team->getImageUrl(),
-				'hash' => $team->getHash(),
+				'hash'  => $team->getHash(),
 				'createdAt' => $team->createdAt,
 				'updatedAt' => $team->updatedAt,
 			];
@@ -68,18 +68,18 @@ class TournamentsController extends ApiController
 				$teamData['players'] = [];
 				foreach ($players as $player) {
 					$teamData['players'][] = [
-						'id' => $player->id,
+						'id'       => $player->id,
 						'nickname' => $player->nickname,
-						'name' => $player->name,
-						'surname' => $player->surname,
-						'phone' => $player->phone,
-						'email' => $player->email,
+						'name'     => $player->name,
+						'surname'  => $player->surname,
+						'phone'    => $player->phone,
+						'email'    => $player->email,
 						'birthYear' => $player->birthYear,
-						'image' => $player->image,
-						'captain' => $player->captain,
-						'sub' => $player->sub,
-						'skill' => $player->skill,
-						'user' => $player->user,
+						'image'    => $player->image,
+						'captain'  => $player->captain,
+						'sub'      => $player->sub,
+						'skill'    => $player->skill,
+						'user'     => $player->user,
 						'createdAt' => $player->createdAt,
 						'updatedAt' => $player->updatedAt,
 					];
@@ -194,6 +194,10 @@ class TournamentsController extends ApiController
 		}
 
 		$tournament->save();
+
+		if (isset($tournament->league) && $tournament->isFinished()) {
+			$tournament->league->countPoints();
+		}
 
 		$this->respond($ids);
 	}

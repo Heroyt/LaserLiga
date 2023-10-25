@@ -86,16 +86,25 @@ Route::group()
 
 // Tournament
 Route::group('/tournament')
-		 ->get('/', [TournamentController::class, 'show'])->name('tournaments')
-		 ->get('/{id}', [TournamentController::class, 'detail'])->name('tournament-detail')
-		 ->get('/{id}/register', [TournamentController::class, 'register'])->name('tournament-register')
-		 ->post('/{id}/register', [TournamentController::class, 'processRegister'])->name('tournament-register-process')->middleware(new CSRFCheck('tournament-register'))
-		 ->get('/registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])->name('tournament-register-update')
-		 ->post('/registration/{tournamentId}/{registration}', [TournamentController::class, 'processUpdateRegister'])->name('tournament-register-update-process')->middleware(new CSRFCheck('tournament-update-register'));
+     ->get('/', [TournamentController::class, 'show'])
+     ->name('tournaments')
+     ->get('/{id}', [TournamentController::class, 'detail'])
+     ->name('tournament-detail')
+     ->get('/{id}/register', [TournamentController::class, 'register'])
+     ->name('tournament-register')
+     ->post('/{id}/register', [TournamentController::class, 'processRegister'])
+     ->name('tournament-register-process')
+     ->middleware(new CSRFCheck('tournament-register'))
+     ->get('/registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])
+     ->name('tournament-register-update')
+     ->post('/registration/{tournamentId}/{registration}', [TournamentController::class, 'processUpdateRegister'])
+     ->name('tournament-register-update-process')
+     ->middleware(new CSRFCheck('tournament-update-register'));
 
 Route::group('/league')
-		 ->get('/{id}', [LeagueController::class, 'detail'])
-		 ->get('/team/{id}', [LeagueController::class, 'teamDetail']);
+     ->get('/', [LeagueController::class, 'show'])->name('leagues')
+     ->get('/{id}', [LeagueController::class, 'detail'])
+     ->get('/team/{id}', [LeagueController::class, 'teamDetail']);
 
 // Push
 Route::group('/push')

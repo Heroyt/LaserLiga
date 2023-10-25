@@ -1,4 +1,4 @@
-{parameters App\Models\Tournament\Tournament $tournament, array $errors, array $values = []}
+{parameters App\Models\Tournament\Tournament $tournament, array $errors, array $values = [], App\Models\Auth\User|null $user = null}
 
 {var string[] $teamNames = ['Borci', 'Četa 24', 'Velký kluci', 'Bruteforce', 'Šmoulata', 'Akta X', 'Bořiči mýtů', 'Bratři v triku', 'Laser bomby']}
 {var array $playerNames = [
@@ -27,45 +27,59 @@
 
 {dump $values}
 
-<div>
-	<label for="team-name" class="form-label required">
-		{lang 'Název týmu'}:
-	</label>
-	<input type="text" class="form-control {ifset $errors['team-name']}is-invalid{/ifset}"
-		   {ifset $errors['team-name']}aria-describedby="team-name-feedback"{/ifset} name="team-name" id="team-name"
-		   placeholder="{$teamNames|random}" value="{if !empty($values['team-name'])}{$values['team-name']}{/if}">
-	<div n:ifset="$errors['team-name']" id="team-name-feedback" class="invalid-feedback">
-		{if is_array($errors['team-name'])}
-			<ul>
-				<li n:foreach="$errors['team-name'] as $error">{$error}</li>
-			</ul>
-		{else}
-			{$errors['team-name']}
-		{/if}
-	</div>
-	<div class="my-3">
-		<label for="team-image" class="form-label">{lang 'Logo týmu'}:</label>
-		<input class="form-control" type="file" id="team-image" name="team-image"
-			   accept="image/png,image/jpeg,image/svg+xml">
-	</div>
-</div>
-
-<hr>
-
-<h3>{lang 'Hráči'}</h3>
-
-{for $i = 0; $i < $tournament->teamSize; $i++}
-	{include playerFields $i, $values, $playerNames, $playerNameCount, $nickNames, $nickNameCount}
-{/for}
-
-{if $tournament->subCount > 0}
-	<hr>
-
-	<h4>{lang 'Náhradníci'} ({lang 'nepovinné'})</h4>
-	{for $i = $tournament->teamSize; $i < $tournament->teamSize+$tournament->subCount; $i++}
-		{include playerFields $i, $values, $playerNames, $playerNameCount, $nickNames, $nickNameCount, true}
-	{/for}
+{if isset($user) && !isset($values['id'])}
+    {var App\Models\Tournament\Player[] $players = $user->player->getTournamentPlayers()}
+    <div n:if="!empty($players)" class="mb-4">
+        <label for="previousTeam">{lang 'Registrovat předchozí tým'}:</label>
+        <select class="form-select" name="previousTeam" id="previousTeam">
+            <option value="">{lang 'Nový tým'}</option>
+            <option n:foreach="$players as $player" value="{$player->team->id}">{$player->team->name}
+                - {$player->tournament->name}</option>
+        </select>
+    </div>
 {/if}
+
+<div id="new-team-form" class="collapse show">
+    <div>
+        <label for="team-name" class="form-label required">
+            {lang 'Název týmu'}:
+        </label>
+        <input type="text" class="form-control {ifset $errors['team-name']}is-invalid{/ifset}"
+               {ifset $errors['team-name']}aria-describedby="team-name-feedback"{/ifset} name="team-name" id="team-name"
+               placeholder="{$teamNames|random}" value="{if !empty($values['team-name'])}{$values['team-name']}{/if}">
+        <div n:ifset="$errors['team-name']" id="team-name-feedback" class="invalid-feedback">
+            {if is_array($errors['team-name'])}
+                <ul>
+                    <li n:foreach="$errors['team-name'] as $error">{$error}</li>
+                </ul>
+            {else}
+                {$errors['team-name']}
+            {/if}
+        </div>
+        <div class="my-3">
+            <label for="team-image" class="form-label">{lang 'Logo týmu'}:</label>
+            <input class="form-control" type="file" id="team-image" name="team-image"
+                   accept="image/png,image/jpeg,image/svg+xml">
+        </div>
+    </div>
+
+    <hr>
+
+    <h3>{lang 'Hráči'}</h3>
+
+    {for $i = 0; $i < $tournament->teamSize; $i++}
+        {include playerFields $i, $values, $playerNames, $playerNameCount, $nickNames, $nickNameCount}
+    {/for}
+
+    {if $tournament->subCount > 0}
+        <hr>
+
+        <h4>{lang 'Náhradníci'} ({lang 'nepovinné'})</h4>
+        {for $i = $tournament->teamSize; $i < $tournament->teamSize+$tournament->subCount; $i++}
+            {include playerFields $i, $values, $playerNames, $playerNameCount, $nickNames, $nickNameCount, true}
+        {/for}
+    {/if}
+</div>
 
 {define playerFields int $i, array $values, array $playerNames, int $playerNameCount, array $nickNames, int $nickNameCount, bool $sub = false}
 	{var bool $captain = $i === 0}

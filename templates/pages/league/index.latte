@@ -1,0 +1,65 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Tournament\League[] $leagues}
+
+{define content}
+    <h1 class="text-center">
+        <i class="fa-solid fa-trophy fs-1"></i>
+        <br>
+        {lang 'Organizované ligy laser game'}
+    </h1>
+    <p class="text-center mb-4">
+        {lang 'Liga laser game je dlouhodobá soutěž skládající se z několika turnajů. Výsledky jsou vyhodnocovány z každého turnaje zvlášť, ale zároveň mezi turnaji. Na konci ligového období jsou vyhlášeny celkové výsledky.'}
+    </p>
+    <div class="d-flex flex-column align-items-center">
+        <div n:foreach="$leagues as $league"
+                class="card my-3 w-100"
+                itemscope itemtype="https://schema.org/EventSeries"
+                style="max-width: 50rem;">
+            <meta itemprop="identifier" content="{link 'league', $league->id}">
+            <meta itemprop="keywords" content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
+            <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
+            <meta itemprop="sport" content="Laser Game">
+            <meta itemprop="keywords" content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
+            <div class="row g-0 {if $iterator->counter0 % 2 === 1}flex-md-row-reverse{/if}">
+                <div class="col-md-4">
+                    <img n:ifset="$league->image" src="{$league->getImageUrl()}" alt="{$league->name}" class="img-fluid"
+                                                  itemprop="image" loading="lazy"
+                                                  style="aspect-ratio: 1; object-fit:cover;">
+                </div>
+                <div class="col-md-8 d-flex align-items-center">
+                    <div class="card-body text-center">
+                        <div itemprop="organizer" itemscope itemtype="https://schema.org/Organization">
+                            <meta itemprop="identifier" content="{link 'arena', $league->arena->id}">
+                            <meta itemprop="name" content="{$league->arena->name}">
+                            <meta itemprop="url" content="{link 'arena', $league->arena->id}">
+                            <img src="{$league->arena->getLogoUrl()}" alt="{$league->arena->name} - logo"
+                                 class="img-fluid" loading="lazy" style="max-height: 5rem;" itemprop="image">
+                            <div n:if="$league->arena->address->isFilled()" itemprop="address" itemscope
+                                                                            itemtype="https://schema.org/PostalAddress">
+                                <meta n:ifset="$league->arena->address->street" itemprop="streetAddress"
+                                                                                content="{$league->arena->address->street}">
+                                <meta n:ifset="$league->arena->address->city" itemprop="addressLocality"
+                                                                              content="{$league->arena->address->city}">
+                                <meta n:ifset="$league->arena->address->postCode" itemprop="postalCode"
+                                                                                  content="{$league->arena->address->postCode}">
+                                <meta n:ifset="$league->arena->address->country" itemprop="addressCountry"
+                                                                                 content="{$league->arena->address->country}">
+                            </div>
+                        </div>
+                        <h3 class="card-title" itemprop="name">{$league->name}</h3>
+                        <p n:ifset="$league->shortDescription" itemprop="description">{$league->shortDescription}</p>
+                        <div class="text-center mt-4">
+                            <div class="btn-group">
+                                <a href="{link 'league', $league->id}" class="btn btn-secondary" itemprop="url">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    {lang 'Informace'}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{/define}

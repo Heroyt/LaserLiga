@@ -1,0 +1,70 @@
+{varType App\Models\Tournament\Tournament $tournament}
+
+{var App\Models\Tournament\Game[] $games = $tournament->getGames()}
+<h3>
+    {lang 'Hry turnaje'}
+</h3>
+{* Mobile display - cards *}
+<div class="d-md-none">
+    {foreach $games as $gameTournament}
+        {var bool $played = isset($gameTournament->code)}
+        <div n:tag="$played ? 'a' : 'div'"
+                class="card my-1 text-center text-decoration-none" {if $played}href="{link 'game', $gameTournament->code}"{/if}>
+            <div class="card-body">
+                <div class="game-time fs-4 mb-2">{$gameTournament->start->format('H:i')}</div>
+                <div n:foreach="$gameTournament->teams as $team" n:class="game-team, $played ? fw-bold, $played && $team->points <= 0 ? text-danger, $played && $team->points === 1 ? text-info, $played && $team->points > 1 ? text-success">
+                    <div class="game-team-name">
+                        {$team->getName()}
+                        {if $played}
+                            ({if $team->points >= 0}+{/if}{$team->points})
+                        {/if}
+                    </div>
+                    <div n:if="$played" class="game-team-score fw-light">
+                        {($team->score ?? 0)|number:0, ',', '&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/foreach}
+</div>
+{* Computer display - table *}
+<div class="table-responsive d-none d-md-block">
+    <table class="table table-striped tournament-games-content-header">
+        <thead>
+        <tr>
+            <th class="text-center">{lang 'Začátek'}</th>
+            <th>{lang 'Domácí'}</th>
+            <th>{lang 'Hosté'}</th>
+            <th>{lang 'Výsledky'}</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr n:foreach="$games as $gameTournament">
+            {var string[] $scores = []}
+            {var bool $played = isset($gameTournament->code)}
+            <td class="text-center">{$gameTournament->start->format('H:i')}</td>
+            <td n:foreach="$gameTournament->teams as $team" {if $played}class="fw-bold text-{if $team->points <= 0}danger{elseif $team->points === 1}info{else}success{/if}"{/if}>
+                {$team->getName()}
+                {if $played}
+                    ({if $team->points >= 0}+{/if}{$team->points})
+                {/if}
+                {do $scores[] = number_format($team->score ?? 0, 0, ',', '&nbsp;')}
+            </td>
+            <td>
+                {if $played}
+                    {$scores|implode:'&nbsp;<i class="fa-solid fa-star"></i>&nbsp;:&nbsp;'|noescape}&nbsp;<i
+                        class="fa-solid fa-star"></i>
+                {/if}
+            </td>
+            <td>
+                {if $played}
+                    <a href="{link 'g', $gameTournament->code}" class="btn btn-info">
+                        <i class="fa-solid fa-eye"></i>
+                    </a>
+                {/if}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

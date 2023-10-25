@@ -4,9 +4,9 @@ namespace App\Models\Tournament;
 
 use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Arena;
+use App\Models\DataObjects\Image;
 use App\Models\GameGroup;
 use DateTimeInterface;
-use Lsr\Core\App;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -36,7 +36,9 @@ class Tournament extends Model
 	public array $groups = [];
 
 	public string $name;
+	public ?string $shortDescription = null;
 	public ?string $description = null;
+	public ?string $rules            = null;
 
 	public ?int $teamLimit = null;
 
@@ -48,6 +50,7 @@ class Tournament extends Model
 	public int $subCount = 0;
 
 	public bool $active = true;
+	public bool    $finished         = false;
 	public bool $registrationsActive = true;
 
 	#[Instantiate]
@@ -71,11 +74,36 @@ class Tournament extends Model
 	/** @var Team[] */
 	private array $sortedTeams = [];
 
+	private Image $imageObj;
+
+	/**
+	 * @return Image|null
+	 */
+	public function getImageObj(): ?Image {
+		if (!isset($this->imageObj)) {
+			if (!isset($this->image)) {
+				return null;
+			}
+			$this->imageObj = new Image($this->image);
+		}
+		return $this->imageObj;
+	}
+
 	public function getImageUrl(): ?string {
-		if (!isset($this->image)) {
+		$image = $this->getImageObj();
+		if (!isset($image)) {
 			return null;
 		}
-		return App::getUrl() . $this->image;
+		$optimized = $image->getOptimized();
+		return $optimized['webp'] ?? $optimized['original'];
+	}
+
+	public function getImageSrcSet(): ?string {
+		$image = $this->getImageObj();
+		if (!isset($image)) {
+			return null;
+		}
+		return getImageSrcSet($image);
 	}
 
 	/**
@@ -192,6 +220,24 @@ class Tournament extends Model
 
 	public function isFull(): bool {
 		return isset($this->teamLimit) && count($this->getTeams()) >= $this->teamLimit;
+	}
+
+	public function isFinished(): bool {
+		if (!$this->finished) {
+			if (count($this->getGames()) === 0) {
+				$this->finished = false;
+				return false;
+			}
+			$notPlayedGames = Game::query()->where('id_tournament = %i AND [code] IS NULL', $this->id)->count();
+			$this->finished = $notPlayedGames === 0;
+			if ($this->finished) {
+				try {
+					$this->save();
+				} catch (ValidationException) {
+				}
+			}
+		}
+		return $this->finished;
 	}
 
 }

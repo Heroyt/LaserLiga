@@ -16,7 +16,7 @@ class Progression extends Model
 	#[ManyToOne]
 	public Tournament $tournament;
 	#[ManyToOne('id_group', 'id_group_from')]
-	public Group $from;
+	public ?Group $from = null;
 	#[ManyToOne('id_group', 'id_group_to')]
 	public Group $to;
 

@@ -2,16 +2,26 @@
 
 {varType App\Models\Auth\User|null $user}
 {varType App\Models\Tournament\LeagueTeam $currTeam}
+{var App\Models\Tournament\Team[] $teams = $currTeam->getTeams()}
+{var App\Models\Tournament\Game[] $games = $currTeam->getGames()}
 
 {define content}
 
 	<p class="text-start">
-		<a href="{link 'league', $currTeam->league->id}" class="btn btn-info">
+        <a href="{link 'league', $currTeam->league->id}" class="btn btn-secondary">
 			<i class="fa-solid fa-caret-left"></i> {lang 'Zpět'}
 		</a>
 	</p>
 
-	<h2>{sprintf(lang('Statistiky týmu - %s'), $currTeam->name)}</h2>
+    <h2 class="text-center">{sprintf(lang('Statistiky týmu - %s'), $currTeam->name)}</h2>
+
+    <p class="text-center text-muted">
+        {sprintf(lang('Tým %s se účastnil celkem %d turnaje', 'Tým %s se účastnil celkem %d turnajů', count($teams)), $currTeam->name, count($teams))}
+        ,
+        {sprintf(lang('odehrál %d hru', 'odehrál %d her', count($games)), count($games))}
+        {sprintf(lang('a do celkové tabulky získal %d bod', 'a do celkové tabulky získal %d bodů', $currTeam->points), $currTeam->points)}
+        .
+    </p>
 
 	<ul class="nav nav-tabs mt-4" id="league-tabs" role="tablist" data-track-content=""
 		data-content-name="League tabs">
@@ -37,15 +47,15 @@
 			 aria-labelledby="tournaments-tab-control"
 			 data-track-content="" data-content-name="League team tournaments tab" tabindex="0">
 			<div class="d-flex flex-wrap justify-content-evenly align-items-start" style="gap: 2rem">
-				<div class="card my-2" n:foreach="$currTeam->getTeams() as $team" style="max-width: 25rem;">
+                <div class="card my-2 text-center" n:foreach="$teams as $team" style="max-width: 25rem;">
 					{ifset $team->image}
 						<img class="team-logo card-img-top" src="{$team->getImageUrl()}"
-							 alt="Logo týmu - {$team->name}">
+                             srcset="{$team->getImageSrcSet()}"
+                             alt="Logo týmu - {$team->name}" loading="lazy">
 					{/ifset}
 					<div class="card-header py-3">
 						<h3 class="card-title">
 							{$team->name}
-
 						</h3>
 						<h4 class="card-subtitle">
 							{$team->tournament->name}
@@ -135,7 +145,32 @@
 		<div class="tab-pane py-4 fade" id="games-tab" role="tabpanel"
 			 aria-labelledby="games-tab-control"
 			 data-track-content="" data-content-name="League team games tab" tabindex="0">
-			<div class="table-responsive">
+            {* Mobile display - cards *}
+            <div class="d-md-none">
+                {foreach $games as $gameTournament}
+                    {var bool $played = isset($gameTournament->code)}
+                    <div n:tag="$played ? 'a' : 'div'"
+                            class="card my-1 text-center text-decoration-none" {if $played}href="{link 'game', $gameTournament->code}"{/if}>
+                        <div class="card-body">
+                            <div class="game-time fs-4 mb-2">{$gameTournament->start->format('H:i')}</div>
+                            <div n:foreach="$gameTournament->teams as $team" n:class="game-team, $played ? fw-bold, $played && $team->points <= 0 ? text-danger, $played && $team->points === 1 ? text-info, $played && $team->points > 1 ? text-success">
+                                <div class="game-team-name">
+                                    {$team->getName()}
+                                    {if $played}
+                                        ({if $team->points >= 0}+{/if}{$team->points})
+                                    {/if}
+                                </div>
+                                <div n:if="$played" class="game-team-score fw-light">
+                                    {($team->score ?? 0)|number:0, ',', '&nbsp;'|noescape}&nbsp;<i
+                                            class="fa-solid fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {/foreach}
+            </div>
+            {* Computer display - table *}
+            <div class="table-responsive d-none d-md-block">
 				<table class="table table-striped tournament-games-content-header">
 					<thead>
 					<tr>
@@ -147,7 +182,7 @@
 					</tr>
 					</thead>
 					<tbody>
-					<tr n:foreach="$currTeam->getGames() as $gameTournament">
+                    <tr n:foreach="$games as $gameTournament">
 						{var string[] $scores = []}
 						<td>{$gameTournament->start->format('H:i')}</td>
 						<td n:foreach="$gameTournament->teams as $team">

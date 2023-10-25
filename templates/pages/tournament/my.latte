@@ -1,6 +1,6 @@
 {layout '../../@layout.latte'}
 
-{varType App\Models\Auth\User $user}
+{varType App\Models\Auth\User|null $user}
 {varType App\Models\Auth\LigaPlayer $currPlayer}
 {varType App\Models\Tournament\Tournament[] $tournaments}
 {varType App\Models\Tournament\Player[] $players}
@@ -8,7 +8,7 @@
 {define content}
 
 	<p class="text-start">
-		<a href="{link 'user', $currPlayer->getCode()}" class="btn btn-info">
+        <a href="{link 'user', $currPlayer->getCode()}" class="btn btn-secondary">
 			<i class="fa-solid fa-caret-left"></i> {lang 'Zpět'}
 		</a>
 	</p>
@@ -16,19 +16,19 @@
 	<h2>{sprintf(lang('Turnaje hráče - %s'), $currPlayer->nickname)}</h2>
 
 	<div class="card my-2" n:foreach="$tournaments as $tournament">
-		<div class="card-body">
+        <div class="card-body text-center">
 			{ifset $tournament->league}
 				<p class="fs-4 mb-3">
 					{lang 'Liga'}: {$tournament->league->name}
 
-					<a href="{link 'league', $tournament->league->id}" class="btn btn-info">
+                    <a href="{link 'league', $tournament->league->id}" class="btn btn-secondary">
 						<i class="fa-solid fa-eye"></i>
 					</a>
 				</p>
 			{/ifset}
 			<h3 class="card-title">
 				{$tournament->name}
-				<a href="{link 'tournament', $tournament->id}" class="btn btn-info">
+                <a href="{link 'tournament', $tournament->id}" class="btn btn-secondary">
 					<i class="fa-solid fa-eye"></i>
 				</a>
 			</h3>
@@ -39,7 +39,8 @@
 				<hr>
 				{ifset $player->team}
 					{ifset $player->team->image}
-						<img class="team-logo mb-3" src="{$player->team->getImageUrl()}"
+                        <img class="team-logo mb-3" src="{$player->team->getImageUrl()}"
+                             srcset="{$player->team->getImageSrcSet()}"
 							 alt="Logo týmu - {$player->team->name}" style="max-height: 100px;">
 					{/ifset}
 					<h4>
@@ -47,14 +48,14 @@
 					</h4>
 					{if $tournament->isStarted()}
 						<p><strong>{lang 'Umístění'}:</strong> {$player->team->getPosition()}</p>
+                    {else}
+                        <p>{lang 'Turnaj se ještě nehrál'}</p>
 						{if isset($user) && !$tournament->isStarted() && $player->team->validateAccess($user)}
 							<a href="{link 'tournament', 'registration', $tournament->id, $player->team->id}"
-							   class="btn btn-info">
+                               class="btn btn-secondary">
 								{lang 'Upravit přihlášku'}
 							</a>
 						{/if}
-					{else}
-						<p>{lang 'Turnaj se ještě nehrál'}</p>
 					{/if}
 				{/ifset}
 				{if $tournament->isStarted()}

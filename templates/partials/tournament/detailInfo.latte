@@ -1,0 +1,77 @@
+{varType App\Models\Tournament\Tournament $tournament}
+
+<div class="row g-2">
+    <section class="col-12 col-lg-3 p-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="card-title mb-3 text-center">{lang 'Informace'}</h3>
+                <p itemprop="organizer" itemscope itemtype="https://schema.org/Organization">
+                    <strong>{lang 'Aréna'}:</strong>
+                    <meta itemprop="identifier" content="{link 'arena', $tournament->arena->id}">
+                    <meta n:ifset="$tournament->arena->web" itemprop="url"
+                                                            content="{$tournament->arena->web}">
+                    <a itemprop="url" href="{link 'arena', $tournament->arena->id}">
+                        <span itemprop="name">{$tournament->arena->name}</span>
+                    </a>
+                    <meta content="{$tournament->arena->getLogoUrl()}" itemprop="image">
+                    <span n:if="$tournament->arena->address->isFilled()" itemprop="address" itemscope
+                                                                         itemtype="https://schema.org/PostalAddress">
+									<meta n:ifset="$tournament->arena->address->street" itemprop="streetAddress"
+                                                                                        content="{$tournament->arena->address->street}">
+									<meta n:ifset="$tournament->arena->address->city" itemprop="addressLocality"
+                                                                                      content="{$tournament->arena->address->city}">
+									<meta n:ifset="$tournament->arena->address->postCode" itemprop="postalCode"
+                                                                                          content="{$tournament->arena->address->postCode}">
+									<meta n:ifset="$tournament->arena->address->country" itemprop="addressCountry"
+                                                                                         content="{$tournament->arena->address->country}">
+								</span>
+                </p>
+                <p><strong>{lang 'Datum'}:</strong> {$tournament->start->format('d.m.Y')}</p>
+                <p><strong>{lang 'Začátek'}:</strong> {$tournament->start->format('H:i')}</p>
+                <p n:ifset="$tournament->end">
+                    <strong>{lang 'Konec'}:</strong> {$tournament->end->format('H:i')}
+                </p>
+                <p n:ifset="$tournament->teamLimit">
+                    <strong>{lang 'Maximum týmů'}:</strong> {$tournament->teamLimit}
+                </p>
+                <p>
+                    <strong>{lang 'Formát'}:</strong>
+                    {if $tournament->format === App\GameModels\Game\Enums\GameModeType::TEAM}
+                        {lang 'Týmy'}
+                    {else}
+                        {lang 'Všichni proti všem'}
+                    {/if}
+                </p>
+                <p n:if="$tournament->format === App\GameModels\Game\Enums\GameModeType::TEAM">
+                    <strong>{lang 'Počet hráčů v týmu'}:</strong> {$tournament->teamSize}
+                </p>
+                <p n:if="$tournament->subCount > 0">
+                    <strong>{lang 'Náhradníků'}:</strong> {$tournament->subCount}
+                </p>
+            </div>
+        </div>
+    </section>
+    <section n:ifset="$tournament->description" id="tournament-description"
+                                                class="col-12 col-sm-12 col-lg-6 p-3 text-center">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title mb-3">{lang 'Popis'}</h3>
+                <div itemprop="description">
+                    {ifset $tournament->shortDescription}
+                        {autoParagraphs($tournament->shortDescription)|noescape}
+                        <hr>
+                    {/ifset}
+                    {$tournament->description|noescape}
+                </div>
+            </div>
+        </div>
+    </section>
+    <section n:ifset="$tournament->prices" id="tournament-prices" class="col-12 col-lg-3 p-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="card-title mb-3">{lang 'Cena'}</h3>
+                {$tournament->prices|noescape}
+            </div>
+        </div>
+    </section>
+</div>
