@@ -10,8 +10,7 @@
 {varType \DateTimeImmutable|null $date}
 {varType string[] $dates}
 {varType array[] $allFields}
-
-{import '../dataTable.latte'}
+{default bool $currentUser = false}
 
 {default array $fields = [
 'start' => ['name' => lang('Datum'), 'sortable' => true],
@@ -23,183 +22,31 @@
 
 {\App\Tools\Color::getGamesColor($games)|noescape}
 
-{block filters}
-	<h4>{lang 'Filtry'}</h4>
-	<div class="row my-3">
-		<button type="button" class="btn btn-secondary w-100 collapsed d-flex justify-content-center"
-				data-bs-toggle="collapse" data-bs-target="#fields-filters">
-			{lang 'Upravit zobrazené sloupce'}
-			<div class="collapse-indicator ms-3">
-				<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-				<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
-			</div>
-		</button>
-		<div class="collapse p-2" id="fields-filters">
-			<div class="d-flex justify-content-center mt-2">
-				<div class="form-check">
-					<input class="form-check-input" data-action="check-all" data-target=".field-check"
-						   type="checkbox" id="allFields"
-						   {if count($fields) === count($allFields)}checked{/if}>
-					<label class="form-check-label" for="allFields">
-						{lang 'Vše'}
-					</label>
-				</div>
-			</div>
-			<hr>
-			<div class="d-flex flex-wrap justify-content-evenly">
-				<div n:foreach="$allFields as $name => $field" class="form-check m-2">
-					<input class="form-check-input field-check" type="checkbox" value="{$name}"
-						   id="fieldFilter{$name}"
-						   name="fields[]"
-						   {if $field['mandatory']}disabled{/if}
-						   {if $field['mandatory'] || isset($fields[$name])}checked{/if}>
-					<label class="form-check-label" for="fieldFilter{$name}">
-						{$field['name']}
-					</label>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-8 col-lg-7 my-3">
-			<button type="button" class="btn btn-info w-100 collapsed d-flex justify-content-center"
-					data-bs-toggle="collapse" data-bs-target="#modes-filters">
-				{lang 'Herní módy'}
-				<div class="collapse-indicator ms-3">
-					<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-					<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
-				</div>
-			</button>
-			{var App\GameModels\Game\GameModes\AbstractMode[] $allModes = \App\GameModels\Factory\GameModeFactory::getAll()}
-			{var bool $checkedAllRanked = true}
-			{foreach $allModes as $mode}
-				{if ($mode->rankable && !in_array($mode->id, $modeIds, true)) || (!$mode->rankable && in_array($mode->id, $modeIds, true))}
-					{do $checkedAllRanked = false}
-					{breakIf true}
-				{/if}
-			{/foreach}
-			<div class="collapse p-2" id="modes-filters">
-				<div class="d-flex justify-content-center mt-2">
-					<div class="form-check m-2">
-						<input class="form-check-input" data-action="check-all" data-target=".mode-check"
-							   type="checkbox" id="allModes"
-							   {if empty($modeIds) || count($modeIds) === count($allModes)}checked{/if}>
-						<label class="form-check-label" for="allModes">
-							{lang 'Vše'}
-						</label>
-					</div>
-					<div class="form-check m-2">
-						<input class="form-check-input" data-action="check-all" data-target=".mode-check-ranked"
-							   data-uncheck=".mode-check-unranked"
-							   type="checkbox" id="rankedModes"
-							   {if $checkedAllRanked}checked{/if}>
-						<label class="form-check-label" for="rankedModes">
-							{lang 'Klasické módy'}
-						</label>
-					</div>
-				</div>
-				<hr>
-				<div class="d-flex flex-wrap justify-content-evenly">
-					<div n:foreach="$allModes as $mode" class="form-check m-2">
-						<input class="form-check-input mode-check {if $mode->rankable}mode-check-ranked{else}mode-check-unranked{/if}"
-							   type="checkbox" value="{$mode->id}"
-							   id="modeFilter{$mode->id}"
-							   name="modes[]"
-							   {if empty($modeIds) || in_array($mode->id, $modeIds, true)}checked{/if}>
-						<label class="form-check-label" for="modeFilter{$mode->id}">
-							{lang $mode->name, context: 'gameModes'}
-						</label>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-4 col-lg-3 my-3">
-			<div class="input-group">
-				<input type="date" class="form-control date-picker"
-					   value="{ifset $date}{$date->format('d.m.Y')}{/ifset}"
-					   name="date" id="date" data-max="{date('d.m.Y')}" placeholder="{date('d.m.Y')}"
-					   data-events="{json_encode($dates)}">
-				<button type="button" class="btn btn-danger" data-toggle="clear" data-target="#date">
-					<i class="fa-solid fa-ban"></i>
-				</button>
-			</div>
-		</div>
-		<div class="col-12 col-lg-2 text-center my-3">
-			<button class="btn btn-success" type="submit"><i class="fa-solid fa-filter"></i> {lang 'Filtrovat'}</button>
-		</div>
-	</div>
-{/block}
 
-{block table}
-	{if empty($games)}
-		<p class="text-center my-5 fs-3">{lang 'Žádné hry neodpovídají filtrům'}</p>
-	{else}
-		<input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
-		<input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
-		<div class="table-responsive">
-			<table class="table table-striped data-table" id="user-history-table">
-				<thead>
-				<tr>
-					{include tableHead, $fields, $orderBy, $desc}
-				</tr>
-				</thead>
-				<tbody>
-				<tr n:foreach="$games as $game" data-code="{$game->code}">
-					{var App\GameModels\Game\Player $userPlayer = null}
-				{foreach $game->getPlayers() as $player}
-						{varType App\GameModels\Game\Player $player}
-						{if isset($player->user) && $player->user->id === $user->id}
-							{do $userPlayer = $player}
-							{breakIf true}
-						{/if}
-					{/foreach}
-					<td>{$game->start->format('d.m.Y H:i')}</td>
-					<td>{$game->arena->getLogoHtml()|noescape}</td>
-					<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
-					<td n:ifset="$fields['players']">
-						<span n:foreach="$game->getPlayersSorted() as $player"
-							n:tag="isset($player->user) ? 'a' : 'span'"
-								{ifset $player->user}
-							href="{link ['user', $player->user->getCode()]}"
-						{/ifset}
-						data-toggle="tooltip"
-						title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
-						class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
-					{$player->position}.&nbsp;{$player->name}
-				</span>
-					</td>
-					<td n:ifset="$fields['score']">
-						{$userPlayer->score} <i class="fa-solid fa-star"></i>
-					</td>
-					<td n:ifset="$fields['accuracy']">
-						{$userPlayer->accuracy}&nbsp;%
-					</td>
-					<td n:ifset="$fields['shots']">
-						{$userPlayer->shots}
-					</td>
-					<td n:ifset="$fields['hits']">
-						{$userPlayer->hits}
-					</td>
-					<td n:ifset="$fields['deaths']">
-						{$userPlayer->deaths}
-					</td>
-					<td n:ifset="$fields['kd']">
-						{($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
-					</td>
-					<td n:ifset="$fields['skill']">
-						{$userPlayer->skill} <i class="fa-solid fa-medal"></i>
-					</td>
-					<td>
-						<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
-						   title="{lang 'Výsledky'}">
-							<i class="fa-solid fa-eye"></i>
-						</a>
-					</td>
-				</tr>
-				</tbody>
-			</table>
-		</div>
-	{/if}
-{/block}
-
-{include pagination, $p, $pages, $limit, $total, 'Zobrazeno %s z %d her'}
+{embed '../gameList.latte',
+user: $user,
+games: $games,
+p: $p,
+pages: $pages,
+limit: $limit,
+total: $total,
+orderBy: $orderBy,
+desc: $desc,
+modeIds: $modeIds,
+date: $date,
+dates: $dates,
+allFields: $allFields,
+currentUser: $currentUser,
+fields: $fields
+}
+    {block tableId}user-history-table{/block}
+    {block additionalActions}
+        {varType App\GameModels\Game\Game $game}
+        <button n:if="$currentUser" class="btn btn-danger unset-me" data-toggle="tooltip"
+                                    data-code="{$game->code}" data-user="{$user->id}"
+                                    data-confirm="{lang 'Opravdu chcete hru odstranit z profilu?'}"
+                                    title="{lang 'To nejsem já'}" type="button">
+            <i class="fa-solid fa-cancel"></i>
+        </button>
+    {/block}
+{/embed}

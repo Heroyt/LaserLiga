@@ -32,3 +32,38 @@ $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-co
 		--#{$variable-prefix}body-color: #{map.get($theme-colors-dark, 'text')};
 	}
 }
+
+#modeSwitch {
+  font-size: 1.3rem;
+  overflow: hidden;
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+
+  i {
+    left: 50%;
+    position: absolute;
+    top: .8rem;
+    transition: translate .3s ease;
+  }
+
+  &.btn-dark {
+    .fa-moon {
+      translate: 4rem;
+    }
+
+    .fa-sun {
+      translate: -50%;
+    }
+  }
+
+  &.btn-light {
+    .fa-moon {
+      translate: -50%;
+    }
+
+    .fa-sun {
+      translate: -4rem;
+    }
+  }
+}

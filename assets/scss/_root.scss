@@ -1,0 +1,26 @@
+@use 'variables/colors' as *;
+@use "sass:map";
+@use "functions";
+
+@import '~bootstrap/scss/root';
+
+:root {
+  @each $name, $values in $custom-colors-light {
+    @each $weight, $color in $values {
+      $separator: '-';
+      @if $weight == '' {
+        $separator: '';
+      }
+      @if type-of($color) == 'map' {
+        --#{$variable-prefix}#{map.get($color, 'alias')}: #{map.get($color, 'color')};
+        --#{$variable-prefix}#{map.get($color, 'alias')}-rgb: #{functions.hexToRGBString(map.get($color, 'color'))};
+        --#{map.get($color, 'alias')}: #{map.get($color, 'color')};
+        --#{$name}#{$separator}#{$weight}: #{map.get($color, 'color')};
+        --#{$variable-prefix}#{$name}#{$separator}#{$weight}: #{map.get($color, 'color')};
+      } @else {
+        --#{$name}#{$separator}#{$weight}: #{$color};
+        --#{$variable-prefix}#{$name}#{$separator}#{$weight}: #{$color};
+      }
+    }
+  }
+}

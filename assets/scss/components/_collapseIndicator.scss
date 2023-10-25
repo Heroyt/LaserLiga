@@ -20,3 +20,14 @@
 		display: none !important;
 	}
 }
+
+[data-more][data-less] {
+  &:after {
+    display: inline;
+    content: " " attr(data-less);
+  }
+
+  &.collapsed:after {
+    content: " " attr(data-more);
+  }
+}

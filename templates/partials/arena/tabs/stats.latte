@@ -1,12 +1,16 @@
 {varType Dibi\Row[] $players}
 {varType \DateTime|null $date}
 
-<h2 class="my-3">{lang 'Statistiky'}</h2>
+<h2 class="my-3 text-center">{lang 'Statistiky'}</h2>
+<p class="text-center text-muted">{lang 'Zajímavé statistiky o hrách laser game z této arény.'}</p>
 <div class="row mt-3">
 	<div class="col-md-6">
 		<table n:if="!empty($players)" class="table table-striped caption-top" data-track-content=""
 									   data-content-name="Arena - Top players">
-			<caption class="text-text fs-4">{lang 'Dnešní nejlepší hráči'}:</caption>
+            <caption class="text-text fs-4">
+                {lang 'Dnešní nejlepší hráči'}:<br>
+                <span class="fs-6 text-muted">{lang 'Nejlepší dnešní hráči laser game podle jejich herní úrovně.'}</span>
+            </caption>
 			<thead>
 			<tr>
 				<th></th>
@@ -39,16 +43,19 @@
 	</div>
 	<div class="col-md-6">
 		<label for="graph-filter">{lang 'Období'}:</label>
-		<select id="graph-filter" class="form-select mb-3" data-track-content=""
-				data-content-name="Arena - date filter">
+        <select id="graph-filter" class="form-select" data-track-content=""
+                data-content-name="Arena - date filter" data-content-piece="Select">
 			<option value="" n:attr="selected: !isset($date)">{lang 'Za celou dobu'}</option>
 			<option value="date" n:attr="selected: isset($date)">{lang 'Den'}</option>
 			<option value="week">{lang 'Tento týden'}</option>
 			<option value="month">{lang 'Tento měsíc'}</option>
 		</select>
-		<h3>{lang 'Herní módy'}:</h3>
+        <span class="form-text">{lang 'Období dat pro následující grafy.'}</span>
+        <h3 class="mt-3">{lang 'Herní módy'}:</h3>
+        <p class="text-muted">{lang 'Souhrn herních módů laser game, které se hráli v této aréně.'}</p>
 		<canvas id="gameModes" style="max-height: 350px; width: 100%;"></canvas>
 		<h3 class="mt-2">{lang 'Hudební módy'}:</h3>
+        <p class="text-muted">{lang 'Počet her s daným hudebním módem v této aréně.'}</p>
 		<canvas id="musicModes" style="max-height: 350px; width: 100%;"></canvas>
 	</div>
 </div>

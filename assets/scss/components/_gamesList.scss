@@ -1,0 +1,73 @@
+.mobile-games-list {
+  .card {
+    .card-body {
+      display: grid;
+      background-color: var(--background-1);
+
+      grid-gap: .5rem;
+      grid-template-columns: 1fr 2fr 1fr;
+      grid-template-areas:
+              'arena date-mode actions'
+              'players players players'
+              'stats stats stats';
+
+      .date-mode {
+        grid-area: date-mode;
+        font-size: .8rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+
+        > div {
+          margin: .4rem 0;
+        }
+      }
+
+      .arena-logo {
+        grid-area: arena;
+        height: 4em;
+      }
+
+      .actions {
+        grid-area: actions;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .players {
+        grid-area: players;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-evenly;
+        padding-top: 1rem;
+
+        .badge {
+          --bs-badge-font-size: .9rem;
+        }
+      }
+
+      .stats {
+        grid-area: stats;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-evenly;
+        padding-top: 1rem;
+
+        > div {
+          padding: 1rem;
+          border-radius: 10px;
+          background-color: var(--background-2);
+          color: var(--text);
+          margin: .6rem;
+        }
+
+        path, circle, rect {
+          fill: currentColor;
+        }
+      }
+    }
+  }
+}

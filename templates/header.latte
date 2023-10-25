@@ -4,14 +4,14 @@
 
 {define header}
 	{var bool $loggedIn = \Lsr\Core\App::getService('auth')->loggedIn()}
-	<nav id="mobile-menu" class="d-lg-none bg-light {if $loggedIn}icons-only{/if}">
+    <nav id="mobile-menu" class="d-lg-none bg-background-1 {if $loggedIn}icons-only{/if}">
 		{include mobileMenu, 'mobileMain'}
 		<button type="button" class="mobile-nav-item" id="triggerMainNav" aria-label="{lang 'Toggle navigation'}">
 			<span class="menu-icon"><span></span></span>
 		</button>
 		{include mobileMenu, 'mobileMain2'}
 	</nav>
-	<nav id="mobile-menu-full" class="bg-light">
+    <nav id="mobile-menu-full" class="bg-background-1">
 		<button type="button" class="btn-close" aria-label="{lang 'Close navigation'}"></button>
 		<div class="menu">
 			{include mobileMenu}
@@ -20,7 +20,7 @@
 			{/if}
 		</div>
 	</nav>
-	<header class="navbar d-none navbar-expand-lg d-lg-block navbar-light bg-light position-sticky"
+    <header class="navbar d-none navbar-expand-lg d-lg-block navbar-light bg-background-1 position-sticky"
 			style="top:0;z-index:100;">
 		<div class="container-fluid">
 			{*<a href="" class="navbar-brand">My PHP Framework</a>*}
@@ -43,13 +43,15 @@
 						aria-expanded="false">
 					<img src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]|escapeUrl}.png"
 						 style="height: 2rem; width: 2rem;"
+                         loading="lazy"
 						 alt="{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]}">
 				</button>
 				<ul class="dropdown-menu bg-white" style="min-width: 5rem;">
 					{foreach Lsr\Core\App::getSupportedLanguages() as $lang => $country}
 						{continueIf $selectedLang === $lang}
 						<li>
-							<a class="dropdown-item" href="{link ['lang', $lang, 'redirect' => $request->path]}">
+                            <a class="dropdown-item" rel="nofollow"
+                               href="{link ['lang', $lang, 'redirect' => $request->path]}">
 								<img class="mx-auto d-block"
 									 src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$country]|escapeUrl}.png"
 									 style="height: 2rem; width: 2rem;"
@@ -78,14 +80,14 @@
 							</a>
 						</li>
 						<li>
-							<a class="dropdown-item text-dark" href="{link ['logout']}">
+                            <a class="dropdown-item text-dark" rel="nofollow" href="{link ['logout']}">
 								{lang 'Odhlásit'}
 							</a>
 						</li>
 					{else}
 						<li>
 							<a class="dropdown-item text-dark" href="{link ['login']}">
-								{lang 'Prihlásit'}
+                                {lang 'Přihlásit'}
 							</a>
 						</li>
 					{/if}
@@ -127,7 +129,8 @@
 
 {define mobileMenu string $name = 'mobileMenu'}
 	{foreach Lsr\Core\App::getMenu($name) as $key => $menuItem}
-		<a href="{$menuItem->url}" class="mobile-nav-item{if $menuItem->active} active{/if}">
+        <a href="{$menuItem->url}" class="mobile-nav-item{if $menuItem->active} active{/if}"
+           aria-label="{$menuItem->name}">
 			<span class="nav-icon"><i class="{$menuItem->icon}"></i></span>
 			<span class="nav-text">{$menuItem->name}</span>
 		</a>
@@ -142,8 +145,10 @@
 				   data-bs-toggle="dropdown" aria-expanded="false">
 					{$menuItem->name}
 					<ul class="dropdown-menu" aria-labelledby="navbarDropdown{$key}">
-						<li n:foreach="$menuItem->children as $child"><a class="dropdown-item"
-																		 href="{$child->url}">{$child->name}</a>
+                        <li n:foreach="$menuItem->children as $child">
+                            <a class="dropdown-item" href="{$child->url}">
+                                {$child->name}
+                            </a>
 						</li>
 					</ul>
 				</a>

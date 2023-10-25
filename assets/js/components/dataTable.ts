@@ -1,10 +1,10 @@
 import initDatePickers from "../datePickers";
 import {startLoading, stopLoading} from "../loaders";
 import axios, {AxiosResponse} from "axios";
-import {initCheckAll, initTooltips} from "../functions";
+import {initCheckAll, initTableRowLink, initTooltips} from "../functions";
 import {initClearButtons} from "../pages/utils";
 
-export function initDataTableForm(form: HTMLFormElement) {
+export function initDataTableForm(form: HTMLFormElement, afterUpdate: (() => void) | null = null) {
 	const updateHistory = (form.dataset.noHistory ?? '') !== '1';
 
 	form.addEventListener('submit', e => {
@@ -23,6 +23,7 @@ export function initDataTableForm(form: HTMLFormElement) {
 		initDatePickers(form);
 		initTooltips(form);
 		initClearButtons(form);
+        initTableRowLink(form);
 
 		// Type select
 		const typeInput = document.getElementById('inputActiveType') as HTMLInputElement;
@@ -38,16 +39,34 @@ export function initDataTableForm(form: HTMLFormElement) {
 		}
 
 		// Sorting
+        const sortByMobile: HTMLSelectElement = form.querySelector('#sortByMobile');
+        const sortDirectionMobile: NodeListOf<HTMLInputElement> = form.querySelectorAll('[name="mobileOrderDirection"]');
 		(form.querySelectorAll('.sortable') as NodeListOf<HTMLTableHeaderCellElement>)
 			.forEach((cell) => {
 				const name = cell.dataset.name;
 
 				cell.addEventListener('click', () => {
+                    sortByMobile.value = name;
 					orderByInput.value = name;
 					dirInput.value = cell.classList.contains('sort-asc') ? 'desc' : 'asc';
-					updateTable();
-				});
+                    for (const input of sortDirectionMobile) {
+                        input.checked = input.value === dirInput.value;
+                    }
+                    updateTable();
+                });
+            });
+        if (sortByMobile) {
+            sortByMobile.addEventListener('change', () => {
+                orderByInput.value = sortByMobile.value;
+                updateTable();
+            });
+        }
+        for (const input of sortDirectionMobile) {
+            input.addEventListener('change', () => {
+                dirInput.value = input.value;
+                updateTable();
 			});
+        }
 
 		// Pagination
 		(form.querySelectorAll('.page-item:not(.disabled) .page-link, .page-link-standalone') as NodeListOf<HTMLAnchorElement>)
@@ -64,10 +83,13 @@ export function initDataTableForm(form: HTMLFormElement) {
 					updateTable();
 				});
 			});
-		(form.querySelector('#limit') as HTMLSelectElement).addEventListener('change', () => {
-			pageInput.value = '1';
-			updateTable();
-		});
+        const limit = form.querySelector('#limit') as HTMLSelectElement;
+        if (limit) {
+            limit.addEventListener('change', () => {
+                pageInput.value = '1';
+                updateTable();
+            });
+        }
 
 		// Scroll to searched row
 		const row = form.querySelector('tr.table-success') as HTMLTableRowElement | null
@@ -95,6 +117,9 @@ export function initDataTableForm(form: HTMLFormElement) {
 				}
 				initForm();
 				stopLoading(true, true);
+                if (afterUpdate) {
+                    afterUpdate();
+                }
 			})
 			.catch(e => {
 				console.error(e);

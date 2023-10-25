@@ -44,22 +44,19 @@ class UserController extends AbstractUserController
 	 * @param Passwords  $passwords
 	 */
 	public function __construct(
-		protected Latte                         $latte,
-		protected readonly Auth                 $auth,
-		protected readonly Passwords            $passwords,
-		private readonly PlayerUserService      $userService,
-		private readonly PlayerRankOrderService $rankOrderService
 		protected Latte                              $latte,
 		protected readonly Auth                      $auth,
 		protected readonly Passwords                 $passwords,
 		private readonly PlayerUserService           $userService,
 		private readonly PlayerRankOrderService      $rankOrderService,
 		private readonly PlayersGamesTogetherService $playersGamesTogetherService,
+		private readonly AvatarService $avatarService,
+		private readonly TitleProvider $titleProvider,
 	) {
 		parent::__construct($latte);
 	}
 
-	public function init(RequestInterface $request) : void {
+	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->params['loggedInUser'] = $this->auth->getLoggedIn();
 	}
@@ -81,8 +78,8 @@ class UserController extends AbstractUserController
 		$this->title = 'Nastavení profilu hráče - %s';
 		$this->titleParams[] = $user->name;
 		$this->description = 'Nastavení osobních údajů a profilu hráče laser game - %s.';
-		$this->descriptionParams[] = $this->params['user']->name;
 		$this->descriptionParams[] = $user->name;
+		$this->params['titles'] = $this->titleProvider->getForUser($user->player);
 
 		$this->view('pages/profile/index');
 	}
@@ -94,7 +91,7 @@ class UserController extends AbstractUserController
 	 * @throws JsonException
 	 * @throws ValidationException
 	 */
-	public function processProfile(Request $request) : never {
+	public function processProfile(Request $request): never {
 		if (!empty($request->getErrors())) {
 			$this->respondForm($request, statusCode: 403);
 		}
@@ -111,7 +108,7 @@ class UserController extends AbstractUserController
 		}
 		try {
 			/** @phpstan-ignore-next-line */
-			$arenaId = (int) $request->getPost('arena', 0);
+			$arenaId = (int)$request->getPost('arena', 0);
 			if (!empty($arenaId)) {
 				$arena = Arena::get($arenaId);
 			}
@@ -119,15 +116,32 @@ class UserController extends AbstractUserController
 			$request->passErrors['arena'] = lang('Aréna neexistuje', context: 'errors');
 		}
 
+		$player = $user->createOrGetPlayer($arena);
+
+		$title = null;
+		$titleId = (int)$request->getPost('title', 0);
+		if ($titleId > 0) {
+			try {
+				$title = Title::get($titleId);
+				if (!in_array($title, $this->titleProvider->getForUser($player), true)) {
+					$request->passErrors['title'] = lang('Titul není odemčený', context: 'errors');
+				}
+			} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
+				$request->passErrors['title'] = lang('Titul neexistuje', context: 'errors');
+			}
+		}
+
 		if (!empty($request->passErrors)) {
 			$this->respondForm($request, statusCode: 400);
 		}
-		$player = $user->createOrGetPlayer($arena);
 
 		$user->name = $name;
 		$player->nickname = $name;
 		if (isset($arena)) {
 			$player->arena = $arena;
+		}
+		if (isset($title)) {
+			$player->title = $title;
 		}
 
 		if (!$user->save()) {
@@ -171,7 +185,7 @@ class UserController extends AbstractUserController
 	 * @return never
 	 * @throws JsonException
 	 */
-	public function respondForm(Request $request, array $data = [], int $statusCode = 200) : never {
+	public function respondForm(Request $request, array $data = [], int $statusCode = 200): never {
 		if ($request->isAjax()) {
 			$data['errors'] += $request->getErrors();
 			$data['errors'] += $request->getPassErrors();
@@ -190,7 +204,7 @@ class UserController extends AbstractUserController
 	 * @return void
 	 * @throws TemplateDoesNotExistException
 	 */
-	public function public(string $code) : void {
+	public function public(string $code): void {
 		$this->params['addCss'] = ['pages/playerProfile.css'];
 		$user = $this->getUser($code);
 		$this->params['user'] = $user;
@@ -221,6 +235,102 @@ class UserController extends AbstractUserController
 		$this->view('pages/profile/public');
 	}
 
+	public function thumb(string $code): void {
+		$user = $this->getUser($code);
+		$this->params['user'] = $user;
+		if (!isset($this->params['user'])) {
+			$this->title = 'Hráč nenalezen';
+			$this->description = 'Nepodařilo se nám najít hráče.';
+
+			http_response_code(404);
+			$this->view('pages/profile/notFound');
+			return;
+		}
+		$this->params['rankOrder'] = $this->rankOrderService->getDateRankForPlayer(
+			$user->createOrGetPlayer(),
+			new DateTimeImmutable()
+		);
+		if (!isset($_GET['svg']) && extension_loaded('imagick')) {
+			// Check cache
+			$tmpdir = TMP_DIR . 'thumbs/';
+			if (file_exists($tmpdir) || (mkdir($tmpdir) && is_dir($tmpdir))) {
+				$filename = $tmpdir . $this->params['user']->player->getCode() . '.png';
+				$filenameSvg = $tmpdir . $this->params['user']->player->getCode() . '.svg';
+				if (isset($_GET['nocache']) || !file_exists($filename) || filemtime($filename) < (time(
+						) - (3600 * 24 * 7))) {
+					// Generate SVG
+					$content = $this->latte->viewToString('pages/profile/thumb', $this->params);
+
+					// Convert to PNG
+					file_put_contents($filenameSvg, $content);
+					exec(
+						'inkscape --export-png-color-mode=RGBA_16 "' . $filenameSvg . '" -o "' . $filename . '"',
+						$out,
+						$code
+					);
+					bdump($out);
+					bdump($code);
+
+					// Add background
+					$images = [
+						['assets/images/img-laser.jpeg', 1200, 1600, 0, 600],
+						['assets/images/img-vesta-zbran.jpeg', 1200, 800, 0, 50],
+						['assets/images/brana.jpeg', 1200, 675, 0, 0],
+						['assets/images/cesta.jpeg', 1200, 900, 0, 0],
+						['assets/images/sloup.jpeg', 1600, 1600, 0, 600],
+						['assets/images/vesta_blue.jpeg', 1200, 800, 0, 0],
+						['assets/images/vesta_green.jpeg', 1200, 800, 0, 0],
+						['assets/images/vesta_red.jpeg', 1200, 800, 0, 0],
+					];
+					$bgImage = $images[$this->params['user']->id % count($images)];
+					$background = new Imagick(ROOT . $bgImage[0]);
+					$background->resizeImage($bgImage[1], $bgImage[2], Imagick::FILTER_LANCZOS, 1);
+					$background->cropImage(1200, 600, $bgImage[3], $bgImage[4]);
+					$image = new Imagick($filename);
+					$image->resizeImage(1200, 600, Imagick::FILTER_LANCZOS, 1);
+					$background->setImageFormat('png24');
+					$background->compositeImage($image, Imagick::COMPOSITE_DEFAULT, 0, 0);
+					$background->writeImage($filename);
+				}
+
+				header('Content-Type: image/png');
+				header("Content-Disposition: inline; filename='{$this->params['user']->player->getCode()}.png'");
+				readfile($filename);
+				exit;
+			}
+		}
+
+		$this->view('pages/profile/thumb');
+	}
+
+	public function avatar(string $code): never {
+		$user = $this->getUser($code);
+
+		header('Content-Type: image/svg+xml');
+		echo $user->createOrGetPlayer()->getAvatar();
+		exit;
+	}
+
+	public function updateAvatar(string $code, Request $request): never {
+		$user = $this->getUser($code);
+		$player = $user->createOrGetPlayer();
+
+		$type = $request->getPost('type');
+		$avatarType = null;
+		if (!empty($type)) {
+			$avatarType = AvatarType::tryFrom($type);
+		}
+		if (!isset($avatarType)) {
+			$avatarType = AvatarType::getRandom();
+		}
+		$seed = $request->getPost('seed', $player->getCode());
+		$player->avatar = $this->avatarService->getAvatar($seed, $avatarType);
+		$player->avatarStyle = $avatarType->value;
+		$player->avatarSeed = $seed;
+		$player->save();
+		$this->respond([$player, $type, $avatarType, $seed]);
+	}
+
 	/**
 	 * @param Request $request
 	 * @param string  $code
@@ -230,7 +340,7 @@ class UserController extends AbstractUserController
 	 * @throws ValidationException
 	 * @throws Throwable
 	 */
-	public function gameHistory(Request $request, string $code = '') : void {
+	public function gameHistory(Request $request, string $code = ''): void {
 		$this->params['addCss'] = ['pages/playerHistory.css'];
 		$user = empty($code) ? $this->auth->getLoggedIn() : $this->getUser($code);
 		if (!isset($user)) {
@@ -251,8 +361,8 @@ class UserController extends AbstractUserController
 				              'kd' => ['first' => 'hits', 'second' => 'deaths', 'operation' => '/'],
 			              ]
 		)
-													->where('[id_user] = %i', $user->id)
-													->cacheTags('user/'.$user->id.'/games');
+		                      ->where('[id_user] = %i', $user->id)
+		                      ->cacheTags('user/' . $user->id . '/games');
 
 		// Filter fields to display
 		$allFields = [
@@ -299,8 +409,8 @@ class UserController extends AbstractUserController
 		[$modeIds, $date] = $this->filters($request, $query);
 
 		// Pagination
-		$page = (int) $request->getGet('p', 1);
-		$limit = (int) $request->getGet('l', 15);
+		$page = (int)$request->getGet('p', 1);
+		$limit = (int)$request->getGet('l', 15);
 		$total = $query->count();
 		$pages = ceil($total / $limit);
 		$query->limit($limit)->offset(($page - 1) * $limit);
@@ -367,13 +477,13 @@ class UserController extends AbstractUserController
 	 *
 	 * @return array{0:int[],1:DateTimeImmutable|null}
 	 */
-	protected function filters(Request $request, Fluent $query) : array {
+	protected function filters(Request $request, Fluent $query): array {
 		$modeIds = [];
 		/** @var string[] $modes */
 		$modes = $request->getGet('modes', []);
 		if (!empty($modes) && is_array($modes)) {
 			foreach ($modes as $mode) {
-				$modeIds[] = (int) $mode;
+				$modeIds[] = (int)$mode;
 			}
 
 			$query->where('[id_mode] IN %in', $modeIds);
@@ -384,7 +494,7 @@ class UserController extends AbstractUserController
 		$arenas = $request->getGet('arenas', []);
 		if (!empty($arenas) && is_array($arenas)) {
 			foreach ($arenas as $arena) {
-				$arenaIds[] = (int) $arena;
+				$arenaIds[] = (int)$arena;
 			}
 
 			$query->where('[id_arena] IN %in', $arenaIds);
@@ -403,7 +513,7 @@ class UserController extends AbstractUserController
 		return [$modeIds, $dateObj];
 	}
 
-	public function getUserCompare(string $code, Request $request) : never {
+	public function getUserCompare(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		/** @var User|null $currentUser */
 		$currentUser = $this->params['loggedInUser'];
@@ -418,7 +528,7 @@ class UserController extends AbstractUserController
 		$this->respond($data);
 	}
 
-	public function getTrends(string $code, Request $request) : never {
+	public function getTrends(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		$player = $user->player;
 		if (!isset($player)) {
@@ -432,46 +542,46 @@ class UserController extends AbstractUserController
 		];
 
 		// @phpstan-ignore-next-line
-		$lookBackGames = (int) $request->getGet('lookback', 10);
+		$lookBackGames = (int)$request->getGet('lookback', 10);
 		if ($lookBackGames <= 0) {
 			$lookBackGames = 10;
 		}
 
 		$trends['rank'] = (new Fluent(
 			DB::getConnection()
-				->select('SUM([difference])')
-				->from(
-					DB::select('player_game_rating', '[difference]')
-						->where('[id_user] = %i', $user->id)
-						->orderBy('[date]')
-						->desc()
-						->limit($lookBackGames)
-						->fluent,
-					'a'
-				)
+			  ->select('SUM([difference])')
+			  ->from(
+				  DB::select('player_game_rating', '[difference]')
+				    ->where('[id_user] = %i', $user->id)
+				    ->orderBy('[date]')
+				    ->desc()
+				    ->limit($lookBackGames)
+					  ->fluent,
+				  'a'
+			  )
 		))
 			->cacheTags('players', 'liga-players', 'rating-difference')
 			->fetchSingle();
 
 		// Get rankable modes
 		$modes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
-			->where('[rankable] = 1')
-			->cacheTags(AbstractMode::TABLE, 'modes/rankable')
-			->fetchPairs('id_mode', 'name');
+		           ->where('[rankable] = 1')
+		           ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+		           ->fetchPairs('id_mode', 'name');
 
 		$totalGamesCount = $player->queryGames()
-			->where('[id_mode] IN %in', array_keys($modes))
-			->count();
+		                          ->where('[id_mode] IN %in', array_keys($modes))
+		                          ->count();
 		$trends['totalGamesCount'] = $totalGamesCount;
 		$trends['lookBack'] = $lookBackGames;
 		$lastGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots'])
-			->where('[id_user] = %i', $user->id)
-			->where('[id_mode] IN %in', array_keys($modes))
-			->orderBy('start')
-			->desc()
-			->limit($lookBackGames)
-			->cacheTags('user/'.$user->id.'/games')
-			->fetchAssoc('code');
+		                          ->where('[id_user] = %i', $user->id)
+		                          ->where('[id_mode] IN %in', array_keys($modes))
+		                          ->orderBy('start')
+		                          ->desc()
+		                          ->limit($lookBackGames)
+		                          ->cacheTags('user/' . $user->id . '/games')
+		                          ->fetchAssoc('code');
 		$sumAccuracy = 0;
 		$sumShots = 0;
 		foreach ($lastGames as $game) {
@@ -506,26 +616,26 @@ class UserController extends AbstractUserController
 			'diff'   => $thisMonthGamesCount - $lastMonthGamesCount,
 		];
 		$thisMonthGamesCount = $player->queryGames()
-			->where('[id_mode] IN %in', array_keys($modes))
-			->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)->count();
+		                              ->where('[id_mode] IN %in', array_keys($modes))
+		                              ->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)->count();
 		$lastMonthGamesCount = $player->queryGames()
-			->where('[id_mode] IN %in', array_keys($modes))
-			->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)->count();
+		                              ->where('[id_mode] IN %in', array_keys($modes))
+		                              ->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)->count();
 		$trends['rankableGames'] = [
 			'before' => $lastMonthGamesCount,
 			'now'    => $thisMonthGamesCount,
 			'diff'   => $thisMonthGamesCount - $lastMonthGamesCount,
 		];
 		$thisMonthGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots', 'hits', 'deaths'])
-			->where('[id_user] = %i', $user->id)
-			->where('[id_mode] IN %in', array_keys($modes))
-			->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)
-			->fetchAll();
+		                               ->where('[id_user] = %i', $user->id)
+		                               ->where('[id_mode] IN %in', array_keys($modes))
+		                               ->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)
+		                               ->fetchAll();
 		$lastMonthGames = PlayerFactory::queryPlayersWithGames(playerFields: ['accuracy', 'shots', 'hits', 'deaths'])
-			->where('[id_user] = %i', $user->id)
-			->where('[id_mode] IN %in', array_keys($modes))
-			->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)
-			->fetchAll();
+		                               ->where('[id_user] = %i', $user->id)
+		                               ->where('[id_mode] IN %in', array_keys($modes))
+		                               ->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)
+		                               ->fetchAll();
 
 		$thisMonthSumShots = 0;
 		$lastMonthSumShots = 0;
@@ -561,17 +671,17 @@ class UserController extends AbstractUserController
 
 		/** @var Row|PlayerRank $rankOrderBefore */
 		$rankOrderBefore = DB::select('player_date_rank', '*')
-												 ->where('id_user = %i AND [date] = %d', $user->id, $monthAgo)
-												 ->cacheTags('date_rank', 'date_rank_' . $monthAgo->format('Y-m-d'))
-												 ->fetch();
+		                     ->where('id_user = %i AND [date] = %d', $user->id, $monthAgo)
+		                     ->cacheTags('date_rank', 'date_rank_' . $monthAgo->format('Y-m-d'))
+		                     ->fetch();
 		if (!isset($rankOrderBefore)) {
 			$rankOrderBefore = ($this->rankOrderService->getDateRanks($monthAgo)[$user->id]);
 		}
 		/** @var Row|PlayerRank $rankOrderToday */
 		$rankOrderToday = DB::select('player_date_rank', '*')
-												->where('id_user = %i AND [date] = %d', $user->id, $today)
-												->cacheTags('date_rank', 'date_rank_' . $today->format('Y-m-d'))
-												->fetch();
+		                    ->where('id_user = %i AND [date] = %d', $user->id, $today)
+		                    ->cacheTags('date_rank', 'date_rank_' . $today->format('Y-m-d'))
+		                    ->fetch();
 		if (!isset($rankOrderToday)) {
 			$rankOrderToday = ($this->rankOrderService->getDateRanks($today)[$user->id]);
 		}

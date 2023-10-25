@@ -10,16 +10,23 @@
 
 {block content}
 	<p class="text-start">
-		<a href="{link ['user', $loggedInUser->player->getCode()]}" class="btn btn-warning">
+        <a href="{link ['user', $loggedInUser->player->getCode()]}" class="btn btn-secondary">
 			<i class="fa-solid fa-angle-left"></i> {lang 'Profil hráče'}
 		</a>
 	</p>
-	<h2>{lang 'Najít mé hry'} ({count($possibleMatches)})</h2>
-	<p class="my-5">{lang 'Zde se zobrazují všechny hry, které nemáte přiřazené k účtu, ale mohli by být vaše. Hry se párují podle domovské arény a přezdívky.'}</p>
+    <h2 class="text-center">{lang 'Najít mé hry'} ({count($possibleMatches)})</h2>
+    <p class="my-5 text-center">{lang 'Zde se zobrazují všechny hry, které nemáte přiřazené k účtu, ale mohli by být vaše. Hry se párují podle domovské arény a přezdívky.'}</p>
 
 	{if empty($possibleMatches)}
 		<p class="text-center my-5 fs-3">{lang 'Žádné další hry nebyli nalezeny'}</p>
 	{else}
+        <p class="text-center mb-3">
+            <button id="set-all-me"
+                    data-confirm="{lang 'Opravdu chcete všechny hry přiřadit do profilu? Hry, které nechcete přiřadit musíte nejprve manuálně označit jako "To nejsem já."'}"
+                    class="btn btn-primary">
+                {lang 'Přivlastnit vše'}
+            </button>
+        </p>
 		<div class="table-responsive">
 			<table class="table table-striped data-table" id="user-possible-matches-table">
 				<thead>

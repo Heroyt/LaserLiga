@@ -17,22 +17,26 @@
 {block content}
 	<p n:ifset="$arena" class="mb-5 text-start">
 		<span class="btn-group">
-		<a href="{link ['arena', $arena->id]}" class="btn btn-warning">
+		<a href="{link ['arena', $arena->id]}" class="btn btn-secondary">
 			<i class="fa-solid fa-caret-left"></i>
 			{lang 'Zpět na stránku arény'}
 		</a>
-		<a href="{link ['user', 'leaderboard']}" class="btn btn-info">
+		<a href="{link ['user', 'leaderboard']}" class="btn btn-secondary">
 			<i class="fa-solid fa-caret-left"></i>
 			{lang 'Zpět na celkový žebříček'}
 		</a>
 			</span>
 	</p>
-	<h1 class="mb-3">
+    <h1 class="mb-3 text-center">
 		{lang 'Pořadí hráčů'}
 		{ifset $arena}
 			- {$arena->name}
 		{/ifset}
 	</h1>
+
+    <p class="text-center">
+        {lang 'Žebříček všech registrovaných hráčů laser ligy.'}
+    </p>
 
 	<form action="{ifset $arena}{link ['user', 'leaderboard', $arena->id]}{else}{link ['user', 'leaderboard']}{/ifset}"
 		  method="get" id="user-leaderboard-form"

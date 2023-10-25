@@ -9,7 +9,6 @@
 {varType \DateTimeImmutable|null $date}
 {varType string[] $dates}
 
-{import '../dataTable.latte'}
 
 {default array $fields = [
 'start' => ['name' => lang('Datum'), 'sortable' => true],
@@ -17,116 +16,25 @@
 'players' => ['name' => lang('Hráči'), 'sortable' => false],
 ]}
 
-{block filters}
-	<h4>{lang 'Filtry'}</h4>
-	<div class="row">
-		<div class="col-md-8 col-lg-7 my-3">
-			<button type="button" class="btn btn-info w-100 collapsed d-flex justify-content-center"
-					data-bs-toggle="collapse" data-bs-target="#modes-filters">
-				{lang 'Herní módy'}
-				<div class="collapse-indicator ms-3">
-					<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-					<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
-				</div>
-			</button>
-			<div class="collapse p-2" id="modes-filters">
-				{var App\GameModels\Game\GameModes\AbstractMode[] $allModes = \App\GameModels\Factory\GameModeFactory::getAll()}
-				{var bool $checkedAllRanked = true}
-				{foreach $allModes as $mode}
-					{if ($mode->rankable && !in_array($mode->id, $modeIds, true)) || (!$mode->rankable && in_array($mode->id, $modeIds, true))}
-						{do $checkedAllRanked = false}
-						{breakIf true}
-					{/if}
-				{/foreach}
-				<div class="d-flex justify-content-center mt-2">
-					<div class="form-check m-2">
-						<input class="form-check-input" data-action="check-all" data-target=".mode-check"
-							   type="checkbox" id="allModes"
-							   {if empty($modeIds) || count($modeIds) === count($allModes)}checked{/if}>
-						<label class="form-check-label" for="allModes">
-							{lang 'Vše'}
-						</label>
-					</div>
-					<div class="form-check m-2">
-						<input class="form-check-input" data-action="check-all" data-target=".mode-check-ranked"
-							   data-uncheck=".mode-check-unranked"
-							   type="checkbox" id="rankedModes"
-							   {if $checkedAllRanked}checked{/if}>
-						<label class="form-check-label" for="rankedModes">
-							{lang 'Klasické módy'}
-						</label>
-					</div>
-				</div>
-				<hr>
-				<div class="d-flex flex-wrap justify-content-evenly">
-					<div n:foreach="$allModes as $mode" class="form-check m-2">
-						<input class="form-check-input mode-check {if $mode->rankable}mode-check-ranked{else}mode-check-unranked{/if}"
-							   type="checkbox" value="{$mode->id}"
-							   id="modeFilter{$mode->id}"
-							   name="modes[]"
-							   {if empty($modeIds) || in_array($mode->id, $modeIds, true)}checked{/if}>
-						<label class="form-check-label" for="modeFilter{$mode->id}">
-							{lang $mode->name, context: 'gameModes'}
-						</label>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="col-md-4 col-lg-3 my-3">
-			<div class="input-group">
-				<input type="date" class="form-control date-picker"
-					   value="{ifset $date}{$date->format('Y-m-d')}{/ifset}"
-					   name="date" id="date" data-max="{date('d.m.Y')}" placeholder="{date('d.m.Y')}"
-					   data-events="{json_encode($dates)}">
-				<button type="button" class="btn btn-danger" data-toggle="clear" data-target="#date">
-					<i class="fa-solid fa-ban"></i>
-				</button>
-			</div>
-		</div>
-		<div class="col-12 col-lg-2 text-center my-3">
-			<button class="btn btn-success" type="submit"><i class="fa-solid fa-filter"></i> {lang 'Filtrovat'}</button>
-		</div>
-	</div>
-{/block}
-
-{block table}
-	{if empty($games)}
-		<p class="text-center my-5 fs-3">{lang 'Žádné hry neodpovídají filtrům'}</p>
-	{else}
-		<input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
-		<input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
-		<table class="table table-striped data-table" id="user-history-table">
-			<thead>
-			<tr>
-				{include tableHead, $fields, $orderBy, $desc}
-			</tr>
-			</thead>
-			<tbody>
-			<tr n:foreach="$games as $game" data-code="{$game->code}">
-				<td>{$game->start->format('d.m.Y H:i')}</td>
-				<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
-				<td>
-						<span n:foreach="$game->getPlayersSorted() as $player"
-							n:tag="isset($player->user) ? 'a' : 'span'"
-								{ifset $player->user}
-							href="{link ['user', $player->user->getCode()]}"
-						{/ifset}
-						data-toggle="tooltip"
-						title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
-						class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
-					{$player->position}.&nbsp;{$player->name}
-				</span>
-				</td>
-				<td>
-					<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
-					   title="{lang 'Výsledky'}">
-						<i class="fa-solid fa-eye"></i>
-					</a>
-				</td>
-			</tr>
-			</tbody>
-		</table>
-	{/if}
-{/block}
-
-{include pagination, $p, $pages, $limit, $total, 'Zobrazeno %s z %d her'}
+{embed '../gameList.latte',
+user: $user,
+games: $games,
+p: $p,
+pages: $pages,
+limit: $limit,
+total: $total,
+orderBy: $orderBy,
+desc: $desc,
+modeIds: $modeIds,
+date: $date,
+dates: $dates,
+allFields: [
+'start'    => ['name' => lang('Datum'), 'personal' => false, 'mandatory' => true, 'sortable' => true],
+'id_arena' => ['name' => lang('Aréna'), 'personal' => false, 'mandatory' => true, 'sortable' => true],
+'modeName' => ['name' => lang('Herní mód'), 'personal' => false, 'mandatory' => true, 'sortable' => true],
+'players'  => ['name' => lang('Hráči'), 'personal' => false, 'mandatory' => false, 'sortable' => false],
+],
+fields: $fields
+}
+    {block tableId}arena-games-table{/block}
+{/embed}

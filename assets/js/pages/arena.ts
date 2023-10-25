@@ -104,6 +104,7 @@ export default function initArena() {
 			const tooltip = Tooltip.getInstance(playBtn);
 			playBtn.addEventListener('click', () => {
 				playBtn.innerHTML = `<div class="spinner-grow spinner-grow-sm" role="status"><span class="visually-hidden">Loading...</span></div>`;
+                console.log(media);
 				if (!audio) {
 					audio = new Audio(media);
 					audio.load();

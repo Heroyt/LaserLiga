@@ -1,4 +1,4 @@
-import {Tooltip} from "bootstrap";
+import {Popover, Tooltip} from "bootstrap";
 import {startLoading, stopLoading} from "./loaders";
 import axios from "axios";
 
@@ -192,6 +192,11 @@ export function initTooltips(dom: HTMLElement | Document) {
 	});
 }
 
+export function initPopovers(dom: HTMLElement | Document) {
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]') as NodeListOf<HTMLElement>;
+    [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl));
+}
+
 export function initAutoSaveForm() {
 	// Autosave form
 	(document.querySelectorAll('form.autosave') as NodeListOf<HTMLFormElement>).forEach(form => {
@@ -331,10 +336,16 @@ export function initCheckAll(elem: HTMLElement | null | Document = null): void {
 
 		triggerElem.addEventListener('change', () => {
 			targetElements.forEach(target => {
+                if (target.disabled) {
+                    return;
+                }
 				target.checked = triggerElem.checked;
 			});
 			if (uncheckElements.length > 0) {
 				uncheckElements.forEach(elem => {
+                    if (elem.disabled) {
+                        return;
+                    }
 					elem.checked = !triggerElem.checked;
 				});
 			}
@@ -368,4 +379,20 @@ export function urlBase64ToUint8Array(base64String: string): Uint8Array {
 		outputArray[i] = rawData.charCodeAt(i);
 	}
 	return outputArray;
+}
+
+export function initTableRowLink(elem: HTMLElement | null | Document = null): void {
+    if (!elem) {
+        elem = document;
+    }
+
+    const links: NodeListOf<HTMLTableRowElement | HTMLDivElement> = elem.querySelectorAll('tr[data-href], .linkable[data-href]');
+    for (const row of links) {
+        row.addEventListener('click', e => {
+            if (e.target instanceof HTMLAnchorElement || e.target instanceof HTMLButtonElement) {
+                return;
+            }
+            window.location.href = row.dataset.href;
+        })
+    }
 }

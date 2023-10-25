@@ -4,94 +4,111 @@
 {varType array $_POST}
 {varType App\Models\Arena[] $arenas}
 
+{define containerClasses}
+    mb-5 mb-lg-0
+{/define}
+
 {define content}
-	<form action="{link ['register']}" method="post" id="register-form" class="card mx-auto text-center has-validation"
-		  style="max-width: 400px;">
-		<div class="card-header">
-			<h3>{lang 'Vytvořit účet'}</h3>
-		</div>
-		<div class="card-body">
-			<div class="form-group mb-3">
-				<div class="form-floating {ifset $errors['name']}is-invalid{/ifset}">
-					<input type="text" name="name" class="form-control {ifset $errors['name']}is-invalid{/ifset}"
-						   id="loginName" placeholder="Player" aria-describedby="loginName-description"
-						   autocomplete="nickname" required value="{ifset $_POST['name']}{$_POST['name']}{/ifset}">
-					<label for="loginName">{lang 'Jméno'}:</label>
-				</div>
-				<div class="invalid-feedback">
-					{ifset $errors['name']}
-						{$errors['name']}
-					{/ifset}
-				</div>
-				<div class="form-text" id="loginName-description">
-					{lang 'Vaše jméno/přezdívka do hry.'}
-					<a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm ms-2"
-					   data-bs-html="true"
-					   data-bs-toggle="popover" data-bs-title="{lang 'Jak poznat dobrou přezdívku?'}"
-					   data-track-content=""
-					   data-content-name="Tournament - register - Nickname"
-					   data-content-piece="info button"
-					   data-bs-content="{lang 'Dobrá přezdívka je klíčovou součástí každého hráče.<br>Pokud přezdívku ještě nemáte, je dobré myslet na následující body:<ol><li><strong>Unikátní</strong> - Přezdívka není křestní jméno. Je jen vaše. Snažte se vyvarovat běžným přezdívkám jako <i>Terminátor</i>, ale i jménům jako <i>Honza</i>.</li><li><strong>Dobře vyslovitelná</strong> - Náhodná směť čísel a písmen také není ideální.</li><li><strong>Osobní</strong> - Přezdívka se vám musí líbit. Přemýšlejte nad tím, že vás ostatní hráči budou přezdívkou oslovovat.</li></ol>'}">
-						<i class="fa-solid fa-question"></i>
-					</a>
-				</div>
-			</div>
-			<div class="form-group mb-3">
-				<div class="form-floating {ifset $errors['arena']}is-invalid{/ifset}">
-					{* TODO: Replace with searchable select *}
-					<select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"
-							id="loginArena">
-						<option value="">{lang 'Žádná'}</option>
-						<option n:foreach="$arenas as $arena" {if isset($_POST['arena']) && ((int) $_POST['arena']) === $arena->id}selected{/if}
-								value="{$arena->id}">
-							{$arena->name}
-						</option>
-					</select>
-					<label for="loginArena">{lang 'Domovská aréna'} ({lang 'nepovinné'}):</label>
-				</div>
-				<div class="invalid-feedback">
-					{ifset $errors['arena']}
-						{$errors['arena']}
-					{/ifset}
-				</div>
-				<div class="form-text" id="loginArena-description">
-					{lang 'Domovskou arénu sice vyplňovat nemusíte, ale pokud je na seznamu, doporučujeme jí vyplnit.'}
-				</div>
-			</div>
-			<div class="form-group mb-3">
-				<div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
-					<input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
-						   id="loginEmail" placeholder="mail@mail.cz"
-						   autocomplete="username email" required
-						   value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
-					<label for="loginEmail">{lang 'E-mail'}:</label>
-				</div>
-				<div class="invalid-feedback">
-					{ifset $errors['email']}
-						{$errors['email']}
-					{/ifset}
-				</div>
-			</div>
-			<div class="form-group mb-3">
-				<div class="form-floating {ifset $errors['password']}is-invalid{/ifset}">
-					<input type="password" name="password"
-						   class="form-control {ifset $errors['password']}is-invalid{/ifset}" id="loginPassword"
-						   placeholder="****"
-						   autocomplete="password" required>
-					<label for="loginPassword">{lang 'Heslo'}:</label>
-				</div>
-				<div class="invalid-feedback">
-					{ifset $errors['password']}
-						{$errors['password']}
-					{/ifset}
-				</div>
-			</div>
-			<div class="mb-3">
-				<button type="submit" class="btn btn-success w-100 btn-lg">{lang 'Odeslat', context: 'actions'}</button>
-			</div>
-			<div>
-				{lang 'Máte již účet?'} <a href="{link ['login']}">{lang 'Přihlásit'}</a>
-			</div>
-		</div>
-	</form>
+    <div class="full-width"
+         style="background-image:url({getUrl}/assets/images/laser-1.jpeg);background-size:cover;background-position:center;">
+        <div style="padding: 8rem 0; backdrop-filter: blur(5px)">
+            <div class="container">
+                <form action="{link ['register']}" method="post" id="register-form"
+                      class="card mx-auto text-center has-validation"
+                      style="max-width: 400px;">
+                    <div class="card-header">
+                        <h3>{lang 'Vytvořit účet'}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <div class="form-floating {ifset $errors['name']}is-invalid{/ifset}">
+                                <input type="text" name="name"
+                                       class="form-control {ifset $errors['name']}is-invalid{/ifset}"
+                                       id="loginName" placeholder="Player" aria-describedby="loginName-description"
+                                       autocomplete="nickname" required
+                                       value="{ifset $_POST['name']}{$_POST['name']}{/ifset}">
+                                <label for="loginName">{lang 'Jméno'}:</label>
+                            </div>
+                            <div class="invalid-feedback">
+                                {ifset $errors['name']}
+                                    {$errors['name']}
+                                {/ifset}
+                            </div>
+                            <div class="form-text" id="loginName-description">
+                                {lang 'Vaše jméno/přezdívka do hry.'}
+                                <a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm ms-2"
+                                   data-bs-html="true"
+                                   data-bs-toggle="popover" data-bs-title="{lang 'Jak poznat dobrou přezdívku?'}"
+                                   data-track-content=""
+                                   data-content-name="Tournament - register - Nickname"
+                                   data-content-piece="info button"
+                                   data-bs-content="{lang 'Dobrá přezdívka je klíčovou součástí každého hráče.<br>Pokud přezdívku ještě nemáte, je dobré myslet na následující body:<ol><li><strong>Unikátní</strong> - Přezdívka není křestní jméno. Je jen vaše. Snažte se vyvarovat běžným přezdívkám jako <i>Terminátor</i>, ale i jménům jako <i>Honza</i>.</li><li><strong>Dobře vyslovitelná</strong> - Náhodná směť čísel a písmen také není ideální.</li><li><strong>Osobní</strong> - Přezdívka se vám musí líbit. Přemýšlejte nad tím, že vás ostatní hráči budou přezdívkou oslovovat.</li></ol>'}">
+                                    <i class="fa-solid fa-question"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <div class="form-floating {ifset $errors['arena']}is-invalid{/ifset}">
+                                {* TODO: Replace with searchable select *}
+                                <select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"
+                                        id="loginArena">
+                                    <option value="">{lang 'Žádná'}</option>
+                                    <option n:foreach="$arenas as $arena" {if isset($_POST['arena']) && ((int) $_POST['arena']) === $arena->id}selected{/if}
+                                            value="{$arena->id}">
+                                        {$arena->name}
+                                    </option>
+                                </select>
+                                <label for="loginArena">{lang 'Domovská aréna'} ({lang 'nepovinné'}):</label>
+                            </div>
+                            <div class="invalid-feedback">
+                                {ifset $errors['arena']}
+                                    {$errors['arena']}
+                                {/ifset}
+                            </div>
+                            <div class="form-text" id="loginArena-description">
+                                {lang 'Domovskou arénu sice vyplňovat nemusíte, ale pokud je na seznamu, doporučujeme jí vyplnit.'}
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
+                                <input type="email" name="email"
+                                       class="form-control {ifset $errors['email']}is-invalid{/ifset}"
+                                       id="loginEmail" placeholder="mail@mail.cz"
+                                       autocomplete="username email" required
+                                       value="{ifset $_POST['email']}{$_POST['email']}{/ifset}">
+                                <label for="loginEmail">{lang 'E-mail'}:</label>
+                            </div>
+                            <div class="invalid-feedback">
+                                {ifset $errors['email']}
+                                    {$errors['email']}
+                                {/ifset}
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <div class="form-floating {ifset $errors['password']}is-invalid{/ifset}">
+                                <input type="password" name="password"
+                                       class="form-control {ifset $errors['password']}is-invalid{/ifset}"
+                                       id="loginPassword"
+                                       placeholder="****"
+                                       autocomplete="password" required>
+                                <label for="loginPassword">{lang 'Heslo'}:</label>
+                            </div>
+                            <div class="invalid-feedback">
+                                {ifset $errors['password']}
+                                    {$errors['password']}
+                                {/ifset}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit"
+                                    class="btn btn-primary w-100 btn-lg">{lang 'Odeslat', context: 'actions'}</button>
+                        </div>
+                        <div>
+                            {lang 'Máte již účet?'} <a href="{link ['login']}">{lang 'Přihlásit'}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 {/define}

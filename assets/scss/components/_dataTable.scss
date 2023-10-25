@@ -48,7 +48,34 @@
 		}
 	}
 
-	path, circle, rect {
-		fill: currentColor;
-	}
+  svg:not(.player-avatar) {
+    path, circle, rect {
+      fill: currentColor;
+    }
+  }
+
+  .arena-logo {
+    height: 4rem;
+  }
+
+  .player-avatar {
+    height: 4rem;
+  }
+}
+
+.data-table-large {
+  display: table;
+}
+
+.data-table-mobile {
+  display: none;
+}
+
+@include media-breakpoint-down(md) {
+  .data-table-large {
+    display: none;
+  }
+  .data-table-mobile {
+    display: block;
+  }
 }

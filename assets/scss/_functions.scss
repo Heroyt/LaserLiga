@@ -89,3 +89,7 @@
 	}
 	@return $result;
 }
+
+@function hexToRGBString($hexColor) {
+  @return "#{red($hexColor)},#{green($hexColor)},#{blue($hexColor)}";
+}

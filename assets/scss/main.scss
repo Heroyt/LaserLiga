@@ -2,52 +2,52 @@
 // Author: Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>
 // Main stylesheet that is compiled into /dist/main.css
 
-@import '~bootstrap/scss/functions';
-@import '~bootstrap/scss/variables';
-@import '~bootstrap/scss/variables-dark';
-@import 'variables/customVariables';
-
-@import 'custom';
-
-// BS Configuration
-@import 'mixins';
-
-// Utilities
-//@import '~bootstrap/scss/utilities';
+// Config and maps
+@import "load";
 
 // BS Layout & components
-@import '~bootstrap/scss/root';
+@import 'root';
 @import 'darkMode';
 @import '~bootstrap/scss/reboot';
+
+body {
+  min-height: 100vh;
+  position: relative;
+  background: linear-gradient(180deg, var(--bs-primary) 0%, var(--background) 20rem);
+}
+
+footer {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+}
+
+main::after {
+  content: '';
+  display: block;
+  height: 10rem;
+  grid-row-start: -1;
+}
+
+@import '~bootstrap/scss/breadcrumb';
 @import '~bootstrap/scss/type';
-@import '~bootstrap/scss/images';
 @import '~bootstrap/scss/containers';
 @import '~bootstrap/scss/grid';
-@import '~bootstrap/scss/tables';
 @import 'tables';
-@import '~bootstrap/scss/forms';
 @import '~bootstrap/scss/buttons';
-@import '~bootstrap/scss/transitions';
 @import '~bootstrap/scss/dropdown';
 @import '~bootstrap/scss/button-group';
 @import '~bootstrap/scss/nav';
 @import '~bootstrap/scss/navbar';
 @import '~bootstrap/scss/card';
-@import '~bootstrap/scss/pagination';
-@import '~bootstrap/scss/badge';
-@import '~bootstrap/scss/alert';
 @import '~bootstrap/scss/progress';
 @import '~bootstrap/scss/list-group';
-@import '~bootstrap/scss/close';
-@import '~bootstrap/scss/toasts';
-@import '~bootstrap/scss/modal';
-@import '~bootstrap/scss/tooltip';
-@import '~bootstrap/scss/popover';
-@import '~bootstrap/scss/spinners';
-@import '~bootstrap/scss/offcanvas';
 
 // BS Helpers
-@import '~bootstrap/scss/helpers';
+@import "~bootstrap/scss/helpers/color-bg";
+@import "~bootstrap/scss/helpers/position";
+@import "~bootstrap/scss/helpers/visually-hidden";
+@import "~bootstrap/scss/helpers/vr";
 
 // BS Utilities
 @import '~bootstrap/scss/utilities/api';
@@ -56,67 +56,19 @@
 @import 'animations';
 
 // Utilities
-@import 'utilities/background';
 @import 'utilities/filling';
-@import 'utilities/headings';
 
 // Components
-@import 'components/notices';
 @import '~flatpickr';
 @import 'components/datepicker';
 @import 'components/inputs';
-@import 'components/tip';
 @import 'components/loaders';
 @import 'components/collapseIndicator';
 @import 'components/arena';
 @import 'components/links';
 @import 'components/dataTable';
+@import 'components/gamesList';
 @import 'components/autocomplete';
 @import 'components/tournaments';
 @import 'components/mobileMenu';
-
-// Font Awesome
-@import '~@fortawesome/fontawesome-free/css/all.css';
-
-.custom-icon {
-	path,
-	circle,
-	rect {
-		fill: currentColor;
-	}
-}
-
-#modeSwitch {
-	font-size: 1.3rem;
-	overflow: hidden;
-	position: relative;
-	width: 3rem;
-	height: 3rem;
-
-	i {
-		left: 50%;
-		position: absolute;
-		top: .8rem;
-		transition: translate .3s ease;
-	}
-
-	&.btn-dark {
-		.fa-moon {
-			translate: 4rem;
-		}
-
-		.fa-sun {
-			translate: -50%;
-		}
-	}
-
-	&.btn-light {
-		.fa-moon {
-			translate: -50%;
-		}
-
-		.fa-sun {
-			translate: -4rem;
-		}
-	}
-}
+@import 'components/svg';

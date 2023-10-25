@@ -1,0 +1,58 @@
+{varType App\GameModels\Game\Game $game}
+{varType App\GameModels\Game\Player $player}
+
+<p>{lang 'Algoritmus nepracuje se skórem, ale s herní úrovní hráče z dané hry.'}</p>
+<p>{lang 'Rozdíl k herní úrovni se počítá upraveným ELO algoritmem, který vyhodnocuje výsledky jednotlivých hráčů mezi sebou. Pro každého protihráče a spoluhráče vypočítá pravděpodobnost, že daného hráče porazíte a poté podle skutečných výsledků vás ohodnotí body. Porovnání se spoluhráči navíc nemá takovou váhu jako protihráči.'}</p>
+<p>{lang 'Algoritmus zároveň přihlíží k vyrovnání týmů a pokud jsou týmy nevyrovnané, upraví své hodnoty.'}</p>
+<p>{lang 'V následujícím srovnání je několik hodnot. Nejdůležitější je ale šance na výhru a reálný výsledek. Pokud je reálný výsledek větší než šance na výhru, body získáváte. Pokud je menší, body ztrácíte. Jak moc bodů ztratíte určuje rozdíl v hodnotách šance na výhru a výsledku, ale i koeficient výhry.'}</p>
+
+<h3>{lang 'Srovnání s jednotlivými hráči'}</h3>
+
+{var array $info = $player->getRankDifferenceInfo()}
+
+{ifset $info}
+    {var int $playerCount = count($info['players'])}
+    {foreach $info['players'] as $playerInfo}
+        <h4 class="mt-4">{$playerInfo['player']['name']}</h4>
+        <table class="table table-striped">
+            <tbody>
+            <tr>
+                <th>{lang 'Šance na výhru nad hráčem'}</th>
+                <td>{(100*$playerInfo['expected'])|number:2,','}%</td>
+            </tr>
+            <tr>
+                <th>
+                    {lang 'Reálný výsledek'}
+                    <a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm ms-2"
+                       data-bs-html="true"
+                       data-bs-toggle="popover" data-bs-title="{lang 'Co to znamená?'}"
+                       data-bs-content="{lang 'Hodnota blízká 100% znamená definitivní výhru.<br>Hodnota blízká 50% je remíza (totožná herní úroveň).<br>Hodnota 0% je definitivní prohra.'}">
+                        <i class="fa-solid fa-question"></i>
+                    </a>
+                </th>
+                <td>{(100*$playerInfo['result'])|number:2,','}%</td>
+            </tr>
+            <tr>
+                <th>
+                    {lang 'Koeficient výhry'}
+                    <a tabindex="0" role="button" data-bs-trigger="focus" class="btn btn-info btn-sm ms-2"
+                       data-bs-html="true"
+                       data-bs-toggle="popover" data-bs-title="{lang 'Co to znamená?'}"
+                       data-bs-content="{lang 'Hodnota vypočítaná podle toho, jak jsou hráči vyrovnaní. Výsledná hodnota násobí počet bodů.'}">
+                        <i class="fa-solid fa-question"></i>
+                    </a>
+                </th>
+                <td>{$playerInfo['marginOfVictory']|number:2,','}</td>
+            </tr>
+            <tr>
+                <th>{lang 'Získáno bodů z hráče'}</th>
+                <td class="{if $playerInfo['ratingDiff'] > 0}text-success{else}text-danger{/if}">
+                    {if $playerInfo['ratingDiff'] > 0}+{elseif $playerInfo['ratingDiff'] === 0.0}+-{/if}{($playerInfo['ratingDiff']*App\Services\Player\RankCalculator::K_FACTOR/$playerCount)|number:2,','}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    {/foreach}
+{else}
+    {alertDanger lang('Žádné informace')}
+{/ifset}

@@ -1,0 +1,53 @@
+{contentType 'image/svg+xml'}
+{varType App\Models\Auth\User $user}
+{var int $padding = 50}
+{var int $playerMargin = 20}
+{var int $headerHeight = 120}
+{var int $contentWidth = 1200 - ($padding * 2)}
+{var int $contentHeight = 600 - ($padding * 2) - $headerHeight - $playerMargin}
+{varType App\Models\DataObjects\PlayerRank $rankOrder}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600"
+     data-width="{$contentWidth}" data-height="{$contentHeight}">
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#000" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#212529" stop-opacity="0.4"/>
+        </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="1200" height="600" fill="url(#bg)"/>
+    {svgIconThumb('Vesta', 200, $padding, $padding, [], false)|noescape}
+    <text x="{$padding}" y="{600 - $padding - 70}" text-anchor="start" font-size="60"
+          font-family="sans-serif" fill="#fff" font-weight="bold">
+        {$user->name}
+    </text>
+    <text x="{$padding}" y="{600 - $padding}" text-anchor="start" font-size="40"
+          font-family="sans-serif" fill="#fff" font-weight="normal">
+        {$user->player->getCode()}
+    </text>
+    <text x="{1200-$padding}" y="{$padding + 50}" text-anchor="end" font-size="40"
+          font-family="sans-serif" fill="#fff" font-weight="normal">
+        {lang 'Umístění v žebříčku'}
+    </text>
+    <text x="{1200-$padding}" y="{$padding + 100}" text-anchor="end" font-size="50"
+          font-family="sans-serif" fill="#fff" font-weight="normal">
+        {$rankOrder->getPositionFormatted()}
+    </text>
+    <text x="{1200-$padding}" y="{$padding + 170}" text-anchor="end" font-size="40"
+          font-family="sans-serif" fill="#fff" font-weight="normal">
+        {lang 'Herní úroveň'}
+    </text>
+    <text x="{1200-$padding}" y="{$padding + 220}" text-anchor="end" font-size="50"
+          font-family="sans-serif" fill="#fff" font-weight="normal">
+        {$user->player->stats->rank|number:0,',',' '}
+    </text>
+    <text x="{1200-$padding}" y="{$padding + 290}" text-anchor="end" font-size="40"
+          font-family="sans-serif" fill="#fff" font-weight="normal">
+        {lang 'Odehráno her'}
+    </text>
+    <text x="{1200-$padding}" y="{$padding + 340}" text-anchor="end" font-size="50"
+          font-family="sans-serif" fill="#fff" font-weight="normal">
+        {$user->player->stats->gamesPlayed|number:0,',',' '}
+    </text>
+</svg>

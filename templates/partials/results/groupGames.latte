@@ -1,0 +1,26 @@
+{varType \App\Models\GameGroup $group}
+{default App\GameModels\Game\Game[] $games = []}
+{varType string $orderBy}
+{varType bool $desc}
+{default int[] $modes = []}
+
+{default array $fields = [
+'start' => ['name' => lang('Datum'), 'sortable' => true],
+'modeName' => ['name' => lang('Herní mód'), 'sortable' => false],
+'players' => ['name' => lang('Hráči'), 'sortable' => false],
+]}
+
+{if empty($games)}
+    {do $games = $group->getGames($orderBy, $desc, $modes)}
+{/if}
+
+{embed '../gameList.latte',
+fields: $fields,
+games: $games,
+paginate: false,
+selectFields: false,
+orderBy: $orderBy,
+desc: $desc,
+modeIds: $modes
+}
+{/embed}

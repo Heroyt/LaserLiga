@@ -1,38 +1,3 @@
 @use 'variables/colors' as *;
 @use 'sass:map';
 @import "~bootstrap/scss/maps";
-
-$custom-font-sizes: (
-	'hero': 54px,
-	'default': 1rem,
-	'xs': 11px,
-	'12': 12px,
-	'14': 14px,
-	's': 15px,
-	'm': 16px,
-	'18': 18px,
-	'x': 25px,
-	'xl': 32px
-);
-
-$custom-colors: ();
-
-// Letter spacing sizes
-$letter-spacings: (
-	'0': 0,
-	'1': 1px,
-	'2': 1.5px,
-	'3': 2px
-);
-
-$custom-widths: (
-	'9': 9%,
-	'10': 10em,
-	'18': 18%,
-	'22': 22%,
-	'33': 33%,
-	'80': 80%,
-);
-
-$font-sizes: map.merge($font-sizes, $custom-font-sizes);
-$theme-colors: map.merge($theme-colors, $custom-colors);

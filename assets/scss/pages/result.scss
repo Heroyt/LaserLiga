@@ -4,345 +4,341 @@
 @import '../variables/customVariables';
 @import '~bootstrap/scss/maps';
 @import '../mixins';
+@import '../components/achievements';
+@import '../components/titles';
+
+%results-teams-column {
+  flex-direction: column;
+  max-height: 100%;
+
+  .team-score {
+    height: var(--size);
+    width: 100%;
+  }
+}
 
 .game-results {
-	display: grid;
-	grid-gap: 1rem;
-	grid-template-areas:
+  display: grid;
+  grid-gap: 1rem;
+  grid-template-areas:
 		'head'
 		'win'
 		'teams'
 		'players'
 		'hits';
-	grid-template-columns: 1fr;
+  grid-template-columns: 1fr;
+  transition: all 300ms ease;
+  transition-delay: 300ms;
 
-	&.solo {
-		grid-template-areas:
+  @import '../components/results/hits';
+  @import '../components/results/accuracy';
+  @import '../components/results/shots';
+
+  .results-player {
+    transition: all 300ms ease;
+  }
+
+  &.teams-active {
+    transition-delay: 0ms;
+
+    .collapse-indicator {
+      display: none;
+    }
+
+    .results-teams {
+      flex-direction: column !important;
+      max-height: 100%;
+
+      .team-score {
+        --size: auto !important;
+        transition-delay: 0ms;
+
+        .team-stats {
+          max-height: 100% !important;
+          padding: 1rem;
+          transition-delay: 300ms;
+        }
+      }
+    }
+  }
+
+  &.solo {
+    grid-template-areas:
 		 'head'
 		 'win'
 		 'players'
 		 'hits';
-	}
+  }
 
-	path, circle, rect {
-		fill: currentColor;
-	}
+  svg:not(.player-avatar) {
+    path, circle, rect {
+      fill: currentColor;
+    }
+  }
 
-	.results-win {
-		grid-area: win;
-	}
+  .results-win {
+    grid-area: win;
+  }
 
-	.results-header {
-		grid-area: head;
-	}
+  .results-header {
+    grid-area: head;
+  }
 
-	.game-head {
-		display: grid;
-		grid-gap: 1rem;
-		grid-template-areas: 'info' 'scoring' 'legend';
-		grid-template-columns: 1fr;
+  .game-head {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-areas: 'info' 'scoring' 'legend' 'highlights';
+    grid-template-columns: 1fr;
 
-		.game-info {
-			grid-area: info;
-		}
+    .game-info {
+      grid-area: info;
+    }
 
-		.scoring {
-			grid-area: scoring;
-		}
+    .scoring {
+      grid-area: scoring;
+    }
 
-		.icon-legend {
-			grid-area: legend;
-		}
-	}
+    .icon-legend {
+      grid-area: legend;
+    }
+  }
 
-	.results-players {
-		grid-area: players;
+  .results-highlights {
+    grid-area: highlights;
 
-		.player-head {
-			align-items: center;
-			border-radius: 10px;
-			cursor: pointer;
-			display: flex;
-			margin: .1rem 0;
-			width: 100%;
+    .highlight {
+      padding: 1rem;
+      text-align: center;
+      margin: 0 1rem;
+      //border-radius: 10px;
+      //box-shadow: 0 0 10px var(--primary);
+      border-bottom: 1px solid var(--background-2);
+    }
+  }
 
-			> div {
-				flex: 1;
-			}
+  .results-players {
+    grid-area: players;
 
-			svg {
-				display: inline-block;
-				margin: 0 auto;
-				position: relative;
-			}
+    .player-head {
+      align-items: center;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      margin: .1rem 0;
+      width: 100%;
 
-			.position {
-				max-width: 1.5rem;
-			}
+      svg {
+        display: inline-block;
+        margin: 0 auto;
+        position: relative;
+      }
 
-			.player-rank {
-				height: 1rem;
-				line-height: 1em;
+      .position {
+        max-width: 1.5rem;
+        padding-right: .5rem;
+      }
 
-				.rank-name {
-					display: inline-block;
-					font-size: .6em;
-				}
-			}
+      .player-rank {
+        height: 1rem;
+        line-height: 1em;
 
-			.player-name {
+        .rank-name {
+          display: inline-block;
+          font-size: .6em;
+        }
+      }
 
-				.name {
-					font-size: calc(var(--font-size) * 1.3);
-					font-weight: bold;
-					text-transform: uppercase;
-				}
-			}
+      .player-name {
+        flex: 1;
+        min-width: 10rem;
 
-			.score {
-				max-width: 5rem;
-				text-align: right;
-			}
-		}
+        .name {
+          font-size: calc(var(--font-size) * 1.3);
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+      }
 
-		.player-score-detail {
-			grid-area: score;
-		}
+      .score {
+        max-width: 5rem;
+        text-align: right;
+      }
 
-		.player-actions {
-			grid-area: actions;
-		}
+      .player-avatar {
+        height: 2.5rem;
+        width: 2.5rem;
+        border-radius: 50%;
+        margin: 0 .5rem;
+        background-color: var(--background-2);
+      }
 
-		.player_mines {
-			grid-area: mines;
+      .collapse-indicator {
+        width: 1.5rem;
+      }
+    }
 
-			svg {
-				display: block;
-				margin: 0 auto;
-				position: relative;
-			}
+    .player-score-detail {
+      grid-area: score;
+    }
 
-			.bonus {
-				display: flex;
-				width: 100%;
+    .player-actions {
+      grid-area: actions;
+    }
 
-				div {
-					flex: 1;
-					padding: .2rem;
-					text-align: center;
-				}
-			}
-		}
+    .player_mines {
+      grid-area: mines;
 
-		.player-hits {
-			grid-area: hits;
-		}
+      svg {
+        display: block;
+        margin: 0 auto;
+        position: relative;
+      }
 
-		.hits {
-			display: flex;
-			flex-direction: column;
-			height: 6rem;
-			position: relative;
-			text-align: center;
-			width: 100%;
+      .bonus {
+        display: flex;
+        width: 100%;
 
-			.label {
-				height: 100%;
-				line-height: 3rem;
-				width: 4rem;
-			}
+        div {
+          flex: 1;
+          padding: .2rem;
+          text-align: center;
+        }
+      }
+    }
 
-			.kills-row, .deaths-row {
-				align-items: center;
-				display: flex;
-				justify-content: flex-start;
-				width: 100%;
+    .player-hits {
+      grid-area: hits;
+    }
 
-				.graph {
-					align-items: center;
-					background-color: #eee;
-					display: flex;
-					flex: 1;
-					justify-content: flex-start;
-				}
-			}
+    svg.accuracy {
+      --color: rgb(72, 196, 255);
+      display: block;
+      grid-area: accuracy;
+      margin: 0 auto;
+      max-width: 9rem;
+      position: relative;
 
-			.kills {
-				background-color: #55EA6A;
-			}
+      * {
+        font-size: 64pt;
+      }
 
-			.kills-own {
-				background-color: #49cc5b;
-			}
+      path,
+      rect,
+      text {
+        fill: var(--color);
+      }
 
-			.deaths {
-				background-color: #EA5555;
-			}
+      .fill-circle {
+        fill: transparent;
+        opacity: .4;
+        stroke: var(--color);
+        transform: rotate(-90deg);
+        transform-origin: center;
+      }
+    }
 
-			.deaths-own {
-				background-color: #cc4949;
-			}
+    .player-shots {
+      grid-area: shots;
+    }
 
-			.kills,
-			.deaths,
-			.kills-own,
-			.deaths-own {
-				display: flex;
-				height: 3rem;
-				min-width: 2rem;
-				padding: .2rem 0;
+    .player-favourites {
+      grid-area: favourites;
+    }
 
-				.main {
-					align-items: center;
-					display: flex;
-					flex: 1;
-					flex-direction: column;
-					height: 100%;
-					justify-content: center;
-					padding: 0 .3rem;
-				}
+    .player-hits-player {
+      grid-area: hitsPlayers;
+    }
 
-				.side {
-					display: flex;
-					flex-direction: column;
-					height: 100%;
-					max-width: 20%;
+    .player-today {
+      grid-area: today;
+      text-align: center;
 
-					.other {
-						background-color: rgba(255, 255, 255, .5);
-					}
+      .categories {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+      }
 
-					.own {
-						background-color: rgba(105, 0, 0, 0.6);
-						color: #fff;
-					}
+      .today-category {
+        cursor: pointer;
+        min-width: 7em;
+        padding: .2rem;
+      }
 
-					.own,
-					.other {
-						align-items: center;
-						display: flex;
-						justify-content: center;
-						min-height: 1.5em;
-						padding: 0 .2rem;
-					}
-				}
+      .label {
+        font-weight: bold;
+      }
+    }
+  }
 
-				.icon {
-					display: flex;
-					justify-content: center;
-				}
+  .results-teams {
+    display: flex;
+    flex-direction: row;
+    grid-area: teams;
+    max-height: 8rem;
+    width: 100%;
 
-				.number {
-				}
-			}
-		}
+    .team-score {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: center;
+      min-height: 5rem;
+      min-width: 5rem;
+      width: var(--size);
+      transition: all 300ms ease;
+      transition-delay: 300ms;
 
-		svg.accuracy {
-			--color: rgb(72, 196, 255);
-			display: block;
-			grid-area: accuracy;
-			margin: 0 auto;
-			max-width: 9rem;
-			position: relative;
+      .name {
+        text-align: center;
+      }
 
-			* {
-				font-size: 64pt;
-			}
+      .team-stats {
+        max-height: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--white);
+        color: var(--black);
+        transition: max-height 300ms ease;
+        transition-delay: 0ms;
+        display: grid;
+        grid-gap: 1rem;
+        grid-template-columns: 1fr;
+        grid-template-areas: 'accuracy' 'shots' 'hits' 'hitsTeams';
+      }
+    }
 
-			path,
-			rect,
-			text {
-				fill: var(--color);
-			}
+    .team-hits {
+      grid-area: hits;
+    }
 
-			.fill-circle {
-				fill: transparent;
-				opacity: .4;
-				stroke: var(--color);
-				transform: rotate(-90deg);
-				transform-origin: center;
-			}
-		}
+    .team-hits-team {
+      grid-area: hitsTeams;
+    }
 
-		.player-shots {
-			align-self: center;
-			grid-area: shots;
-			text-align: center;
+    .team-shots {
+      grid-area: shots;
+    }
 
-			.number svg {
-				display: inline-block;
-				width: auto;
-			}
+    .accuracy {
+      grid-area: accuracy;
+    }
 
-			svg {
-				max-height: 3rem;
-				width: 100%;
+    &[data-teams="4"], &[data-teams="5"], &[data-teams="6"] {
+      @extend %results-teams-column;
+    }
+  }
 
-				.empty path {
-					fill: transparent;
-					stroke: currentColor;
-					stroke-width: 2px;
-				}
-			}
-		}
+  .results-hits {
+    grid-area: hits;
+  }
 
-		.player-favourites {
-			grid-area: favourites;
-		}
-
-		.player-hits-player {
-			grid-area: hitsPlayers;
-		}
-
-		.player-today {
-			grid-area: today;
-			text-align: center;
-
-			.categories {
-				display: flex;
-				flex-wrap: wrap;
-				justify-content: space-evenly;
-			}
-
-			.today-category {
-				cursor: pointer;
-				min-width: 7em;
-				padding: .2rem;
-			}
-
-			.label {
-				font-weight: bold;
-			}
-		}
-	}
-
-	.results-teams {
-		display: flex;
-		flex-direction: row;
-		grid-area: teams;
-		height: 8rem;
-		width: 100%;
-
-		.team-score {
-			align-items: center;
-			display: flex;
-			flex-direction: column;
-			height: 100%;
-			justify-content: center;
-			min-height: 5rem;
-			min-width: 5rem;
-			width: var(--size);
-		}
-	}
-
-	.results-hits {
-		grid-area: hits;
-	}
-
-	.player-body {
-		align-items: center;
-		grid-row-gap: 1.5rem;
-		grid-template-areas:
+  .player-body {
+    align-items: center;
+    grid-row-gap: 1.5rem;
+    grid-template-areas:
 		  'actions'
 			'trophy'
 			'accuracy'
@@ -353,33 +349,33 @@
 			'mines'
 			'score'
 		  'today';
-		grid-template-columns: 1fr;
+    grid-template-columns: 1fr;
 
-		&.show, &.collapsing {
-			display: grid;
-		}
-	}
+    &.show, &.collapsing {
+      display: grid;
+    }
+  }
 
-	.player-trophies {
-		grid-area: trophy;
+  .player-trophies {
+    grid-area: trophy;
 
-		.trophies {
-			align-items: center;
-			display: flex;
-			flex-wrap: wrap;
-			justify-content: space-evenly;
-		}
+    .trophies {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-evenly;
+    }
 
-		.trophy {
-			text-align: center;
-		}
-	}
+    .trophy {
+      text-align: center;
+    }
+  }
 }
 
 @include media-breakpoint-up(sm) {
-	.game-results {
-		.player-body {
-			grid-template-areas:
+  .game-results {
+    .player-body {
+      grid-template-areas:
 					'actions actions'
 					'trophy trophy'
 					'accuracy shots'
@@ -389,57 +385,66 @@
 					'mines mines'
 					'score score'
 					'today today';
-			grid-template-columns: 1fr 1fr;
-		}
+      grid-template-columns: 1fr 1fr;
+    }
 
-		.game-head {
-			grid-template-areas: 'info scoring' 'info scoring' 'legend legend';
-			grid-template-columns: 1fr 1fr;
-		}
-	}
+    .game-head {
+      grid-template-areas: 'info scoring' 'info scoring' 'legend legend' 'highlights highlights';
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .results-teams .team-score .team-stats {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas: 'accuracy shots' 'hits hits' 'hitsTeams hitsTeams';
+    }
+  }
 }
 
 @include media-breakpoint-up(md) {
-	.game-results {
-		grid-template-areas:
+  .game-results {
+    grid-template-areas:
 		'head head'
 		'win win'
 		'players teams'
 		'hits hits';
-		grid-template-columns: 1fr 7rem;
+    grid-template-columns: 1fr 7rem;
 
-		&.solo {
-			grid-template-areas:
+    &.teams-active {
+      grid-template-columns: 20rem 1fr;
+    }
+
+    &.solo {
+      grid-template-areas:
 		 'head head'
 		 'win win'
 		 'players players'
 		 'hits hits';
-		}
+    }
 
-		.results-teams {
-			flex-direction: column;
-			height: 100%;
+    .results-teams {
+      flex-direction: column;
+      max-height: 100%;
 
-			.team-score {
-				height: var(--size);
-				width: 100%;
-			}
-		}
+      .team-score {
+        height: var(--size);
+        width: 100%;
+      }
+    }
 
-		.player-body {
-			grid-template-areas:
+    .player-body {
+      grid-template-areas:
 					'actions actions actions'
 					'trophy trophy trophy'
 					'accuracy mines shots'
 					'favourites hits hits'
 					'score score score'
 					'today today today';
-			grid-template-columns: 1fr 1fr 1fr;
-		}
+      grid-template-columns: 1fr 1fr 1fr;
+    }
 
-		.game-head {
-			grid-template-areas: 'info scoring' 'info legend';
-			grid-template-columns: 1fr 2fr;
-		}
-	}
+    .game-head {
+      grid-template-areas: 'info scoring' 'info legend' 'highlights highlights';
+      grid-template-columns: 1fr 2fr;
+    }
+  }
 }

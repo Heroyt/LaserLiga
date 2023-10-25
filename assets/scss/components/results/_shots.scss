@@ -1,0 +1,19 @@
+.player-shots, .team-shots {
+  text-align: center;
+
+  .number svg {
+    display: inline-block;
+    width: auto;
+  }
+
+  svg {
+    max-height: 3rem;
+    width: 100%;
+
+    .empty path {
+      fill: transparent;
+      stroke: currentColor;
+      stroke-width: 2px;
+    }
+  }
+}

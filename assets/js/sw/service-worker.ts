@@ -4,7 +4,7 @@ import {NavigationRoute, registerRoute, Route} from 'workbox-routing';
 import {precacheAndRoute} from "workbox-precaching";
 
 // Give TypeScript the correct global.
-declare let self: ServiceWorkerGlobalScope;
+declare const self: ServiceWorkerGlobalScope;
 
 self.addEventListener('install', () => {
 	self.skipWaiting();

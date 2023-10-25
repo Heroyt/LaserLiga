@@ -1,5 +1,10 @@
 {layout '../../@layout.latte'}
 
+{varType int $playerCount}
+{varType int $arenaCount}
+{varType int $gameCount}
+{varType int $tournamentCount}
+
 {block containerClasses}
 	pb-5 mb-5 mb-lg-0
 {/block}
@@ -7,24 +12,66 @@
 {block content}
 
 	<section class="px-5 text-white-forced" id="main-banner">
-		<h1 class="text-start">Laser liga</h1>
-		<p class="text-start">
-			{lang 'Portál pro hráče laser game.'}
-			<br>
-			<a href="{link 'login'}" class="btn btn-primary mt-2 btn-lg">
-				<i class="fa-solid fa-right-to-bracket"></i>
-				{lang 'Přihlásit'}
-			</a>
-		</p>
+        <div class="container">
+            <h1 class="text-start fw-bold">
+                Laser liga
+                <br>
+                <span class="fs-4 fw-normal">{lang 'Portál pro hráče laser game.'}</span>
+            </h1>
+            <p class="text-start">
+                <a href="{link 'login'}" class="btn btn-primary mt-2 btn-lg">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    {lang 'Přihlásit'}
+                </a>
+                <br>
+                <a href="{link 'register'}" class="btn btn-secondary mt-2">
+                    {lang 'Registrovat'}
+                </a>
+            </p>
+        </div>
 	</section>
 
-	<section id="arenas" class="p-5 text-end">
-		<h2 class="text-end">{lang 'Zapojené arény'}</h2>
-		<a href="{link 'arena'}" class="btn btn-info btn-lg mb-2">
-			<i class="fa-solid fa-location-dot"></i>
-			{lang 'Zobrazit'}
-		</a>
-		<p class="text-muted text-end">{sprintf(lang('Chybí tu Vaše aréna? Řekněte jí, ať nás kontaktuje na e-mail: %s'), '<a href="mailto:info@laserliga.cz">info@laserliga.cz</a>')|noescape}</p>
+    <section id="stats" class="p-5">
+        <div class="d-flex flex-wrap g-2 justify-content-evenly align-items-center">
+            {include countUpStat, 'registeredPlayers', 'Registrovaných hráčů', $playerCount, 2000, 0, 'primary', ['user', 'leaderboard']}
+            {include countUpStat, 'arenas', 'Zapojených arén', $arenaCount, 2000, 0, 'danger', ['arena']}
+            {include countUpStat, 'playedGames', 'Odehraných her', $gameCount, 2000, 0, 'purple-400'}
+            {include countUpStat, 'tournaments', 'Organizovaných turnajů', $tournamentCount, 2000, 0, 'secondary', ['tournament']}
+        </div>
+    </section>
+
+    <section id="info" class="p-5 text-start row flex-row-reverse align-items-center">
+        <div class="col-md-5">
+            <img src="{getUrl}assets/images/laser-1_medium.jpeg"
+                 srcset="{getImageSrcSet(ROOT.'assets/images/laser-1_medium.jpeg')}"
+                 alt="{lang 'Obrázek ze hry laser game. Hráč skrčený za překážkou a nad ním laser jiného hráče, který po něm střílel.'}"
+                 class="img-fluid rounded" loading="lazy">
+        </div>
+        <div class="col-md-7">
+            <h2>{lang 'Co je to Laser liga?'}</h2>
+            <p>{lang 'Laser liga je portál pro hráče laser game. Sjednocuje výsledky a poskytuje statistiky z několika arén po celém česku.'}</p>
+            <p>{lang 'Hráči soupeří o pozice v globálním žebříčku. Laser liga zároveň umožňuje arénám pořádat turnaje na kterých hráči poměřují své dovednosti s laserem.'}</p>
+            <p>{lang 'Tak na co čekáš?'}</p>
+            <p><a href="{link 'register'}" class="btn btn-secondary">{lang 'Zaregistruj se a hraj!'}</a></p>
+        </div>
+    </section>
+
+    <section id="arenas-section" class="p-5 text-end row align-items-center">
+        <div class="col-md-5">
+            <img src="{getUrl}assets/images/img-vesta-zbran_medium.jpeg"
+                 srcset="{getImageSrcSet(ROOT.'assets/images/img-vesta-zbran_medium.jpeg')}"
+                 alt="{lang 'Obrázek ze hry laser game. Dva hráči ve vestách, které svítí modře.'}"
+                 class="img-fluid rounded" loading="lazy">
+        </div>
+        <div class="col-md-7">
+            <h2 class="text-end">{lang 'Zapojené arény'}</h2>
+            <p class="text-end">{lang 'Ačkoliv bychom chtěli, Laser ligu zatím nepodporují úplně všechny laser arény v česku. Snažíme se, ale naši komunitu hráčů laser game rozšířit.'}</p>
+            <a href="{link 'arena'}" class="btn btn-secondary btn-lg mb-2">
+                <i class="fa-solid fa-location-dot"></i>
+                {lang 'Zobrazit'}
+            </a>
+            <p class="text-muted text-end">{sprintf(lang('Chybí tu Vaše aréna? Řekněte jí, ať nás kontaktuje na e-mail: %s'), '<a href="mailto:info@laserliga.cz">info@laserliga.cz</a>')|noescape}</p>
+        </div>
 	</section>
 
 	<section id="how-it-works" class="p-5 text-start">
@@ -35,9 +82,9 @@
 				  style="width: 1.5em;height:1.5em;line-height:1.5;">
 				1.
 			</span>
-			{lang 'Registrujete se'}
+            {lang 'Registruješ se'}
 		</h3>
-		<p class="text-start">{lang 'Při registraci si vyberete domovskou arénu, přezdívku a dostanete přiřazený váš unikátní kód.'}</p>
+        <p class="text-start">{lang 'Při registraci si vybereš domovskou arénu, přezdívku a dostaneš přiřazený tvůj unikátní kód.'}</p>
 		<a href="{link 'register'}" class="btn btn-primary">
 			<i class="fa-solid fa-right-to-bracket"></i>
 			{lang 'Registrovat se'}
@@ -47,9 +94,9 @@
 				  style="width: 1.5em;height:1.5em;line-height:1.5;">
 				2.
 			</span>
-			{lang 'Hrajete ve vaší aréně'}
+            {lang 'Hraješ ve tvojí laser aréně'}
 		</h3>
-		<p class="text-start">{lang 'Obsluze nahlásíte, že jste registrovaní a ona vás najde pomocí přezdívky, nebo kódu.'}</p>
+        <p class="text-start">{lang 'Obsluze nahlásíš, že jsi registrovaný a ona si tě najde pomocí tvé přezdívky, nebo kódu.'}</p>
 		<a href="{link 'arena'}" class="btn btn-primary">
 			<i class="fa-solid fa-location-dot"></i>
 			{lang 'Podporované arény'}
@@ -59,12 +106,22 @@
 				  style="width: 1.5em;height:1.5em;line-height:1.5;">
 				3.
 			</span>
-			{lang 'Sbíráte statistiky'}</h3>
-		<p class="text-start">{lang 'Hned po hře máte výsledky na svém profilu!'}</p>
+            {lang 'Sbíráš statistiky'}</h3>
+        <p class="text-start">{lang 'Hned po hře vidíš výsledky na svém profilu! Z her sbíráš body, které tě posouvají v žebříčku všech hráčů laser game.'}</p>
 		<a href="{link 'user', 'leaderboard'}" class="btn btn-primary">
 			<i class="fa-solid fa-ranking-star"></i>
 			{lang 'Žebříček'}
 		</a>
 	</section>
-
 {/block}
+
+{define countUpStat, string $id, string $label, int $value, int $duration = 1000, int $start = 0, string $color = '', array $link = []}
+    <div n:tag="empty($link) ? 'div' : 'a'" {if !empty($link)}href="{link $link}"{/if}
+            class="m-2 bg-background-1 text-center p-3 rounded text-decoration-none {if !empty($color)}text-{$color}{/if}"
+            id="{$id}"
+            style="width: 190px;">
+        <div class="countUp fs-1 fw-bold" data-start="{$start}" data-target="{$value}"
+             data-duration="{$duration}">{$value|number:0,',','&nbsp;'|noescape}</div>
+        <h3 class="description fs-5">{lang $label}</h3>
+    </div>
+{/define}

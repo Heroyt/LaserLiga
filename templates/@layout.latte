@@ -9,6 +9,10 @@
 {varType string[]|array[] $notices}
 {varType array $_COOKIE}
 
+{default $containerAttributes = []}
+
+{var Lsr\Core\Auth\Services\Auth $auth = \Lsr\Core\App::getService('auth')}
+
 {default string[] $addCss = []}
 
 {define containerClasses}
@@ -35,10 +39,11 @@
 <html lang="{\Lsr\Core\App::getShortLanguageCode()}" data-bs-theme="{$_COOKIE['mode'] ?? 'light'}">
 <head>
 	<!-- Matomo Tag Manager -->
+    <link rel="dns-prefetch" href="https://analytics.laserliga.cz">
 	<script>
-		var _mtm = window._mtm = window._mtm || [];
+        let _mtm = window._mtm = window._mtm || [];
 		_mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
-		var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+        let d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
 		g.async = true;
 		g.src = 'https://analytics.laserliga.cz/js/container_F9NT5Iaa.js';
 		s.parentNode.insertBefore(g, s);
@@ -48,6 +53,7 @@
 	<meta name="viewport"
 		  content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="seobility" content="36aefeb049a215aadb2892ba279d1f71">
 	<!-- Favicon -->
 	<link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/favicon/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/favicon/android-chrome-192x192.png">
@@ -56,7 +62,21 @@
 	<link rel="icon" href="{getUrl}assets/favicon/favicon.ico">
 	<link rel="manifest" href="{getUrl}assets/manifest.json">
 	<meta name="theme-color" content="#192029">
-	<!-- Google Fonts Montserrat -->
+
+    <title>{$page->getTitle()}</title>
+    <meta name="description" content="{$page->getDescription()}">
+
+    <link rel="preload" href="{getUrl}dist/main.css?v={\Lsr\Core\App::getCacheVersion()}" as="style">
+    <link rel="stylesheet" href="{getUrl}dist/main.css?v={\Lsr\Core\App::getCacheVersion()}">
+    {foreach $addCss as $file}
+        <link rel="preload" as="style" href="{getUrl}dist/{$file}?v={\Lsr\Core\App::getCacheVersion()}">
+        <link rel="stylesheet" href="{getUrl}dist/{$file}?v={\Lsr\Core\App::getCacheVersion()}">
+    {/foreach}
+
+    <!-- Non-critical assets -->
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
 		  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
 	<noscript>
@@ -64,39 +84,52 @@
 			  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
 	</noscript>
 	<link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-		  href="{getUrl}dist/vendors.css?v={\Lsr\Core\App::getCacheVersion()}">
+          href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"/>
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"
+              rel="stylesheet">
+    </noscript>
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+          href="{getUrl}dist/fontawesome.css?v={\Lsr\Core\App::getCacheVersion()}">
 	<noscript>
-		<link rel="stylesheet" href="{getUrl}dist/vendors.css?v={\Lsr\Core\App::getCacheVersion()}">
+        <link rel="stylesheet" href="{getUrl}dist/fontawesome.css?v={\Lsr\Core\App::getCacheVersion()}">
 	</noscript>
-	<link rel="stylesheet" href="{getUrl}dist/main.css?v={\Lsr\Core\App::getCacheVersion()}">
-	<link n:foreach="$addCss as $file" rel="stylesheet"
-									   href="{getUrl}dist/{$file}?v={\Lsr\Core\App::getCacheVersion()}">
-	<title>{$page->getTitle()}</title>
-	<meta name="description" content="{$page->getDescription()}">
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+          href="{getUrl}dist/bootstrap.css?v={\Lsr\Core\App::getCacheVersion()}">
+    <noscript>
+        <link rel="stylesheet" href="{getUrl}dist/bootstrap.css?v={\Lsr\Core\App::getCacheVersion()}">
+    </noscript>
+
 	{\Tracy\Debugger::renderLoader()|noescape}
+
 	{include addHead}
-	<!-- Matomo -->
-	<script>
-		var _paq = window._paq = window._paq || [];
-		/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-		{var Lsr\Core\Auth\Services\Auth $auth = \Lsr\Core\App::getService('auth')}
-		{if $auth->loggedIn()}
-		_paq.push(['setUserId', {$auth->getLoggedIn()->email}]);
-		{/if}
-		_paq.push(['trackPageView']);
-		_paq.push(['trackVisibleContentImpressions']);
-		_paq.push(['enableLinkTracking']);
-		(function () {
-			var u = "//analytics.laserliga.cz/";
-			_paq.push(['setTrackerUrl', u + 'matomo.php']);
-			_paq.push(['setSiteId', '1']);
-			var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-			g.async = true;
-			g.src = u + 'matomo.js';
-			s.parentNode.insertBefore(g, s);
-		})();
-	</script>
-	<!-- End Matomo Code -->
+
+    {block tracking}
+        <!-- Matomo -->
+        <script>
+            let _paq = window._paq = window._paq || [];
+            /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+            {if $auth->loggedIn()}
+            _paq.push(['setUserId', {$auth->getLoggedIn()->email}]);
+            _paq.push(['setCustomVariable', 1, 'playerCode', {$auth->getLoggedIn()->player->getCode()}, 'visit']);
+            {/if}
+            _paq.push(['trackPageView']);
+            _paq.push(['trackVisibleContentImpressions', true]);
+            _paq.push(['enableLinkTracking']);
+            window.addEventListener('load', () => {
+                (function () {
+                    const u = "//analytics.laserliga.cz/";
+                    _paq.push(['setTrackerUrl', u + 'matomo.php']);
+                    _paq.push(['setSiteId', '1']);
+                    const d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+                    g.async = true;
+                    g.src = u + 'matomo.js';
+                    s.parentNode.insertBefore(g, s);
+                })();
+            });
+        </script>
+        <!-- End Matomo Code -->
+    {/block}
 </head>
 <body>
 
@@ -106,8 +139,8 @@
 	{include header}
 {/if}
 
-<main class="container {include containerClasses|trim}">
-		{include errors}
+<main class="container {include containerClasses|trim}" n:attr="$containerAttributes">
+    {include errors}
 	{include content}
 </main>
 
@@ -116,34 +149,33 @@
 
 
 <div class="toast-container position-fixed end-0 p-3" id="toasts" style="top: 5rem;">
-		{foreach $notices as $notice}
-			{var string $type = 'info'}
-			{var string $content = ''}
-			{var string $title = ''}
-			{if is_string($notice)}
-				{do $content = $notice}
-			{else}
-				{do $type = $notice['type'] ?? 'info'}
-				{do $content = $notice['content'] ?? ''}
-				{do $title = $notice['title'] ?? ''}
-			{/if}
-			<div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-				<div class="toast-header">
-					<svg class="bd-placeholder-img rounded me-2 text-{$type}" width="20" height="20"
-						 xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"
-						 focusable="false">
-						<rect width="100%" height="100%" style="fill: currentcolor;"></rect>
-					</svg>
-					<strong class="me-auto" n:if="!empty($title)">{$title}</strong>
-					<button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-				</div>
-				<div class="toast-body">
-					{$content}
-				</div>
-			</div>
-		{/foreach}
+    {foreach $notices as $notice}
+        {var string $type = 'info'}
+        {var string $content = ''}
+        {var string $title = ''}
+        {if is_string($notice)}
+            {do $content = $notice}
+        {else}
+            {do $type = $notice['type'] ?? 'info'}
+            {do $content = $notice['content'] ?? ''}
+            {do $title = $notice['title'] ?? ''}
+        {/if}
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <svg class="bd-placeholder-img rounded me-2 text-{$type}" width="20" height="20"
+                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"
+                     focusable="false">
+                    <rect width="100%" height="100%" style="fill: currentcolor;"></rect>
+                </svg>
+                <strong class="me-auto" n:if="!empty($title)">{$title}</strong>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                {$content}
+            </div>
+        </div>
+    {/foreach}
 </div>
-
 
 <script>
 	const page = {\Lsr\Core\App::getRequest()};
@@ -152,17 +184,10 @@
 	const assetVersion = {\Lsr\Core\App::getCacheVersion()};
 </script>
 
-
-<script src="/dist/runtime~main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
-
-
-<script src="/dist/bootstrap.js?{\Lsr\Core\App::getCacheVersion()}"></script>
-
-
-<script src="/dist/vendors.js?{\Lsr\Core\App::getCacheVersion()}"></script>
-
-
-<script src="/dist/main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+<script defer src="{getUrl}dist/runtime~main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+<script defer src="{getUrl}dist/bootstrap-lib.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+<script defer src="{getUrl}dist/vendors.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+<script defer src="{getUrl}dist/main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
 {include svgSymbols}
 </body>
 </html>

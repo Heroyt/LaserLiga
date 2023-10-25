@@ -1,3 +1,4 @@
+{contentType image/svg+xml}
 {varType App\GameModels\Game\Game $game}
 {var int $playerCount = $game->getPlayerCount()}
 {var array $colors = $game::getTeamColors()}
@@ -22,19 +23,22 @@
 ['assets/images/vesta_red.jpeg', 1200, 800, 0, 0],
 ]}
 {var array $image = $images[$game->codeToNum() % count($images)]}
-<svg width="1200" height="600" viewbox="0 0 1200 600" data-width="{$contentWidth}" data-height="{$contentHeight}"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600"
+     data-width="{$contentWidth}" data-height="{$contentHeight}"
 	 data-cols="{$playerColumns}" data-rows="{$playerRows}" data-player-width="{($contentWidth / $playerColumns)}">
-	<image x="{$image[3]}" y="{$image[4]}" width="{$image[1]}" height="{$image[2]}" href="{getUrl}{$image[0]}"/>
+    <image x="{$image[3]}" y="{$image[4]}" width="{$image[1]}" height="{$image[2]}"
+           href="data:image/jpeg;base64,{base64_encode(file_get_contents(ROOT.$image[0]))}"/>
 	<defs>
 		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0%" stop-color="#000" stop-opacity="90%"/>
-			<stop offset="100%" stop-color="#212529" stop-opacity="40%"/>
+            <stop offset="0%" stop-color="#000" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#212529" stop-opacity="0.4"/>
 		</linearGradient>
 	</defs>
 	<rect x="0" y="0" width="1200" height="600" fill="url(#bg)"/>
 	<g class="header">
-		<image x="{$padding}" y="{$padding}" height="{$headerHeight}" width="{$headerHeight}"
-			   href="{$game->arena->getLogoUrl()}"/>
+        {extractSvg($game->arena->getLogoFileName(), ['x' => $padding, 'y' => $padding, 'height' => $headerHeight, 'width'=>$headerHeight])|noescape}
 		<text x="{$padding + $headerHeight + 30}" y="{$padding + 30}" text-anchor="start" font-size="20"
 			  font-family="sans-serif" fill="#fff">
 			<tspan font-weight="bold">
@@ -74,7 +78,7 @@
 			</text>
 			{var int $playerNameLen = getSvgStringWidth($player->name)}
 			{var float $nameY = $y + ($playerHeight / 2) - 6}
-			{svgIconThumb($trophy['icon'], 22, $x + ($playerWidth / 2) - ($playerNameLen / 2)-6, $nameY - 18, [], $textColor === '#fff')|noescape}
+            {svgIconThumb($trophy['icon'], 22, $x + ($playerWidth / 2) - ($playerNameLen / 2)-13, $nameY - 20, [], $textColor === '#fff')|noescape}
 			<text x="{$x + ($playerWidth / 2) + 12}" y="{$nameY}" text-anchor="middle" font-size="20"
 				  textLength="{$playerNameLen}"
 				  font-family="sans-serif" fill="{$textColor}" font-weight="bold">{$player->name}</text>

@@ -1,0 +1,103 @@
+.hits {
+  display: flex;
+  flex-direction: column;
+  height: 6rem;
+  position: relative;
+  text-align: center;
+  width: 100%;
+
+  .label {
+    height: 100%;
+    line-height: 3rem;
+    width: 4rem;
+  }
+
+  .kills-row, .deaths-row {
+    align-items: center;
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+
+    .graph {
+      align-items: center;
+      background-color: #eee;
+      display: flex;
+      flex: 1;
+      justify-content: flex-start;
+    }
+  }
+
+  .kills {
+    background-color: #55EA6A;
+  }
+
+  .kills-own {
+    background-color: #49cc5b;
+  }
+
+  .deaths {
+    background-color: #EA5555;
+  }
+
+  .deaths-own {
+    background-color: #cc4949;
+  }
+
+  .deaths-pods {
+    background-color: #b44444;
+  }
+
+  .kills,
+  .deaths,
+  .kills-own,
+  .deaths-own,
+  .deaths-pods {
+    display: flex;
+    height: 3rem;
+    min-width: 2rem;
+    padding: .2rem 0;
+
+    .main {
+      align-items: center;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      height: 100%;
+      justify-content: center;
+      padding: 0 .3rem;
+    }
+
+    .side {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 20%;
+
+      .other {
+        background-color: rgba(255, 255, 255, .5);
+      }
+
+      .own {
+        background-color: rgba(105, 0, 0, 0.6);
+        color: #fff;
+      }
+
+      .own,
+      .other {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        min-height: 1.5em;
+        padding: 0 .2rem;
+      }
+    }
+
+    .icon {
+      display: flex;
+      justify-content: center;
+    }
+
+    .number {
+    }
+  }
+}

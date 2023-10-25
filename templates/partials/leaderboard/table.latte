@@ -1,6 +1,6 @@
 {varType App\Models\Auth\User|null $user}
-{varType App\GameModels\Auth\Player[] $players}
-{varType App\GameModels\Auth\LigaPlayer|null $searchedPlayer}
+{varType App\Models\Auth\Player[] $players}
+{varType App\Models\Auth\LigaPlayer|null $searchedPlayer}
 {varType int $p}
 {varType int $pages}
 {varType int $limit}
@@ -33,10 +33,10 @@
 
 {default array $commonFields = ['nickname', 'code']}
 {default array $types = [
-'rank' => ['name' => lang('Herní úroveň'), 'fields' => ['games_played', 'rank']],
-'averages' => ['name' => lang('Průměry'), 'fields' => ['average_accuracy', 'average_position', 'average_shots', 'average_shots_per_minute', 'kd']],
-'max' => ['name' => lang('Maxima'), 'fields' => ['max_score', 'max_skill', 'max_accuracy']],
-'sums' => ['name' => lang('Sumy'), 'fields' => ['games_played', 'total_minutes', 'arenas_played', 'shots', 'hits', 'deaths']],
+'rank' => ['description' => lang('Základní zobrazení. Hráči jsou seřazeni podle jejich herní úrovně.'),'name' => lang('Herní úroveň'), 'fields' => ['games_played', 'rank']],
+'averages' => ['description' => lang('Řazení podle průměrných hodnot hráčů ze všech jejich her.'),'name' => lang('Průměry'), 'fields' => ['average_accuracy', 'average_position', 'average_shots', 'average_shots_per_minute', 'kd']],
+'max' => ['description' => lang('Řazení podle nejlepších výkonů hráčů v jedné hře.'),'name' => lang('Maxima'), 'fields' => ['max_score', 'max_skill', 'max_accuracy']],
+'sums' => ['description' => lang('Řazení podle součtů statistik hráčů.'),'name' => lang('Sumy'), 'fields' => ['games_played', 'total_minutes', 'arenas_played', 'shots', 'hits', 'deaths']],
 ]}
 
 {default array $ranks = []}
@@ -45,143 +45,255 @@
 
 {var array $activeFields = []}
 {if !isset($types[$activeType])}
-	{do $activeType = 'rank'}
+    {do $activeType = 'rank'}
 {/if}
 {foreach $commonFields as $field}
-	{do $activeFields[$field] = $fields[$field]}
+    {do $activeFields[$field] = $fields[$field]}
 {/foreach}
 {foreach $types[$activeType]['fields'] as $field}
-	{do $activeFields[$field] = $fields[$field]}
+    {do $activeFields[$field] = $fields[$field]}
 {/foreach}
 
 {block jumpToUser}
-	{if $userOrder > 0}
-		<p>
-			<a href="#" class="page-link-standalone btn btn-primary" data-toggle="scroll-to" data-delay="500"
-			   data-target="#user-leaderboard-table .table-primary"
-			   data-page="{floor($userOrder / $limit) + 1}">{lang 'Skočit na aktuálního uživatele'}</a>
-		</p>
-	{/if}
+    {if $userOrder > 0}
+        <p class="text-center">
+            <a href="#" class="page-link-standalone btn btn-primary" data-toggle="scroll-to" data-delay="500"
+               data-target="#user-leaderboard-table .table-primary"
+               data-page="{floor($userOrder / $limit) + 1}">{lang 'Skočit na aktuálního uživatele'}</a>
+        </p>
+    {/if}
 {/block}
 
 {block filters}
-	<div class="d-flex flex-wrap justify-content-center justify-content-md-end mb-2">
-		<div class="input-group" style="max-width: 300px;">
-			<input type="search" class="form-control" placeholder="{lang 'Jméno nebo kód hráče'}" name="search"
-				   id="player-search" value="{$_GET['search'] ?? ''}">
-			<button class="btn btn-success" id="search-button">
-				<i class="fa-solid fa-magnifying-glass"></i>
-			</button>
-		</div>
-	</div>
+    <div class="d-flex flex-wrap justify-content-center justify-content-md-end mb-2">
+        <div class="input-group" style="max-width: 300px;">
+            <input type="search" class="form-control" placeholder="{lang 'Jméno nebo kód hráče'}" name="search"
+                   id="player-search" value="{$_GET['search'] ?? ''}">
+            <button class="btn btn-primary" id="search-button" aria-label="{lang 'Hledat'}">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+    </div>
 {/block}
 
 {block typeSelect}
-	<input type="hidden" name="type" value="{$activeType}" id="inputActiveType">
-	<ul class="nav nav-pills justify-content-center">
-		<li class="nav-item" n:foreach="$types as $type => $info">
-			<a n:class="table-type-select, nav-link, $type === $activeType ? active"
-					data-type="{$type}" {if $type === $activeType}aria-current="page"{/if} href="#">
-				{$info['name']}
-			</a>
-		</li>
-	</ul>
+    <input type="hidden" name="type" value="{$activeType}" id="inputActiveType">
+    <ul class="nav nav-pills justify-content-center">
+        <li class="nav-item" n:foreach="$types as $type => $info">
+            <a n:class="table-type-select, nav-link, $type === $activeType ? active"
+                    data-toggle="tooltip" title="{$info['description']}"
+                    data-type="{$type}" {if $type === $activeType}aria-current="page"{/if} href="#">
+                {$info['name']}
+            </a>
+        </li>
+    </ul>
+    <p class="text-center text-muted mt-2">{$types[$activeType]['description']}</p>
 {/block}
 
 {block table}
-	{if empty($players)}
-		<p class="text-center my-5 fs-3">{lang 'Žádní hráči neodpovídají filtrům'}</p>
-	{else}
-		<input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
-		<input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
-		<div class="table-responsive">
-			<table class="table table-striped data-table fs-sm fs-md-6 table--md-sm" id="user-leaderboard-table">
-				<thead>
-				<tr>
-					<th></th>
-					{include tableHead, $activeFields, $orderBy, $desc, 'center'}
-				</tr>
-				</thead>
-				<tbody>
-				<tr n:foreach="$players as $player"
-						n:class="$player->id === $user->id ? table-primary, isset($searchedPlayer) && $player->id === $searchedPlayer->id ? table-success"
-						data-code="{$player->getCode()}">
-					<td>
-						{ifset $ranks[$player->id]}
-							<span {ifset $ranks[$player->id]['difference']}data-toggle="tooltip"
-								  title="{if $ranks[$player->id]['difference'] < 0}+{elseif $ranks[$player->id]['difference'] === 0}+-{/if}{(-$ranks[$player->id]['difference'])}"{/ifset}>
+    {if empty($players)}
+        <p class="text-center my-5 fs-3">{lang 'Žádní hráči neodpovídají filtrům'}</p>
+    {else}
+        <input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
+        <input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
+        <table class="table table-striped data-table data-table-large" id="user-leaderboard-table">
+            <thead>
+            <tr>
+                <th></th>
+                {include tableHead, $activeFields, $orderBy, $desc, 'center', false}
+            </tr>
+            </thead>
+            <tbody>
+            <tr n:foreach="$players as $player" data-href="{link 'user', $player->getCode()}"
+                    n:class="$player->id === $user->id ? table-primary, isset($searchedPlayer) && $player->id === $searchedPlayer->id ? table-success"
+                                                data-code="{$player->getCode()}">
+                <td>
+                    {ifset $ranks[$player->id]}
+                        <span {ifset $ranks[$player->id]['difference']}data-toggle="tooltip"
+                              title="{if $ranks[$player->id]['difference'] < 0}+{elseif $ranks[$player->id]['difference'] === 0}+-{/if}{(-$ranks[$player->id]['difference'])}"{/ifset}>
 								{$ranks[$player->id]['rank']|replace:'. - ','-'}
-								{ifset $ranks[$player->id]['difference']}
-									{if $ranks[$player->id]['difference'] < 0}
-										<i class="fa-solid fa-angle-up text-success"></i>
+                            {ifset $ranks[$player->id]['difference']}
+                                {if $ranks[$player->id]['difference'] < 0}
+                                    <i class="fa-solid fa-angle-up text-success"></i>
 								{elseif $ranks[$player->id]['difference'] > 0}
 									<i class="fa-solid fa-angle-down text-danger"></i>
 								{else}
 									<i class="fa-solid fa-minus text-secondary"></i>
-									{/if}
-								{/ifset}
+                                {/if}
+                            {/ifset}
 							</span>
-						{else}
-							{$iterator->counter + (($p-1) * $limit)}.
-						{/ifset}
-					</td>
-					<td n:foreach="$activeFields as $field => $info" class="text-center"
-							{if $field === 'code'}
-						style="min-width:100px;"
-					{elseif $field === 'total_minutes'}
-						style="min-width:140px;"
-							{/if}>
-						{switch $field}
-							{case 'nickname'}
-							{ifset $player->arena}
-								{$player->arena->getLogoHtml()|noescape}
-							{/ifset}
-							{$player->nickname}
-							{case 'code'}
-							{$player->getCode()}
-							{case 'games_played'}
-							{$player->stats->gamesPlayed}
-							{case 'rank'}
-							{$player->stats->rank}&nbsp;<i class="fa-solid fa-medal"></i>
-						{case 'average_accuracy'}
-						{$player->stats->averageAccuracy|number:2,',',''}&nbsp;%
-						{case 'average_shots'}
-						{$player->stats->averageShots|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
-						{case 'average_shots_per_minute'}
-						{$player->stats->averageShotsPerMinute|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
-						{case 'average_position'}
-						{$player->stats->averagePosition|number:2,',',''}
-						{case 'max_accuracy'}
-						{$player->stats->maxAccuracy}&nbsp;%
-						{case 'max_score'}
-						{$player->stats->maxScore|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'star', '', '1rem'}
-						{case 'max_skill'}
-						{$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-medal"></i>
-							{case 'shots'}
-							{$player->stats->shots|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1rem'}
-							{case 'total_minutes'}
-							{convertMinutesToPartsReadableString($player->stats->totalMinutes)}
-							{case 'arenas_played'}
-							{$player->stats->arenasPlayed}
-							{case 'hits'}
-							{$player->stats->hits|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'kill', '', '1rem'}
-							{case 'deaths'}
-							{$player->stats->deaths|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'skull', '', '1rem'}
-							{case 'kd'}
-							{$player->stats->kd|number:2,',',''}
-						{/switch}
-					</td>
-					<td>
-						<a href="{link ['user', $player->getCode()]}" class="btn btn-primary" data-toggle="tooltip"
-						   title="{lang 'Profil'}">
-							<i class="fa-solid fa-user"></i>
-						</a>
-					</td>
-				</tr>
-				</tbody>
-			</table>
-		</div>
-	{/if}
+                    {else}
+                        {$iterator->counter + (($p-1) * $limit)}.
+                    {/ifset}
+                    <a href="{link ['user', $player->getCode()]}" class="visually-hidden">
+                        {sprintf(lang('Profil uživatele %s'), $player->name)}
+                    </a>
+                </td>
+                <td n:foreach="$activeFields as $field => $info" class="text-center"
+                        {if $field === 'code'}
+                    style="min-width:100px;"
+                {elseif $field === 'total_minutes'}
+                    style="min-width:140px;"
+                        {/if}>
+                    {switch $field}
+                        {case 'nickname'}
+                        {$player->getAvatar()|noescape}
+                        <div class="nickname">
+                            {$player->nickname}
+                        </div>
+                    {include '../title.latte', $player->getTitle(), true}
+                    {case 'code'}
+                        {ifset $player->arena}
+                            {$player->arena->getLogoHtml()|noescape}
+                        {/ifset}
+                        <div class="code">
+                            {$player->getCode()}
+                        </div>
+                    {case 'games_played'}
+                    {$player->stats->gamesPlayed}
+                    {case 'rank'}
+                    {$player->stats->rank}&nbsp;<i class="fa-solid fa-medal"></i>
+                    {case 'average_accuracy'}
+                    {$player->stats->averageAccuracy|number:2,',',''}&nbsp;%
+                    {case 'average_shots'}
+                    {$player->stats->averageShots|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
+                    {case 'average_shots_per_minute'}
+                    {$player->stats->averageShotsPerMinute|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
+                    {case 'average_position'}
+                    {$player->stats->averagePosition|number:2,',',''}
+                    {case 'max_accuracy'}
+                    {$player->stats->maxAccuracy}&nbsp;%
+                    {case 'max_score'}
+                    {$player->stats->maxScore|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'star', '', '1rem'}
+                    {case 'max_skill'}
+                    {$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-medal"></i>
+                        {case 'shots'}
+                        {$player->stats->shots|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1rem'}
+                        {case 'total_minutes'}
+                        {convertMinutesToPartsReadableString($player->stats->totalMinutes)}
+                        {case 'arenas_played'}
+                        {$player->stats->arenasPlayed}
+                        {case 'hits'}
+                        {$player->stats->hits|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'kill', '', '1rem'}
+                        {case 'deaths'}
+                        {$player->stats->deaths|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'skull', '', '1rem'}
+                        {case 'kd'}
+                        {$player->stats->kd|number:2,',',''}
+                    {/switch}
+                </td>
+                {*<td>
+                    <a href="{link ['user', $player->getCode()]}" class="btn btn-primary" data-toggle="tooltip"
+                       title="{lang 'Profil'}">
+                        <i class="fa-solid fa-user"></i>
+                    </a>
+                </td>*}
+            </tr>
+            </tbody>
+        </table>
+        <div class="data-table-mobile mobile-leaderboard" id="user-leaderboard-table-mobile">
+            <label for="sortByMobile">{lang 'Řazení'}:</label>
+            <div class="input-group mt-1 mb-3">
+                <select id="sortByMobile" class="form-select sort-by-mobile">
+                    {foreach $activeFields as $name => $field}
+                        {continueIf !$field['sortable']}
+                        <option value="{$name}" n:attr="selected: $name === $orderBy">{$field['name']}</option>
+                    {/foreach}
+                </select>
+                <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionAsc"
+                       value="asc" autocomplete="off" n:attr="checked: !$desc">
+                <label class="btn btn-outline-secondary" for="mobileOrderDirectionAsc">
+                    <i class="fa-solid fa-angle-up"></i>
+                </label>
+
+                <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionDesc"
+                       value="desc" autocomplete="off" n:attr="checked: $desc">
+                <label class="btn btn-outline-secondary" for="mobileOrderDirectionDesc">
+                    <i class="fa-solid fa-angle-down"></i>
+                </label>
+            </div>
+            <div n:foreach="$players as $player" class="card w-100 my-2 linkable" data-code="{$player->getCode()}"
+                                                 data-href="{link 'user', $player->getCode()}">
+                <div n:class="card-body, $player->id === $user->id ? text-bg-primary, isset($searchedPlayer) && $player->id === $searchedPlayer->id ? text-bg-success">
+                    <a href="{link 'user', $player->getCode()}" class="visually-hidden">
+                        {sprintf(lang('Zobrazit profil hráče %s'), $player->nickname)}
+                    </a>
+                    <div class="rank">
+                        {ifset $ranks[$player->id]}
+                            <span {ifset $ranks[$player->id]['difference']}data-toggle="tooltip"
+                                  title="{if $ranks[$player->id]['difference'] < 0}+{elseif $ranks[$player->id]['difference'] === 0}+-{/if}{(-$ranks[$player->id]['difference'])}"{/ifset}>
+								{$ranks[$player->id]['rank']|replace:'. - ','-'}
+                                {ifset $ranks[$player->id]['difference']}
+                                    {if $ranks[$player->id]['difference'] < 0}
+                                        <i class="fa-solid fa-angle-up text-success"></i>
+								{elseif $ranks[$player->id]['difference'] > 0}
+									<i class="fa-solid fa-angle-down text-danger"></i>
+								{else}
+									<i class="fa-solid fa-minus text-secondary"></i>
+                                    {/if}
+                                {/ifset}
+							</span>
+                        {else}
+                            {$iterator->counter + (($p-1) * $limit)}.
+                        {/ifset}
+                    </div>
+                    <div class="player-head">
+                        {$player->getAvatar()|noescape}
+                        <div class="nickname">
+                            <h4 class="mb-0">{$player->nickname}</h4>
+                            {$player->getCode()}
+                        </div>
+                        {include '../title.latte', $player->getTitle(), true}
+                    </div>
+                    {ifset $player->arena}
+                        <div class="arena">
+                            {$player->arena->getLogoHtml()|noescape}
+                        </div>
+                    {/ifset}
+                    <div class="stats">
+                        {foreach $activeFields as $field => $info}
+                            {continueIf $field === 'nickname' || $field === 'code'}
+                            <div class="stat stat-{$field}" data-toggle="tooltip" title="{$info['name']}">
+                                {switch $field}
+                                    {case 'games_played'}
+                                    {$player->stats->gamesPlayed}&nbsp;{lang 'her'}
+                                    {case 'rank'}
+                                    {$player->stats->rank}&nbsp;<i class="fa-solid fa-medal"></i>
+                                {case 'average_accuracy'}
+                                {$player->stats->averageAccuracy|number:2,',',''}&nbsp;%
+                                {case 'average_shots'}
+                                {$player->stats->averageShots|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
+                                {case 'average_shots_per_minute'}
+                                {$player->stats->averageShotsPerMinute|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
+                                {case 'average_position'}
+                                {$player->stats->averagePosition|number:2,',',''}&nbsp;<i
+                                        class="fa-solid fa-ranking-star"></i>
+                                {case 'max_accuracy'}
+                                {$player->stats->maxAccuracy}&nbsp;%
+                                {case 'max_score'}
+                                {$player->stats->maxScore|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'star', '', '1rem'}
+                                {case 'max_skill'}
+                                {$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp; <i
+                                        class="fa-solid fa-medal"></i>
+                                    {case 'shots'}
+                                    {$player->stats->shots|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1rem'}
+                                    {case 'total_minutes'}
+                                    {convertMinutesToPartsReadableString($player->stats->totalMinutes)}
+                                    {case 'arenas_played'}
+                                    {$player->stats->arenasPlayed}&nbsp;{lang 'aréna', 'arén', $player->stats->arenasPlayed}
+                                    {case 'hits'}
+                                    {$player->stats->hits|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'kill', '', '1rem'}
+                                    {case 'deaths'}
+                                    {$player->stats->deaths|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'skull', '', '1rem'}
+                                    {case 'kd'}
+                                    {$player->stats->kd|number:2,',',''}&nbsp;{lang 'K:D'}
+                                {/switch}
+                            </div>
+                        {/foreach}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
 {/block}
 
 {include pagination, $p, $pages, $limit, $total, 'Zobrazeno %s z %d hráčů'}

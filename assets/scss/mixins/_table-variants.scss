@@ -13,6 +13,7 @@
 		$active-bg: mix($color, $background, percentage($table-active-bg-factor));
 
 		--#{$variable-prefix}table-bg: #{functions.getVarFromColor($background, $custom-colors-light)};
+    --#{$variable-prefix}table-color: #{functions.getVarFromColor($color, $custom-colors-light)};
 		--#{$variable-prefix}table-striped-bg: #{functions.getVarFromColor($striped-bg, $custom-colors-light)};
 		--#{$variable-prefix}table-striped-color: #{functions.getVarFromColor(color-contrast($striped-bg), $custom-colors-light)};
 		--#{$variable-prefix}table-active-bg: #{functions.getVarFromColor($active-bg, $custom-colors-light)};

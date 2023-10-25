@@ -1,0 +1,29 @@
+<div class="modal fade" id="distribution-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{lang 'Umístění', context: 'results'}:</h5>
+                <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
+                        aria-label="{lang 'Close', context: 'actions'}">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h3 id="distribution-title"></h3>
+                <p>
+                    {sprintf(lang('Počet hráčů, který je lepší/horší než vy. Např. pokud jste v %s 10%%, znamená to, že 90%% hráčů mělo nižší hodnotu, než vy. %s 10 %% znamená, že 90 %% hráčů mělo vyšší hodnotu, než vy.'), lang('Nejlepší', context: 'distribution'), lang('Nejhorší', context: 'distribution'))}
+                </p>
+                <select id="distribution-dates" class="form-select">
+                    <option value="all">{lang 'Od počátku věků'}</option>
+                    <option value="year">{lang 'Tento rok'}</option>
+                    <option value="month">{lang 'Tento měsíc'}</option>
+                    <option value="week">{lang 'Tento týden'}</option>
+                    <option value="day">{lang 'Tento den'}</option>
+                </select>
+                <canvas id="distribution-chart" data-label="{lang 'Počet'}"
+                        data-top="{lang 'Nejlepší', context: 'distribution'}"
+                        data-bottom="{lang 'Nejhorší', context: 'distribution'}"></canvas>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,140 @@
+.achievement-card {
+  --rarity-color: var(--bs-secondary);
+  --text-color: #fff;
+  display: block;
+  border-radius: var(--bs-border-radius);
+  padding: 1rem;
+  width: 14rem;
+
+  button.btn {
+    --bs-btn-color: var(--text-color);
+  }
+
+  &.achievement-claimed {
+    color: var(--text-color);
+    background: var(--rarity-color);
+    border: none;
+  }
+
+  &.achievement-unclaimed {
+    color: var(--rarity-color);
+    border: 1px solid var(--rarity-color);
+    background: var(--background);
+  }
+
+  &.rarity-common {
+    --rarity-color: var(--dark-grey);
+    --text-color: var(--white);
+  }
+
+  &.rarity-uncommon {
+    --rarity-color: var(--bs-success);
+  }
+
+  &.rarity-rare {
+    --rarity-color: var(--primary);
+
+    &.achievement-claimed {
+      box-shadow: 0 3px 0 3px rgba(0, 0, 0, 0.40) inset, 0px -5px 0px -3px rgba(255, 255, 255, 0.25) inset;
+    }
+  }
+
+  &.rarity-legendary {
+    --rarity-color: var(--gold);
+    --text-color: #000;
+
+    &.achievement-claimed {
+      background: linear-gradient(to bottom right, #F8F9F0 0%, #C2B11D 23%, #D3CA75 50%) bottom right / 50% 50% no-repeat, linear-gradient(to bottom left, #F8F9F0 0%, #C2B11D 23%, #D3CA75 50%) bottom left / 50% 50% no-repeat, linear-gradient(to top left, #F8F9F0 0%, #C2B11D 23%, #D3CA75 50%) top left / 50% 50% no-repeat, linear-gradient(to top right, #F8F9F0 0%, #C2B11D 23%, #D3CA75 50%) top right / 50% 50% no-repeat;
+      box-shadow: 0 0 3px 2px #FFF inset;
+    }
+  }
+
+  &.rarity-epic {
+    --rarity-color: var(--purple-500);
+
+    &.achievement-claimed {
+      background: linear-gradient(270deg, #8832F0 32.81%, #4F1495 100%);
+    }
+  }
+
+  &.rarity-mythic {
+    --rarity-color: var(--bs-danger);
+
+    &.achievement-claimed {
+      background: linear-gradient(to bottom right, #F6B5B5 0%, #C92626 50%) bottom right / 50% 50% no-repeat, linear-gradient(to bottom left, #F6B5B5 0%, #C92626 50%) bottom left / 50% 50% no-repeat, linear-gradient(to top left, #F6B5B5 0%, #C92626 50%) top left / 50% 50% no-repeat, linear-gradient(to top right, #F6B5B5 0%, #C92626 50%) top right / 50% 50% no-repeat;
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.80);
+    }
+  }
+
+  svg {
+    margin-bottom: .5rem;
+  }
+
+  .title {
+
+  }
+
+  .description {
+
+  }
+
+  .claim-percent {
+    font-size: .8em;
+  }
+
+  .claim-info {
+    .btn {
+      display: block;
+    }
+  }
+}
+
+.achievement-group {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  align-items: stretch;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+
+  .achievement-card {
+    --index: 0;
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    transition: transform 200ms ease-out, filter 200ms ease-in-out;
+
+    z-index: calc(11 - var(--index));
+    transform: rotate(calc(var(--index) * -2deg)) translate(calc(var(--index) * -1px), calc(var(--index) * -5px));
+    filter: brightness(calc(11 / (11 - var(--index))));
+
+    @for $i from 1 through 10 {
+      &:nth-last-child(#{$i}) {
+        --index: #{$i - 1};
+      }
+    }
+
+    &.animating {
+      transition: transform 300ms ease-in-out, filter 200ms ease-in-out;
+    }
+
+    &.move-back {
+      transform: rotate(5deg) translate(120%, 0) !important;
+    }
+  }
+
+
+  &:hover {
+    z-index: 20;
+
+    .achievement-card {
+      transform: rotate(calc(var(--index) * -5deg)) translate(calc(var(--index) * -2px), calc(var(--index) * -15px));
+    }
+  }
+}

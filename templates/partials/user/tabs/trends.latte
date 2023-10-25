@@ -6,8 +6,8 @@
 	</div>
 </div>
 <div id="trends-stats" class="d-none py-3" data-track-content="" data-content-name="Trendy">
-	<h3>{lang 'Trendy'}</h3>
-	<h4>{lang 'Trendy za posledních 10 her'}</h4>
+    <h3 class="text-center">{lang 'Trendy'}</h3>
+    <h4 class="text-center">{lang 'Trendy za posledních 10 her'}</h4>
 	<div class="d-flex flex-wrap g-2 justify-content-evenly align-items-center">
 		{include trend,
 		'rank-trend',
@@ -15,7 +15,7 @@
 		lang('Za posledních 10 her se ti podařilo zvýšit svojí herní úroveň.'),
 		lang('Za posledních 10 her se ti bohužel herní úroveň snížila. Z toho si ale nic nedělej, příští hry se musíš trochu víc snažit!'),
 		lang('Tvoje herní úroveň se nezměnila.'),
-		'primary'
+        'secondary'
 		}
 		{include trend,
 		'accuracy-trend',
@@ -23,7 +23,7 @@
 		lang('Za posledních 10 her si měl vyšší přesnost, než dříve.'),
 		lang('Za posledních 10 her si měl horší přesnost než dříve.'),
 		lang('Za posledních 10 her se ti nijak výrazně nezměnila tvá průměrná přesnost.'),
-		'success'
+        'purple-400'
 		}
 		{include trend,
 		'average-shots-trend',
@@ -31,10 +31,10 @@
 		lang('Za posledních 10 her si střílel/a více než je tvůj průměr.'),
 		lang('Za posledních 10 her si střílel/a méně než je tvůj průměr.'),
 		lang('Za posledních 10 her si střílel/a průměrně stejně.'),
-		'warning'
+        'danger'
 		}
 	</div>
-	<h4 class="mt-4">{lang 'Trendy za posledních 30 dní'}</h4>
+    <h4 class="mt-4 text-center">{lang 'Trendy za posledních 30 dní'}</h4>
 	<div class="d-flex flex-wrap g-2 justify-content-evenly align-items-center">
 		{include trend,
 		'game-count-trend',
@@ -42,7 +42,7 @@
 		lang('Za posledních 30 dní si odehrál/a více her, než předchozí měsíc. Jen tak dál!'),
 		lang('Za posledních 30 dní si odehrál/a méně her, než předchozí měsíc. Nechceš si jít zahrát?'),
 		lang('Za posledních 30 dní si odehrál/a stejně her, jako předchozí měsíc.'),
-		'info'
+        'secondary'
 		}
 		{include trend,
 		'rankable-game-count-trend',
@@ -50,7 +50,7 @@
 		lang('Za posledních 30 dní si odehrál/a více klasických her, než předchozí měsíc. Jen tak dál!'),
 		lang('Za posledních 30 dní si odehrál/a méně klasických her, než předchozí měsíc. Nechceš si jít zahrát?'),
 		lang('Za posledních 30 dní si odehrál/a stejně klasických her, jako předchozí měsíc.'),
-		'info'
+        'purple-400'
 		}
 		{include trend,
 		'rank-order-trend',
@@ -58,7 +58,7 @@
 		lang('Za posledních 30 dní si se v žebříčku posunul/a nahoru. Jen tak dál!'),
 		lang('Za posledních 30 dní tě v žebříčku někdo přeskočil. Co takhle si jít zahrát?'),
 		lang('Za posledních 30 dní si se v žebříčku vůbec neposunul/a. Co takhle si jít zahrát a změnit to?'),
-		'primary'
+        'danger'
 		}
 		{include trend,
 		'sum-shots-trend',
@@ -66,7 +66,7 @@
 		lang('Za posledních 30 dní si vystřelil/a vícekrát, než předchozí měsíc.'),
 		lang('Za posledních 30 dní si vystřelil/a méněkrát, než předchozí měsíc.'),
 		lang('Za posledních 30 dní si vystřelil/a stejně, jako předchozí měsíc.'),
-		'warning'
+        'secondary'
 		}
 		{include trend,
 		'sum-hits-trend',
@@ -74,7 +74,7 @@
 		lang('Za posledních 30 dní si zastřelil/a víc protihráčů, než předchozí měsíc.'),
 		lang('Za posledních 30 dní si zastřelil/a méně protihráčů, než předchozí měsíc.'),
 		lang('Za posledních 30 dní si zastřelil/a stejně protihráčů, jako předchozí měsíc.'),
-		'purple-500'
+        'purple-400'
 		}
 		{include trend,
 		'sum-deaths-trend',
@@ -87,10 +87,10 @@
 	</div>
 </div>
 
-{define trend, string $id, string $label, string $tooltipRising, string $tooltipFalling, string $tooltipStable, string $text = '', string $bg = 'light'}
-	<div class="card m-2 trend stable" id="{$id}" data-tooltip-rising="{$tooltipRising}"
+{define trend, string $id, string $label, string $tooltipRising, string $tooltipFalling, string $tooltipStable, string $text = '', string $bg = 'background-2'}
+    <div class="card m-2 trend stable bg-background-1" id="{$id}" data-tooltip-rising="{$tooltipRising}"
 		 data-tooltip-falling="{$tooltipFalling}" data-tooltip-stable="{$tooltipStable}" data-content-piece="{$label}">
-		<div class="card-body d-flex align-items-center {if !empty($text)}text-{$text}{/if}">
+        <div class="card-body d-flex align-items-center text-center {if !empty($text)}text-{$text}{/if}">
 			<div class="trend-icon">
 				<div class="bg-{$bg} rising trend-icon-inner">
 					<i class="fa-solid fa-angle-up"></i>

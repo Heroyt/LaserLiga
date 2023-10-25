@@ -1,4 +1,4 @@
-{define tableHead, array $fields, string $orderBy, bool $desc, string $justify = 'between'}
+{define tableHead, array $fields, string $orderBy, bool $desc, string $justify = 'between', bool $actionsColumn = true}
 	<th n:foreach="$fields as $name => $field" data-name="{$name}"
 			{if $field['sortable']}data-sortable="true"{/if}
 					n:class="$field['sortable'] ? sortable, $orderBy === $name && !$desc ? 'sort-asc', $orderBy === $name && $desc ? 'sort-desc'">
@@ -11,14 +11,14 @@
 						</span>
 		</div>
 	</th>
-	<th></th>
+    <th n:if="$actionsColumn"></th>
 {/define}
 {define pagination, int $p, int $pages, int $limit, int $total, string $shownLabel = 'Zobrazeno %s z %d'}
 	<input type="hidden" id="inputPage" name="p" value="{$p}">
 	<nav aria-label="{lang 'Navigace'}">
 		<ul class="pagination justify-content-center">
 			<li class="page-item" n:if="$p > 1">
-				<a class="page-link previous" href="#" data-page="{$p-1}">
+                <a class="page-link previous" href="#" data-page="{$p-1}" aria-label="{lang 'Předchozí stránka'}">
 					<i class="fa-solid fa-angle-left"></i>
 				</a>
 			</li>
@@ -28,9 +28,9 @@
 				</a>
 			</li>
 			<li class="page-item disabled" n:if="$p > 4">
-				<a class="page-link" href="#">
+				<span class="page-link">
 					<i class="fa-solid fa-ellipsis"></i>
-				</a>
+				</span>
 			</li>
 			<li n:for="$i = $p >= 3 ? $p-2 : 1; $i <= $p+2 && $i <= $pages; $i++" n:class="'page-item', $p === $i ? active">
 				<a class="page-link" href="#" data-page="{$i}">
@@ -38,9 +38,9 @@
 				</a>
 			</li>
 			<li class="page-item disabled" n:if="$p < $pages-3">
-				<a class="page-link" href="#">
+				<span class="page-link">
 					<i class="fa-solid fa-ellipsis"></i>
-				</a>
+				</span>
 			</li>
 			<li class="page-item" n:if="$p < $pages-2">
 				<a class="page-link" href="#" data-page="{$pages}">
@@ -48,13 +48,13 @@
 				</a>
 			</li>
 			<li class="page-item" n:if="$p < $pages">
-				<a class="page-link next" href="#" data-page="{$p+1}">
+                <a class="page-link next" href="#" data-page="{$p+1}" aria-label="{lang 'Další stránka'}">
 					<i class="fa-solid fa-angle-right"></i>
 				</a>
 			</li>
 		</ul>
 	</nav>
-	<p>
+    <p class="text-center">
 		<select n:capture="$select" class="form-select d-inline-block" style="width: auto;" name="l" id="limit">
 			<option n:foreach="[5, 10, 15, 20, 50, 100] as $value"
 					value="{$value}" {if $value === $limit}selected{/if}>

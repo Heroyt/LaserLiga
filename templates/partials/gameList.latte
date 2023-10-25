@@ -1,0 +1,337 @@
+{import 'dataTable.latte'}
+
+{varType App\GameModels\Game\Game[] $games}
+{default bool $selectFields = true}
+{default bool $paginate = true}
+{default int $p = 0}
+{default int $pages = 1}
+{default int $limit = 15}
+{default int $total = 0}
+{default string $orderBy = 'start'}
+{default bool $desc = true}
+
+{default \DateTimeImmutable|null $date = null}
+{default string[] $dates = []}
+{default bool $currentUser = false}
+{default App\Models\Auth\User|null $user = null}
+
+
+{default int[] $modeIds = []}
+
+{default array $allFields = [
+'start'    => ['name' => lang('Datum'), 'personal' => false, 'mandatory' => true, 'sortable' => true],
+'id_arena' => ['name' => lang('Aréna'), 'personal' => false, 'mandatory' => true, 'sortable' => true],
+'modeName' => ['name' => lang('Herní mód'), 'personal' => false, 'mandatory' => true, 'sortable' => true],
+'players'  => ['name' => lang('Hráči'), 'personal' => false, 'mandatory' => false, 'sortable' => false],
+'score'    => ['name' => lang('Skóre'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'accuracy' => ['name' => lang('Přesnost'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'shots'    => ['name' => lang('Výstřely'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'hits'     => ['name' => lang('Zásahy'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'deaths'   => ['name' => lang('Smrti'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'kd'       => ['name' => lang('K:D'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'skill'    => ['name' => lang('Herní úroveň'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+]}
+{default array $fields = [
+'start' => ['name' => lang('Datum'), 'sortable' => true],
+'modeName' => ['name' => lang('Herní mód'), 'sortable' => true],
+'players' => ['name' => lang('Hráči'), 'sortable' => false],
+]}
+
+{block gamesTable}
+    {block filters}
+        <h4 class="text-center">{lang 'Filtry'}</h4>
+        {if $selectFields}
+            {block shownColumns}
+                <div class="row my-3 game-filter-columns">
+                    <button type="button" class="btn btn-secondary w-100 collapsed d-flex justify-content-center"
+                            data-bs-toggle="collapse" data-bs-target="#fields-filters">
+                        {lang 'Upravit zobrazené sloupce'}
+                        <div class="collapse-indicator ms-3">
+                            <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+                            <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                        </div>
+                    </button>
+                    <div class="collapse p-2" id="fields-filters">
+                        <div class="d-flex justify-content-center mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input" data-action="check-all" data-target=".field-check"
+                                       type="checkbox" id="allFields"
+                                       {if count($fields) === count($allFields)}checked{/if}>
+                                <label class="form-check-label" for="allFields">
+                                    {lang 'Vše'}
+                                </label>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex flex-wrap justify-content-evenly">
+                            <div n:foreach="$allFields as $name => $field" class="form-check m-2">
+                                <input class="form-check-input field-check" type="checkbox" value="{$name}"
+                                       id="fieldFilter{$name}"
+                                       name="fields[]"
+                                       {if $field['mandatory']}disabled{/if}
+                                        {if $field['mandatory'] || isset($fields[$name])}checked{/if}>
+                                <label class="form-check-label" for="fieldFilter{$name}">
+                                    {$field['name']}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {/block}
+        {/if}
+        <div class="row">
+            {block gameModes}
+                <div class="col-md-8 col-lg-7 my-3">
+                    <button type="button" class="btn btn-secondary w-100 collapsed d-flex justify-content-center"
+                            data-bs-toggle="collapse" data-bs-target="#modes-filters">
+                        {lang 'Herní módy'}
+                        <div class="collapse-indicator ms-3">
+                            <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
+                            <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                        </div>
+                    </button>
+                    {var App\GameModels\Game\GameModes\AbstractMode[] $allModes = \App\GameModels\Factory\GameModeFactory::getAll()}
+                    {var bool $checkedAllRanked = true}
+                    {foreach $allModes as $mode}
+                        {if ($mode->rankable && !in_array($mode->id, $modeIds, true)) || (!$mode->rankable && in_array($mode->id, $modeIds, true))}
+                            {do $checkedAllRanked = false}
+                            {breakIf true}
+                        {/if}
+                    {/foreach}
+                    <div class="collapse p-2" id="modes-filters">
+                        <div class="d-flex justify-content-center mt-2">
+                            <div class="form-check m-2">
+                                <input class="form-check-input" data-action="check-all" data-target=".mode-check"
+                                       type="checkbox" id="allModes"
+                                       {if empty($modeIds) || count($modeIds) === count($allModes)}checked{/if}>
+                                <label class="form-check-label" for="allModes">
+                                    {lang 'Vše'}
+                                </label>
+                            </div>
+                            <div class="form-check m-2">
+                                <input class="form-check-input" data-action="check-all" data-target=".mode-check-ranked"
+                                       data-uncheck=".mode-check-unranked"
+                                       type="checkbox" id="rankedModes"
+                                       {if $checkedAllRanked}checked{/if}>
+                                <label class="form-check-label" for="rankedModes">
+                                    {lang 'Klasické módy'}
+                                </label>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex flex-wrap justify-content-evenly">
+                            <div n:foreach="$allModes as $mode" class="form-check m-2">
+                                <input class="form-check-input mode-check {if $mode->rankable}mode-check-ranked{else}mode-check-unranked{/if}"
+                                       type="checkbox" value="{$mode->id}"
+                                       id="modeFilter{$mode->id}"
+                                       name="modes[]"
+                                       {if empty($modeIds) || in_array($mode->id, $modeIds, true)}checked{/if}>
+                                <label class="form-check-label" for="modeFilter{$mode->id}">
+                                    {lang $mode->name, context: 'gameModes'}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {/block}
+            {block date}
+                <div class="col-md-4 col-lg-3 my-3">
+                    <div class="input-group">
+                        <input type="date" class="form-control date-picker"
+                               value="{ifset $date}{$date->format('d.m.Y')}{/ifset}"
+                               name="date" id="date" data-max="{date('d.m.Y')}" placeholder="{date('d.m.Y')}"
+                               data-events="{json_encode($dates)}">
+                        <button type="button" class="btn btn-danger" data-toggle="clear" data-target="#date"
+                                aria-label="{lang 'Smazat filtr'}">
+                            <i class="fa-solid fa-ban"></i>
+                        </button>
+                    </div>
+                </div>
+            {/block}
+            {block submitFilter}
+                <div class="col-12 col-lg-2 text-center my-3">
+                    <button class="btn btn-primary" type="submit"><i class="fa-solid fa-filter"></i> {lang 'Filtrovat'}
+                    </button>
+                </div>
+            {/block}
+        </div>
+    {/block}
+
+    {block table}
+        {if empty($games)}
+            <p class="text-center my-5 fs-3">{lang 'Žádné hry neodpovídají filtrům'}</p>
+        {else}
+            <input type="hidden" id="inputOrderBy" name="orderBy" value="{$orderBy}">
+            <input type="hidden" id="inputDir" name="dir" value="{$desc ? 'desc' : 'asc'}">
+            <table class="table table-striped data-table data-table-large" id="{block tableId}gamesListTable{/block}">
+                <thead>
+                <tr>
+                    {include tableHead, $fields, $orderBy, $desc}
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $games as $game}
+                    <tr data-code="{$game->code}" data-href="{link 'game', $game->code}">
+                        {var App\GameModels\Game\Player $userPlayer = null}
+                        {foreach $game->getPlayers() as $player}
+                            {varType App\GameModels\Game\Player $player}
+                            {if isset($player->user) && $player->user->id === $user->id}
+                                {do $userPlayer = $player}
+                                {breakIf true}
+                            {/if}
+                        {/foreach}
+                        <td>
+                            {$game->start->format('d.m.Y H:i')}
+                            <a href="{link 'game', $game->code}" class="visually-hidden">
+                                {sprintf(lang('Zobrazit výsledky ze hry %s'), $game->arena?->name.' '.$game->start->format('d.m.Y H:i'))}
+                            </a>
+                        </td>
+                        <td n:ifset="$fields['arena']">{$game->arena->getLogoHtml()|noescape}</td>
+                        <td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
+                        <td n:ifset="$fields['players']">
+						<span n:foreach="$game->getPlayersSorted() as $player"
+                                n:tag="isset($player->user) ? 'a' : 'span'"
+                                {ifset $player->user}
+                                    href="{link ['user', $player->user->getCode()]}"
+                                {/ifset}
+						data-toggle="tooltip"
+                        title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
+                        class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+					{$player->position}.&nbsp;{$player->name}
+				</span>
+                        </td>
+                        <td n:ifset="$fields['score']">
+                            {$userPlayer->score} <i class="fa-solid fa-star"></i>
+                        </td>
+                        <td n:ifset="$fields['accuracy']">
+                            {$userPlayer->accuracy}&nbsp;%
+                        </td>
+                        <td n:ifset="$fields['shots']">
+                            {$userPlayer->shots}
+                        </td>
+                        <td n:ifset="$fields['hits']">
+                            {$userPlayer->hits}
+                        </td>
+                        <td n:ifset="$fields['deaths']">
+                            {$userPlayer->deaths}
+                        </td>
+                        <td n:ifset="$fields['kd']">
+                            {($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
+                        </td>
+                        <td n:ifset="$fields['skill']">
+                            {$userPlayer->skill} <i class="fa-solid fa-medal"></i>
+                        </td>
+                        <td>
+                        <span class="btn-group">
+                            <a href="{link ['game', $game->code]}" class="btn btn-secondary" data-toggle="tooltip"
+                               title="{lang 'Výsledky'}">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            {block additionalActions}{/block}
+                        </span>
+                        </td>
+                    </tr>
+                {/foreach}
+                </tbody>
+            </table>
+            <div class="data-table-mobile mobile-games-list" id="{include tableId}-mobile">
+                <label for="sortByMobile">{lang 'Řazení'}:</label>
+                <div class="input-group mt-1 mb-3">
+                    <select id="sortByMobile" class="form-select sort-by-mobile">
+                        {foreach $fields as $name => $field}
+                            {continueIf !$field['sortable']}
+                            <option value="{$name}" n:attr="selected: $name === $orderBy">{$field['name']}</option>
+                        {/foreach}
+                    </select>
+                    <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionAsc"
+                           value="asc" autocomplete="off" n:attr="checked: !$desc">
+                    <label class="btn btn-outline-secondary" for="mobileOrderDirectionAsc">
+                        <i class="fa-solid fa-angle-up"></i>
+                    </label>
+
+                    <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionDesc"
+                           value="desc" autocomplete="off" n:attr="checked: $desc">
+                    <label class="btn btn-outline-secondary" for="mobileOrderDirectionDesc">
+                        <i class="fa-solid fa-angle-down"></i>
+                    </label>
+                </div>
+                <div n:foreach="$games as $game" data-code="{$game->code}" class="card w-100 my-2 linkable"
+                                                 data-href="{link 'game', $game->code}">
+                    <div class="card-body">
+                        <a href="{link 'game', $game->code}" class="visually-hidden">
+                            {sprintf(lang('Zobrazit výsledky ze hry %s'), $game->arena?->name.' '.$game->start->format('d.m.Y H:i'))}
+                        </a>
+                        {ifset $user}
+                            {foreach $game->getPlayers() as $player}
+                                {varType App\GameModels\Game\Player $player}
+                                {if isset($player->user) && $player->user->id === $user->id}
+                                    {do $userPlayer = $player}
+                                    {breakIf true}
+                                {/if}
+                            {/foreach}
+                        {/ifset}
+
+                        <div class="date-mode">
+                            <div class="date">
+                                <i class="me-1 fa-solid fa-calendar-days"></i>
+                                {$game->start->format('d.m.Y H:i')}
+                            </div>
+                            <div n:ifset="$game->mode" class="mode">
+                                <i class="me-1 fa-solid fa-gun"></i>
+                                {lang $game->mode->name, context: 'gameModes'}
+                            </div>
+                        </div>
+                        <div class="actions">
+                            {include additionalActions}
+                        </div>
+                        {$game->arena->getLogoHtml()|noescape}
+
+                        <div n:ifset="$fields['players']" class="players">
+                            <span n:foreach="$game->getPlayersSorted() as $player"
+                                    n:tag="isset($player->user) ? 'a' : 'span'"
+                                    {ifset $player->user}href="{link ['user', $player->user->getCode()]}"{/ifset}
+                                    data-toggle="tooltip"
+                                    title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
+                                    class="badge m-1 bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+                                {$player->position}.&nbsp;{$player->name}
+                            </span>
+                        </div>
+
+                        <div class="stats">
+                            <div n:ifset="$fields['score']" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
+                                {$userPlayer->score} <i class="fa-solid fa-star"></i>
+                            </div>
+                            <div n:ifset="$fields['accuracy']" class="accuracy" data-toggle="tooltip"
+                                                               title="{lang 'Přesnost'}">
+                                {$userPlayer->accuracy}&nbsp;%
+                            </div>
+                            <div n:ifset="$fields['shots']" class="shots" data-toggle="tooltip"
+                                                            title="{lang 'Výstřely'}">
+                                {$userPlayer->shots} {svgIcon 'bullets', '', '1em'}
+                            </div>
+                            <div n:ifset="$fields['hits']" class="hits" data-toggle="tooltip" title="{lang 'Zásahy'}">
+                                {$userPlayer->hits} {svgIcon 'kill', '', '1rem'}
+                            </div>
+                            <div n:ifset="$fields['deaths']" class="deaths" data-toggle="tooltip"
+                                                             title="{lang 'Smrti'}">
+                                {$userPlayer->deaths} {svgIcon 'skull', '', '1rem'}
+                            </div>
+                            <div n:ifset="$fields['kd']" class="kd" data-toggle="tooltip" title="{lang 'Zásahy:Smrti'}">
+                                {($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
+                                K:D
+                            </div>
+                            <div n:ifset="$fields['skill']" class="skill" data-toggle="tooltip"
+                                                            title="{lang 'Herní úroveň'}">
+                                {$userPlayer->skill} <i class="fa-solid fa-medal"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/if}
+    {/block}
+
+    {if $paginate}
+        {include pagination, $p, $pages, $limit, $total, 'Zobrazeno %s z %d her'}
+    {/if}
+{/block}

@@ -5,11 +5,14 @@
 @import '~bootstrap/scss/maps';
 @import '../mixins';
 
+@import '../components/achievements';
+@import '../components/titles';
+
 .player-profile {
 	display: grid;
-	grid-gap: 4rem 1rem;
-	grid-template-areas: 'arena header' 'games stats';
-	grid-template-columns: 1fr 2fr;
+  grid-gap: 2rem 1rem;
+  grid-template-areas: 'header games' 'stats stats';
+  grid-template-columns: 3fr 2fr;
 
 
 	@include media-breakpoint-down(lg) {
@@ -17,28 +20,86 @@
 	}
 
 	@include media-breakpoint-down(md) {
-		grid-template-areas: 'header' 'arena' 'stats' 'games';
+    grid-template-areas: 'header' 'stats' 'games';
 		grid-template-columns: 100%;
 	}
 
-	header {
-		align-self: center;
-		grid-area: header;
-	}
+  .player-avatar {
+    height: 16rem;
+    margin: 0 auto;
+    position: relative;
+    display: block;
+    border-radius: 50%;
+    padding: 2rem;
+    background-color: var(--background-2);
+  }
 
-	.home-arena {
-		align-self: center;
-		grid-area: arena;
+	header {
+		grid-area: header;
+    text-align: center;
+
+    h1 {
+      font-weight: 800;
+      font-size: 4rem;
+      color: var(--bs-primary);
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-gap: 1rem;
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .arena-logo {
+      max-height: 6rem;
+    }
 	}
 
 	.last-games {
 		grid-area: games;
 
-		table {
-			td {
-				vertical-align: middle;
-			}
-		}
+    .games-list {
+      display: flex;
+      flex-direction: column;
+
+      .game-row {
+        display: grid;
+        grid-template-columns: 1fr 3rem 1fr auto;
+        grid-gap: .5rem;
+        margin: .5rem 0;
+        padding: .5rem 1rem;
+        background-color: var(--background-1);
+        text-decoration: none;
+        color: var(--text);
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        .skill {
+          text-align: right;
+        }
+
+        &:nth-child(even) {
+          background-color: var(--background-2);
+        }
+
+        &:hover {
+          filter: brightness(1.2);
+        }
+      }
+    }
 
 		.arena-logo {
 			max-height: 3rem;
@@ -46,8 +107,12 @@
 		}
 	}
 
-	.stats {
+  > .stats {
 		grid-area: stats;
+
+    a {
+      color: var(--text);
+    }
 
 		path, circle, rect {
 			fill: currentColor;

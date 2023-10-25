@@ -1,0 +1,34 @@
+{varType App\Models\Arena $arena}
+
+<h2 class="my-3 text-center">{lang 'Informace o aréně'}:</h2>
+
+<div itemscope itemtype="https://schema.org/Organization">
+    <meta itemprop="identifier" content="{link 'arena', $arena->id}">
+    <meta itemprop="logo" content="{$arena->getLogoUrl()}">
+    <meta itemprop="name" content="{$arena->name}">
+    <meta itemprop="url" content="{link 'arena', $arena->id}">
+    <p n:ifset="$arena->web">
+        <strong>{lang 'Web'}:</strong>
+        <a itemprop="url" href="{$arena->web}">{$arena->web}</a>
+    </p>
+    <p n:ifset="$arena->contactEmail">
+        <strong>{lang 'E-mail'}:</strong>
+        <meta itemprop="email" content="{$arena->contactEmail}">
+        <a href="mailto:{$arena->contactEmail}">{$arena->contactEmail}</a>
+    </p>
+    <p n:ifset="$arena->contactPhone">
+        <strong>{lang 'Telefon'}:</strong>
+        <meta itemprop="telephone" content="{$arena->contactPhone}">
+        <a href="tel:{$arena->contactPhone}">{$arena->contactPhone}</a>
+    </p>
+    <p n:if="$arena->address->isFilled()">
+        <strong>{lang 'Adresa'}:</strong>
+        {$arena->address}
+    <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+        <meta n:ifset="$arena->address->street" itemprop="streetAddress" content="{$arena->address->street}">
+        <meta n:ifset="$arena->address->city" itemprop="addressLocality" content="{$arena->address->city}">
+        <meta n:ifset="$arena->address->postCode" itemprop="postalCode" content="{$arena->address->postCode}">
+        <meta n:ifset="$arena->address->country" itemprop="addressCountry" content="{$arena->address->country}">
+    </div>
+    </p>
+</div>

@@ -1,0 +1,49 @@
+{parameters
+    array $tabs,
+    string $id,
+    string $name,
+    string $classes = '',
+    string $activeTab = ''
+}
+
+<ul class="nav nav-tabs {$classes}" id="{$id}" role="tablist" data-track-content="" data-content-name="{$name}">
+    {foreach $tabs as $tabId => $tabInfo}
+        {continueIf !($tabInfo['condition'] ?? true)}
+        {block 'tab-'.$tabId}
+            <li class="nav-item" role="presentation">
+                {if ($tabInfo['type'] ?? '') === 'link'}
+                    <a href="{link $tabInfo['link']}" class="nav-link" id="{$tabId}-control"
+                       data-content-piece="{$tabInfo['piece'] ?? ''}">
+                        {lang $tabInfo['name']}
+                    </a>
+                {else}
+                {var bool $active = ($activeTab === $tabId || (empty($activeTab) && $iterator->first))}
+                    <a n:class="nav-link, $active ? active"
+                            id="{$tabId}-control" data-bs-toggle="tab"
+                            data-bs-target="#{$tabId}"
+                            {ifset $tabInfo['link']}data-link="{link $tabInfo['link']}"{/ifset}
+                            href="{ifset $tabInfo['link']}{link $tabInfo['link']}{else}#{$tabId}{/ifset}"
+                            role="tab" aria-controls="{$tabId}" aria-selected="{if $active}true{else}false{/if}"
+                            data-content-piece="{$tabInfo['piece'] ?? ''}">
+                        {lang $tabInfo['name']}
+                    </a>
+                {/if}
+            </li>
+        {/block}
+    {/foreach}
+</ul>
+<div class="tab-content pt-4" id="{$id}">
+    {foreach $tabs as $tabId => $tabInfo}
+        {continueIf !($tabInfo['condition'] ?? true) || ($tabInfo['type'] ?? '') === 'link'}
+        {block 'tab-content-'.$tabId}
+            {var bool $active = ($activeTab === $tabId || (empty($activeTab) && $iterator->first))}
+            <div class="tab-pane fade {if $active}show active{/if}" id="{$tabId}" role="tabpanel"
+                 aria-labelledby="{$tabId}-control"
+                 data-track-content="" data-content-name="{$tabInfo['piece'] ?? ''} tab" tabindex="0">
+                {block $tabId.'-content'}
+                    {include $tabInfo['template'], ...($tabInfo['params'] ?? $tabInfo['parameters'] ?? [])}
+                {/block}
+            </div>
+        {/block}
+    {/foreach}
+</div>

@@ -10,6 +10,11 @@ $custom-colors-dark: (
 		'200': ('color': #262626, 'alias': 'very-light'),
 		'300': ('color': #707070, 'alias': 'light'),
 	),
+        "background": (
+                '0': ('color': #090e15, 'alias': 'background'),
+                '1': #161f2f, //#1a2538,
+                '2': #323c4e,
+        ),
 	'grey': (
 		"100": ('color': #f1f3f5, 'alias': 'dark'),
 		'400': ('color': #ced4da, 'alias': 'dark-grey'),
@@ -19,7 +24,6 @@ $custom-colors-dark: (
 	),
 	'blue': (
 		'200': ('color': #ade6fd, 'alias': 'dark-blue'),
-		'bg': ('color': #192029, 'alias': 'background'),
 	),
 	'cyan': (
 		'200': ('color': #a6faf1, 'alias': 'dark-cyan'),

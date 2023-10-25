@@ -8,169 +8,200 @@
 {var bool $currentUser = isset($loggedInUser) && $loggedInUser->id === $user->id}
 
 <div class="player-profile">
-	<header>
-		<h1>
-			{lang 'Profil uživatele'}: <br>
-			{$user->name}
-			<span n:ifset="$user->player" class="font-monospace">({$user->player->getCode()})</span>
-			<i n:if="!$showCompare" class="fa-solid fa-circle-question fs-4" data-toggle="tooltip"
-									style="line-height: 2.5rem;vertical-align: middle;"
-									title="{sprintf(lang('Tvůj kód %s je unikátní identifikátor, pod kterým tě aréna vždy při zadávání hry najde.'), $user->player->getCode())}"></i>
-		</h1>
-		<p class="mt-3">
-			<button n:if="!$showCompare" type="button" class="btn btn-info" data-bs-toggle="modal"
-										 data-bs-target="#user-help-modal">
-				<i class="fa-solid fa-circle-question"></i> {lang 'Nápověda'}
-			</button>
-		</p>
-	</header>
+    <header>
+        {$user->player->getAvatar()|noescape}
+        <h1 class="mt-2">
+            <span class="visually-hidden">{lang 'Profil uživatele'}:</span>
+            {$user->name}
+        </h1>
+        <h2 n:ifset="$user->player">
+            <span class="visually-hidden">{lang 'Herní kód hráče'}:</span>
+            {$user->player->getCode()}
+            <button n:if="$currentUser" class="btn p-0 position-absolute ms-3" type="button" data-toggle="tooltip"
+                                        title="{sprintf(lang('Tvůj kód %s je unikátní identifikátor, pod kterým tě aréna vždy při zadávání hry najde.'), $user->player->getCode())}">
+                <i class="fa-solid fa-circle-question fs-4"
+                   style="line-height: 2.5rem;vertical-align: middle;"></i>
+            </button>
+        </h2>
+        {include '../title.latte', $user->player->getTitle(), false, $currentUser}
+        <p class="mt-3 text-center">
+            <button n:if="$currentUser" type="button" class="btn btn-secondary" data-bs-toggle="modal"
+                                        data-bs-target="#user-help-modal">
+                <i class="fa-solid fa-circle-question"></i> {lang 'Nápověda'}
+            </button>
+            <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
+                    data-title="{sprintf(lang('Profil hráče %s na portálu Laser liga'), $user->name)}"
+                    data-url="{link 'user', $user->player->getCode()}">
+                <i class="fa-solid fa-share"></i>
+                {lang 'Sdílet'}
+            </button>
+            {var App\Models\Tournament\Tournament[] $tournaments = $user->player?->getTournaments() ?? []}
+            {if !empty($tournaments)}
+                <a href="{link 'user', $user->player->getCode(), 'tournaments'}" class="btn btn-info">
+                    <i class="fa-solid fa-trophy"></i>
+                    {lang 'Turnaje'} ({$tournaments|length})
+                </a>
+            {/if}
+        </p>
 
-	<section class="home-arena text-center rounded bg-light py-4" n:ifset="$user->player->arena">
-		<a href="{link ['arena', $user->player->arena->id]}" aria-label="{lang 'Zobrazit statistiky domovské arény'}">
-			{$user->player->arena->getLogoHtml()|noescape}
-		</a>
-		<h2 class="fs-3">{lang 'Domovská aréna'}</h2>
-	</section>
+        <div class="stats">
+            <div class="stat rounded bg-background-2 p-3 text-center">
+                <h4 class="stat-title fs-5">{lang 'Pozice v žebříčku'}</h4>
+                <div class="stat-value fs-2">{($rankOrder->positionFormatted ?? '')|replace:'. - ','-'}</div>
+            </div>
+            <div class="stat rounded bg-background-2 p-3 text-center" data-toggle="tooltip"
+                 title="{lang 'Herní úroveň se zvyšuje a klesá s každou odehranou klasickou hrou. Při výpočtu se přihlíží k úrovni protihráčů - pokud hrajete schválně se slabšími spoluhráči, herní úroveň roste pomalu.'}">
+                <h4 class="stat-title fs-5">{lang 'Úroveň'} <i class="fa-solid fa-circle-question"></i></h4>
+                <div class="stat-value fs-2">
+                    {$user->player?->stats->rank ?? 100} <i class="fa-solid fa-medal"></i>
+                </div>
+            </div>
+            <div class="stat rounded bg-background-2 p-3 text-center">
+                <h4 class="stat-title fs-5">{lang 'Odehráno her'}</h4>
+                <div class="stat-value fs-2">{$user->player?->stats->gamesPlayed ?? 0}</div>
+            </div>
+            <div class="stat rounded bg-background-2 p-3 text-center">
+                <h4 class="stat-title fs-5">{lang 'Domovská aréna'}</h4>
+                <a class="stat-value" href="{link ['arena', $user->player->arena->id]}"
+                   aria-label="{lang 'Zobrazit statistiky domovské arény'}">
+                    {$user->player->arena->getLogoHtml()|noescape}
+                </a>
+            </div>
+        </div>
+    </header>
 
-	<section class="stats align-self-start">
-		<h2 class="visually-hidden">{lang 'Statistiky'}</h2>
-		<ul class="nav nav-tabs" id="myTab" role="tablist" data-track-content="" data-content-name="Profile tabs">
-			<li class="nav-item" role="presentation">
-				<button class="nav-link active" id="general-tab" data-bs-toggle="tab"
-						data-bs-target="#general-stats-tab"
-						type="button" role="tab" aria-controls="general-stats-tab" aria-selected="true"
-						data-content-piece="General">
-					{lang 'Statistiky'}
-				</button>
-			</li>
-			<li class="nav-item" role="presentation">
-				<button class="nav-link" id="graphs-tab" data-bs-toggle="tab"
-						data-bs-target="#graphs-stats-tab" data-user="{$user->player->getCode()}"
-						type="button" role="tab" aria-controls="graphs-stats-tab" aria-selected="false"
-						data-content-piece="Graphs">
-					{lang 'Grafy'}
-				</button>
-			</li>
-			<li class="nav-item" role="presentation">
-				<button class="nav-link" id="trends-tab" data-bs-toggle="tab"
-						data-bs-target="#trends-stats-tab" data-user="{$user->player->getCode()}"
-						type="button" role="tab" aria-controls="trends-stats-tab" aria-selected="false"
-						data-content-piece="Trends">
-					{lang 'Trendy'}
-				</button>
-			</li>
-			<li class="nav-item" role="presentation">
-				<button class="nav-link" id="trophies-tab" data-bs-toggle="tab"
-						data-bs-target="#trophies-stats-tab" data-user="{$user->player->getCode()}"
-						type="button" role="tab" aria-controls="trophies-stats-tab" aria-selected="false"
-						data-content-piece="Trophies">
-					{lang 'Trofeje'}
-				</button>
-			</li>
-			<li class="nav-item" role="presentation" n:if="$showCompare">
-				<button class="nav-link" id="compare-tab" data-bs-toggle="tab" data-bs-target="#compare-stats-tab"
-						data-user="{$user->player->getCode()}"
-						type="button" role="tab" aria-controls="compare-stats-tab" aria-selected="false"
-						data-content-piece="Compare">
-					{lang 'Společné hry'}
-				</button>
-			</li>
-		</ul>
-		<div class="tab-content" id="stats-tabs">
-			<div class="tab-pane fade show active" id="general-stats-tab" role="tabpanel" aria-labelledby="general-tab"
-				 data-track-content="" data-content-name="General tab" tabindex="0">
-				{include 'tabs/general.latte'}
-			</div>
-			<div class="tab-pane fade" id="graphs-stats-tab" role="tabpanel" aria-labelledby="graphs-tab"
-				 data-track-content="" data-content-name="Graphs tab" tabindex="0">
-				{include 'tabs/graphs.latte'}
-			</div>
-			<div class="tab-pane fade" id="trends-stats-tab" role="tabpanel" aria-labelledby="trends-tab"
-				 data-track-content="" data-content-name="Trends tab" tabindex="0">
-				{include 'tabs/trends.latte'}
-			</div>
-			<div class="tab-pane fade" id="trophies-stats-tab" role="tabpanel" aria-labelledby="trophies-tab"
-				 data-track-content="" data-content-name="Trophies tab" tabindex="0">
-				{include 'tabs/trophies.latte'}
-			</div>
-			<div class="tab-pane fade py-3" id="compare-stats-tab" role="tabpanel" aria-labelledby="compare-tab"
-				 data-track-content=""
-				 data-content-name="Compare tab"
-				 tabindex="0" n:if="$showCompare">
-				{include 'tabs/compare.latte'}
-			</div>
-		</div>
-	</section>
+    <section class="stats align-self-start">
+        <h2 class="visually-hidden">{lang 'Statistiky'}</h2>
+        <ul class="nav nav-tabs" id="myTab" role="tablist" data-track-content="" data-content-name="Profile tabs">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="tab"
+                        data-bs-target="#general-stats-tab"
+                        type="button" role="tab" aria-controls="general-stats-tab" aria-selected="true"
+                        data-content-piece="General">
+                    {lang 'Statistiky'}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="graphs-tab" data-bs-toggle="tab"
+                        data-bs-target="#graphs-stats-tab" data-user="{$user->player->getCode()}"
+                        type="button" role="tab" aria-controls="graphs-stats-tab" aria-selected="false"
+                        data-content-piece="Graphs">
+                    {lang 'Grafy'}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="trends-tab" data-bs-toggle="tab"
+                        data-bs-target="#trends-stats-tab" data-user="{$user->player->getCode()}"
+                        type="button" role="tab" aria-controls="trends-stats-tab" aria-selected="false"
+                        data-content-piece="Trends">
+                    {lang 'Trendy'}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="trophies-tab" data-bs-toggle="tab"
+                        data-bs-target="#trophies-stats-tab" data-user="{$user->player->getCode()}"
+                        type="button" role="tab" aria-controls="trophies-stats-tab" aria-selected="false"
+                        data-content-piece="Trophies">
+                    {lang 'Trofeje'}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="achievements-tab" data-bs-toggle="tab"
+                        data-bs-target="#achievements-stats-tab" data-user="{$user->player->getCode()}"
+                        type="button" role="tab" aria-controls="achievements-stats-tab" aria-selected="false"
+                        data-content-piece="Achievements">
+                    {lang 'Ocenění'}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation" n:if="$showCompare">
+                <button class="nav-link" id="compare-tab" data-bs-toggle="tab" data-bs-target="#compare-stats-tab"
+                        data-user="{$user->player->getCode()}"
+                        type="button" role="tab" aria-controls="compare-stats-tab" aria-selected="false"
+                        data-content-piece="Compare">
+                    {lang 'Společné hry'}
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="stats-tabs">
+            <div class="tab-pane fade show active" id="general-stats-tab" role="tabpanel" aria-labelledby="general-tab"
+                 data-track-content="" data-content-name="General tab" tabindex="0">
+                {include 'tabs/general.latte'}
+            </div>
+            <div class="tab-pane fade" id="graphs-stats-tab" role="tabpanel" aria-labelledby="graphs-tab"
+                 data-track-content="" data-content-name="Graphs tab" tabindex="0">
+                {include 'tabs/graphs.latte'}
+            </div>
+            <div class="tab-pane fade" id="trends-stats-tab" role="tabpanel" aria-labelledby="trends-tab"
+                 data-track-content="" data-content-name="Trends tab" tabindex="0">
+                {include 'tabs/trends.latte'}
+            </div>
+            <div class="tab-pane fade" id="trophies-stats-tab" role="tabpanel" aria-labelledby="trophies-tab"
+                 data-track-content="" data-content-name="Trophies tab" tabindex="0">
+                {include 'tabs/trophies.latte'}
+            </div>
+            <div class="tab-pane fade" id="achievements-stats-tab" role="tabpanel" aria-labelledby="achievements-tab"
+                 data-track-content="" data-content-name="Achievements tab" tabindex="0">
+                {include 'tabs/achievements.latte'}
+            </div>
+            <div class="tab-pane fade py-3" id="compare-stats-tab" role="tabpanel" aria-labelledby="compare-tab"
+                 data-track-content=""
+                 data-content-name="Compare tab"
+                 tabindex="0" n:if="$showCompare">
+                {include 'tabs/compare.latte'}
+            </div>
+        </div>
+    </section>
 
-	<section class="last-games">
-		<h2 class="mb-3">{lang 'Poslední hry'}:</h2>
-		<p n:if="$currentUser">
-			<a href="{link 'user', 'findgames'}" class="btn btn-primary">
-				<i class="fa-solid fa-magnifying-glass-plus"></i>
-				{lang 'Najít další hry'}
-			</a>
-		</p>
-		{if empty($lastGames)}
-			<p class="text-center">{lang 'Hráč nemá zatím žádné hry'}</p>
-		{else}
-			<div class="table-responsive">
-				<table class="table table-striped fs-sm fs-md-6 table--md-sm">
-					<thead>
-					<tr>
-						<th>{lang 'Datum'}</th>
-						<th class="text-center">{lang 'Aréna'}</th>
-						<th class="text-center">{lang 'Herní mód'}</th>
-						<th class="text-center">{lang 'Herní úroveň'}</th>
-						<th></th>
-					</tr>
-					</thead>
-					<tbody>
-					<tr n:foreach="$lastGames as $game">
-						<td>{$game->start->format('d.m.Y H:i')}</td>
-						<td>{ifset $game->id_arena}{\App\Models\Arena::get($game->id_arena)->getLogoHtml()|noescape}{/ifset}</td>
-						<td class="text-center">{lang $game->modeName, context: 'gameModes'}</td>
-						<td class="text-center">{$game->skill}&nbsp;<i class="fa-solid fa-medal"></i></td>
-						<td class="text-end">
-							<a href="{link ['g', $game->code]}" class="btn btn-info" data-toggle="tooltip"
-							   title="{lang 'Výsledky'}">
-								<i class="fa-solid fa-eye"></i>
-							</a>
-						</td>
-					</tr>
-					</tbody>
-				</table>
-			</div>
-			<p class="text-center">
-				<a href="{link ['user', $user->player->getCode(), 'history']}" class="btn btn-info">
-					{lang 'Všechny hry hráče'}
-				</a>
-			</p>
-		{/if}
-	</section>
+    <section class="last-games">
+        <h2 class="mb-3 text-center">{lang 'Poslední hry'}:</h2>
+        <p n:if="$currentUser" class="text-center">
+            <a href="{link 'user', 'findgames'}" class="btn btn-primary">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                {lang 'Najít další hry'}
+            </a>
+        </p>
+        {if empty($lastGames)}
+            <p class="text-center">{lang 'Hráč nemá zatím žádné hry'}</p>
+        {else}
+            <div class="games-list">
+                <a n:foreach="$lastGames as $game" class="game-row rounded" href="{link ['game', $game->code]}">
+                    <span class="datetime">{$game->start->format('d.m.Y H:i')}</span>
+                    <span class="arena">{ifset $game->id_arena}{\App\Models\Arena::get($game->id_arena)->getLogoHtml()|noescape}{/ifset}</span>
+                    <span class="gamemode">{lang $game->modeName, context: 'gameModes'}</span>
+                    <span class="skill">{$game->skill}&nbsp;<i class="fa-solid fa-medal"></i></span>
+                </a>
+            </div>
+            <p class="text-center">
+                <a href="{link ['user', $user->player->getCode(), 'history']}" class="btn btn-primary">
+                    {lang 'Všechny hry hráče'}
+                </a>
+            </p>
+        {/if}
+    </section>
 </div>
 
 <div class="modal" tabindex="-1" id="user-help-modal">
-	<div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h3 class="modal-title">{lang 'Nápověda?'}</h3>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<h4>{lang 'Jak dostanu své hry do Laser ligy?'}</h4>
-				<h5>{lang 'Nové hry'}</h5>
-				<p>{sprintf(lang('Pokud jdu hrát v podporované aréně a mám registrovaný účet v Laser lize, můžu obsluze nahlásit své jméno (%s) nebo hráčský kód (%s). Obsluha si mě najde v systému a jakmile skončí hra, mám výsledky uložené na svém účtu.'), $user->player->nickname, $user->player->getCode())}</p>
-				<h5>{lang 'Staré hry'}</h5>
-				<p>
-					{lang 'Mé staré hry si můžu také přiřadit na svůj účet v Laser lize.'} {lang 'Potřebuji ale 2 věci:'}
-				</p>
-				<ol class="text-center" style="list-style-position: inside;">
-					<li>{lang 'Být přihlášený v aplikaci Laser liga'}</li>
-					<li>{lang 'Najít své online výsledky'}</li>
-				</ol>
-				<p class="text-muted">{sprintf(lang('Výsledky můžete mít naskenované přes QR kód na tištěných výsledcích, nebo můžete své výsledky najít na podle data na <a href="%s">stránce arény</a> v záložce "Všechny hry."'), Lsr\Core\App::getLink(['arenas']))|noescape}</p>
-				<p>{lang 'Pokud otevřu výsledky ve kterých je hráč s mým jménem, zobrazí se vedle jména hráče tlačítko přiřadit. Po kliknutí na tlačítko se mi hra přiřadí do profilu.'}</p>
-			</div>
-		</div>
-	</div>
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">{lang 'Nápověda?'}</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h4>{lang 'Jak dostanu své hry do Laser ligy?'}</h4>
+                <h5>{lang 'Nové hry'}</h5>
+                <p>{sprintf(lang('Pokud jdu hrát v podporované aréně a mám registrovaný účet v Laser lize, můžu obsluze nahlásit své jméno (%s) nebo hráčský kód (%s). Obsluha si mě najde v systému a jakmile skončí hra, mám výsledky uložené na svém účtu.'), $user->player->nickname, $user->player->getCode())}</p>
+                <h5>{lang 'Staré hry'}</h5>
+                <p>
+                    {lang 'Mé staré hry si můžu také přiřadit na svůj účet v Laser lize.'} {lang 'Potřebuji ale 2 věci:'}
+                </p>
+                <ol class="text-center" style="list-style-position: inside;">
+                    <li>{lang 'Být přihlášený v aplikaci Laser liga'}</li>
+                    <li>{lang 'Najít své online výsledky'}</li>
+                </ol>
+                <p class="text-muted">{sprintf(lang('Výsledky můžete mít naskenované přes QR kód na tištěných výsledcích, nebo můžete své výsledky najít na podle data na <a href="%s">stránce arény</a> v záložce "Všechny hry."'), Lsr\Core\App::getLink(['arena']))|noescape}</p>
+                <p>{lang 'Pokud otevřu výsledky ve kterých je hráč s mým jménem, zobrazí se vedle jména hráče tlačítko přiřadit. Po kliknutí na tlačítko se mi hra přiřadí do profilu.'}</p>
+            </div>
+        </div>
+    </div>
 </div>

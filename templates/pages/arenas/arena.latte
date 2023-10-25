@@ -6,16 +6,28 @@
 {varType int $todayPlayers}
 {varType App\Models\MusicMode[] $music}
 {varType \DateTime|null $date}
+{varType App\GameModels\Game\Game[] $games}
+{varType int $p}
+{varType int $pages}
+{varType int $limit}
+{varType int $total}
+{varType string $orderBy}
+{varType bool $desc}
+{varType int[] $modeIds}
+{varType string[] $dates}
 
 {define addHead}
 	{\App\Tools\Color::getGamesColor($games)|noescape}
 {/define}
 
 {block content}
-	<div class="card bg-light px-3 pt-3">
+    <div class="card bg-background-1 px-3 pt-3">
 		{$arena->getLogoHtml()|noescape}
 		<div class="card-header">
-			<h1 class="card-title fs-3">{$arena->name}</h1>
+            <h1 class="card-title fs-3 text-center">{$arena->name}</h1>
+            <div class="visually-hidden">
+                {sprintf(lang('Stránka s informacemi o laser game aréně - %s.'), $arena->name)}
+            </div>
 		</div>
 		<div class="card-body text-center">
 			<p class="text-decoration-none">
@@ -29,67 +41,83 @@
 			<p class="text-decoration-none"><strong>{lang 'Dnes odehráno hráčů'}:</strong> {$todayPlayers}</p>
 		</div>
 	</div>
-	<ul class="nav nav-tabs mt-4" id="arena-tabs" role="tablist" data-track-content="" data-content-name="Arena tabs">
-		<li class="nav-item" role="presentation">
-			<a class="nav-link active" id="stats-tab-control" data-bs-toggle="tab"
-			   data-bs-target="#stats-tab"
-			   href="#stats-tab"
-			   role="tab" aria-controls="stats-tab" aria-selected="true"
-			   data-content-piece="Stats">
-				{lang 'Statistiky'}
-			</a>
-		</li>
-		<li class="nav-item" role="presentation">
-			<a class="nav-link" id="music-tab-control" data-bs-toggle="tab"
-			   data-bs-target="#music-tab"
-			   href="#music-tab"
-			   role="tab" aria-controls="music-tab" aria-selected="false"
-			   data-content-piece="Music">
-				{lang 'Hudební módy'}
-			</a>
-		</li>
-		<li class="nav-item" role="presentation">
-			<a class="nav-link" id="games-tab-control" data-bs-toggle="tab"
-			   data-bs-target="#games-tab"
-			   href="#games-tab"
-			   role="tab" aria-controls="games-tab" aria-selected="false"
-			   data-content-piece="Games">
-				{lang 'Všechny hry'}
-			</a>
-		</li>
-		<li class="nav-item" role="presentation">
-			<a href="{link ['user', 'leaderboard', $arena->id]}" class="nav-link" id="leaderboard-control"
-			   data-content-piece="Music">
-				{lang 'Žebříček'}
-			</a>
-		</li>
-		<li n:if="count($arena->getPlannedTournaments()) > 0" class="nav-item" role="presentation">
-			<a class="nav-link" id="tournaments-tab-control" data-bs-toggle="tab"
-			   data-bs-target="#tournaments-tab"
-			   href="#tournaments-tab"
-			   role="tab" aria-controls="tournaments-tab" aria-selected="false"
-			   data-content-piece="Tournaments">
-				{lang 'Plánované turnaje'}
-			</a>
-		</li>
-	</ul>
-	<div class="tab-content" id="arena-tabs">
-		<div class="tab-pane fade show active" id="stats-tab" role="tabpanel" aria-labelledby="stats-tab-control"
-			 data-track-content="" data-content-name="Arena stats tab" tabindex="0">
-			{include '../../partials/arena/tabs/stats.latte'}
-		</div>
-		<div class="tab-pane fade" id="music-tab" role="tabpanel" aria-labelledby="music-tab-control"
-			 data-track-content="" data-content-name="Arena music tab" tabindex="0">
-			{include '../../partials/arena/tabs/music.latte'}
-		</div>
-		<div class="tab-pane fade" id="games-tab" role="tabpanel" aria-labelledby="games-tab-control"
-			 data-track-content="" data-content-name="Arena games tab" tabindex="0">
-			{include '../../partials/arena/tabs/games.latte'}
-		</div>
-		<div n:if="count($arena->getPlannedTournaments()) > 0"
-				class="tab-pane fade" id="tournaments-tab" role="tabpanel" aria-labelledby="tournaments-tab-control"
-				data-track-content="" data-content-name="Arena tournaments tab" tabindex="0">
-			{include '../../partials/arena/tabs/tournaments.latte'}
-		</div>
-	</div>
+    {embed '../../partials/tabs.latte',
+    tabs: [
+    'stats' => [
+    'name' => 'Statistiky',
+    'type' => 'tab',
+    'piece' => 'Stats',
+    'template' => './arena/tabs/stats.latte',
+    'link' => ['arena', $arena->id, 'tab', 'stats'],
+    'params' => [
+    'arena' => $arena,
+    'players' => $players,
+    'date' => $date,
+    ],
+    ],
+    'music' => [
+    'name' => 'Hudební módy',
+    'type' => 'tab',
+    'piece' => 'Music',
+    'template' => './arena/tabs/music.latte',
+    'link' => ['arena', $arena->id, 'tab', 'music'],
+    'params' => [
+    'arena' => $arena,
+    'music' => $music,
+    ],
+    ],
+    'games' => [
+    'name' => 'Všechny hry',
+    'type' => 'tab',
+    'piece' => 'Games',
+    'template' => './arena/tabs/games.latte',
+    'link' => ['arena', $arena->id, 'tab', 'games'],
+    'params' => [
+    'arena' => $arena,
+    'games' => $games,
+    'p' => $p,
+    'pages' => $pages,
+    'limit' => $limit,
+    'total' => $total,
+    'orderBy' => $orderBy,
+    'desc' => $desc,
+    'modeIds' => $modeIds,
+    'date' => $date,
+    'dates' => $dates,
+    ],
+    ],
+    'leaderboard' => [
+    'name' => 'Žebříček',
+    'type' => 'link',
+    'piece' => 'Leaderboard',
+    'link' => ['user', 'leaderboard', $arena->id],
+    ],
+    'tournaments' => [
+    'name' => 'Plánované turnaje',
+    'condition' => count($arena->getPlannedTournaments()) > 0,
+    'type' => 'tab',
+    'piece' => 'Tournaments',
+    'template' => './arena/tabs/tournaments.latte',
+    'link' => ['arena', $arena->id, 'tab', 'tournaments'],
+    'params' => [
+    'arena' => $arena
+    ],
+    ],
+    'info' => [
+    'name' => 'Informace a kontakty',
+    'type' => 'tab',
+    'piece' => 'Info',
+    'template' => './arena/tabs/info.latte',
+    'link' => ['arena', $arena->id, 'tab', 'info'],
+    'params' => [
+    'arena' => $arena
+    ],
+    ]
+    ],
+    id: 'arena-tabs',
+    classes: 'mt-4',
+    activeTab: $_GET['tab'] ?? '',
+    }
+
+	{/embed}
 {/block}

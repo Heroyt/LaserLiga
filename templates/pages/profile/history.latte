@@ -25,12 +25,12 @@
 
 {block content}
 	<p class="text-start">
-		<a href="{link ['user', $user->player->getCode()]}" class="btn btn-warning">
+        <a href="{link ['user', $user->player->getCode()]}" class="btn btn-secondary">
 			<i class="fa-solid fa-angle-left"></i> {lang 'Profil hráče'}
 		</a>
 	</p>
-	<h2>{sprintf(lang('Historie her hráče %s'), $user->name)}</h2>
-	<p n:if="$currentUser">
+    <h2 class="text-center">{sprintf(lang('Historie her hráče %s'), $user->name)}</h2>
+    <p n:if="$currentUser" class="text-center">
 		<a href="{link 'user', 'findgames'}" class="btn btn-primary">
 			<i class="fa-solid fa-magnifying-glass-plus"></i>
 			{lang 'Najít další hry'}
@@ -52,7 +52,8 @@
 		desc: $desc,
 		modeIds: $modeIds,
 		date: $date,
-		dates: $dates
+        dates: $dates,
+        currentUser: $currentUser
 		}
 		{/embed}
 	</form>

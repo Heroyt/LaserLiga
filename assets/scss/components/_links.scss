@@ -5,3 +5,11 @@ a.card {
 		filter: brightness(1.3);
 	}
 }
+
+.linkable[data-href] {
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(120%);
+  }
+}

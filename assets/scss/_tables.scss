@@ -1,12 +1,27 @@
-@each $breakpoint in map-keys($grid-breakpoints) {
-	$infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+@import '~bootstrap/scss/tables';
 
-	@include media-breakpoint-down($breakpoint) {
-		.table-#{$infix}-sm {
-			// stylelint-disable-next-line selector-max-universal
-			> :not(caption) > * > * {
-				padding: $table-cell-padding-y-sm $table-cell-padding-x-sm;
-			}
-		}
-	}
+@each $breakpoint in map-keys($grid-breakpoints) {
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+
+  @include media-breakpoint-down($breakpoint) {
+    .table-#{$infix}-sm {
+      // stylelint-disable-next-line selector-max-universal
+      > :not(caption) > * > * {
+        padding: $table-cell-padding-y-sm $table-cell-padding-x-sm;
+      }
+    }
+  }
+}
+
+.table {
+  > tbody > tr[data-href] {
+    cursor: pointer;
+
+    &:hover {
+      > * {
+        --bs-table-color-state: var(--bs-table-hover-color);
+        --bs-table-bg-state: var(--bs-table-hover-bg);
+      }
+    }
+  }
 }

@@ -3,6 +3,46 @@ import axios from "axios";
 import {startLoading, stopLoading} from "../../loaders";
 
 export default function initUserSettings() {
+    const avatarPreview = document.getElementById('avatarPreview') as HTMLImageElement;
+    const avatarType = document.getElementById('avatarType') as HTMLSelectElement;
+    const avatarSeed = document.getElementById('avatarSeed') as HTMLInputElement;
+    const avatarSave = document.getElementById('avatarSave') as HTMLButtonElement;
+    if (avatarPreview && avatarType && avatarSeed) {
+        const baseApiUrl = 'https://api.dicebear.com/7.x/';
+        avatarType.addEventListener('change', () => {
+            if (!avatarType.value) {
+                if (avatarSave) {
+                    avatarSave.disabled = true;
+                }
+                return;
+            }
+            if (avatarSave) {
+                avatarSave.disabled = false;
+            }
+            avatarPreview.src = baseApiUrl + avatarType.value + '/svg?radius=50&seed=' + avatarSeed.value;
+        });
+        avatarSeed.addEventListener('input', () => {
+            avatarPreview.src = baseApiUrl + avatarType.value + '/svg?radius=50&seed=' + avatarSeed.value;
+        });
+
+        if (avatarSave) {
+            avatarSave.disabled = true;
+            avatarSave.addEventListener('click', () => {
+                if (avatarSave.disabled) {
+                    return;
+                }
+                startLoading();
+                axios.post(avatarSave.dataset.action, {seed: avatarSeed.value, type: avatarType.value})
+                    .then(response => {
+                        stopLoading(true);
+                    })
+                    .catch(() => {
+                        stopLoading(false);
+                    })
+            });
+        }
+    }
+
 	if ('serviceWorker' in navigator && 'PushManager' in window) {
 		const section = document.getElementById('notification-settings') as HTMLDivElement;
 
@@ -72,6 +112,10 @@ export default function initUserSettings() {
 			}
 		}
 	} else {
-		alert('Zařízení nepodporuje push notifikace');
+        let alertTxt = 'Zařízení nepodporuje push notifikace.';
+        if (navigator.platform === 'iPhone') {
+            alertTxt += "\nPush notifikace na iPhone vyžadují verzi iOS alespoň 16.4 a přidanou stránku na plochu.";
+        }
+        alert(alertTxt);
 	}
 }

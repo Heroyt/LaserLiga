@@ -1,9 +1,21 @@
 {layout '../../@layout.latte'}
 
+{varType Lsr\Core\Controller $page}
 {varType App\Models\Auth\User|null $loggedInUser}
 {varType App\Models\Auth\User $user}
 {varType Dibi\Row[] $lastGames}
 {varType App\Models\DataObjects\PlayerRank $rankOrder}
+
+{define addHead}
+    <meta property="og:title" content="{sprintf(lang('Profil hráče %s na portálu Laser liga'), $user->name)}"/>
+    <meta property="og:description" content="{$page->getDescription()}"/>
+    <meta property="og:site_name" content="LaserLiga"/>
+    <meta property="og:type" content="profile"/>
+    <meta property="og:profile:username" content="{$user->name}"/>
+    <meta property="og:url" content="{link 'user', $user->player->getCode()}"/>
+    <meta property="og:image" content="{link 'user', $user->player->getCode(), 'img'}"/>
+    <meta property="og:image:type" content="image/png"/>
+{/define}
 
 {block content}
 	{embed '../../partials/user/profile.latte', loggedIn: false, user: $user, lastGames: $lastGames, loggedInUser: $loggedInUser, rankOrder: $rankOrder}

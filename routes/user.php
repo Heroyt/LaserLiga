@@ -13,8 +13,8 @@ use Lsr\Core\Routing\Route;
 $loggedIn = new LoggedIn();
 
 $routes = Route::group()
-							 ->middlewareAll($loggedIn)
-							 ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
+               ->middlewareAll($loggedIn)
+               ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
 
 $publicUserRoutes = Route::group('/user')
                          ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
@@ -25,6 +25,9 @@ $publicUserRoutes = Route::group('/user')
 $publicUserIdGroup = $publicUserRoutes
 	->group('/{code}')
 	->get('/', [UserController::class, 'public'])->name('public-profile')
+                                                 ->get('/img', [UserController::class, 'thumb'])
+                                                 ->get('/avatar', [UserController::class, 'avatar'])
+                                                 ->post('/avatar', [UserController::class, 'updateAvatar'])
 	->get('/history', [UserController::class, 'gameHistory'])->name('player-game-history')
 	->get('/tournaments', [UserTournamentController::class, 'myTournaments'])->name('player-tournaments')
 	->group('stats')

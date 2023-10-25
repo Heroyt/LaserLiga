@@ -1,0 +1,70 @@
+<div class="my-5 text-center">
+    {svgIcon 'crown', 'auto', '3rem'}
+    <h4>{lang 'Formát a bodování'}</h4>
+    <p>{lang 'Podle počtu týmů může být turnaj rozdělen do dvou skupin, kde každá skupina hraje ve formátu každý s každým. Po odehrání kvalifikačního kola postoupí nejlepší týmy do finále a ostatní týmy do druhé skupiny, kde si opět zahrají každý s každým. Body do celkového pořadí se počítají ze všech her (i z kvalifikační skupiny).'}</p>
+    <h5><i class="fa-solid fa-star"></i> {lang 'Hodnocení'}</h5>
+    <p><strong>{lang 'Výhra'}:</strong> {sprintf(lang('%d bod', '%d body', 3), 3)}</p>
+    <p><strong>{lang 'Remíza'}:</strong> {sprintf(lang('%d bod', '%d bodů', 1), 1)}</p>
+    <p><strong>{lang 'Prohra'}:</strong> {sprintf(lang('%d bod', '%d bodů', 0), 0)}</p>
+    <p><strong>{lang 'Postup do finále'}:</strong> {sprintf(lang('%d bod', '%d bodů', 50), 50)}</p>
+</div>
+<div class="my-5 text-center">
+    {svgIcon 'Vesta', 'auto', '3rem'}
+    <h4>{lang 'Nastavení hry'}</h4>
+    <p><strong>{lang 'Délka hry'}:</strong> {lang '5-15 minut (podle počtu týmů)'}</p>
+    <p><strong>{lang 'Oživení hráče'}:</strong> {lang '5 sekund'}</p>
+    <p><strong>{lang 'Miny'}:</strong> {lang 'Vypnuto'}</p>
+    <p><strong>{lang 'Brány'}:</strong> {lang 'Zapnuto'}</p>
+    <p><strong>{lang '1s nesmrtelnosti'}:</strong> {lang 'Vypnuto'}</p>
+    <p><strong>{lang 'Nutnost držet tlačítko na zbrani'}:</strong> {lang 'Vypnuto'}</p>
+    <p><strong>{lang 'Čidlo na zbrani'}:</strong> {lang 'Vypnuto'}</p>
+    <p><strong>{lang 'Barvy týmů'}:</strong> {lang 'Zelená a modrá'}</p>
+    <h5><i class="fa-solid fa-star"></i> {lang 'Skóre'}</h5>
+    <p><strong>{lang 'Zásah do soupeže'}:</strong> +100</p>
+    <p><strong>{lang 'Zásah od soupeže (smrt)'}:</strong> -50</p>
+    <p><strong>{lang 'Zásah spoluhráče'}:</strong> -25</p>
+    <p><strong>{lang 'Zásah od spoluhráče (smrt)'}:</strong> -50</p>
+    <p><strong>{lang 'Zásah od brány'}:</strong> -50</p>
+</div>
+<div class="my-5 text-center">
+    {svgIcon 'magnifying-glass', 'auto', '3rem'}
+    <h4>{lang 'Pravidla hry'}</h4>
+    <ul class="list-group">
+        <li class="list-group-item">{lang 'Bezkontaktní hra mezi soupeři.'}</li>
+        <li class="list-group-item">{lang 'Nevystrčený loket (nezvednutý) při pohybu - nesmí ohrozit bezpečnost protihráče.'}</li>
+        <li class="list-group-item">{lang 'Zakázané úmyslné naskakování na soupeře (cílený skok ve směru protihráče, který by mohl ohrozit jeho bezpečnost).'}</li>
+        <li class="list-group-item">{lang 'Žádný fyzický kontakt.'}</li>
+        <li class="list-group-item">{lang 'Žádné nadávky mezi soupeři.'}</li>
+        <li class="list-group-item">{lang 'Za tým jedná kapitán.'}</li>
+        <li class="list-group-item">{lang 'Fair play chování v rámci celého turnaje.'}</li>
+        <li class="list-group-item">{lang 'V případě vážnějšího zranění nebo technických problémů bude hra ukončena a později opakována.'}</li>
+        <li class="list-group-item">{lang 'Během hry při opakovaném a vážném porušování pravidel, nevhodném chování týmu daný tým kontumačně prohrává bez ohledu na jeho skóre (jen ve velmi vážných případech)'}</li>
+        <li class="list-group-item">{lang 'Diskvalifikace – opakované porušování pravidel a nevhodné chování týmu i mimo herní prostor'}</li>
+    </ul>
+    <h5 class="mt-4"><i class="fa-regular fa-circle-xmark"></i> {lang 'Zakázané taktiky během hry'}</h5>
+    <ul class="list-group">
+        <li class="list-group-item">{lang 'Fyzický kontakt mezi protihráči'}</li>
+        <li class="list-group-item">{lang 'Nadávky mezi soupeři'}</li>
+        <li class="list-group-item">{lang 'Nefér chování (držení zbraně, blokování soupeřovi únikové cesty, střelba do hráče na zemi – pád…'}</li>
+        <li class="list-group-item">{lang 'Úmyslné ohrožení zdraví (loket ve výši obličeje, naskakování na soupeře, úder zbraní, rukou, nebezpečné točení s otočnou překážkou…)'}</li>
+        <li class="list-group-item">{lang 'Nedodržování všeobecných základních herních, bezpečnostních a provozních pravidel (např. špatné zacházení se zbraní, ležení na zemi, přeskakování překážek, nerespektování váhových, věkových a výškových rozdílů hráčů (děti a dospělý)...'}</li>
+        <li class="list-group-item">{lang 'Výrazné naklánění z cílem krytí čidel na vestě (po dobu delší, než je nutná k úhybu = hráč musí zůstat v pohybu).'}</li>
+    </ul>
+    <h5 class="mt-4"><i class="fa-regular fa-circle-check"></i> {lang 'Povolené taktiky'}</h5>
+    <ul class="list-group">
+        <li class="list-group-item">{lang 'Taktika skupiny či jednotlivce, která není v rozporu s výše uvedenými pravidly a možnost ji využít či se naučit má každý, není zakázána.'}</li>
+        <li class="list-group-item">{lang 'Kempení'}</li>
+        <li class="list-group-item">{lang 'Lehké náklony, úhyby, krčení,..'}</li>
+        <li class="list-group-item">{lang 'Skákání, které neohrožuje protihráče'}</li>
+        <li class="list-group-item">{lang 'Pronásledování protihráče (není úplně fér, ale není zakázáno)'}</li>
+        <li class="list-group-item">{lang 'Nekontaktní (neúmyslné) krytí se spoluhráčů navzájem'}</li>
+        <li class="list-group-item">{lang 'Vytvoření návnady z vlastního hráče'}</li>
+    </ul>
+    <h5 class="mt-4"><i class="fa-solid fa-handcuffs"></i> {lang 'Rozhodčí a penalizace'}</h5>
+    <p>{lang 'Během her budou v aréně dva rozhodčí. V případě kategorie mazáků můžou být jako rozhodčí působit i hráči z ostatních týmů.'}</p>
+    <p>{lang 'Posouzení situace vždy závisí na rozhodčím. Pokud hráč ve hře vidí nějaký přestupek, musí ho nahlásit rozhodčímu během hry, aby rozhodčí mohl daného hráče více hlídat.'}</p>
+    <p>{lang 'Po hře již není možné řešit situaci, která se ve hře děla, jen na ní upozornit. V případě vyšího počtu stížností se může situace řešit s kapitány týmů.'}</p>
+    <p><strong>{lang 'První napomenutí'}: </strong> {lang 'Bez sankce'}</p>
+    <p><strong>{lang 'Každý další přestupek'}
+            : </strong> {sprintf(lang('%s bodů'), '<span class="text-danger">-500</span>')|noescape}</p>
+</div>

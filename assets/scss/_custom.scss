@@ -8,29 +8,11 @@
 
 @import '~bootstrap/scss/utilities';
 
-//$card-bg: map.get($theme-colors, 'dark');
-
 $utilities: map.deep-merge(
 		$utilities,
 		(
 			'border-color': (
 				values: $utilityColors
-			),
-			'min-width': (
-				property: min-width,
-				class: minw,
-				responsive: true,
-				print: true,
-				values: map.merge(
-						$grid-breakpoints,
-						(
-							50: 50%,
-							100: 100%,
-							200: 200px,
-							300: 300px,
-							xs: 50px,
-						)
-				),
 			),
 			'cursor': (
 				property: cursor,
@@ -96,7 +78,3 @@ $utilities: map.deep-merge(
 			),
 		),
 );
-
-body {
-	--test: #{functions.getVarFromColor(#339af0, $custom-colors-light)};
-}

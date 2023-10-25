@@ -12,11 +12,19 @@ const resultsReloadPages: { [index: string]: string[] } = {
 
 export default function route(pageInfo: PageInfo): void {
 	switch (pageInfo.routeName ?? '') {
+        case 'index':
+            import(
+                /* webpackChunkName: "index" */
+                './pages/index'
+                ).then(module => {
+                module.default();
+            });
+            break;
 		case 'game':
 		case 'game-alias':
 			import(
 				/* webpackChunkName: "results" */
-				'./pages/results'
+                './pages/results/results'
 				).then(module => {
 				module.default();
 			});

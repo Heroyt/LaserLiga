@@ -1,4 +1,43 @@
+{default array $breadcrumbs = []}
+
 {define footer}
-	<footer>
+    <footer class="bg-background-2 pt-4 pb-3 d-none d-lg-block b-0">
+        <div class="container">
+            <nav class="d-flex justify-content-center" aria-label="breadcrumb" n:if="!empty($breadcrumbs)">
+                <ol class="breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList">
+                    <li n:foreach="$breadcrumbs as $name => $url" n:class="breadcrumb-item, active: $iterator->last"
+                            {if $iterator->last}aria-current="page"{/if}
+                            itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                        <a itemprop="item" href="{if is_array($url)}{link $url}{else}{$url}{/if}"
+                           class="text-decoration-none">
+                            <span itemprop="name">{$name}</span>
+                            <meta itemprop="position" content="{$iterator->counter}">
+                        </a>
+                    </li>
+                </ol>
+            </nav>
+            <div class="row align-items-center">
+                <div class="col-md-2 d-flex justify-content-center align-items-center flex-column">
+                    <a href="{getUrl}" aria-label="Laser liga" class="text-text text-decoration-none text-center">
+                        {svgIcon 'Vesta', 'auto', '4rem'}
+                        <div class="mt-2 fs-5">
+                            Laser liga
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-2"></div>
+                <div class="col-md-4 text-center">
+                    <a href="https://discord.gg/2ZM6VMuGBY" class="btn btn-primary btn-lg fs-3" target="_blank"
+                       aria-label="Discord">
+                        <i class="fa-brands fa-discord"></i>
+                    </a>
+                </div>
+                <div class="col-md-4 text-end">
+                    <h4 class="mb-2">{lang 'Kontakt'}</h4>
+                    <a href="mailto:info@laserliga.cz" class="text-text text-decoration-none">info@laserliga.cz</a>
+                </div>
+            </div>
+            <div class="text-center text-muted" id="copy">&copy; Laser liga 2023</div>
+        </div>
 	</footer>
 {/define}
