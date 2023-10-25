@@ -7,10 +7,11 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Evo5\RegressionStatCalculator;
 use App\Models\Arena;
-use App\Services\PlayerRankOrderService;
-use App\Services\PlayerUserService;
+use App\Services\Player\PlayerRankOrderService;
+use App\Services\Player\PlayerUserService;
 use DateTimeImmutable;
 use Lsr\Core\CliController;
+use Lsr\Logging\Logger;
 
 class Cron extends CliController
 {
@@ -22,6 +23,8 @@ class Cron extends CliController
 	}
 
 	public function daily(): never {
+		$logger = new Logger(LOG_DIR, 'cron');
+		$logger->info('Running daily cron');
 		$today = new DateTimeImmutable('00:00:00');
 		$this->rankOrderService->getDateRanks($today);
 		echo 'Today\'s rank updated.' . PHP_EOL;

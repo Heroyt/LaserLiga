@@ -4,13 +4,13 @@ parameters:
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
 services:
-	- App\Services\RegressionCalculator
+	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
 	regression.evo5: App\GameModels\Tools\Evo5\RegressionStatCalculator
 	user: App\Models\Auth\User
 	caching.journal: Nette\Caching\Storages\SQLiteJournal('%constants.tempDir%journal.s3db')
-	playerUser: App\Services\PlayerUserService
-	playerRankOrder: App\Services\PlayerRankOrderService
+	playerUser: App\Services\Player\PlayerUserService
+	playerRankOrder: App\Services\Player\PlayerRankOrderService
 	mailer: Nette\Mail\SendmailMailer
 	mail: App\Services\MailService
 	image: App\Services\ImageService

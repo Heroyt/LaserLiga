@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Maths;
 
 /**
  * Service for calculating regression

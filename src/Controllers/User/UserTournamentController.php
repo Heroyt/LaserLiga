@@ -3,7 +3,6 @@
 namespace App\Controllers\User;
 
 use App\Models\Auth\LigaPlayer;
-use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Templating\Latte;
 use Lsr\Interfaces\RequestInterface;
@@ -25,7 +24,7 @@ class UserTournamentController extends AbstractUserController
 	}
 
 	public function myTournaments(?string $code = null): void {
-		if (!isset($code)) {
+		if (empty($code)) {
 			$player = $this->params['user']?->player;
 		}
 		if (!isset($player)) {
@@ -33,6 +32,11 @@ class UserTournamentController extends AbstractUserController
 		}
 		/** @var LigaPlayer $player */
 
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'          => [],
+			$player->nickname     => ['user', $player->getCode()],
+			lang('Turnaje hráče') => ['user', $player->getCode(), 'tournaments'],
+		];
 		$this->title = 'Turnaje hráče - %s';
 		$this->titleParams[] = $player->nickname;
 

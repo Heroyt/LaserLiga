@@ -13,9 +13,11 @@ use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
-use App\Models\Push\Notification;
-use App\Services\PlayerRankOrderService;
-use App\Services\PlayerUserService;
+use App\Services\Achievements\AchievementChecker;
+use App\Services\GameHighlight\GameHighlightService;
+use App\Services\Player\PlayerRankOrderService;
+use App\Services\Player\PlayerUserService;
+use App\Services\Player\RankCalculator;
 use App\Services\PushService;
 use DateTime;
 use DateTimeImmutable;
@@ -25,6 +27,7 @@ use JsonException;
 use Lsr\Core\ApiController;
 use Lsr\Core\App;
 use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
@@ -47,6 +50,8 @@ class Games extends ApiController
 		protected readonly PlayerUserService    $playerUserService,
 		private readonly PushService            $pushService,
 		private readonly PlayerRankOrderService $rankOrderService,
+		private readonly RankCalculator     $rankCalculator,
+		private readonly AchievementChecker $achievementChecker,
 	) {
 		parent::__construct($latte);
 	}
@@ -127,7 +132,8 @@ class Games extends ApiController
 								'description' => 'Field "' . $field . '" is formatted to use a `BETWEEN` operator and a `' . $cmp . '` operator.',
 								'value' => $request->get['field'],
 							],
-							400);
+							400
+						);
 					}
 					$values = explode('~', $value);
 
@@ -140,7 +146,8 @@ class Games extends ApiController
 								'description' => 'Field "' . $field . '" must have exactly two values to use the `BETWEEN` operator.',
 								'value' => $request->get['field'],
 							],
-							400);
+							400
+						);
 					}
 					foreach ($values as $v) {
 						if (empty($type)) {
@@ -158,7 +165,8 @@ class Games extends ApiController
 									'description' => 'Field "' . $field . '" must be a number or a date to use the BETWEEN operator.',
 									'value' => $request->get['field'],
 								],
-								400);
+								400
+							);
 						}
 
 						if (is_numeric($v)) {
@@ -171,7 +179,8 @@ class Games extends ApiController
 									'description' => 'First value is a date, but the second is a number in field "' . $field . '" for the BETWEEN operator.',
 									'value' => $request->get['field'],
 								],
-								400);
+								400
+							);
 						}
 						if (strtotime($v) > 0) {
 							if ($type === 'date') {
@@ -183,7 +192,8 @@ class Games extends ApiController
 									'description' => 'First value is a number, but the second is a date in field "' . $field . '" for the BETWEEN operator.',
 									'value' => $request->get['field'],
 								],
-								400);
+								400
+							);
 						}
 						$this->respond(
 							[
@@ -191,15 +201,26 @@ class Games extends ApiController
 								'description' => 'Invalid type for BETWEEN operator for field "' . $field . '". The only accepted values are dates and numbers.',
 								'value' => $request->get['field'],
 							],
-							400);
+							400
+						);
 					}
 
 					if ($type === 'int') {
-						$query->where('%n ' . ($not ? 'NOT ' : '') . 'BETWEEN %i AND %i', Strings::toSnakeCase($field), $values[0], $values[1]);
+						$query->where(
+							'%n ' . ($not ? 'NOT ' : '') . 'BETWEEN %i AND %i',
+							Strings::toSnakeCase($field),
+							$values[0],
+							$values[1]
+						);
 					}
 					else {
 						if ($type === 'date') {
-							$query->where('%n ' . ($not ? 'NOT ' : '') . 'BETWEEN %dt AND %dt', Strings::toSnakeCase($field), new DateTime($values[0]), new DateTime($values[1]));
+							$query->where(
+								'%n ' . ($not ? 'NOT ' : '') . 'BETWEEN %dt AND %dt',
+								Strings::toSnakeCase($field),
+								new DateTime($values[0]),
+								new DateTime($values[1])
+							);
 						}
 					}
 					continue;
@@ -219,7 +240,8 @@ class Games extends ApiController
 								'description' => 'Invalid comparator "' . $cmp . '" for string in field "' . $field . '".',
 								'value' => $request->get['field'],
 							],
-							400);
+							400
+						);
 					}
 					$query->where('%n ' . $cmp . ' %s', Strings::toSnakeCase($field), $value);
 				}
@@ -235,7 +257,15 @@ class Games extends ApiController
 		} catch (InvalidArgumentException $e) {
 			$this->respond(['error' => 'Invalid input', 'exception' => $e->getMessage()], 400);
 		} catch (Throwable $e) {
-			$this->respond(['error' => 'Unexpected error', 'exception' => $e->getMessage(), 'code' => $e->getCode(), 'trace' => $e->getTrace()], 500);
+			$this->respond(
+				[
+					'error'     => 'Unexpected error',
+					'exception' => $e->getMessage(),
+					'code'      => $e->getCode(),
+					'trace'     => $e->getTrace(),
+				],
+				500
+			);
 		}
 
 		// Return only public links
@@ -291,13 +321,17 @@ class Games extends ApiController
 		$rankOnly = !empty($request->getGet('rankonly'));
 
 		$playerSkills = [];
+		$gameCount = 0;
 		foreach ($games as $game) {
+			$gameCount++;
 			if (!$rankOnly) {
 				$playerSkills[$game->code] = [];
 				$game->calculateSkills();
 			}
-			$this->playerUserService->recalculateRatingForGame($game);
+			$this->rankCalculator->recalculateRatingForGame($game);
 			if ($rankOnly) {
+				$playerSkills[] = [$game->code, $game->start->format('d.m.Y H:i')];
+				GameFactory::clearInstances();
 				continue;
 			}
 			if (!$game->save()) {
@@ -309,33 +343,28 @@ class Games extends ApiController
 					'skill' => $player->getSkill(),
 				];
 			}
+			GameFactory::clearInstances();
 		}
+		header('X-Peak-Memory: ' . memory_get_peak_usage());
+		header('X-Game-Count: ' . $gameCount);
 		$this->respond($playerSkills);
 	}
 
 	/**
 	 * @param Request $request
 	 *
-	 * @return Game[]
+	 * @return iterable<Game>
 	 * @throws JsonException
 	 * @throws Throwable
 	 */
-	private function recalcMultipleGameSkillsGetGames(Request $request): array {
-		$games = [];
-
+	private function recalcMultipleGameSkillsGetGames(Request $request): iterable {
 		/** @var string|string[] $codes */
 		$codes = $request->getGet('codes', []);
 		if (!empty($codes)) {
 			if (is_string($codes)) {
 				$this->recalcGameSkill($codes); // Only one game
 			}
-			foreach ($codes as $code) {
-				$game = GameFactory::getByCode($code);
-				if (isset($game)) {
-					$games[$code] = $game;
-				}
-			}
-			return $games;
+			return GameFactory::iterateOverCodes($codes);
 		}
 
 		/** @var string|null $date */
@@ -367,14 +396,7 @@ class Games extends ApiController
 			if (isset($modes)) {
 				$query->where('[id_mode] IN %in', array_keys($modes));
 			}
-			$rows = $query->fetchAll();
-			foreach ($rows as $row) {
-				$game = GameFactory::getById((int)$row->id_game, ['system' => $row->system]);
-				if (isset($game)) {
-					$games[] = $game;
-				}
-			}
-			return $games;
+			return GameFactory::iterateByIdFromQuery($query);
 		}
 		$hasUser = !empty($request->getGet('hasuser'));
 		if ($hasUser) {
@@ -386,14 +408,13 @@ class Games extends ApiController
 			if (!empty($since) && strtotime($since) > 0) {
 				$query->where('[start] > %dt', strtotime($since));
 			}
-			$rows = $query->fetchAll();
-			foreach ($rows as $row) {
-				$game = GameFactory::getById((int)$row->id_game, ['system' => $row->system]);
-				if (isset($game)) {
-					$games[] = $game;
-				}
+			$offset = (int)$request->getGet('offset', 0);
+			$limit = (int)$request->getGet('limit', 0);
+			if ($limit > 0) {
+				$query->limit($limit);
+				$query->offset($offset);
 			}
-			return $games;
+			return GameFactory::iterateByIdFromQuery($query);
 		}
 
 		$offset = (int)$request->getGet('offset', 0);
@@ -408,15 +429,7 @@ class Games extends ApiController
 		if (isset($modes)) {
 			$query->where('[id_mode] IN %in', array_keys($modes));
 		}
-		$rows = $query->fetchAll();
-		foreach ($rows as $row) {
-			$game = GameFactory::getById((int)$row->id_game, ['system' => $row->system]);
-			if (isset($game)) {
-				$games[] = $game;
-			}
-		}
-
-		return $games;
+		return GameFactory::iterateByIdFromQuery($query);
 	}
 
 	/**
@@ -436,49 +449,24 @@ class Games extends ApiController
 			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
 		}
 		$game->calculateSkills();
-		$this->playerUserService->recalculateRatingForGame($game);
+		$this->rankCalculator->recalculateRatingForGame($game);
 		if (!$game->save()) {
 			$this->respond(['error' => 'Save failed'], 500);
 		}
 		$playerSkills = [];
 		$sumSkill = 0;
 		$sumUserSkill = 0;
-		$max = 0;
-		$min = 99999;
 		foreach ($game->getPlayers()->getAll() as $player) {
 			$playerSkills[$player->vest] = [
 				'name' => $player->name,
 				'skill' => $player->getSkill(),
 				'user' => $player->user?->stats->rank ?? $player->getSkill(),
 			];
-			if ($playerSkills[$player->vest]['skill'] > $max) {
-				$max = $playerSkills[$player->vest]['skill'];
-			}
-			if ($playerSkills[$player->vest]['skill'] < $min) {
-				$min = $playerSkills[$player->vest]['skill'];
-			}
 			$sumSkill += $playerSkills[$player->vest]['skill'];
 			$sumUserSkill += $playerSkills[$player->vest]['user'];
 		}
-		$min -= PlayerUserService::MIN_PADDING;
-		$max += PlayerUserService::MAX_PADDING;
 		$average = $sumSkill / count($playerSkills);
 		$averageUser = $sumUserSkill / count($playerSkills);
-		/*foreach ($playerSkills as $vest => $info) {
-			$playerSkills[$vest]['normalized'] = ($info['skill'] - $min) / ($max - $min);
-			$playerSkills[$vest]['diff'] = ($info['skill'] - $average);
-			$playerSkills[$vest]['diff2'] = ($info['user'] - $average);
-			$playerSkills[$vest]['diff3'] = ($info['user'] - $averageUser);
-			$playerSkills[$vest]['expected'] = 1 / (1 + 10 ** ($playerSkills[$vest]['diff'] / PlayerUserService::RATING_RATIO_CONSTANT));
-			$playerSkills[$vest]['expected2'] = 1 / (1 + 10 ** ($playerSkills[$vest]['diff2'] / PlayerUserService::RATING_RATIO_CONSTANT));
-			$playerSkills[$vest]['expected3'] = 1 / (1 + 10 ** ($playerSkills[$vest]['diff3'] / PlayerUserService::RATING_RATIO_CONSTANT));
-			$playerSkills[$vest]['expectedDiff'] = ($playerSkills[$vest]['normalized'] - $playerSkills[$vest]['expected']);
-			$playerSkills[$vest]['expectedDiff2'] = ($playerSkills[$vest]['normalized'] - $playerSkills[$vest]['expected2']);
-			$playerSkills[$vest]['expectedDiff3'] = ($playerSkills[$vest]['normalized'] - $playerSkills[$vest]['expected3']);
-			$playerSkills[$vest]['rankDiff'] = PlayerUserService::K_FACTOR * $playerSkills[$vest]['expectedDiff'];
-			$playerSkills[$vest]['rankDiff2'] = PlayerUserService::K_FACTOR * $playerSkills[$vest]['expectedDiff2'];
-			$playerSkills[$vest]['rankDiff3'] = PlayerUserService::K_FACTOR * $playerSkills[$vest]['expectedDiff3'];
-		}*/
 		$this->respond(['players' => $playerSkills, 'average' => $average, 'averageUser' => $averageUser]);
 	}
 
@@ -500,7 +488,7 @@ class Games extends ApiController
 		/** @var class-string<Game> $gameClass */
 		$gameClass = '\App\GameModels\Game\\' . Strings::toPascalCase($system) . '\Game';
 		if (!class_exists($gameClass) || !in_array($system, $supported, true)) {
-			$this->respond(['error' => 'Invalid game system', 'class' => $gameClass], 400);
+			$this->respond(['error' => 'Invalid game system', 'class' => $gameClass, 'post' => $_REQUEST], 400);
 		}
 
 		$imported = 0;
@@ -568,14 +556,22 @@ class Games extends ApiController
 
 				// Check music mode
 				if (!empty($gameInfo['music']['id'])) {
-					$musicMode = MusicMode::query()->where('[id_arena] = %i AND [id_local] = %i', $this->arena->id, $gameInfo['music']['id'])->first();
+					$musicMode = MusicMode::query()->where(
+						'[id_arena] = %i AND [id_local] = %i',
+						$this->arena->id,
+						$gameInfo['music']['id']
+					)->first();
 					if (isset($musicMode)) {
 						$game->music = $musicMode;
 					}
 				}
 				// Check group
 				if (!empty($gameInfo['group']['id'])) {
-					$gameGroup = GameGroup::getOrCreateFromLocalId($gameInfo['group']['id'], $gameInfo['group']['name'], $this->arena);
+					$gameGroup = GameGroup::getOrCreateFromLocalId(
+						$gameInfo['group']['id'],
+						$gameInfo['group']['name'],
+						$this->arena
+					);
 					if (isset($gameGroup->id)) {
 						$game->group = $gameGroup;
 						if ($gameGroup->name !== $gameInfo['group']['name']) {
@@ -596,7 +592,7 @@ class Games extends ApiController
 
 			// Find logged-in users
 			/** @var Player $player */
-			foreach ($game->getPlayers() as $player) {
+			foreach ($game->getPlayers()->getAll() as $player) {
 				if (isset($player->user)) {
 					if (!isset($users[$player->user->id])) {
 						$users[$player->user->id] = [
@@ -623,7 +619,11 @@ class Games extends ApiController
 			}
 
 			$dbTime = microtime(true) - $start - $parseTime;
-			$logger->debug('Game ' . $game->code . ' imported in ' . (microtime(true) - $start) . 's - parse: ' . $parseTime . 's, save: ' . $dbTime . 's');
+			$logger->debug(
+				'Game ' . $game->code . ' imported in ' . (microtime(
+						true
+					) - $start) . 's - parse: ' . $parseTime . 's, save: ' . $dbTime . 's'
+			);
 		}
 
 		// Update logged-in users if any
@@ -688,7 +688,10 @@ class Games extends ApiController
 			$date = new DateTime($request->get['date']);
 		}
 
-		$gameCount = (isset($request->get['system']) ? $this->arena->queryGamesSystem($request->get['system'], $date) : $this->arena->queryGames($date))->count();
+		$gameCount = (isset($request->get['system']) ? $this->arena->queryGamesSystem(
+			$request->get['system'],
+			$date
+		) : $this->arena->queryGames($date))->count();
 		$playerCount = $this->arena->queryPlayers($date)->count();
 		$teamCount = $this->arena->queryTeams($date)->count();
 

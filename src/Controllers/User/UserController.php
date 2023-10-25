@@ -5,18 +5,21 @@ namespace App\Controllers\User;
 use _PHPStan_532094bc1\Nette\Utils\DateTime;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
-use App\GameModels\Game\Player;
-use App\GameModels\Game\Team;
+use App\Models\Achievements\Title;
 use App\Models\Arena;
 use App\Models\Auth\User;
 use App\Models\DataObjects\PlayerRank;
-use App\Services\PlayerRankOrderService;
-use App\Services\PlayerUserService;
+use App\Services\Achievements\TitleProvider;
+use App\Services\Avatar\AvatarService;
+use App\Services\Avatar\AvatarType;
+use App\Services\Player\PlayerRankOrderService;
+use App\Services\Player\PlayersGamesTogetherService;
+use App\Services\Player\PlayerUserService;
 use DateTimeImmutable;
 use Dibi\Row;
 use Exception;
+use Imagick;
 use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
@@ -46,6 +49,12 @@ class UserController extends AbstractUserController
 		protected readonly Passwords            $passwords,
 		private readonly PlayerUserService      $userService,
 		private readonly PlayerRankOrderService $rankOrderService
+		protected Latte                              $latte,
+		protected readonly Auth                      $auth,
+		protected readonly Passwords                 $passwords,
+		private readonly PlayerUserService           $userService,
+		private readonly PlayerRankOrderService      $rankOrderService,
+		private readonly PlayersGamesTogetherService $playersGamesTogetherService,
 	) {
 		parent::__construct($latte);
 	}
@@ -60,14 +69,20 @@ class UserController extends AbstractUserController
 	 * @throws ValidationException
 	 * @throws TemplateDoesNotExistException
 	 */
-	public function show() : void {
-		$this->params['user'] = $this->auth->getLoggedIn();
+	public function show(): void {
+		$this->params['user'] = $user = $this->auth->getLoggedIn();
 		$this->params['arenas'] = Arena::getAll();
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'              => [],
+			$user->name               => ['user', $user->player->getCode()],
+			lang('Nastavení profilu') => ['user'],
+		];
 
 		$this->title = 'Nastavení profilu hráče - %s';
-		$this->titleParams[] = $this->params['user']->name;
+		$this->titleParams[] = $user->name;
 		$this->description = 'Nastavení osobních údajů a profilu hráče laser game - %s.';
 		$this->descriptionParams[] = $this->params['user']->name;
+		$this->descriptionParams[] = $user->name;
 
 		$this->view('pages/profile/index');
 	}
@@ -179,14 +194,25 @@ class UserController extends AbstractUserController
 		$this->params['addCss'] = ['pages/playerProfile.css'];
 		$user = $this->getUser($code);
 		$this->params['user'] = $user;
-		$this->params['rankOrder'] = $this->rankOrderService->getDateRankForPlayer($user->createOrGetPlayer(), new DateTimeImmutable());
+		$this->params['rankOrder'] = $this->rankOrderService->getDateRankForPlayer(
+			$user->createOrGetPlayer(),
+			new DateTimeImmutable()
+		);
 		$this->params['lastGames'] = $user->player?->queryGames()
-																							->limit(10)
-																							->orderBy('start')
-																							->desc()
-																							->cacheTags('user/games', 'user/' . $this->params['user']->player?->getCode() . '/games', 'user/' . $this->params['user']->player?->getCode() . '/lastGames')
-																							->fetchAll() ?? [];
+		                                          ->limit(10)
+		                                          ->orderBy('start')
+		                                          ->desc()
+		                                          ->cacheTags(
+			                                          'user/games',
+			                                          'user/' . $this->params['user']->player?->getCode() . '/games',
+			                                          'user/' . $this->params['user']->player?->getCode() . '/lastGames'
+		                                          )
+		                                          ->fetchAll() ?? [];
 
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'                => [],
+			$this->params['user']->name => ['user', $this->params['user']->player->getCode()],
+		];
 		$this->title = 'Nástěnka hráče - %s';
 		$this->titleParams[] = $this->params['user']->name;
 		$this->description = 'Profil a statistiky všech laser game her hráče %s';
@@ -215,15 +241,15 @@ class UserController extends AbstractUserController
 		$player = $user->createOrGetPlayer();
 		$query = PlayerFactory::queryPlayersWithGames(
 			playerFields: [
-				'vest',
-				'hits',
-				'deaths',
-				'accuracy',
-				'score',
-				'shots',
-				'skill',
-				'kd' => ['first' => 'hits', 'second' => 'deaths', 'operation' => '/']
-			]
+				              'vest',
+				              'hits',
+				              'deaths',
+				              'accuracy',
+				              'score',
+				              'shots',
+				              'skill',
+				              'kd' => ['first' => 'hits', 'second' => 'deaths', 'operation' => '/'],
+			              ]
 		)
 													->where('[id_user] = %i', $user->id)
 													->cacheTags('user/'.$user->id.'/games');
@@ -323,6 +349,11 @@ class UserController extends AbstractUserController
 		// SEO
 		$this->title = 'Hry hráče - %s';
 		$this->titleParams[] = $this->params['user']->name;
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'                => [],
+			$this->params['user']->name => ['user', $this->params['user']->player->getCode()],
+			lang('Hry hráče')           => ['user', $this->params['user']->player->getCode(), 'history'],
+		];
 		$this->description = 'Seznam všech her laser game hráče %s.';
 		$this->descriptionParams[] = $this->params['user']->name;
 
@@ -379,139 +410,10 @@ class UserController extends AbstractUserController
 		if (!isset($currentUser) || $user->id === $currentUser->id) {
 			$this->respond(['error' => 'Must be logged in and not the same as the compared user.'], 400);
 		}
-		$data = [];
+		$data = $this->playersGamesTogetherService->getGamesTogether($currentUser->player, $user->player);
 
-		// Get games together
-		$gamesQuery = DB::getConnection()->select("[id_game], [type], [code], [id_mode], GROUP_CONCAT([vest] SEPARATOR ',') as [vests], GROUP_CONCAT([id_team] SEPARATOR ',') as [teams], GROUP_CONCAT([id_user] SEPARATOR ',') as [users], GROUP_CONCAT([name] SEPARATOR ',') as [names]")
-			->from(
-				PlayerFactory::queryPlayersWithGames(playerFields: ['vest'], modeFields: ['type'])
-					->where('[id_user] IN %in', [$user->id, $currentUser->id])
-					->fluent,
-				'players'
-			)
-			->groupBy('id_game')
-			->having('COUNT([id_game]) = 2');
-
-		// Filter by game modes
-		/** @var numeric-string|numeric-string[] $modes */
-		$modes = $request->getGet('modes', []);
-		if (!is_array($modes)) {
-			$modes = [$modes];
-		}
-		if (!empty($modes)) {
-			// Cast all ids to int
-			foreach ($modes as $key => $mode) {
-				$modes[$key] = (int) $mode;
-			}
-			$gamesQuery->where('[id_mode] IN %in', $modes);
-		}
-
-		$games = (new Fluent($gamesQuery))
-			->cacheTags(
-				'players',
-				'user/'.$user->id.'/games',
-				'user/'.$currentUser->id.'/games',
-				'user/compare',
-				'user/compare/'.$user->id.'/'.$currentUser->id,
-				'user/compare/'.$currentUser->id.'/'.$user->id
-			)
-			->fetchAll();
-
-		//$data['rows'] = $games;
-		$data['gameCount'] = count($games);
-		$data['gameCountTogether'] = 0;
-		$data['gameCountEnemy'] = 0;
-		$data['gameCountEnemyTeam'] = 0;
-		$data['gameCountEnemySolo'] = 0;
-		$data['winsTogether'] = 0;
-		$data['lossesTogether'] = 0;
-		$data['drawsTogether'] = 0;
-		$data['winsEnemy'] = 0;
-		$data['lossesEnemy'] = 0;
-		$data['drawsEnemy'] = 0;
-		$data['hitsTogether'] = 0;
-		$data['hitsEnemy'] = 0;
-		$data['deathsTogether'] = 0;
-		$data['deathsEnemy'] = 0;
-		$data['gameCodes'] = [];
-		$data['gameCodesTogether'] = [];
-		$data['gameCodesEnemy'] = [];
-		//$gameObjects = [];
-		foreach ($games as $gameRow) {
-			/** @var Game $game */
-			$game = GameFactory::getByCode($gameRow->code);
-			//$gameObjects[$game->code] = $game;
-			$data['gameCodes'][] = $gameRow->code;
-			[$user1, $user2] = explode(',', $gameRow->users);
-			[$vest1, $vest2] = explode(',', $gameRow->vests);
-			[$team1, $team2] = explode(',', $gameRow->teams);
-			if (((int) $user1) === $currentUser->id) {
-				/** @var Player $currentPlayer */
-				$currentPlayer = $game->getVestPlayer($vest1);
-				/** @var Player $otherPlayer */
-				$otherPlayer = $game->getVestPlayer($vest2);
-			}
-			else {
-				/** @var Player $currentPlayer */
-				$currentPlayer = $game->getVestPlayer($vest2);
-				/** @var Player $otherPlayer */
-				$otherPlayer = $game->getVestPlayer($vest1);
-			}
-
-			$teammates = $team1 === $team2 && $gameRow->type === 'TEAM';
-			if ($teammates) {
-				$data['gameCodesTogether'][] = $gameRow->code;
-				$data['gameCountTogether']++;
-				/** @var Team|null $winTeam */
-				$winTeam = $game->mode?->getWin($game);
-				if (isset($winTeam) && $winTeam->id === (int) $team1) {
-					$data['winsTogether']++;
-				}
-				else if ($winTeam === null) {
-					$data['drawsTogether']++;
-				}
-				else {
-					$data['lossesTogether']++;
-				}
-
-				$data['hitsTogether'] += $currentPlayer->getHitsPlayer($otherPlayer);
-				$data['deathsTogether'] += $otherPlayer->getHitsPlayer($currentPlayer);
-			}
-			else {
-				$data['gameCodesEnemy'][] = $gameRow->code;
-				$data['gameCountEnemy']++;
-
-				if ($game->mode->isTeam()) {
-					$data['gameCountEnemyTeam']++;
-					/** @var Team|null $winTeam */
-					$winTeam = $game->mode?->getWin($game);
-					if ($currentPlayer->getTeam()->id === $winTeam->id) {
-						$data['winsEnemy']++;
-					}
-					elseif ($otherPlayer->getTeam()->id === $winTeam->id) {
-						$data['lossesEnemy']++;
-					}
-					else {
-						$data['drawsEnemy']++;
-					}
-				}
-				else {
-					$data['gameCountEnemySolo']++;
-					if ($currentPlayer->score === $otherPlayer->score) {
-						$data['drawsEnemy']++;
-					}
-					elseif ($currentPlayer->score > $otherPlayer->score) {
-						$data['winsEnemy']++;
-					}
-					else {
-						$data['lossesEnemy']++;
-					}
-				}
-
-				$data['hitsEnemy'] += $currentPlayer->getHitsPlayer($otherPlayer);
-				$data['deathsEnemy'] += $otherPlayer->getHitsPlayer($currentPlayer);
-			}
-		}
+		// If the data object was cached the other way around, this swaps the hits-deaths and wins-losses
+		$data->setPlayer1($currentUser->player);
 
 		$this->respond($data);
 	}
@@ -592,8 +494,12 @@ class UserController extends AbstractUserController
 		$today = new DateTimeImmutable();
 		$monthAgo = new DateTimeImmutable('- 30 days');
 		$twoMonthsAgo = new DateTimeImmutable('- 60 days');
-		$thisMonthGamesCount = $player->queryGames()->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)->count();
-		$lastMonthGamesCount = $player->queryGames()->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)->count();
+		$thisMonthGamesCount = $player->queryGames()
+		                              ->where('DATE([start]) BETWEEN %d AND %d', $monthAgo, $today)
+		                              ->count();
+		$lastMonthGamesCount = $player->queryGames()
+		                              ->where('DATE([start]) BETWEEN %d AND %d', $twoMonthsAgo, $monthAgo)
+		                              ->count();
 		$trends['games'] = [
 			'before' => $lastMonthGamesCount,
 			'now'    => $thisMonthGamesCount,
@@ -680,6 +586,15 @@ class UserController extends AbstractUserController
 	}
 
 	public function findGames(): void {
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'                        => [],
+			$this->params['loggedInUser']->name => ['user', $this->params['loggedInUser']->player->getCode()],
+			lang('Najít hry')                   => [
+				'user',
+				$this->params['loggedInUser']->player->getCode(),
+				'findgames',
+			],
+		];
 		$this->title = 'Najít hry - %s';
 		$this->titleParams[] = $this->params['loggedInUser']->name;
 		$this->description = 'Najít další hry hráče pro přiřazení.';

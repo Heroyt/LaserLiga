@@ -7,14 +7,13 @@ use App\GameModels\Game\Evo5\Player;
 use App\Mails\Message;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
-use App\Models\Tournament\LeagueTeam;
 use App\Models\Tournament\Player as TournamentPlayer;
 use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\Requirement;
+use App\Models\Tournament\Stats;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use App\Services\MailService;
-use DateTimeImmutable;
 use Exception;
 use Lsr\Core\App;
 use Lsr\Core\Controller;
@@ -38,11 +37,7 @@ class TournamentController extends Controller
 	 * @param Latte $latte
 	 * @param AuthInterface<User> $auth
 	 */
-	public function __construct(
-		Latte                          $latte,
-		private readonly AuthInterface $auth,
-		private readonly MailService   $mail,
-	) {
+	public function __construct(Latte $latte, private readonly AuthInterface $auth, private readonly MailService $mail,) {
 		parent::__construct($latte);
 	}
 
@@ -52,15 +47,19 @@ class TournamentController extends Controller
 	}
 
 	public function show(): void {
-		$this->params['tournaments'] = Tournament::query()
-																						 ->where('DATE([start]) > CURDATE()')
-																						 ->orderBy('start')
-																						 ->get();
+		$this->title = 'Plánované turnaje';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'    => [],
+			lang('Turnaje') => ['tournament'],
+		];
+		$this->description = 'Turnaje plánované v laser arénách, které budou probíhat v následujících měsících.';
+		$this->params['tournaments'] = Tournament::query()->where('DATE([start]) > CURDATE()')->orderBy('start')->get();
 		$this->view('pages/tournament/index');
 	}
 
 	public function detail(Tournament $tournament): void {
-		$this->title = 'Turnaj %s - %s';
+		$this->title = 'Turnaj %s %s - %s';
+		$this->titleParams[] = $tournament->arena->name;
 		$this->titleParams[] = $tournament->start->format('d.m.Y');
 		$this->titleParams[] = $tournament->name;
 		$this->description = 'Turnaj %s v %s. Turnaj se odehrává %s od %s.';
@@ -68,6 +67,16 @@ class TournamentController extends Controller
 		$this->descriptionParams[] = $tournament->arena->name;
 		$this->descriptionParams[] = $tournament->start->format('d.m.Y');
 		$this->descriptionParams[] = $tournament->start->format('H:i');
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'             => [],
+			$tournament->arena->name => ['arena', $tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+		];
+		if (isset($tournament->league)) {
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
+		}
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
+
 		$this->params['tournament'] = $tournament;
 
 		$this->params['bestPlayers'] = [];
@@ -138,9 +147,19 @@ class TournamentController extends Controller
 	}
 
 	private function setRegisterTitleDescription(Tournament $tournament): void {
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'             => [],
+			$tournament->arena->name => ['arena', $tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+		];
+		if (isset($tournament->league)) {
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
+		}
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
+		$this->params['breadcrumbs'][lang('Registrace')] = ['tournament', $tournament->id, 'register'];
 		$this->title = '%s - Registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
-		$this->description = 'Turnaj %s v %s. Turnaj se odehrává %s od %s.';
+		$this->description = 'Registrace na turnaj %s v %s. Turnaj se odehrává %s od %s.';
 		$this->descriptionParams[] = (isset($tournament->league) ? $tournament->league->name . ' ' : '') . $tournament->name;
 		$this->descriptionParams[] = $tournament->arena->name;
 		$this->descriptionParams[] = $tournament->start->format('d.m.Y');

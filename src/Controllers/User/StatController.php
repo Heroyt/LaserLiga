@@ -6,8 +6,8 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\PlayerTrophy;
 use App\Models\Auth\LigaPlayer;
-use App\Services\PlayerRankOrderService;
-use App\Services\PlayerUserService;
+use App\Services\Achievements\AchievementProvider;
+use App\Services\Player\PlayerRankOrderService;
 use DateInterval;
 use DateTimeImmutable;
 use Dibi\Row;
@@ -191,10 +191,12 @@ class StatController extends AbstractUserController
 		$query = $player->queryGames()->where('[start] >= %dt', $since);
 		/** @var Row[][] $data */
 		$data = (
-		new Fluent(DB::getConnection()->select('COUNT(*) as [count], [id_mode], [modeName], '.$interval.' as [date]')
-								 ->from($query->fluent, 'a')
-								 ->groupBy('[date], [id_mode]')
-								 ->orderBy('[date], [id_mode]'))
+		new Fluent(
+			DB::getConnection()->select('COUNT(*) as [count], [id_mode], [modeName], ' . $interval . ' as [date]')
+			  ->from($query->fluent, 'a')
+			  ->groupBy('[date], [id_mode]')
+			  ->orderBy('[date], [id_mode]')
+		)
 		)
 			->cacheTags('players', 'user/games', 'user/'.$user->id.'/games', 'gameCounts')
 			->fetchAssoc('date|id_mode');
@@ -237,9 +239,11 @@ class StatController extends AbstractUserController
 			}
 			$data[$date] = [
 				'label' => match ($limit) {
-					'all' => lang(($d = DateTimeImmutable::createFromFormat('Y-m', $date))->format('F')).' '.$d->format('Y'),
-					'year' => lang(DateTimeImmutable::createFromFormat('Y-m', $date)->format('F')),
-					'week' => lang((new DateTimeImmutable($date))->format('l')),
+					'all'   => lang(
+							($d = DateTimeImmutable::createFromFormat('Y-m', $date))->format('F')
+						) . ' ' . $d->format('Y'),
+					'year'  => lang(DateTimeImmutable::createFromFormat('Y-m', $date)->format('F')),
+					'week'  => lang((new DateTimeImmutable($date))->format('l')),
 					default => (new DateTimeImmutable())
 							->setISODate(strtok($date, '-'), strtok('-'))
 							->format('d.m.').
@@ -259,12 +263,12 @@ class StatController extends AbstractUserController
 		$this->respond($data);
 	}
 
-	public function radar(string $code, Request $request) : never {
+	public function radar(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		/** @var LigaPlayer $player */
 		$player = $user->player;
 		$response = [
-			$player->nickname.' ('.strtoupper($code).')' => $this->getPlayerRadarData($player)
+			$player->nickname . ' (' . strtoupper($code) . ')' => $this->getPlayerRadarData($player),
 		];
 
 		/** @var string|string[] $compareCodes */
@@ -277,7 +281,9 @@ class StatController extends AbstractUserController
 				$user = $this->getUser($compareCode);
 				/** @var LigaPlayer $player */
 				$player = $user->player;
-				$response[$player->nickname.' ('.strtoupper($compareCode).')'] = $this->getPlayerRadarData($player);
+				$response[$player->nickname . ' (' . strtoupper($compareCode) . ')'] = $this->getPlayerRadarData(
+					$player
+				);
 			}
 		}
 
@@ -299,17 +305,19 @@ class StatController extends AbstractUserController
 		// Get rankable modes
 		$modes = $this->getRankableModes();
 
-		$query = new Fluent(DB::getConnection()
-													->select('AVG([relative_hits])')
-													->from(
-														PlayerFactory::queryPlayersWithGames(playerFields: ['relative_hits'])
-																				 ->where('[id_user] = %i', $player->id)
-																				 ->where('[id_mode] IN %in', array_keys($modes))
-															->fluent,
-														'a'
-													));
-		$hits = $query->cacheTags('user/'.$player->id.'/games', 'relative_hits')
-									->fetchSingle();
+		$query = new Fluent(
+			DB::getConnection()
+			  ->select('AVG([relative_hits])')
+			  ->from(
+				  PlayerFactory::queryPlayersWithGames(playerFields: ['relative_hits'])
+				               ->where('[id_user] = %i', $player->id)
+				               ->where('[id_mode] IN %in', array_keys($modes))
+					  ->fluent,
+				  'a'
+			  )
+		);
+		$hits = $query->cacheTags('user/' . $player->id . '/games', 'relative_hits')
+		              ->fetchSingle();
 		$ex = exp(4 * ($hits - 1));
 		$data['hits'] = 100 * $ex / ($ex + 1);
 		$ex = exp(4 * ($player->stats->kd - 1));

@@ -12,7 +12,7 @@ use App\GameModels\Game\Scoring;
 use App\GameModels\Game\Timing;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
-use App\Services\PlayerUserService;
+use App\Services\Player\PlayerUserService;
 use App\Services\PushService;
 use Lsr\Core\App;
 use Lsr\Core\Controller;

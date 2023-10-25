@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Player;
 
 use App\Models\Auth\LigaPlayer;
 use App\Models\DataObjects\PlayerRank;

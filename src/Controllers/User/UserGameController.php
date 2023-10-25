@@ -2,13 +2,15 @@
 
 namespace App\Controllers\User;
 
+use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\Player;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
 use App\Models\PossibleMatch;
-use App\Services\PlayerRankOrderService;
-use App\Services\PlayerUserService;
+use App\Services\Player\PlayerRankOrderService;
+use App\Services\Player\PlayerUserService;
 use DateInterval;
 use DateTimeImmutable;
 use JsonException;
@@ -33,6 +35,33 @@ class UserGameController extends AbstractUserController
 	) {
 		parent::__construct($latte);
 		$this->user = $this->auth->getLoggedIn();
+	}
+
+	public function unsetMe(Request $request): never {
+		if (!isset($this->user)) {
+			$this->respond(['error' => 'User is not logged in'], 401);
+		}
+		$code = $request->getPost('code', '');
+		try {
+			$game = GameFactory::getByCode($code);
+		} catch (\Throwable $e) {
+		}
+		if (!isset($game)) {
+			$this->respond(['error' => 'Game not found'], 404);
+		}
+
+		$player = null;
+		/** @var Player $gamePlayer */
+		foreach ($game->getPlayers() as $gamePlayer) {
+			if (isset($gamePlayer->user) && $gamePlayer->user->id === $this->user->id) {
+				$player = $gamePlayer;
+				break;
+			}
+		}
+		if (isset($player)) {
+			$this->playerUserService->unsetPlayerUser($player);
+		}
+		$this->respond(['status' => 'ok']);
 	}
 
 	/**
@@ -83,6 +112,32 @@ class UserGameController extends AbstractUserController
 
 		if (!$this->playerUserService->setPlayerUser($this->user, $player)) {
 			$this->respond(['error' => 'Setting a user failed'], 500);
+		}
+
+		$this->respond(['status' => 'ok']);
+	}
+
+	public function setAllMe(Request $request): never {
+		if (!isset($this->user)) {
+			$this->respond(['error' => 'User is not logged in'], 401);
+		}
+
+		$matches = PossibleMatch::getForUser($this->user);
+
+		foreach ($matches as $match) {
+			if (isset($match->matched)) {
+				continue;
+			}
+
+			$game = $match->getGame();
+
+			// Find player object
+			foreach ($game->getPlayers() as $player) {
+				if (comparePlayerNames($player->name, $this->user->name)) {
+					$this->playerUserService->setPlayerUser($this->user, $player);
+					break;
+				}
+			}
 		}
 
 		$this->respond(['status' => 'ok']);

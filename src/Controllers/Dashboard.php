@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Auth\User;
-use App\Services\PlayerRankOrderService;
+use App\Services\Player\PlayerRankOrderService;
 use DateTimeImmutable;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controller;
@@ -38,6 +38,10 @@ class Dashboard extends Controller
 																															->fetchAll();
 		$this->title = 'Nástěnka hráče - %s';
 		$this->titleParams[] = $this->params['user']->name;
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'                => [],
+			$this->params['user']->name => ['user', $this->params['user']->player->getCode()],
+		];
 		$this->description = 'Profil a statistiky všech laser game her hráče %s';
 		$this->descriptionParams[] = $this->params['user']->name;
 		$this->params['rankOrder'] = $this->rankOrderService->getDateRankForPlayer($this->params['user']->createOrGetPlayer(), new DateTimeImmutable());

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Maths;
 
 /**
  * Several matrix operation functions
@@ -55,9 +55,11 @@ trait MatrixOperations
 			$divisor = $matrix[$j][$j];
 			$matrix[$j][$j] = 1;
 
-			for ($k = 0; $k < $n; $k++) {
-				$matrix[$j][$k] /= $divisor;
-				$identity[$j][$k] /= $divisor;
+			if ($divisor !== 0.0) {
+				for ($k = 0; $k < $n; $k++) {
+					$matrix[$j][$k] /= $divisor;
+					$identity[$j][$k] /= $divisor;
+				}
 			}
 
 			for ($i = 0; $i < $n; $i++) {
