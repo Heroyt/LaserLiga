@@ -29,6 +29,7 @@ class StatController extends AbstractUserController
 	public function __construct(
 		Latte                                   $latte,
 		private readonly PlayerRankOrderService $rankOrderService,
+		private readonly AchievementProvider $achievementProvider,
 	) {
 		parent::__construct($latte);
 	}
@@ -40,25 +41,25 @@ class StatController extends AbstractUserController
 			'6 months' => new DateTimeImmutable('-6 months'),
 			'3 months' => new DateTimeImmutable('-3 months'),
 			'week' => new DateTimeImmutable('-7 days'),
-			'day' => new DateTimeImmutable('-1 days'),
-			'all' => new DateTimeImmutable('2000-01-01 00:00:00'),
+			'day'  => new DateTimeImmutable('-1 days'),
+			'all'  => new DateTimeImmutable('2000-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
 
 		$gamesQuery = $user->createOrGetPlayer()->queryGames()
-											 ->where('[start] >= %dt', $since);
+		                                        ->where('[start] >= %dt', $since);
 		$query = new Fluent(
 			DB::getConnection()
-				->select('COUNT([a].[id_mode]) as [count], [a].[modeName] as [name]')
-				->from('%sql [a]', $gamesQuery->fluent)
-				->groupBy('id_mode')
+			  ->select('COUNT([a].[id_mode]) as [count], [a].[modeName] as [name]')
+			  ->from('%sql [a]', $gamesQuery->fluent)
+			  ->groupBy('id_mode')
 		);
 		$data = $query
 			->cacheTags(
-				'user/'.$user->id.'/stats',
-				'user/'.$user->id.'/stats/modes',
-				'user/'.$user->id.'/games',
+				'user/' . $user->id . '/stats',
+				'user/' . $user->id . '/stats/modes',
+				'user/' . $user->id . '/games',
 			)
 			->fetchPairs('name', 'count');
 		$return = [];
@@ -68,15 +69,15 @@ class StatController extends AbstractUserController
 		$this->respond($return);
 	}
 
-	public function rankHistory(string $code, Request $request) : never {
+	public function rankHistory(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		$since = match ($request->getGet('limit', 'month')) {
 			'year' => new DateTimeImmutable('-1 years'),
 			'6 months' => new DateTimeImmutable('-6 months'),
 			'3 months' => new DateTimeImmutable('-3 months'),
 			'week' => new DateTimeImmutable('-7 days'),
-			'day' => new DateTimeImmutable('-1 days'),
-			'all' => new DateTimeImmutable('2000-01-01 00:00:00'),
+			'day'  => new DateTimeImmutable('-1 days'),
+			'all'  => new DateTimeImmutable('2000-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
@@ -87,16 +88,16 @@ class StatController extends AbstractUserController
 		];
 
 		$rows = DB::select('player_game_rating', '[difference], [date]')
-							->where('[id_user] = %i', $user->id)
-							->where('[date] >= %dt', $since)
-							->orderBy('[date]')
-							->desc()
-							->cacheTags(
-								'user/'.$user->id.'/stats',
-								'user/'.$user->id.'/stats/ratingHistory',
-								'user/'.$user->id.'/games',
-							)
-							->fetchAll();
+		          ->where('[id_user] = %i', $user->id)
+		          ->where('[date] >= %dt', $since)
+		          ->orderBy('[date]')
+		          ->desc()
+		          ->cacheTags(
+			          'user/' . $user->id . '/stats',
+			          'user/' . $user->id . '/stats/ratingHistory',
+			          'user/' . $user->id . '/games',
+		          )
+		          ->fetchAll();
 
 		foreach ($rows as $row) {
 			$rank -= $row->difference;
@@ -113,8 +114,8 @@ class StatController extends AbstractUserController
 			'6 months' => new DateTimeImmutable('-6 months'),
 			'3 months' => new DateTimeImmutable('-3 months'),
 			'week' => new DateTimeImmutable('-7 days'),
-			'day' => new DateTimeImmutable('-1 days'),
-			'all' => new DateTimeImmutable('2022-01-01 00:00:00'),
+			'day'  => new DateTimeImmutable('-1 days'),
+			'all'  => new DateTimeImmutable('2022-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
@@ -123,16 +124,16 @@ class StatController extends AbstractUserController
 		$history = [];
 
 		$rows = DB::select('player_date_rank', '[date], [position], [position_text]')
-							->where('[id_user] = %i', $user->id)
-							->where('[date] >= %d', $since)
-							->orderBy('[date]')
-							->desc()
-							->cacheTags(
-								'date_rank',
-								'user/' . $user->id . '/stats/date_rank',
-								'user/' . $user->id . '/stats',
-							)
-							->fetchAssoc('date');
+		          ->where('[id_user] = %i', $user->id)
+		          ->where('[date] >= %d', $since)
+		          ->orderBy('[date]')
+		          ->desc()
+		          ->cacheTags(
+			          'date_rank',
+			          'user/' . $user->id . '/stats/date_rank',
+			          'user/' . $user->id . '/stats',
+		          )
+		          ->fetchAssoc('date');
 
 		$today = new DateTimeImmutable('00:00:00');
 		$date = clone $since;
@@ -179,7 +180,7 @@ class StatController extends AbstractUserController
 			default => new DateTimeImmutable('-1 months'),
 		};
 		if ($limit === 'all') {
-			$since = $since->modify('- '.(((int) $since->format('d')) - 1).' days');
+			$since = $since->modify('- ' . (((int)$since->format('d')) - 1) . ' days');
 		}
 		$interval = match ($limit) {
 			'all', 'year' => "DATE_FORMAT([start], '%Y-%m')",
@@ -198,7 +199,7 @@ class StatController extends AbstractUserController
 			  ->orderBy('[date], [id_mode]')
 		)
 		)
-			->cacheTags('players', 'user/games', 'user/'.$user->id.'/games', 'gameCounts')
+			->cacheTags('players', 'user/games', 'user/' . $user->id . '/games', 'gameCounts')
 			->fetchAssoc('date|id_mode');
 
 		$allModes = [];
@@ -246,8 +247,8 @@ class StatController extends AbstractUserController
 					'week'  => lang((new DateTimeImmutable($date))->format('l')),
 					default => (new DateTimeImmutable())
 							->setISODate(strtok($date, '-'), strtok('-'))
-							->format('d.m.').
-						' - '.
+							->format('d.m.') .
+						' - ' .
 						(new DateTimeImmutable())
 							->setISODate(strtok($date, '-'), strtok('-'))
 							->add(new DateInterval('P6D'))
@@ -295,7 +296,7 @@ class StatController extends AbstractUserController
 	 *
 	 * @return array{accuracy:float,kd:float,hits:float}
 	 */
-	private function getPlayerRadarData(LigaPlayer $player) : array {
+	private function getPlayerRadarData(LigaPlayer $player): array {
 		$data = [
 			'rank'           => 100 * $player->stats->rank / $this->getMaxRank(),
 			'shotsPerMinute' => $player->stats->averageShotsPerMinute,
@@ -325,12 +326,12 @@ class StatController extends AbstractUserController
 		return $data;
 	}
 
-	private function getMaxRank() : int {
+	private function getMaxRank(): int {
 		if (!isset($this->maxRank)) {
 			$this->maxRank = DB::getConnection()
-												 ->select('MAX([rank])')
-												 ->from(LigaPlayer::TABLE)
-												 ->fetchSingle();
+			                   ->select('MAX([rank])')
+			                   ->from(LigaPlayer::TABLE)
+			                   ->fetchSingle();
 		}
 		return $this->maxRank;
 	}
@@ -338,17 +339,17 @@ class StatController extends AbstractUserController
 	/**
 	 * @return array<int,string>
 	 */
-	private function getRankableModes() : array {
+	private function getRankableModes(): array {
 		if (!isset($this->rankableModes)) {
 			$this->rankableModes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
-															 ->where('[rankable] = 1')
-															 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
-															 ->fetchPairs('id_mode', 'name');
+			                         ->where('[rankable] = 1')
+			                         ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+			                         ->fetchPairs('id_mode', 'name');
 		}
 		return $this->rankableModes;
 	}
 
-	public function trophies(string $code, Request $request) : never {
+	public function trophies(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		/** @var LigaPlayer $player */
 		$player = $user->player;
@@ -363,5 +364,13 @@ class StatController extends AbstractUserController
 		}
 		uasort($responseAll, static fn($trophyA, $trophyB) => $trophyB['count'] - $trophyA['count']);
 		$this->respond($responseAll);
+	}
+
+	public function achievements(string $code): never {
+		$user = $this->getUser($code);
+
+		$achievements = $this->achievementProvider
+			->getAllClaimedUnclaimed($user->createOrGetPlayer());
+		$this->respond($achievements);
 	}
 }

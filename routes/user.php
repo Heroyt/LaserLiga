@@ -17,8 +17,10 @@ $routes = Route::group()
 							 ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
 
 $publicUserRoutes = Route::group('/user')
-												 ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
-												 ->get('/leaderboard/{arenaId}', [LeaderboardController::class, 'show'])->name('player-leaderboard-arena');
+                         ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
+                         ->get('/leaderboard/{arenaId}', [LeaderboardController::class, 'show'])->name(
+		'player-leaderboard-arena'
+	);
 
 $publicUserIdGroup = $publicUserRoutes
 	->group('/{code}')
@@ -33,6 +35,7 @@ $publicUserIdGroup = $publicUserRoutes
 	->get('modes', [StatController::class, 'modes'])
 	->get('radar', [StatController::class, 'radar'])
 	->get('trophies', [StatController::class, 'trophies'])
+                                                 ->get('achievements', [StatController::class, 'achievements'])
 	->group('rank')
 	->get('history', [StatController::class, 'rankHistory'])
 	->get('orderhistory', [StatController::class, 'rankOrderHistory'])
@@ -47,7 +50,9 @@ $userGroup = $routes
 	->get('/findgames', [UserController::class, 'findGames'])->name('find-my-games')
 	->group('/player')
 	->post('/setme', [UserGameController::class, 'setMe'])
+	->post('/setallme', [UserGameController::class, 'setAllMe'])
 	->post('/setnotme', [UserGameController::class, 'setNotMe'])
+	->post('/unsetme', [UserGameController::class, 'unsetMe'])
 	->post('/setmegroup', [UserGameController::class, 'setGroupMe'])
 	->post('/{id}/stats', [UserGameController::class, 'updateStats'])
 	->endGroup()

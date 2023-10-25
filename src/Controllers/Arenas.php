@@ -21,6 +21,10 @@ class Arenas extends Controller
 {
 
 	public function list() : void {
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'  => [],
+			lang('Arény') => ['arena'],
+		];
 		$this->title = 'Seznam arén';
 		$this->description = 'Seznam všech laser game arén, registrovaných v LaserLize.';
 
@@ -29,10 +33,34 @@ class Arenas extends Controller
 	}
 
 	public function show(Arena $arena, Request $request) : void {
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'  => [],
+			lang('Arény') => ['arena'],
+			$arena->name  => ['arena', $arena->id],
+		];
 		$this->title = 'Detail %s';
 		$this->titleParams[] = $arena->name;
 		$this->description = 'Souhrnné statistiky a informace o aréně - %s';
 		$this->descriptionParams[] = $arena->name;
+
+		$tab = $request->path[4] ?? '';
+		switch ($tab) {
+			case 'stats':
+				$_GET['tab'] = 'stats';
+				break;
+			case 'music':
+				$_GET['tab'] = 'music';
+				break;
+			case 'tournaments':
+				$_GET['tab'] = 'tournaments';
+				break;
+			case 'info':
+				$_GET['tab'] = 'info';
+				break;
+			case 'games':
+				$_GET['tab'] = 'games';
+				break;
+		}
 
 		$this->params['arena'] = $arena;
 		$queries = [];

@@ -27,7 +27,22 @@ class LeaderboardController extends AbstractUserController
 	public function show(Request $request, ?Arena $arena = null): void {
 		$this->params['addCss'] = ['pages/leaderboard.css'];
 		$this->title = 'Žebříček';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga' => [],
+		];
+		if (isset($arena)) {
+			$this->params['breadcrumbs'][$arena->name] = ['arena', $arena->id];
+			$this->params['breadcrumbs'][lang($this->title)] = ['user', 'leaderboard', $arena->id];
+		}
+		else {
+			$this->params['breadcrumbs'][lang($this->title)] = ['user', 'leaderboard'];
+		}
 		$this->description = 'Žebříček všech hráčů laser game podle různých statistik.';
+
+		if (isset($arena)) {
+			$this->description .= ' Žebříček arény: %s';
+			$this->descriptionParams[] = $arena->name;
+		}
 
 		$user = $this->auth->getLoggedIn();
 
@@ -77,6 +92,11 @@ class LeaderboardController extends AbstractUserController
 			$query->desc();
 			$userQuery->desc();
 		}
+		$query->orderBy('id_user');
+		$userQuery->orderBy('id_user');
+
+		$query->orderBy('nickname');
+		$userQuery->orderBy('nickname');
 
 		if ($orderByField !== 'rank' || isset($arena)) {
 			$query->where('[games_played] > 0');
@@ -101,6 +121,7 @@ class LeaderboardController extends AbstractUserController
 				if ($desc) {
 					$searchQuery->desc();
 				}
+				$searchQuery->orderBy('id_user');
 				$searchQuery->where('%n ' . ($desc ? '>' : '<') . ' ' . $type, $orderByField, $value)
 										->cacheTags(LigaPlayer::TABLE, LigaPlayer::TABLE . '/query', ...LigaPlayer::CACHE_TAGS);
 				$order = $searchQuery->fetchSingle() + 1;
@@ -148,7 +169,7 @@ class LeaderboardController extends AbstractUserController
 			foreach ($ranksNow as $id => $row) {
 				$this->params['ranks'][$id] = [
 					'rank' => $row->position_text,
-					'difference' => $row->position - $ranksBefore[$id]->position,
+					'difference' => $row->position - ($ranksBefore[$id]?->position ?? 0),
 				];
 			}
 		}

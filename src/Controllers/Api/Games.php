@@ -381,9 +381,9 @@ class Games extends ApiController
 		$rankable = !empty($request->getGet('rankable'));
 		if ($rankable) {
 			$modes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
-								 ->where('[rankable] = 1')
-								 ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
-								 ->fetchPairs('id_mode', 'name');
+			           ->where('[rankable] = 1')
+			           ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
+			           ->fetchPairs('id_mode', 'name');
 		}
 
 		$user = (int)$request->getGet('user', 0);
@@ -636,6 +636,7 @@ class Games extends ApiController
 			$this->playerUserService->updatePlayerStats($user->user);
 			foreach ($userData['games'] as $game) {
 				$this->pushService->sendNewGameNotification($game, $user);
+				$this->achievementChecker->checkPlayerGame($game->getGame(), $game);
 			}
 		}
 		// Update today's ranks
@@ -696,10 +697,48 @@ class Games extends ApiController
 		$teamCount = $this->arena->queryTeams($date)->count();
 
 		$this->respond([
-			'games' => $gameCount,
-			'players' => $playerCount,
-			'teams' => $teamCount,
-		]);
+			               'games'   => $gameCount,
+			               'players' => $playerCount,
+			               'teams'   => $teamCount,
+		               ]);
+	}
+
+	public function highlights(string $code): never {
+		if (empty($code)) {
+			$this->respond(['error' => 'Invalid code'], 400);
+		}
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->respond(['error' => 'Game not found'], 404);
+		}
+		if ($game->arena->id !== $this->arena->id) {
+			$this->respond(['error' => 'This game belongs to a different arena.'], 403);
+		}
+
+		/** @var GameHighlightService $highlightService */
+		$highlightService = App::getServiceByType(GameHighlightService::class);
+
+		if (isset($_GET['user'])) {
+			try {
+				$user = LigaPlayer::get((int)$_GET['user']);
+			} catch (ModelNotFoundException) {
+			}
+		}
+
+		$highlights = isset($user) ? $highlightService->getHighlightsForGameForUser(
+			$game,
+			$user
+		) : $highlightService->getHighlightsForGame($game);
+
+		if (isset($_GET['descriptions'])) {
+			$descriptions = [];
+			foreach ($highlights as $highlight) {
+				$descriptions[] = $highlightService->playerNamesToLinks($highlight->getDescription(), $game);
+			}
+			$this->respond($descriptions);
+		}
+
+		$this->respond($highlights);
 	}
 
 }

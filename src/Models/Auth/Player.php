@@ -4,13 +4,19 @@ namespace App\Models\Auth;
 
 use App\Core\Info;
 use App\GameModels\Factory\PlayerFactory;
+use App\Models\Achievements\Title;
 use App\Models\Arena;
 use App\Models\DataObjects\PlayerStats;
+use App\Services\Achievements\TitleProvider;
+use App\Services\Avatar\AvatarService;
+use App\Services\Avatar\AvatarType;
 use Dibi\Row;
+use Lsr\Core\App;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Email;
 use Lsr\Core\Models\Model;
@@ -32,6 +38,12 @@ class Player extends Model
 	public string $nickname;
 	#[Email]
 	public string $email;
+	public ?string $avatar      = null;
+	public ?string $avatarStyle = null;
+	public ?string $avatarSeed  = null;
+
+	#[ManyToOne]
+	public ?Title $title = null;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		parent::__construct($id, $dbRow);
@@ -131,5 +143,25 @@ class Player extends Model
 	 */
 	public function getCode() : string {
 		return Info::get('arena_id', 0).'-'.$this->code;
+	}
+
+	/**
+	 * @return string SVG avatar
+	 */
+	public function getAvatar(): string {
+		if (!isset($this->avatar)) {
+			$avatarService = App::getServiceByType(AvatarService::class);
+			$this->avatar = $avatarService->getAvatar($this->getCode(), AvatarType::getRandom());
+			$this->save();
+		}
+		return $this->avatar;
+	}
+
+	public function getTitle(): Title {
+		if (!isset($this->title)) {
+			$titleProvider = App::getServiceByType(TitleProvider::class);
+			$this->title = first($titleProvider->getForUser($this));
+		}
+		return $this->title;
 	}
 }

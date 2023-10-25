@@ -113,15 +113,21 @@ class GameGroup extends Model
 	}
 
 	/**
+	 * @param string $sortBy
+	 * @param bool   $desc
+	 * @param int[]  $modes
+	 *
 	 * @return array<string,Game>
 	 * @throws Throwable
 	 */
-	public function getGames() : array {
+	public function getGames(string $sortBy = 'start', bool $desc = true, array $modes = []): array {
 		if (empty($this->games)) {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
 			/** @phpstan-ignore-next-line */
-			$this->games = $cache->load('group/'.$this->id.'/games', function(array &$dependencies) : array {
+			$this->games = $cache->load(
+				'group/' . $this->id . '/games/' . $sortBy . ($desc ? '/desc' : ''),
+				function (array &$dependencies) use ($sortBy, $desc): array {
 				$dependencies[CacheParent::Tags] = [
 					'gameGroups',
 					$this::TABLE.'/'.$this->id,
@@ -129,13 +135,23 @@ class GameGroup extends Model
 				];
 				$dependencies[CacheParent::EXPIRE] = '1 months';
 				$games = [];
-				$rows = GameFactory::queryGames(true, fields: ['id_group'])->where('[id_group] = %i', $this->id)->orderBy('start')->fetchAll(cache: false);
+					$query = GameFactory::queryGames(true, fields: ['id_group'])
+					                    ->where('[id_group] = %i', $this->id)
+					                    ->orderBy($sortBy);
+					if ($desc) {
+						$query->desc();
+					}
+					$rows = $query->fetchAll(cache: false);
 				foreach ($rows as $row) {
 					$games[(string) $row->code] = GameFactory::getByCode($row->code);
 				}
 				return $games;
 			});
 		}
+		if (!empty($modes)) {
+			return array_filter($this->games, static fn(Game $game) => in_array($game->mode?->id, $modes, true));
+		}
+
 		/** @phpstan-ignore-next-line */
 		return $this->games;
 	}

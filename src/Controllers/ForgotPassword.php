@@ -29,6 +29,11 @@ class ForgotPassword extends Controller
 
 	public function forgot(Request $request) : void {
 		$this->title = 'Zapomenuté heslo';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'       => [],
+			lang('Přihlášení') => ['login'],
+			lang($this->title) => ['login', 'forgot'],
+		];
 		$this->description = 'Formulář pro obnovení zapomenutého hesla.';
 
 		$email = (string) $request->getPost('email', '');
@@ -86,6 +91,11 @@ class ForgotPassword extends Controller
 	public function reset(Request $request) : void {
 		$this->title = 'Obnovit heslo';
 		$this->description = 'Formulář pro obnovení zapomenutého hesla.';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'       => [],
+			lang('Přihlášení') => ['login'],
+			lang($this->title) => ['login', 'forgot'],
+		];
 
 		$hash = (string) $request->getGet('token', '');
 		$email = (string) $request->getGet('email', '');

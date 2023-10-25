@@ -15,6 +15,8 @@ return [
 		'constants' => [
 			'appDir'  => ROOT,
 			'tempDir' => TMP_DIR,
+			'production' => PRODUCTION,
+			'debug'      => !PRODUCTION,
 		]
 	]
 ];

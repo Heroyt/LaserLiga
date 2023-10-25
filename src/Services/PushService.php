@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\GameModels\Game\Player;
+use App\Models\Achievements\PlayerAchievement;
 use App\Models\Auth\LigaPlayer;
+use App\Models\Auth\Player as PlayerUser;
+use App\Models\Auth\User;
 use App\Models\DataObjects\PlayerRank;
 use App\Models\Push\Notification;
 use App\Models\Push\Subscription;
@@ -25,19 +28,20 @@ class PushService
 
 	/**
 	 * @param Player $player
-	 * @param LigaPlayer $user
+	 * @param PlayerUser $user
+	 *
 	 * @return void
 	 */
-	public function sendNewGameNotification(Player $player, LigaPlayer $user): void {
+	public function sendNewGameNotification(Player $player, PlayerUser $user): void {
 		if (!$this->checkSubscriptionSetting($user, 'game')) {
 			return;
 		}
 		try {
 			$notification = new Notification();
 
-			$notification->user = $user->user;
+			$notification->user = $this->getUser($user);
 			$notification->title = lang('Výsledky ze hry');
-			$notification->action = App::getLink(['g', $player->getGame()->code]);
+			$notification->action = App::getLink(['g', $player->getGame()->code, 'refer' => 'push']);
 			$notification->body = sprintf(lang('%d místo', '%d místo', $player->position), $player->position) . ' ' . sprintf(lang('%d skóre'), $player->score);
 
 			$diff = $player->getRankDifference();
@@ -133,21 +137,28 @@ class PushService
 	}
 
 	/**
-	 * @param LigaPlayer $user
+	 * @param PlayerUser $user
 	 * @param int $difference
 	 * @param string $position
 	 * @return void
 	 */
-	public function sendRankChangeNotification(LigaPlayer $user, int $difference, string $position): void {
+	public function sendRankChangeNotification(PlayerUser $user, int $difference, string $position): void {
 		if ($difference === 0 || !$this->checkSubscriptionSetting($user, 'rank')) {
 			return;
 		}
 		try {
 			$notification = new Notification();
 
-			$notification->user = $user->user;
+			$notification->user = $this->getUser($user);
 			$notification->title = $difference < 0 ? lang('Posun v žebříčku!') : lang('Někdo tě přeskočil v žebříčku!');
-			$notification->action = App::getLink(['user', 'leaderboard', 'search' => $user->getCode(), 'orderBy' => 'rank', 'dir' => 'desc']);
+			$notification->action = App::getLink(
+				[
+					'user',
+					'leaderboard',
+					'search'  => $user->getCode(),
+					'orderBy' => 'rank',
+					'dir'     => 'desc',
+					'refer'   => 'push']);
 			$absDiff = abs($difference);
 			$notification->body = sprintf(
 				$difference < 0 ?
@@ -163,7 +174,7 @@ class PushService
 		}
 	}
 
-	public function updateSubscriptionSetting(LigaPlayer $user, string $setting, bool $value): void {
+	public function updateSubscriptionSetting(PlayerUser $user, string $setting, bool $value): void {
 		$subscriptions = Subscription::query()->where('id_user = %i', $user->id)->get();
 		$key = Strings::toCamelCase('setting_' . $setting);
 		foreach ($subscriptions as $subscription) {
@@ -174,14 +185,53 @@ class PushService
 		}
 	}
 
-	private function checkSubscription(LigaPlayer $user): bool {
+	private function checkSubscription(PlayerUser $user): bool {
 		return DB::select(Subscription::TABLE, 'COUNT(*)')->where('id_user = %i', $user->id)->fetchSingle(false) > 0;
 	}
 
-	private function checkSubscriptionSetting(LigaPlayer $user, string $setting): bool {
+	private function checkSubscriptionSetting(PlayerUser $user, string $setting): bool {
 		$row = DB::select(Subscription::TABLE, '*')->where('id_user = %i', $user->id)->fetch(false);
 		$key = 'setting_' . $setting;
 		return isset($row, $row->$key) && $row->$key === 1;
+	}
+
+	public function sendAchievementNotification(PlayerAchievement ...$achievements): void {
+		if (!$this->checkSubscriptionSetting($achievements[0]->player, 'achievement')) {
+			return;
+		}
+
+		try {
+			$notification = new Notification();
+
+			$notification->user = $this->getUser($achievements[0]->player);
+			$notification->title = lang(
+				'Podařilo se ti získat nové ocenění!',
+				'Podařilo se ti získat nová ocenění!',
+				count($achievements)
+			);
+			$names = [];
+			foreach ($achievements as $achievement) {
+				$names[] = $achievement->achievement->rarity->getReadableName() . ': ' . lang(
+						         $achievement->achievement->name,
+						context: 'achievement'
+					);
+			}
+			$notification->body = implode(', ', $names);
+			$notification->action = App::getLink(
+				['user', $achievements[0]->player->getCode(), 'tab' => 'achievements-stats-tab', 'refer' => 'push']
+			);
+
+			$this->send($notification);
+			$notification->save();
+		} catch (Throwable) {
+		}
+	}
+
+	private function getUser(PlayerUser $player): User {
+		if ($player instanceof LigaPlayer) {
+			return $player->user;
+		}
+		return User::get($player->id);
 	}
 
 }

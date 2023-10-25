@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Services\Achievements;
+
+use App\Models\Achievements\Title;
+use App\Models\Auth\Player;
+use Lsr\Core\DB;
+use Lsr\Core\Dibi\Fluent;
+
+class TitleProvider
+{
+
+	public function __construct(private readonly AchievementProvider $achievementProvider) {
+	}
+
+	/**
+	 * @param Player $player
+	 *
+	 * @return Title[]
+	 */
+	public function getForUser(Player $player): array {
+		$titles = [];
+		$rows = $this->queryForUser($player)->fetchAll();
+		foreach ($rows as $row) {
+			$titles[] = Title::get((int)$row->id_title, $row);
+		}
+		return $titles;
+	}
+
+	private function queryForUser(Player $player): Fluent {
+		$ids = [];
+		$achievements = $this->achievementProvider->getForUser($player);
+		foreach ($achievements as $achievement) {
+			$ids[] = $achievement->achievement->title->id;
+		}
+		return DB::select('titles', '*')
+		         ->where(
+			         'unlocked = 1 OR id_title IN %in',
+			         $ids
+		         )
+		         ->orderBy('rarity')->desc()
+		         ->cacheTags('user/achievements', 'user/' . $player->id . '/achievements');
+	}
+
+}

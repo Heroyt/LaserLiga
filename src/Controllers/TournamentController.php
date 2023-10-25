@@ -78,65 +78,27 @@ class TournamentController extends Controller
 		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
 
 		$this->params['tournament'] = $tournament;
+		$this->params['rules'] = $this->latteRules($tournament);
+		$this->params['results'] = $this->latteResults($tournament);
 
-		$this->params['bestPlayers'] = [];
-		$this->params['accuracyPlayers'] = [];
-		$this->params['shotsPlayers'] = [];
-		$this->params['hitsOwnPlayers'] = [];
-
-		if ($tournament->start <= (new DateTimeImmutable('+1 days'))) {
-			$playerIds = [];
-			foreach ($tournament->getTeams() as $team) {
-				foreach ($team->getPlayers() as $player) {
-					$playerIds[] = $player->id;
-				}
-			}
-
-			$bestPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], AVG([skill]) as [skill]')
-											 ->where('[id_tournament_player] IN %in', $playerIds)
-											 ->groupBy('id_tournament_player')
-											 ->orderBy('skill')
-											 ->desc()
-											 ->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
-											 ->fetchAll();
-			foreach ($bestPlayers as $row) {
-				$this->params['bestPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->skill];
-			}
-
-			$accuracyPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], MAX([accuracy]) as [accuracy]')
-													 ->where('[id_tournament_player] IN %in', $playerIds)
-													 ->groupBy('id_tournament_player')
-													 ->orderBy('accuracy')
-													 ->desc()
-													 ->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
-													 ->fetchAll();
-			foreach ($accuracyPlayers as $row) {
-				$this->params['accuracyPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->accuracy];
-			}
-
-			$shotsPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], SUM([shots]) as [shots]')
-												->where('[id_tournament_player] IN %in', $playerIds)
-												->groupBy('id_tournament_player')
-												->orderBy('shots')
-												->desc()
-												->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
-												->fetchAll();
-			foreach ($shotsPlayers as $row) {
-				$this->params['shotsPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->shots];
-			}
-
-			$hitsOwnPlayers = DB::select(Player::TABLE, '[id_tournament_player], [name], SUM([hits_own]) as [hitsOwn]')
-													->where('[id_tournament_player] IN %in', $playerIds)
-													->groupBy('id_tournament_player')
-													->orderBy('hitsOwn')
-													->desc()
-													->cacheTags(Player::TABLE, ...Player::CACHE_TAGS)
-													->fetchAll();
-			foreach ($hitsOwnPlayers as $row) {
-				$this->params['hitsOwnPlayers'][] = ['player' => TournamentPlayer::get($row->id_tournament_player), 'value' => $row->hitsOwn];
-			}
-		}
+		$this->params['stats'] = Stats::getForTournament($tournament, true);
 		$this->view('pages/tournament/detail');
+	}
+
+	private function latteRules(Tournament $tournament): string {
+		if (!isset($tournament->rules)) {
+			return '';
+		}
+
+		return $this->latte->sandboxFromStringToString($tournament->rules, ['tournament' => $tournament]);
+	}
+
+	private function latteResults(Tournament $tournament): string {
+		if (!isset($tournament->resultsSummary)) {
+			return '';
+		}
+
+		return $this->latte->sandboxFromStringToString($tournament->resultsSummary, ['tournament' => $tournament]);
 	}
 
 	public function register(Tournament $tournament): void {
@@ -174,12 +136,12 @@ class TournamentController extends Controller
 				0 => [
 					'nickname' => $this->params['user']->name,
 					'email' => $this->params['user']->email,
-					'user' => $this->params['user']->player->getCode(),
+					'user'  => $this->params['user']->player->getCode(),
 					'skill' => match (true) {
-						$rank > 600 => PlayerSkill::PRO->value,
+						$rank > 550 => PlayerSkill::PRO->value,
 						$rank > 400 => PlayerSkill::ADVANCED->value,
 						$rank > 200 => PlayerSkill::SOMEWHAT_ADVANCED->value,
-						default => PlayerSkill::BEGINNER->value,
+						default     => PlayerSkill::BEGINNER->value,
 					},
 				],
 			];
@@ -195,7 +157,12 @@ class TournamentController extends Controller
 	}
 
 	private function processRegisterTeam(Tournament $tournament, Request $request): void {
-		$this->validateRegisterTeam($tournament, $request);
+		if (!empty($request->post['previousTeam'])) {
+			$previousTeam = Team::get((int)$request->post['previousTeam']);
+		}
+		if (!isset($previousTeam)) {
+			$this->validateRegisterTeam($tournament, $request);
+		}
 		if (empty($_POST['gdpr'])) {
 			$this->params['errors']['gdpr'] = lang('Je potřeba souhlasit se zpracováním osobních údajů.');
 		}
@@ -207,7 +174,46 @@ class TournamentController extends Controller
 			DB::getConnection()->begin();
 			$team = new Team();
 			$team->tournament = $tournament;
-			$this->updateRegistrationTeamData($request, $team, $tournament);
+			if (isset($previousTeam)) {
+				$team->name = $previousTeam->name;
+				if ($previousTeam->tournament->league?->id === $tournament->league?->id) {
+					$team->leagueTeam = $previousTeam->leagueTeam;
+				}
+				$team->image = $previousTeam->image;
+				if ($team->save()) {
+					foreach ($previousTeam->getPlayers() as $previousPlayer) {
+						$player = new TournamentPlayer();
+
+						$player->captain = $previousPlayer->captain;
+						$player->sub = $previousPlayer->sub;
+						$player->tournament = $tournament;
+						$player->team = $team;
+						$player->name = $previousPlayer->name;
+						$player->surname = $previousPlayer->surname;
+						$player->nickname = $previousPlayer->nickname;
+						$player->email = $previousPlayer->email;
+						$player->phone = $previousPlayer->phone;
+						$player->birthYear = $previousPlayer->birthYear;
+						$player->skill = $previousPlayer->skill;
+						$player->user = $previousPlayer->user;
+						if ($player->sub && empty($player->nickname)) {
+							continue;
+						}
+						if (!$player->save()) {
+							$this->params['errors'][] = lang(
+								         'Nepodařilo se uložit hráče. Zkuste to znovu',
+								context: 'errors'
+							);
+						}
+					}
+				}
+				else {
+					$this->params['errors'][] = lang('Nepodařilo se uložit tým. Zkuste to znovu', context: 'errors');
+				}
+			}
+			else {
+				$this->updateRegistrationTeamData($request, $team, $tournament);
+			}
 		}
 
 		if (empty($this->params['errors'])) {
@@ -234,7 +240,8 @@ class TournamentController extends Controller
 				$logger->exception($e);
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect(['tournament', 'registration', $tournament->id, $team->id, 'h' => $team->getHash()], $request);
+			App::redirect(['tournament', 'registration', $tournament->id, $team->id, 'h' => $team->getHash()],
+			              $request);
 		}
 		DB::getConnection()->rollback();
 		$this->setRegisterTitleDescription($tournament);
@@ -253,101 +260,46 @@ class TournamentController extends Controller
 			$captain = !empty($data['captain']);
 			$sub = !empty($data['sub']) && empty($data['name']) && empty($data['surname']) && empty($data['nickname']) && empty($data['email']);
 
-			if (
-				!$sub &&
-				(
-					$tournament->requirements->playerName === Requirement::REQUIRED ||
-					($tournament->requirements->playerName === Requirement::CAPTAIN && $captain)
-				) &&
-				empty($data['name'])
-			) {
+			if (!$sub && ($tournament->requirements->playerName === Requirement::REQUIRED || ($tournament->requirements->playerName === Requirement::CAPTAIN && $captain)) && empty($data['name'])) {
 				$this->params['errors']['players-' . $key . '-name'] = lang('Jméno je povinné');
 			}
-			if (
-				!$sub &&
-				(
-					$tournament->requirements->playerSurname === Requirement::REQUIRED ||
-					($tournament->requirements->playerSurname === Requirement::CAPTAIN && $captain)
-				) &&
-				empty($data['surname'])
-			) {
+			if (!$sub && ($tournament->requirements->playerSurname === Requirement::REQUIRED || ($tournament->requirements->playerSurname === Requirement::CAPTAIN && $captain)) && empty($data['surname'])) {
 				$this->params['errors']['players-' . $key . '-surname'] = lang('Příjmení je povinné');
 			}
-			if (
-				!$sub &&
-				empty($data['nickname'])
-			) {
+			if (!$sub && empty($data['nickname'])) {
 				$this->params['errors']['players-' . $key . '-nickname'] = lang('Přezdívka je povinná');
 			}
-			if (
-				!$sub &&
-				(
-					$tournament->requirements->playerEmail === Requirement::REQUIRED ||
-					($tournament->requirements->playerEmail === Requirement::CAPTAIN && $captain)
-				) &&
-				empty($data['email'])
-			) {
+			if (!$sub && ($tournament->requirements->playerEmail === Requirement::REQUIRED || ($tournament->requirements->playerEmail === Requirement::CAPTAIN && $captain)) && empty($data['email'])) {
 				$this->params['errors']['players-' . $key . '-email'] = lang('Email je povinný');
 			}
 			else {
-				if (
-					!empty($data['email']) &&
-					!Validators::isEmail($data['email'])
-				) {
+				if (!empty($data['email']) && !Validators::isEmail($data['email'])) {
 					$this->params['errors']['players-' . $key . '-email'] = lang('Email není platný');
 				}
 			}
-			if (
-				!$sub &&
-				(
-					$tournament->requirements->playerPhone === Requirement::REQUIRED ||
-					($tournament->requirements->playerPhone === Requirement::CAPTAIN && $captain)
-				) &&
-				empty($data['phone'])
-			) {
+			if (!$sub && ($tournament->requirements->playerPhone === Requirement::REQUIRED || ($tournament->requirements->playerPhone === Requirement::CAPTAIN && $captain)) && empty($data['phone'])) {
 				$this->params['errors']['players-' . $key . '-phone'] = lang('Telefon je povinný');
 			}
 			else {
-				if (
-					!empty($data['phone']) &&
-					preg_match('/\+?[\d ]{6,19}/', $data['phone']) !== 1
-				) {
+				if (!empty($data['phone']) && preg_match('/\+?[\d ]{6,19}/', $data['phone']) !== 1) {
 					$this->params['errors']['players-' . $key . '-phone'] = lang('Telefon není platný');
 				}
 			}
-			if (
-				!$sub &&
-				(
-					$tournament->requirements->playerBirthYear === Requirement::REQUIRED ||
-					($tournament->requirements->playerBirthYear === Requirement::CAPTAIN && $captain)
-				) &&
-				empty($data['birthYear'])
-			) {
+			if (!$sub && ($tournament->requirements->playerBirthYear === Requirement::REQUIRED || ($tournament->requirements->playerBirthYear === Requirement::CAPTAIN && $captain)) && empty($data['birthYear'])) {
 				$this->params['errors']['players-' . $key . '-birthYear'] = lang('Rok narození je povinný');
 			}
 			else {
-				if (
-					!empty($data['birthYear']) &&
-					(((int)$data['birthYear']) < 1900 || ((int)$data['birthYear']) >= (((int)date('Y')) - 2))
-				) {
+				if (!empty($data['birthYear']) && (((int)$data['birthYear']) < 1900 || ((int)$data['birthYear']) >= (((int)date(
+								'Y'
+							)) - 2))) {
 					$this->params['errors']['players-' . $key . '-birthYear'] = lang('Rok narození není platný');
 				}
 			}
-			if (
-				!$sub &&
-				(
-					$tournament->requirements->playerSkill === Requirement::REQUIRED ||
-					($tournament->requirements->playerSkill === Requirement::CAPTAIN && $captain)
-				) &&
-				empty($data['skill'])
-			) {
+			if (!$sub && ($tournament->requirements->playerSkill === Requirement::REQUIRED || ($tournament->requirements->playerSkill === Requirement::CAPTAIN && $captain)) && empty($data['skill'])) {
 				$this->params['errors']['players-' . $key . '-skill'] = lang('Herní úroveň hráče je povinná');
 			}
 			else {
-				if (
-					!empty($data['skill']) &&
-					PlayerSkill::tryFrom($data['skill']) === null
-				) {
+				if (!empty($data['skill']) && PlayerSkill::tryFrom($data['skill']) === null) {
 					$this->params['errors']['players-' . $key . '-skill'] = lang('Herní úroveň hráče není platná');
 				}
 			}
@@ -356,7 +308,7 @@ class TournamentController extends Controller
 
 	/**
 	 * @param Request $request
-	 * @param Team $team
+	 * @param Team    $team
 	 * @param Tournament $tournament
 	 *
 	 * @return void
@@ -371,7 +323,8 @@ class TournamentController extends Controller
 			if (isset($image) && $image->getError() !== UPLOAD_ERR_NO_FILE) {
 				if ($image->getError() !== UPLOAD_ERR_OK) {
 					$this->params['errors'][] = $image->getErrorMessage();
-				} else {
+				}
+				else {
 					// Remove old image
 					if (!empty($team->image) && file_exists(ROOT . $team->image)) {
 						unlink(ROOT . $team->image);
@@ -380,7 +333,8 @@ class TournamentController extends Controller
 					$imgPath = UPLOAD_DIR . 'tournament/teams/' . uniqid('t-', false) . '.' . $image->getExtension();
 					if ($image->save($imgPath)) {
 						$team->image = str_replace(ROOT, '', $imgPath);
-					} else {
+					}
+					else {
 						$this->params['errors'][] = lang('Nepodařilo se uložit obrázek', context: 'errors');
 					}
 				}
@@ -423,7 +377,10 @@ class TournamentController extends Controller
 						continue;
 					}
 					if (!$player->save()) {
-						$this->params['errors'][] = lang('Nepodařilo se uložit hráče. Zkuste to znovu', context: 'errors');
+						$this->params['errors'][] = lang(
+							         'Nepodařilo se uložit hráče. Zkuste to znovu',
+							context: 'errors'
+						);
 					}
 				}
 			}
@@ -436,11 +393,27 @@ class TournamentController extends Controller
 	}
 
 	public function updateRegistration(Tournament $tournament, int $registration, Request $request): void {
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'             => [],
+			$tournament->arena->name => ['arena', $tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+		];
+		if (isset($tournament->league)) {
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
+		}
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
+		$this->params['breadcrumbs'][lang('Úprava registrace')] = [
+			'tournament',
+			'registration',
+			$tournament->id,
+			$registration,
+		];
 		$this->title = '%s - Úprava registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
 		if ($tournament->format === GameModeType::TEAM) {
 			/** @var Team|null $team */
-			$team = Team::query()->where('id_tournament = %i AND id_team = %i', $tournament->id, $registration)->first();
+			$team = Team::query()->where('id_tournament = %i AND id_team = %i', $tournament->id, $registration)->first(
+			);
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
 				App::redirect(['tournament', $tournament->id], $request);
@@ -484,21 +457,22 @@ class TournamentController extends Controller
 		$this->params['tournament'] = $team->tournament;
 
 		$this->params['values'] = [
+			'id' => $team->id,
 			'team-name' => $team->name,
 			'players' => [],
 		];
 		bdump($team->getPlayers());
 		foreach ($team->getPlayers() as $player) {
 			$this->params['values']['players'][] = [
-				'id' => $player->id,
-				'user' => $player->user?->getCode(),
-				'name' => $player->name,
+				'id'      => $player->id,
+				'user'    => $player->user?->getCode(),
+				'name'    => $player->name,
 				'surname' => $player->surname,
 				'nickname' => $player->nickname,
-				'email' => $player->email,
-				'phone' => $player->phone,
+				'email'   => $player->email,
+				'phone'   => $player->phone,
 				'birthYear' => $player->birthYear,
-				'skill' => $player->skill->value,
+				'skill'   => $player->skill->value,
 			];
 		}
 
@@ -506,11 +480,27 @@ class TournamentController extends Controller
 	}
 
 	public function processUpdateRegister(Tournament $tournament, int $registration, Request $request): void {
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'             => [],
+			$tournament->arena->name => ['arena', $tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+		];
+		if (isset($tournament->league)) {
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
+		}
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
+		$this->params['breadcrumbs'][lang('Úprava registrace')] = [
+			'tournament',
+			'registration',
+			$tournament->id,
+			$registration,
+		];
 		$this->title = '%s - Úprava registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
 		if ($tournament->format === GameModeType::TEAM) {
 			/** @var Team|null $team */
-			$team = Team::query()->where('id_tournament = %i AND id_team = %i', $tournament->id, $registration)->first();
+			$team = Team::query()->where('id_tournament = %i AND id_team = %i', $tournament->id, $registration)->first(
+			);
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
 				App::redirect(['tournament', $tournament->id], $request);
@@ -534,8 +524,7 @@ class TournamentController extends Controller
 				}
 				$message = new Message('mails/tournament/registrationTeam');
 				$message->setSubject(
-					lang('Změny') . ': ' .
-					sprintf(
+					lang('Změny') . ': ' . sprintf(
 						lang('Registrace na turnaj - %s'),
 						$tournament->name . ' ' . $tournament->start->format('d.m.Y')
 					)
@@ -564,5 +553,4 @@ class TournamentController extends Controller
 		}
 
 	}
-
 }

@@ -39,10 +39,22 @@ class Login extends Controller
 	}
 
 	public function show() : void {
+		$this->title = 'Přihlášení';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'       => [],
+			lang($this->title) => ['login'],
+		];
+		$this->description = 'Přihlášení do systému Laser ligy.';
 		$this->view('pages/login/index');
 	}
 
 	public function processRegister(Request $request) : void {
+		$this->title = 'Registrace';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'       => [],
+			lang($this->title) => ['register'],
+		];
+		$this->description = 'Vytvořte si nový hráčský účet v systému Laser liga.';
 		// Validate
 		$email = (string) ($request->post['email'] ?? '');
 		$password = (string) ($request->post['password'] ?? '');
@@ -97,11 +109,23 @@ class Login extends Controller
 	}
 
 	public function register() : void {
+		$this->title = 'Registrace';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'       => [],
+			lang($this->title) => ['register'],
+		];
+		$this->description = 'Vytvořte si nový hráčský účet v systému Laser liga.';
 		$this->params['arenas'] = Arena::getAll();
 		$this->view('pages/login/register');
 	}
 
 	public function process(Request $request) : void {
+		$this->title = 'Přihlášení';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'       => [],
+			lang($this->title) => ['login'],
+		];
+		$this->description = 'Přihlášení do systému Laser ligy.';
 		// Validate
 		$email = (string) ($request->post['email'] ?? '');
 		$password = (string) ($request->post['password'] ?? '');

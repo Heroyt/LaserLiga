@@ -18,6 +18,7 @@ use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -34,6 +35,12 @@ class Arena extends Model
 	public string $name;
 	public ?float $lat = null;
 	public ?float $lng = null;
+
+	#[Instantiate]
+	public Address $address;
+	public ?string $web          = null;
+	public ?string $contactEmail = null;
+	public ?string $contactPhone = null;
 
 	public ?User $user = null;
 	/** @var array<string,array<string, int[]>> */
