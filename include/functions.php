@@ -1,6 +1,8 @@
 <?php
 
 use App\Exceptions\FileException;
+use App\Models\DataObjects\Image;
+use App\Services\ImageService;
 use Lsr\Helpers\Tools\Strings;
 
 /**
@@ -57,12 +59,13 @@ function convertMinutesToParts(int $minutes): array {
 }
 
 /**
- * @param string $name
- * @param int|float $size
- * @param int|float $x
- * @param int|float $y
+ * @param string               $name
+ * @param int|float            $size
+ * @param int|float            $x
+ * @param int|float            $y
  * @param array<string,string> $attrs
- * @param bool $invertColors
+ * @param bool                 $invertColors
+ *
  * @return string
  * @throws FileException
  */
@@ -229,4 +232,40 @@ function getSvgStringWidth(string $string, float $multiplier = 1): float {
 		$length += ($letterWidth[$letter] ?? 11) * $multiplier;
 	}
 	return $length;
+}
+
+function autoParagraphs(string $text): string {
+	$paragraphs = explode("\n\n", $text);
+	return '<p>' . implode('</p><p>', $paragraphs) . '</p>';
+}
+
+function getImageSrcSet(Image|string $image): string {
+	if (is_string($image)) {
+		$image = new Image($image);
+	}
+
+	$versions = $image->getOptimized();
+
+	$srcSet = [];
+
+	foreach (array_reverse(ImageService::SIZES) as $size) {
+		$index = $size . '-webp';
+		if (isset($versions[$index])) {
+			$srcSet[] = $versions[$index] . ' ' . $size . 'w';
+			continue;
+		}
+		$index = (string)$size;
+		if (isset($versions[$index])) {
+			$srcSet[] = $versions[$index] . ' ' . $size . 'w';
+		}
+	}
+
+	if (isset($versions['webp'])) {
+		$srcSet[] = $versions['webp'];
+	}
+	else {
+		$srcSet[] = $versions['original'];
+	}
+
+	return implode(',', $srcSet);
 }

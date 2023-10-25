@@ -13,3 +13,4 @@ services:
 	playerRankOrder: App\Services\PlayerRankOrderService
 	mailer: Nette\Mail\SendmailMailer
 	mail: App\Services\MailService
+	image: App\Services\ImageService
