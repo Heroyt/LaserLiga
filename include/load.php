@@ -28,16 +28,16 @@ use Nette\Bridges\HttpTracy\SessionPanel;
 use Tracy\Debugger;
 
 if (!defined('ROOT')) {
-	define("ROOT", dirname(__DIR__).'/');
+	define("ROOT", dirname(__DIR__) . '/');
 }
 
 date_default_timezone_set('Europe/Prague');
 
 // Autoload libraries
-require_once ROOT.'vendor/autoload.php';
+require_once ROOT . 'vendor/autoload.php';
 
 // Load all globals and constants
-require_once ROOT.'include/config.php';
+require_once ROOT . 'include/config.php';
 
 Timer::start('core.init');
 
@@ -53,15 +53,15 @@ Debugger::$dumpTheme = 'dark';
 
 // Register custom tracy panels
 Debugger::getBar()
-				->addPanel(new TimerTracyPanel())
-				->addPanel(new CacheTracyPanel())
-				->addPanel(new DbTracyPanel())
-				->addPanel(new TranslationTracyPanel())
-				->addPanel(new RoutingTracyPanel());
+        ->addPanel(new TimerTracyPanel())
+        ->addPanel(new CacheTracyPanel())
+        ->addPanel(new DbTracyPanel())
+        ->addPanel(new TranslationTracyPanel())
+        ->addPanel(new RoutingTracyPanel());
 
 Loader::init();
 
-define('CHECK_TRANSLATIONS', (bool) (App::getConfig()['General']['TRANSLATIONS'] ?? false));
+define('CHECK_TRANSLATIONS', (bool)(App::getConfig()['General']['TRANSLATIONS'] ?? false));
 
 if (defined('INDEX')) {
 	// Register library tracy panels
@@ -70,9 +70,9 @@ if (defined('INDEX')) {
 	}
 	/** @noinspection PhpParamsInspection */
 	Debugger::getBar()
-					->addPanel(new ContainerPanel(App::getContainer()))
-					->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line
-					->addPanel(new SessionPanel());
+	        ->addPanel(new ContainerPanel(App::getContainer()))
+	        ->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line
+	        ->addPanel(new SessionPanel());
 }
 
 BlueScreenPanel::initialize();
@@ -85,13 +85,13 @@ if (!PRODUCTION) {
 	/** @var Translations[] $translations */
 	$translations = [];
 	/** @var string[] $languages */
-	$languages = glob(LANGUAGE_DIR.'*');
+	$languages = glob(LANGUAGE_DIR . '*');
 	foreach ($languages as $path) {
 		if (!is_dir($path)) {
 			continue;
 		}
 		$lang = str_replace(LANGUAGE_DIR, '', $path);
-		$file = $path.'/LC_MESSAGES/'.LANGUAGE_FILE_NAME.'.po';
+		$file = $path . '/LC_MESSAGES/' . LANGUAGE_FILE_NAME . '.po';
 		$translations[$lang] = $poLoader->loadFile($file);
 	}
 	Timer::stop('core.init.translations');

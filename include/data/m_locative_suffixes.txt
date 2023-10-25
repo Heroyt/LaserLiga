@@ -1,0 +1,1 @@
+a:9:{s:3:"oyt";s:6:"oytovi";s:0:"";s:3:"ovi";s:4:"žeg";s:6:"žgovi";s:4:"žek";s:6:"žkovi";s:1:"o";s:3:"ovi";s:2:"ec";s:2:"ci";s:1:"m";s:4:"movi";s:1:"x";s:4:"xovi";s:2:"ky";s:3:"kym";}

@@ -1,0 +1,1 @@
+a:18:{s:0:"";s:3:"ovi";s:2:"ž";s:3:"ži";s:1:"z";s:2:"zi";s:1:"e";s:1:"i";s:1:"a";s:3:"ovi";s:2:"ek";s:4:"kovi";s:2:"ix";s:5:"ixovi";s:2:"eg";s:4:"govi";s:3:"oyt";s:6:"oytovi";s:4:"žeg";s:6:"žgovi";s:4:"žek";s:6:"žkovi";s:2:"sy";s:4:"symu";s:2:"si";s:4:"simu";s:1:"o";s:3:"ovi";s:2:"ec";s:2:"ci";s:1:"m";s:4:"movi";s:1:"x";s:4:"xovi";s:2:"ky";s:4:"kymu";}
