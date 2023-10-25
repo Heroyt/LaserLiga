@@ -14,3 +14,5 @@ services:
 	mailer: Nette\Mail\SendmailMailer
 	mail: App\Services\MailService
 	image: App\Services\ImageService
+	playerGamesTogether: App\Services\Player\PlayersGamesTogetherService
+	playerStatsProvider: App\Services\Player\PlayerStatsProvider
