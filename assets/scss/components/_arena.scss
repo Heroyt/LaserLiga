@@ -2,4 +2,28 @@
 	height: 100%;
 	max-height: 10rem;
 	width: 100%;
+
+  path[fill="white"],
+  path[fill="#fff"],
+  path[fill="#ffffff"],
+  rect[fill="white"],
+  rect[fill="#fff"],
+  rect[fill="#ffffff"],
+  circle[fill="white"],
+  circle[fill="#fff"],
+  circle[fill="#ffffff"] {
+    fill: var(--white);
+  }
+
+  path[fill="black"],
+  path[fill="#000"],
+  path[fill="#000000"],
+  rect[fill="black"],
+  rect[fill="#000"],
+  rect[fill="#000000"],
+  circle[fill="black"],
+  circle[fill="#000"],
+  circle[fill="#000000"] {
+    fill: var(--black);
+  }
 }
