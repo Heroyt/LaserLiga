@@ -5,9 +5,10 @@
 	 width="184.678px" height="172.167px" viewBox="0 0 184.678 172.167" enable-background="new 0 0 184.678 172.167"
 	 xml:space="preserve">
 <g id="mine">
-	<rect x="9.589" y="8.708" stroke="#FFFFFF" stroke-width="2" stroke-miterlimit="10" width="165.499" height="154.75"/>
-	<polygon stroke="#FFFFFF" stroke-width="2" stroke-miterlimit="10" points="91.874,58.625 139.422,89.775 107.464,111.458 
-		91.874,139.583 76.464,111.583 43.423,89.775 	"/>
+	<rect x="9.589" y="8.708" fill="#000" stroke="#FFFFFF" stroke-width="2" stroke-miterlimit="10" width="165.499"
+          height="154.75"/>
+    <polygon fill="#000" stroke="#FFFFFF" stroke-width="2" stroke-miterlimit="10" points="91.874,58.625 139.422,89.775 107.464,111.458
+		91.874,139.583 76.464,111.583 43.423,89.775"/>
 	<circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-miterlimit="10" cx="91.874" cy="72.645" r="4.667"/>
 	<circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-miterlimit="10" cx="119.979" cy="89.774" r="4.667"/>
 	<circle fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-miterlimit="10" cx="91.874" cy="107.664" r="4.667"/>
