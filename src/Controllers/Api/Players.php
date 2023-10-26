@@ -83,4 +83,22 @@ class Players extends ApiController
 		$this->respond($player);
 	}
 
+	/**
+	 * @param string $code
+	 *
+	 * @return never
+	 * @throws JsonException
+	 */
+	public function playerTitle(string $code): never {
+		try {
+			$player = LigaPlayer::getByCode($code);
+		} catch (\InvalidArgumentException $e) {
+			$this->respond(['error' => $e->getMessage(), 'code' => $code], 400);
+		}
+		if (!isset($player)) {
+			$this->respond(['error' => 'Player not found'], 404);
+		}
+		$this->respond($player->getTitle());
+	}
+
 }

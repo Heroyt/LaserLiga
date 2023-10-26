@@ -311,6 +311,15 @@ class UserController extends AbstractUserController
 		exit;
 	}
 
+	public function title(string $code): never {
+		$user = $this->getUser($code);
+
+		header('Content-Type: image/svg+xml');
+		$this->params['user'] = $user;
+		$this->view('pages/profile/titleSvg');
+		exit;
+	}
+
 	public function updateAvatar(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		$player = $user->createOrGetPlayer();

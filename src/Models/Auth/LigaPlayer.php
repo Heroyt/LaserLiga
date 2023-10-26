@@ -88,6 +88,8 @@ class LigaPlayer extends Player
 			'email' => $this->email,
 			'stats' => $this->stats,
 			'connections' => $connections,
+			'title'  => $this->getTitle(),
+			'avatar' => $this->getAvatar(),
 		];
 	}
 

@@ -52,6 +52,7 @@ $apiGroup->group('/music')
 $apiGroup->group('/players')
          ->get('/', [Players::class, 'find'])
          ->get('/{code}', [Players::class, 'player'])
+         ->get('/{code}/title', [Players::class, 'playerTitle'])
          ->endGroup();
 
 $apiGroup->group('/devtools')

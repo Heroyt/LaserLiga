@@ -28,6 +28,7 @@ $publicUserIdGroup = $publicUserRoutes
                                                  ->get('/img', [UserController::class, 'thumb'])
                                                  ->get('/avatar', [UserController::class, 'avatar'])
                                                  ->post('/avatar', [UserController::class, 'updateAvatar'])
+                                                 ->get('/title/svg', [UserController::class, 'title'])
 	->get('/history', [UserController::class, 'gameHistory'])->name('player-game-history')
 	->get('/tournaments', [UserTournamentController::class, 'myTournaments'])->name('player-tournaments')
 	->group('stats')
