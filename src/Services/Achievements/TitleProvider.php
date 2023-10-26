@@ -33,12 +33,17 @@ class TitleProvider
 		foreach ($achievements as $achievement) {
 			$ids[] = $achievement->achievement->title->id;
 		}
-		return DB::select('titles', '*')
+		return DB::select(['titles', 't'], 't.id_title, t.name, t.description, t.rarity, t.unlocked, a.real_rarity')
+		         ->leftJoin('vAchievements', 'a')
+		         ->on('a.id_title = t.id_title')
 		         ->where(
-			         'unlocked = 1 OR id_title IN %in',
+			         't.unlocked = 1 OR t.id_title IN %in',
 			         $ids
 		         )
-		         ->orderBy('rarity')->desc()
+		         ->orderBy('unlocked')
+		         ->orderBy('real_rarity')
+		         ->orderBy('rarity')
+		         ->desc()
 		         ->cacheTags('user/achievements', 'user/' . $player->id . '/achievements');
 	}
 
