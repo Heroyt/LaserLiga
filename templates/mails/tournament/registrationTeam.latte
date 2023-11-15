@@ -13,11 +13,13 @@
 
 	<h2>{$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}</h2>
 
-	<div n:foreach="$team->getPlayers() as $player">
-		{if $player->captain}<strong>{lang 'Kapitán'}</strong>{/if}
-		{if $player->sub}<strong>{lang 'Náhradník'}</strong>{/if}
-		{$player->name} <i>{$player->nickname}</i> {$player->surname}
+    <div class="card" n:foreach="$team->getPlayers() as $player">
+        <h3>
+            {$player->name} <i>{$player->nickname}</i> {$player->surname}
+        </h3>
 		<ul>
+            <li n:if="$player->captain">{lang 'Kapitán'}</li>
+            <li n:if="$player->sub">{lang 'Náhradník'}</li>
 			<li n:ifset="$player->email">{$player->email}</li>
 			<li n:ifset="$player->phone">{$player->phone}</li>
 			<li>{$player->skill->getReadable()}</li>

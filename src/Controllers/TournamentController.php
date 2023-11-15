@@ -216,32 +216,14 @@ class TournamentController extends Controller
 			}
 		}
 
-		if (empty($this->params['errors'])) {
+		if (empty($this->params['errors']) && isset($team)) {
 			DB::getConnection()->commit();
 			$request->addPassNotice(lang('Tým byl úspěšně registrován.'));
-			$message = new Message('mails/tournament/registrationTeam');
-			$message->setSubject(
-				sprintf(
-					lang('Registrace na turnaj - %s'),
-					$tournament->name . ' ' . $tournament->start->format('d.m.Y')
-				)
+			$this->sendTournamentRegistrationEmail($team, $request);
+			App::redirect(
+				['tournament', 'registration', $tournament->id, $team->id, 'h' => $team->getHash()],
+				$request
 			);
-			$message->params['team'] = $team;
-			foreach ($team->getPlayers() as $player) {
-				if (empty($player->email)) {
-					continue;
-				}
-				$message->addTo($player->email, $player->name . ' "' . $player->nickname . '" ' . $player->surname);
-			}
-			try {
-				$this->mail->send($message);
-			} catch (SendException $e) {
-				$logger = new Logger(LOG_DIR, 'mail');
-				$logger->exception($e);
-				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
-			}
-			App::redirect(['tournament', 'registration', $tournament->id, $team->id, 'h' => $team->getHash()],
-			              $request);
 		}
 		DB::getConnection()->rollback();
 		$this->setRegisterTitleDescription($tournament);
@@ -392,6 +374,58 @@ class TournamentController extends Controller
 		}
 	}
 
+	/**
+	 * Send emails containing information about new / changed tournament registration to all team players and the arena.
+	 *
+	 * @param Team    $team
+	 * @param Request $request
+	 * @param bool    $change
+	 *
+	 * @return void
+	 * @throws ValidationException
+	 */
+	private function sendTournamentRegistrationEmail(Team $team, Request $request, bool $change = false): void {
+		$tournament = $team->tournament;
+		$message = new Message('mails/tournament/registrationTeam');
+		$message->setSubject(
+			($change ? lang('Změny') . ': ' : '') . sprintf(
+				lang('Registrace na turnaj - %s'),
+				$tournament->name . ' ' . $tournament->start->format('d.m.Y')
+			)
+		);
+		$message->params['team'] = $team;
+		foreach ($team->getPlayers() as $player) {
+			if (empty($player->email)) {
+				continue;
+			}
+			$message->addTo($player->email, $player->name . ' "' . $player->nickname . '" ' . $player->surname);
+		}
+		try {
+			$this->mail->send($message);
+		} catch (SendException $e) {
+			$logger = new Logger(LOG_DIR, 'mail');
+			$logger->exception($e);
+			$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
+		}
+		if (isset($tournament->arena->contactEmail)) {
+			$messageArena = new Message('mails/tournament/registrationArena');
+			$messageArena->addTo($tournament->arena->contactEmail, $tournament->arena->name);
+			$messageArena->setSubject(
+				sprintf(
+					$change ? lang('Upravená registrace na turnaj - %s') : lang('Nová registrace na turnaj - %s'),
+					$tournament->name . ' ' . $tournament->start->format('d.m.Y')
+				)
+			);
+			$messageArena->params['team'] = $team;
+			try {
+				$this->mail->send($messageArena);
+			} catch (SendException $e) {
+				$logger = new Logger(LOG_DIR, 'mail');
+				$logger->exception($e);
+			}
+		}
+	}
+
 	public function updateRegistration(Tournament $tournament, int $registration, Request $request): void {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
@@ -457,22 +491,22 @@ class TournamentController extends Controller
 		$this->params['tournament'] = $team->tournament;
 
 		$this->params['values'] = [
-			'id' => $team->id,
+			'id'      => $team->id,
 			'team-name' => $team->name,
 			'players' => [],
 		];
 		bdump($team->getPlayers());
 		foreach ($team->getPlayers() as $player) {
 			$this->params['values']['players'][] = [
-				'id'      => $player->id,
-				'user'    => $player->user?->getCode(),
-				'name'    => $player->name,
-				'surname' => $player->surname,
+				'id'       => $player->id,
+				'user'     => $player->user?->getCode(),
+				'name'     => $player->name,
+				'surname'  => $player->surname,
 				'nickname' => $player->nickname,
-				'email'   => $player->email,
-				'phone'   => $player->phone,
+				'email'    => $player->email,
+				'phone'    => $player->phone,
 				'birthYear' => $player->birthYear,
-				'skill'   => $player->skill->value,
+				'skill'    => $player->skill->value,
 			];
 		}
 
@@ -522,27 +556,7 @@ class TournamentController extends Controller
 				if (isset($_REQUEST['h'])) {
 					$link['h'] = $_REQUEST['h'];
 				}
-				$message = new Message('mails/tournament/registrationTeam');
-				$message->setSubject(
-					lang('Změny') . ': ' . sprintf(
-						lang('Registrace na turnaj - %s'),
-						$tournament->name . ' ' . $tournament->start->format('d.m.Y')
-					)
-				);
-				$message->params['team'] = $team;
-				foreach ($team->getPlayers() as $player) {
-					if (empty($player->email)) {
-						continue;
-					}
-					$message->addTo($player->email, $player->name . ' "' . $player->nickname . '" ' . $player->surname);
-				}
-				try {
-					$this->mail->send($message);
-				} catch (SendException $e) {
-					$logger = new Logger(LOG_DIR, 'mail');
-					$logger->exception($e);
-					$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
-				}
+				$this->sendTournamentRegistrationEmail($team, $request, true);
 				App::redirect($link, $request);
 			}
 			$this->params['team'] = $team;
