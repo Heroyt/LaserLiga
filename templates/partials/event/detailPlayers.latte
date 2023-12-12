@@ -1,0 +1,61 @@
+{varType App\Models\Events\Event $event}
+{varType App\Models\Auth\User|null $user}
+
+
+<h3 class="text-center">
+    {lang 'Hráči'}
+</h3>
+<p class="text-center text-muted">{lang 'Seznam přihlášených hráčů na akci laser game.'}</p>
+<ul class="nav nav-tabs mt-4" id="event-dates-tabs" role="tablist" data-track-content=""
+    data-content-name="Event dates tabs"
+    style="--bs-nav-tabs-link-active-bg: var(--background-1)">
+    <li n:foreach="$event->getDates() as $date" class="nav-item" role="presentation">
+        <button class="nav-link {if $iterator->first}active{/if}"
+                id="event-date-tab-{$date->id}-control" data-bs-toggle="tab"
+                data-bs-target="#event-date-tab-{$date->id}"
+                type="button" role="tab" aria-controls="event-date-tab-{$date->id}"
+                aria-selected="true"
+                data-content-piece="{$date->start->format('d.m.Y H:i')}">
+            {$date->start->format('d.m.Y H:i')}
+        </button>
+    </li>
+</ul>
+<div class="tab-content bg-background-1 rounded" id="event-dates-tabs">
+    <div n:foreach="$event->getDates() as $date"
+            class="tab-pane py-4 fade {if $iterator->first}show active{/if} text-center"
+            id="event-date-tab-{$date->id}" role="tabpanel"
+            aria-labelledby="event-date-tab-{$date->id}-control"
+            data-track-content="" data-content-name="League {$date->name} tournaments" tabindex="0">
+        {var App\Models\Events\EventPlayer[] $players = $date->getPlayers()}
+        {if count($players) > 0}
+            <div class="list-group">
+                <div n:foreach="$players as $player"
+                        class="list-group-item text-center d-flex justify-content-center align-items-center lh-1 flex-wrap"
+                        itemprop="competitor" itemscope
+                        itemtype="https://schema.org/Person">
+                    <h4 class="fs-3 mx-0 my-2">{$iterator->counter}. <span itemprop="name">{$player->nickname}</span>
+                    </h4>
+                    {ifset $player->user}
+                        <a itemprop="url" href="{link 'user', $player->user->getCode()}"
+                           class="btn btn-primary mx-3 my-2">
+                            <i class="fa-solid fa-user"></i> {lang 'Profil'}
+                        </a>
+                    {/ifset}
+                    {if isset($user) && $player->validateAccess($user)}
+                        <a href="{link 'events', 'registration', $event->id, $player->id}"
+                           class="btn btn-secondary my-2">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            {lang 'Upravit přihlášku'}
+                        </a>
+                    {/if}
+                    <meta n:ifset="$player->user" itemprop="identifier"
+                                                  content="{$player->user->getCode()}">
+                </div>
+            </div>
+        {else}
+            <div class="py-5 text-center">
+                {lang 'Zatím nejsou registrovány žádné týmy.'}
+            </div>
+        {/if}
+    </div>
+</div>

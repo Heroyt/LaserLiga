@@ -51,7 +51,11 @@
                     {else}
                         <p>{lang 'Turnaj se ještě nehrál'}</p>
 						{if isset($user) && !$tournament->isStarted() && $player->team->validateAccess($user)}
-							<a href="{link 'tournament', 'registration', $tournament->id, $player->team->id}"
+                            <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE && isset($player->leaguePlayer->team)}
+{link 'league', 'registration', $tournament->league->id, $player->leaguePlayer->team->id}
+{else}
+{link 'tournament', 'registration', $tournament->id, $player->team->id}
+{/if}"
                                class="btn btn-secondary">
 								{lang 'Upravit přihlášku'}
 							</a>

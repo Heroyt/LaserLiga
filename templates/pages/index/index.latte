@@ -36,7 +36,7 @@
             {include countUpStat, 'registeredPlayers', 'Registrovaných hráčů', $playerCount, 2000, 0, 'primary', ['user', 'leaderboard']}
             {include countUpStat, 'arenas', 'Zapojených arén', $arenaCount, 2000, 0, 'danger', ['arena']}
             {include countUpStat, 'playedGames', 'Odehraných her', $gameCount, 2000, 0, 'purple-400'}
-            {include countUpStat, 'tournaments', 'Organizovaných turnajů', $tournamentCount, 2000, 0, 'secondary', ['tournament']}
+            {include countUpStat, 'tournaments', 'Organizovaných turnajů', $tournamentCount, 2000, 0, 'secondary', ['events']}
         </div>
     </section>
 
@@ -94,7 +94,7 @@
 				  style="width: 1.5em;height:1.5em;line-height:1.5;">
 				2.
 			</span>
-            {lang 'Hraješ ve tvojí laser aréně'}
+            {lang 'Hraješ ve tvé laser aréně'}
 		</h3>
         <p class="text-start">{lang 'Obsluze nahlásíš, že jsi registrovaný a ona si tě najde pomocí tvé přezdívky, nebo kódu.'}</p>
 		<a href="{link 'arena'}" class="btn btn-primary">

@@ -1,0 +1,37 @@
+{layout '../@layout.latte'}
+
+{varType App\Models\Events\EventPlayerBase $player}
+
+{block body}
+    {lang 'Registrace hráče'}: {$player->nickname}
+    {if $player instanceof App\Models\Tournament\Player}
+        {lang 'Na turnaj:'} {ifset $player->tournament->league}{$player->tournament->league->name} {/ifset}{$player->tournament->name}
+    {elseif $player instanceof App\Models\Tournament\League\Player}
+        {lang 'Na ligu:'} {$player->league->name}
+    {elseif $player instanceof App\Models\Events\EventPlayer}
+        {lang 'Na ligu:'} {$player->event->name}
+    {/if}
+
+
+    {$player->name} <i>{$player->nickname}</i> {$player->surname}
+    {ifset $player->email}- {$player->email}{/ifset}
+    {ifset $player->phone}- {$player->phone}{/ifset}
+    {if isset($player->parentEmail) || isset($player->parentPhone)}
+        - {lang 'Zákonný zástupce:'}<br>
+        {ifset $player->parentEmail}
+            {$player->parentEmail}<br>
+        {/ifset}
+        {ifset $player->parentPhone}
+            {$player->parentPhone}
+        {/ifset}
+    {/if}
+    - {$player->skill->getReadable()}
+
+    {if $player instanceof App\Models\Tournament\Player}
+        {link 'tournament', 'registration', $player->tournament->id, $player->id, 'h' => $player->getHash()}
+    {elseif $player instanceof App\Models\Tournament\League\Player}
+        {link 'league', 'registration', $player->league->id, $player->id, 'h' => $player->getHash()}"
+    {elseif $player instanceof App\Models\Events\EventPlayer}
+        {link 'event', 'registration', $player->event->id, $player->id, 'h' => $player->getHash()}"
+    {/if}
+{/block}

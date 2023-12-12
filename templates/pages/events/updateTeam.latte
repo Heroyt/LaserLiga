@@ -1,0 +1,97 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Events\Event $event}
+{varType App\Models\Events\EventTeam $team}
+{varType array $values}
+{varType array $errors}
+{varType string[] $_REQUEST}
+
+{define content}
+    <p class="text-start">
+        <a href="{$event->getUrl()}" class="btn btn-secondary">
+            <i class="fa-solid fa-angle-left"></i>
+            {lang 'Zpět'}
+        </a>
+    </p>
+    {ifset $team->image}
+        <img class="team-logo mb-3" src="{$team->getImageUrl()}" alt="Logo týmu - {$team->name}">
+    {/ifset}
+    <h1>{lang 'Tým'} - {$team->name}</h1>
+    <h2>{$event->name}</h2>
+    <div class="registration-switch collapse show" id="tournament-register-team-detail">
+        <h3>{lang 'Hráči'}</h3>
+        <div class="list-group">
+            <div n:foreach="$team->getPlayers() as $player" class="list-group-item">
+                <h4>{$player->nickname}{ifset $player->user} - {$player->user->getCode()}{/ifset}</h4>
+            </div>
+        </div>
+    </div>
+    <p class="my-3">
+        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target=".registration-switch"
+                aria-controls="tournament-register-team-form tournament-register-team-detail">
+            {lang 'Upravit registraci'}
+        </button>
+    </p>
+    <form action="{link 'event', 'registration', $event->id, $team->id}" method="post"
+          enctype="multipart/form-data"
+          id="tournament-register-team-form" class="collapse registration-switch">
+        {ifset $_REQUEST['h']}
+            <input type="hidden" name="h" value="{$_REQUEST['h']}">
+        {/ifset}
+        {csrfInput 'event-update-register'}
+        {embed '../../partials/tournament/registerTeam.latte', event: $event, errors: $errors, values: $values}
+            {block afterTeamSection}
+                <div class="mb-2 mx-2 required">
+                    <label class="form-label">{lang 'Termíny'}:</label>
+                    {switch $event->datesType}
+                        {case App\Models\Events\DatesType::MULTIPLE}
+                        <div n:foreach="$event->getDates() as $date" class="form-check">
+                            <input n:class="form-check-input, isset($errors['dates']) ? is-invalid"
+                                    type="checkbox" value="{$date->id}"
+                                    id="event-{$event->id}-date-{$date->id}"
+                                    name="dates[]"
+                                    n:attr="checked: isset($values['dates']) && is_array($values['dates']) && in_array($date->id, $values['dates'])">
+                            <label class="form-check-label" for="event-{$event->id}-date-{$date->id}">
+                                {$date->start->format('d.m.Y H:i')}{ifset $date->end} - {$date->end->format('H:i')}{/ifset}
+                            </label>
+                            <div n:ifset="$errors['dates']"
+                                    id="event-{$event->id}-feedback" class="invalid-feedback">
+                                {if is_array($errors['dates'])}
+                                    <ul>
+                                        <li n:foreach="$errors['dates'] as $error">{$error}</li>
+                                    </ul>
+                                {else}
+                                    {$errors['dates']}
+                                {/if}
+                            </div>
+                        </div>
+                    {case App\Models\Events\DatesType::SINGLE}
+                        <div n:foreach="$event->getDates() as $date" class="form-check">
+                            <input n:class="form-check-input, isset($errors['dates']) ? is-invalid"
+                                    type="radio" value="{$date->id}"
+                                    id="event-{$event->id}-date-{$date->id}"
+                                    name="dates"
+                                    n:attr="checked: isset($values['dates']) && $date->id === $values['dates']">
+                            <label class="form-check-label" for="event-{$event->id}-date-{$date->id}">
+                                {$date->start->format('d.m.Y H:i')}{ifset $date->end} - {$date->end->format('H:i')}{/ifset}
+                            </label>
+                            <div n:ifset="$errors['dates']"
+                                    id="event-{$event->id}-feedback" class="invalid-feedback">
+                                {if is_array($errors['dates'])}
+                                    <ul>
+                                        <li n:foreach="$errors['dates'] as $error">{$error}</li>
+                                    </ul>
+                                {else}
+                                    {$errors['dates']}
+                                {/if}
+                            </div>
+                        </div>
+                    {/switch}
+                </div>
+            {/block}
+        {/embed}
+        <p class="text-center">
+            <button type="submit" class="btn btn-lg btn-primary">{lang 'Odeslat'}</button>
+        </p>
+    </form>
+{/define}

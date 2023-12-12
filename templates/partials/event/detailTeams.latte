@@ -1,0 +1,61 @@
+{varType App\Models\Events\Event $event}
+{var App\Models\Events\EventTeam[] $teams = $event->getTeams()}
+<h3 class="text-center">
+    {lang 'Týmy'}
+    {ifset $event->teamLimit}
+        ({count($teams)}/{$event->teamLimit})
+    {/ifset}
+</h3>
+<p class="text-center text-muted">{lang 'Seznam přihlášených týmů na akci laser game.'}</p>
+{if count($teams) > 0}
+    <div class="list-group">
+        <div n:foreach="$teams as $team" class="list-group-item text-center" itemprop="competitor" itemscope
+                                         itemtype="https://schema.org/SportsTeam">
+            <meta itemprop="sport" content="Laser Game">
+            {ifset $team->image}
+                <img class="team-logo mb-3" src="{$team->getImageObj()->getSize(400)}"
+                     alt="Logo týmu - {$team->name}"
+                     itemprop="logo" loading="lazy">
+            {/ifset}
+            <h4 class="fs-3" itemprop="name">{$team->name}</h4>
+            <p>
+                <strong>{lang 'Průměrná herní úroveň registrovaných hráčů'}:</strong>
+                {round($team->getAveragePlayerRank())}
+                <i class="fa-solid fa-medal"></i>
+            </p>
+
+            <div class="d-flex justify-content-center align-items-center flex-wrap">
+                <div n:foreach="$team->getPlayers() as $player" n:tag="isset($player->user) ? 'a' : 'div'" {ifset $player->user}href="{link 'user', $player->user->getCode()}"{/ifset}
+                        data-toggle="tooltip" title="{lang $player->skill->getReadable()}"
+                        itemprop="athlete" itemscope itemtype="https://schema.org/Person"
+                        n:class="'rounded', 'p-2', 'm-2', $player->skill === App\Models\Tournament\PlayerSkill::BEGINNER ? 'text-bg-secondary', $player->skill === App\Models\Tournament\PlayerSkill::SOMEWHAT_ADVANCED ? 'text-bg-light-cyan', $player->skill === App\Models\Tournament\PlayerSkill::ADVANCED ? 'text-bg-medium-cyan', $player->skill === App\Models\Tournament\PlayerSkill::PRO ? 'text-bg-primary'">
+                    <meta n:ifset="$player->user" itemprop="url"
+                                                  content="{link 'user', $player->user->getCode()}">
+                    <meta n:ifset="$player->user" itemprop="identifier"
+                                                  content="{$player->user->getCode()}">
+                    <span itemprop="name">{$player->nickname}</span>
+                </div>
+            </div>
+            <div class="btn-group mt-3">
+                {ifset $team->leagueTeam}
+                    <a itemprop="url" href="{link 'league', 'team', $team->leagueTeam->id}"
+                       class="btn btn-primary">
+                        <i class="fa-solid fa-eye"></i>
+                        {lang 'Statistiky'}
+                    </a>
+                {/ifset}
+                {if isset($user) && $team->validateAccess($user)}
+                    <a href="{if $event->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $event->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $event->id, $team->id}{/if}"
+                       class="btn btn-secondary">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        {lang 'Upravit přihlášku'}
+                    </a>
+                {/if}
+            </div>
+        </div>
+    </div>
+{else}
+    <div class="py-5 text-center">
+        {lang 'Zatím nejsou registrovány žádné týmy.'}
+    </div>
+{/if}

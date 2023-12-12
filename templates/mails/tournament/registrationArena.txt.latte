@@ -1,11 +1,17 @@
 {layout '../@layout.txt.latte'}
 
-{varType App\Models\Tournament\Team $team}
+{varType App\Models\Events\EventTeamBase $team}
 
 {block body}
     {lang 'Registrace týmu'}: {$team->name}
 
-    {$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}
+    {if $team instanceof App\Models\Tournament\Team}
+        {lang 'Na turnaj:'} {ifset $team->tournament->league}{$team->tournament->league->name} {/ifset}{$team->tournament->name}
+    {elseif $team instanceof App\Models\Tournament\League\LeagueTeam}
+        {lang 'Na ligu:'} {$team->league->name}
+    {elseif $team instanceof App\Models\Events\EventTeam}
+        {lang 'Na ligu:'} {$team->event->name}
+    {/if}
 
     {foreach $team->getPlayers() as $player}
         {if $player->captain}{lang 'Kapitán'}{/if}
@@ -13,6 +19,15 @@
         {$player->name} "{$player->nickname}" {$player->surname}
         {ifset $player->email}- {$player->email}{/ifset}
         {ifset $player->phone}- {$player->phone}{/ifset}
+        {if isset($player->parentEmail) || isset($player->parentPhone)}
+            - {lang 'Zákonný zástupce:'}
+            {ifset $player->parentEmail}
+                {$player->parentEmail}
+            {/ifset}
+            {ifset $player->parentPhone}
+                {$player->parentPhone}
+            {/ifset}
+        {/if}
         - {$player->skill->getReadable()}
     {/foreach}
 {/block}

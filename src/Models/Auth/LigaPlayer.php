@@ -3,6 +3,7 @@
 namespace App\Models\Auth;
 
 use App\Models\Arena;
+use App\Models\Tournament\League\Player as LeaguePlayer;
 use App\Models\Tournament\Player as TournamentPlayer;
 use App\Models\Tournament\Tournament;
 use Lsr\Core\App;
@@ -35,6 +36,8 @@ class LigaPlayer extends Player
 	private array $tournaments = [];
 	/** @var TournamentPlayer[] */
 	private array $tournamentPlayers = [];
+	/** @var LeaguePlayer[] */
+	private array $leaguePlayers;
 
 	/**
 	 * @param string $code
@@ -138,6 +141,17 @@ class LigaPlayer extends Player
 			$this->tournamentPlayers = TournamentPlayer::query()->where('id_user = %i', $this->id)->get();
 		}
 		return $this->tournamentPlayers;
+	}
+
+	/**
+	 * @return LeaguePlayer[]
+	 * @throws ValidationException
+	 */
+	public function getLeaguePlayers(): array {
+		if (empty($this->leaguePlayers)) {
+			$this->leaguePlayers = LeaguePlayer::query()->where('id_user = %i', $this->id)->get();
+		}
+		return $this->leaguePlayers;
 	}
 
 }

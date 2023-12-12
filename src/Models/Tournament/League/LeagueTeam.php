@@ -1,43 +1,43 @@
 <?php
 
-namespace App\Models\Tournament;
+namespace App\Models\Tournament\League;
 
-use App\Models\DataObjects\Image;
+use App\Models\Events\EventTeamBase;
+use App\Models\Tournament\Game;
+use App\Models\Tournament\Player as TournamentPlayer;
+use App\Models\Tournament\Team;
+use App\Models\Tournament\WithTokenValidation;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
 use Nette\Utils\Strings;
 
+/**
+ * @extends EventTeamBase<Player>
+ */
 #[PrimaryKey('id_team')]
-class LeagueTeam extends Model
+class LeagueTeam extends EventTeamBase
 {
+	public const PLAYER_CLASS = Player::class;
+	public const TOKEN_KEY    = 'league-team';
+	public const TABLE        = 'league_teams';
 
-	public const TABLE = 'league_teams';
-
-	public string  $name;
-	public ?string $image  = null;
-	public int     $points = 0;
+	public int $points = 0;
 
 	#[ManyToOne]
-	public League $league;
+	public League   $league;
 	#[ManyToOne]
 	public ?LeagueCategory $category = null;
-
+	protected int   $score;
+	protected int   $wins;
+	protected int   $draws;
+	protected int   $losses;
+	protected float $skill;
 	/** @var Team[] */
 	private array $teams = [];
-
-	private int   $score;
-	private int   $wins;
-	private int   $draws;
-	private int   $losses;
-	private float $skill;
 	/** @var Game[] */
 	private array $games = [];
-	private float $avgPlayerRank;
-
-	private Image $imageObj;
 
 	public function getScore(): int {
 		if (!isset($this->score)) {
@@ -106,39 +106,6 @@ class LeagueTeam extends Model
 	}
 
 	/**
-	 * @return string|null
-	 */
-	public function getImageUrl(): ?string {
-		$image = $this->getImageObj();
-		if (!isset($image)) {
-			return null;
-		}
-		$optimized = $image->getOptimized();
-		return $optimized['webp'] ?? $optimized['original'];
-	}
-
-	/**
-	 * @return Image|null
-	 */
-	public function getImageObj(): ?Image {
-		if (!isset($this->imageObj)) {
-			if (!isset($this->image)) {
-				return null;
-			}
-			$this->imageObj = new Image($this->image);
-		}
-		return $this->imageObj;
-	}
-
-	public function getImageSrcSet(): ?string {
-		$image = $this->getImageObj();
-		if (!isset($image)) {
-			return null;
-		}
-		return getImageSrcSet($image);
-	}
-
-	/**
 	 * @return Game[]
 	 */
 	public function getGames(): array {
@@ -149,7 +116,7 @@ class LeagueTeam extends Model
 					'id_game IN %sql',
 					DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'id_game')->where(
 						'id_tournament_player IN %sql',
-						DB::select(Player::TABLE, 'id_player')->where(
+						DB::select(TournamentPlayer::TABLE, 'id_player')->where(
 							'id_team IN %sql',
 							DB::select(Team::TABLE, 'id_team')->where(
 								'id_league_team = %i',
@@ -163,27 +130,11 @@ class LeagueTeam extends Model
 		return $this->games;
 	}
 
-	public function getAveragePlayerRank(): float {
-		if (!isset($this->avgPlayerRank)) {
-			$sum = 0;
-			$count = 0;
-			foreach ($this->getPlayers() as $identifier => $players) {
-				$player = $players[0];
-				if (isset($player->user)) {
-					$count++;
-					$sum += $player->user->stats->rank;
-				}
-			}
-			$this->avgPlayerRank = $count === 0 ? 0 : $sum / $count;
-		}
-		return $this->avgPlayerRank;
-	}
-
 	/**
-	 * @return array<string|int, Player[]>
+	 * @return array<string|int, TournamentPlayer[]>
 	 * @throws ValidationException
 	 */
-	public function getPlayers(): array {
+	public function getTournamentPlayers(): array {
 		$players = [];
 		foreach ($this->getTeams() as $team) {
 			foreach ($team->getPlayers() as $player) {
@@ -204,14 +155,17 @@ class LeagueTeam extends Model
 	}
 
 	/**
-	 * @return array<int,array{0:int,1:int}>
+	 * @return array<int,array{position:int,teamCount:int}>
 	 * @throws ValidationException
 	 */
 	public function getTournamentPositions(): array {
 		$positions = [];
 		foreach ($this->getTeams() as $team) {
 			if ($team->tournament->isFinished()) {
-				$positions[$team->tournament->id] = [$team->getPosition(), count($team->tournament->getTeams())];
+				$positions[(int)$team->tournament->id] = [
+					'position'  => $team->getPosition(),
+					'teamCount' => count($team->tournament->getTeams()),
+				];
 			}
 		}
 		return $positions;

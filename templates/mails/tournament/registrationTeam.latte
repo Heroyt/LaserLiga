@@ -1,40 +1,79 @@
 {layout '../@layout.latte'}
 
-{varType App\Models\Tournament\Team $team}
+{varType App\Models\Events\EventTeamBase $team}
 
 {block body}
-	<h1>{lang 'Vaše registrace na turnaj'}: {$team->name}</h1>
+    <h1>{lang 'Vaše registrace na turnaj'}: {$team->name}</h1>
 
-	{ifset $team->image}
+    {ifset $team->image}
         <img class="team-logo mb-3" src="{$team->getImageUrl()}" srcset="{$team->getImageSrcSet()}"
              alt="Logo týmu - {$team->name}"
-			 style="max-width:100%;max-height:300px;aspect-ratio: 1;object-fit: cover;">
-	{/ifset}
+             style="max-width:100%;max-height:300px;aspect-ratio: 1;object-fit: cover;">
+    {/ifset}
 
-	<h2>{$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}</h2>
+    <h2>
+        {if $team instanceof App\Models\Tournament\Team}
+            {$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}
+        {elseif $team instanceof App\Models\Tournament\League\LeagueTeam}
+            {$team->league->name}
+        {elseif $team instanceof App\Models\Events\EventTeam}
+            {$team->event->name}
+        {/if}
+    </h2>
 
     <div class="card" n:foreach="$team->getPlayers() as $player">
         <h3>
             {$player->name} <i>{$player->nickname}</i> {$player->surname}
         </h3>
-		<ul>
+        <ul>
             <li n:if="$player->captain">{lang 'Kapitán'}</li>
             <li n:if="$player->sub">{lang 'Náhradník'}</li>
-			<li n:ifset="$player->email">{$player->email}</li>
-			<li n:ifset="$player->phone">{$player->phone}</li>
-			<li>{$player->skill->getReadable()}</li>
-		</ul>
-	</div>
+            <li n:ifset="$player->email">{$player->email}</li>
+            <li n:ifset="$player->phone">{$player->phone}</li>
+            <li n:if="isset($player->parentEmail) || isset($player->parentPhone)">
+                {lang 'Zákonný zástupce:'}<br>
+                {ifset $player->parentEmail}
+                    {$player->parentEmail}<br>
+                {/ifset}
+                {ifset $player->parentPhone}
+                    {$player->parentPhone}
+                {/ifset}
+            </li>
+            <li>{$player->skill->getReadable()}</li>
+        </ul>
+    </div>
 
-	{ifset $team->tournament->prices}
-		<h3>{lang 'Platba'}</h3>
-		{$team->tournament->prices|noescape}
-	{/ifset}
+    {if $team instanceof App\Models\Tournament\Team && isset($team->tournament->prices)}
+        <h3>{lang 'Platba'}</h3>
+        {$team->tournament->prices|noescape}
+    {elseif $team instanceof App\Models\Tournament\League\LeagueTeam && isset($team->league->price)}
+        <h3>{lang 'Platba'}</h3>
+        {$team->league->price|noescape}
+    {elseif $team instanceof App\Models\Events\EventTeam && isset($team->event->price)}
+        <h3>{lang 'Platba'}</h3>
+        {$team->event->price|noescape}
+    {/if}
 
-	<p class="mt-5">
-		<a href="{link 'tournament', 'registration', $team->tournament->id, $team->id, 'h' => $team->getHash()}"
-		   class="btn">
-			{lang 'Upravit registraci'}
-		</a>
-	</p>
+    {if $team instanceof App\Models\Tournament\Team}
+        <p class="mt-5">
+            <a href="{link 'tournament', 'registration', $team->tournament->id, $team->id, 'h' => $team->getHash()}"
+               class="btn">
+                {lang 'Upravit registraci'}
+            </a>
+        </p>
+    {elseif $team instanceof App\Models\Tournament\League\LeagueTeam}
+        <p class="mt-5">
+            <a href="{link 'league', 'registration', $team->league->id, $team->id, 'h' => $team->getHash()}"
+               class="btn">
+                {lang 'Upravit registraci'}
+            </a>
+        </p>
+    {elseif $team instanceof App\Models\Events\EventTeam}
+        <p class="mt-5">
+            <a href="{link 'event', 'registration', $team->event->id, $team->id, 'h' => $team->getHash()}"
+               class="btn">
+                {lang 'Upravit registraci'}
+            </a>
+        </p>
+    {/if}
 {/block}

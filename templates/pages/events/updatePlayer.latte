@@ -1,0 +1,127 @@
+{layout '../../@layout.latte'}
+
+{import '../../partials/tournament/registerTeamsComponents.latte'}
+
+{varType App\Models\Events\Event $event}
+{varType App\Models\Events\EventPlayer $player}
+{varType array $values}
+{varType array $errors}
+{varType string[] $_REQUEST}
+
+{var array $playerNames = [
+['Karel', 'Novák'],
+['Alena', 'Procházková'],
+['David', 'Svoboda'],
+['Kristýna', 'Dvořáková'],
+['Jan', 'Nový'],
+['Alexand', 'Malý'],
+['Klára', 'Horáková'],
+['Kateřina', 'Černá'],
+['Tomáš', 'Krejčí'],
+['Lubomír', 'Veselý'],
+['Andrea', 'Němcová'],
+['Kamil', 'Vávra'],
+['Dalibor', 'Horák'],
+['Eliška', 'Pokorná'],
+]}
+{var string $nickNames = ['Borec', 'Predátor', 'Terminátor', 'Princezna', 'Hulk', '007', 'Bábovka', 'Jeníček', 'Mařenka', 'Mrzout', 'Taťka šmoula', 'Šmoulinka', 'Rohlík', 'Drákula', 'Asterix', 'Obelix']}
+
+{var int $playerNameCount = count($playerNames)}
+{var int $nickNameCount = count($nickNames)}
+
+{do shuffle($playerNames)}
+{do shuffle($nickNames)}
+
+{define content}
+    <p class="text-start">
+        <a href="{link 'events', $event->id}" class="btn btn-secondary">
+            <i class="fa-solid fa-angle-left"></i>
+            {lang 'Zpět'}
+        </a>
+    </p>
+    <h1>{lang 'Hráč'} - {$player->nickname}</h1>
+    <h2>{$event->name}</h2>
+    <div class="registration-switch collapse show" id="tournament-register-team-detail">
+        <div class="list-group">
+            <div class="list-group-item">
+                <h4>{$player->nickname}{ifset $player->user} - {$player->user->getCode()}{/ifset}</h4>
+            </div>
+        </div>
+    </div>
+    <p class="my-3">
+        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target=".registration-switch"
+                aria-controls="tournament-register-team-form tournament-register-team-detail">
+            {lang 'Upravit registraci'}
+        </button>
+    </p>
+    <form action="{link 'events', 'registration', $event->id, $player->id}" method="post"
+          enctype="multipart/form-data"
+          id="tournament-register-team-form" class="collapse registration-switch">
+        {ifset $_REQUEST['h']}
+            <input type="hidden" name="h" value="{$_REQUEST['h']}">
+        {/ifset}
+        {csrfInput 'event-update-register'}
+        <div class="mb-2 mx-2 required">
+            <label class="form-label">{lang 'Termíny'}:</label>
+            {switch $event->datesType}
+                {case App\Models\Events\DatesType::MULTIPLE}
+                <div n:foreach="$event->getDates() as $date" class="form-check">
+                    <input n:class="form-check-input, isset($errors['dates']) ? is-invalid"
+                            type="checkbox" value="{$date->id}"
+                            id="event-{$event->id}-date-{$date->id}"
+                            name="dates[]"
+                            n:attr="checked: isset($values['dates']) && is_array($values['dates']) && in_array($date->id, $values['dates'])">
+                    <label class="form-check-label" for="event-{$event->id}-date-{$date->id}">
+                        {$date->start->format('d.m.Y H:i')}{ifset $date->end} - {$date->end->format('H:i')}{/ifset}
+                    </label>
+                    <div n:ifset="$errors['dates']"
+                            id="event-{$event->id}-feedback" class="invalid-feedback">
+                        {if is_array($errors['dates'])}
+                            <ul>
+                                <li n:foreach="$errors['dates'] as $error">{$error}</li>
+                            </ul>
+                        {else}
+                            {$errors['dates']}
+                        {/if}
+                    </div>
+                </div>
+            {case App\Models\Events\DatesType::SINGLE}
+                <div n:foreach="$event->getDates() as $date" class="form-check">
+                    <input n:class="form-check-input, isset($errors['dates']) ? is-invalid"
+                            type="radio" value="{$date->id}"
+                            id="event-{$event->id}-date-{$date->id}"
+                            name="dates"
+                            n:attr="checked: isset($values['dates']) && $date->id === $values['dates']">
+                    <label class="form-check-label" for="event-{$event->id}-date-{$date->id}">
+                        {$date->start->format('d.m.Y H:i')}{ifset $date->end} - {$date->end->format('H:i')}{/ifset}
+                    </label>
+                    <div n:ifset="$errors['dates']"
+                            id="event-{$event->id}-feedback" class="invalid-feedback">
+                        {if is_array($errors['dates'])}
+                            <ul>
+                                <li n:foreach="$errors['dates'] as $error">{$error}</li>
+                            </ul>
+                        {else}
+                            {$errors['dates']}
+                        {/if}
+                    </div>
+                </div>
+            {/switch}
+        </div>
+        {include playerFields
+        event: $event,
+        i: 0,
+        values: $values,
+        playerNames: $playerNames,
+        playerNameCount: $playerNameCount,
+        nickNames: $nickNames,
+        nickNameCount: $nickNameCount,
+        sub: false,
+        errors: $errors,
+        captainTitle: 'Hráč'
+        }
+        <p class="text-center">
+            <button type="submit" class="btn btn-lg btn-primary">{lang 'Odeslat'}</button>
+        </p>
+    </form>
+{/define}

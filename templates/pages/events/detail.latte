@@ -1,0 +1,154 @@
+{layout '../../@layout.latte'}
+
+{varType App\Models\Events\Event $event}
+{varType string $rules}
+{varType string $results}
+{varType Lsr\Core\Auth\Models\User|null $user}
+{varType Lsr\Core\Controller $page}
+{varType array $_GET}
+
+{var array $containerAttributes = ['itemscope' => '', 'itemtype' => 'https://schema.org/SportsEvent']}
+
+{define addHead}
+    <meta property="og:title"
+          content="{ifset $event->league}{$event->league->name}: {/ifset}{$event->name}"/>
+    <meta property="og:description" content="{$event->shortDescription ?? $page->getDescription()}"/>
+    <meta property="og:site_name" content="LaserLiga"/>
+    <meta property="og:type" content="event"/>
+    <meta property="og:url" content="{link 'tournament', $event->id}"/>
+    <meta n:ifset="$event->image" property="og:image" content="{$event->getImageUrl()}"/>
+{/define}
+
+{define content}
+    {include meta}
+    <p class="text-start">
+        <a n:ifset="$event->league" href="{$event->league->getUrl()}" class="btn btn-secondary">
+            <i class="fa-solid fa-angle-left"></i>
+            {lang 'Zpět na ligu'}
+        </a>
+        <a href="{link 'events'}" class="btn btn-secondary">
+            <i class="fa-solid fa-angle-left"></i>
+            {lang 'Zpět na plánované akce'}
+        </a>
+    </p>
+    <img n:ifset="$event->image" src="{$event->getImageUrl()}" srcset="{$event->getImageSrcSet()}"
+                                 alt="{$event->name}"
+                                 class="img-fluid mx-auto d-block mb-4" style="max-height: 400px;"
+                                 itemprop="image" loading="lazy">
+    <h1 class="text-center" itemprop="name">
+        {ifset $event->league}
+            {$event->league->name}
+            <br>
+        {/ifset}
+        {$event->name}
+    </h1>
+    <p class="text-center text-muted">
+        {sprintf(lang('Informace o akci laser game, který se bude odehrávat v %s.'), $event->arena->name)}
+    </p>
+    <div class="text-center">
+        {if $event->isRegistrationActive()}
+            <a href="{link 'events', $event->id, 'register'}"
+               class="btn btn-lg btn-primary">
+                <i class="fa-solid fa-user-plus"></i>
+                {lang 'Registrace'}
+            </a>
+        {/if}
+    </div>
+    <div class="text-center">
+        <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
+                data-title="{sprintf(lang('Laser game akce: %s'), (isset($event->league) ? $event->league->name.' ' : '').$event->name)}"
+                data-url="{link 'events', $event->id}">
+            <i class="fa-solid fa-share"></i>
+            {lang 'Sdílet'}
+        </button>
+    </div>
+    {embed '../../partials/tabs.latte',
+    tabs: [
+    'info' => [
+    'name' => 'Informace',
+    'type' => 'tab',
+    'piece' => 'Info',
+    'template' => './event/detailInfo.latte',
+    'params' => [
+    'event' => $event
+    ],
+    ],
+    'rules' => [
+    'name' => 'Pravidla akce',
+    'type' => 'tab',
+    'condition' => !empty($rules),
+    'piece' => 'Rules',
+    'template' => './event/rules.latte',
+    'params' => [
+    'rules' => $rules
+    ],
+    ],
+    'teams' => [
+    'name' => 'Týmy',
+    'type' => 'tab',
+    'condition' => $event->format === App\GameModels\Game\Enums\GameModeType::TEAM,
+    'piece' => 'Teams',
+    'template' => './event/detailTeams.latte',
+    'params' => [
+    'event' => $event,
+    'user' => $user,
+    ],
+    ],
+    'players' => [
+    'name' => 'Hráči',
+    'type' => 'tab',
+    'condition' => $event->format === App\GameModels\Game\Enums\GameModeType::SOLO,
+    'piece' => 'Players',
+    'template' => './event/detailPlayers.latte',
+    'params' => [
+    'event' => $event,
+    'user' => $user,
+    ],
+    ],
+    ],
+    id: 'event-tabs',
+    classes: 'mt-4',
+    activeTab: $_GET['tab'] ?? '',
+    }
+		{/embed}
+
+    {include '../tournament/faq.latte'}
+{/define}
+
+{define meta}
+    <meta itemprop="identifier" content="{link 'event', $event->id}">
+    <meta itemprop="eventStatus" content="EventScheduled">
+    <meta itemprop="sport" content="Laser Game">
+    <meta itemprop="keywords" content="Laser Game, Laser liga, akce laser game">
+    <meta itemprop="startDate" content="{first($event->getDates())?->start?->format('c')}">
+    <meta itemprop="endDate" content="{last($event->getDates())?->end?->format('c')}">
+    <div itemprop="location" itemscope itemtype="https://schema.org/Place">
+        <div n:if="$event->arena->address->isFilled()" itemprop="address" itemscope
+                                                       itemtype="https://schema.org/PostalAddress">
+            <meta n:ifset="$event->arena->address->street" itemprop="streetAddress"
+                                                           content="{$event->arena->address->street}">
+            <meta n:ifset="$event->arena->address->city" itemprop="addressLocality"
+                                                         content="{$event->arena->address->city}">
+            <meta n:ifset="$event->arena->address->postCode" itemprop="postalCode"
+                                                             content="{$event->arena->address->postCode}">
+            <meta n:ifset="$event->arena->address->country" itemprop="addressCountry"
+                                                            content="{$event->arena->address->country}">
+        </div>
+        <meta n:ifset="$event->arena->lng" itemprop="longitude" content="{$event->arena->lng}">
+        <meta n:ifset="$event->arena->lat" itemprop="latitude" content="{$event->arena->lat}">
+        <meta itemprop="name" content="{$event->arena->name}">
+        <meta itemprop="identifier" content="{link 'arena', $event->arena->id}">
+        <meta n:ifset="$event->arena->web" itemprop="url" content="{$event->arena->web}">
+        <meta content="{$event->arena->getLogoUrl()}" itemprop="logo">
+    </div>
+    <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
+    <div n:ifset="$event->league" itemprop="superEvent" itemscope itemtype="https://schema.org/EventSeries">
+        <meta itemprop="identifier"
+              content="{link isset($event->league->slug) ? ['liga', $event->league->slug] : ['league', $event->league->id]}">
+        <meta itemprop="url"
+              content="{link isset($event->league->slug) ? ['liga', $event->league->slug] : ['league', $event->league->id]}">
+        <meta itemprop="name" content="{$event->league->name}">
+        <meta itemprop="keywords" content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
+        <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
+    </div>
+{/define}

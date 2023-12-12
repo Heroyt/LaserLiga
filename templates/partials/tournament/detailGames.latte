@@ -33,6 +33,7 @@
         <thead>
         <tr>
             <th class="text-center">{lang 'Začátek'}</th>
+            <th class="text-center">{lang 'Skupina'}</th>
             <th>{lang 'Domácí'}</th>
             <th>{lang 'Hosté'}</th>
             <th>{lang 'Výsledky'}</th>
@@ -44,6 +45,7 @@
             {var string[] $scores = []}
             {var bool $played = isset($gameTournament->code)}
             <td class="text-center">{$gameTournament->start->format('H:i')}</td>
+            <td class="text-center">{$gameTournament->group?->name}</td>
             <td n:foreach="$gameTournament->teams as $team" {if $played}class="fw-bold text-{if $team->points <= 0}danger{elseif $team->points === 1}info{else}success{/if}"{/if}>
                 {$team->getName()}
                 {if $played}

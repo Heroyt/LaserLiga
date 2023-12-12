@@ -3,13 +3,6 @@ interface PageInfo {
 	routeName?: string,
 	path: string[]
 }
-
-const resultsReloadPages: { [index: string]: string[] } = {
-	'games-list': [],
-	'results': ['results'],
-	'results-game': ['results'],
-};
-
 export default function route(pageInfo: PageInfo): void {
 	switch (pageInfo.routeName ?? '') {
         case 'index':
@@ -99,7 +92,24 @@ export default function route(pageInfo: PageInfo): void {
 		case 'tournament-register':
 		case 'tournament-register-process':
 		case 'tournament-register-update':
+        case 'tournament-register-update-2':
 		case 'tournament-register-update-process':
+        case 'event-register':
+        case 'event-register-process':
+        case 'event-register-update':
+        case 'event-register-update-2':
+        case 'event-register-update-process':
+        case 'league-register':
+        case 'league-register-process':
+        case 'league-register-slug':
+        case 'league-register-process-slug':
+        case 'league-register-update':
+        case 'league-register-update-2':
+        case 'league-register-update-process':
+        case 'league-register-substitute':
+        case 'league-register-substitute-process':
+        case 'league-register-substitute-slug':
+        case 'league-register-substitute-slug-process':
 			import(
 				/* webpackChunkName: "tournament-register" */
 				'./pages/tournament/register'

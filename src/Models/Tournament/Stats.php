@@ -4,6 +4,8 @@ namespace App\Models\Tournament;
 
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Evo5\Team;
+use App\Models\Tournament\League\League;
+use App\Models\Tournament\League\LeagueCategory;
 use App\Models\Tournament\Player as TournamentPlayer;
 use App\Models\Tournament\Team as TournamentTeam;
 use Lsr\Core\DB;
@@ -173,13 +175,16 @@ class Stats extends Model
 
 
 		$query = DB::select([Player::TABLE, 'p'],
-		                    'p.[id_tournament_player], tt.[id_league_team], p.[name], ' . $field . ' as [value]')
+		                    'p.[id_tournament_player], pt.[id_league_player], p.[id_user], tt.[id_league_team], p.[name], ' . $field . ' as [value]'
+		)
 		           ->join(Team::TABLE, 't')
 		           ->on('p.id_team = t.id_team')
 		           ->join(TournamentTeam::TABLE, 'tt')
 		           ->on('t.id_tournament_team = tt.id_team')
+		           ->join(\App\Models\Tournament\Player::TABLE, 'pt')
+		           ->on('p.id_tournament_player = pt.id_player')
 		           ->where('p.[id_tournament_player] IN %in', $this->getTournamentPlayers($category, $tournament))
-		           ->groupBy('id_league_team, name')
+		           ->groupBy(isset($this->league) ? 'id_league_player' : 'id_user, name')
 		           ->orderBy('value')
 		           ->cacheTags(Player::TABLE, ...Player::CACHE_TAGS);
 

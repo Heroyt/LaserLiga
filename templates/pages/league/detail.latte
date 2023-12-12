@@ -1,30 +1,43 @@
 {layout '../../@layout.latte'}
 
-{varType App\Models\Tournament\League $league}
+{varType App\Models\Tournament\League\League $league}
 
-{var App\Models\Tournament\LeagueCategory[] $categories = $league->getCategories()}
+{var App\Models\Tournament\League\LeagueCategory[] $categories = $league->getCategories()}
 {varType App\Models\Tournament\Stats[] $stats}
 
 {var int $categoryCount = count($categories)}
 
 {var array $containerAttributes = ['itemscope' => '', 'itemtype' => 'https://schema.org/EventSeries']}
 
+{define addHead}
+    <link rel="canonical" href="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}"/>
+    <meta property="og:title" content="{$league->name} - {lang 'Liga turnajů laser game'}"/>
+    <meta property="og:description"
+          content="{if $categoryCount < 2}{sprintf(lang('Liga laser game v %s'), $league->arena->name)}{else}{sprintf(lang('Liga laser game v %s rozdělená do %d kategorie', 'Liga laser game v aréně: %s rozdělená do %d kategorií', $categoryCount), $league->arena->name, $categoryCount)}{/if}"/>
+    <meta property="og:site_name" content="LaserLiga"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}"/>
+    <meta property="og:image" content="{$league->getImageUrl()}"/>
+    <meta property="og:image:type" content="image/png"/>
+{/define}
+
 {define content}
-    <meta itemprop="identifier" content="{link 'league', $league->id}">
-    <meta itemprop="url" content="{link 'league', $league->id}">
+    <meta itemprop="identifier"
+          content="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}">
+    <meta itemprop="url" content="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}">
     <meta itemprop="keywords" content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
     <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
-	<p class="text-start">
+    <p class="text-start">
         <a href="{link 'league'}" class="btn btn-secondary">
             <i class="fa-solid fa-angle-left"></i>
             {lang 'Zpět na ligy'}
         </a>
         <a href="{link 'arena', $league->arena->id}" class="btn btn-secondary">
-			<i class="fa-solid fa-angle-left"></i>
-			{lang 'Zpět na arénu'}
-		</a>
-	</p>
-	<img n:ifset="$league->image" src="{$league->getImageUrl()}" alt="{$league->name}"
+            <i class="fa-solid fa-angle-left"></i>
+            {lang 'Zpět na arénu'}
+        </a>
+    </p>
+    <img n:ifset="$league->image" src="{$league->getImageUrl()}" alt="{$league->name}"
                                   class="img-fluid mx-auto d-block mb-4" style="max-height: 400px;"
                                   itemprop="image" loading="lazy">
     <h1 class="text-center" itemprop="name">{$league->name}</h1>
@@ -37,201 +50,224 @@
             {sprintf(lang('Liga laser game v %s rozdělená do %d kategorie', 'Liga laser game v aréně: %s rozdělená do %d kategorií', $categoryCount), $league->arena->name, $categoryCount)}
         {/if}
     </p>
+    <div n:if="$league->registrationType !== App\Models\Tournament\RegistrationType::TOURNAMENT" class="text-center">
+        {if $league->isRegistrationActive()}
+            <a href="{$league->getUrl('register')}" class="btn btn-lg btn-primary">
+                <i class="fa-solid fa-user-plus"></i>
+                {lang 'Registrace'}
+            </a>
+            <a n:if="$league->substituteRegistration" href="{$league->getUrl('substitute')}"
+                                                      class="btn btn-lg btn-secondary">
+                <i class="fa-solid fa-user-clock"></i>
+                {lang 'Registrace náhradníka'}
+            </a>
+        {else}
+            <div class="my-5 fs-5 fw-medium">
+                {lang 'Registrace nejsou ještě povoleny'}
+            </div>
+        {/if}
+    </div>
+    <div class="text-center">
+        <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
+                data-title="{$league->name} - {lang 'Liga turnajů laser game'}"
+                data-url="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}">
+            <i class="fa-solid fa-share"></i>
+            {lang 'Sdílet'}
+        </button>
+    </div>
 
-	<ul class="nav nav-tabs mt-4" id="league-tabs" role="tablist" data-track-content=""
-		data-content-name="League tabs">
-		<li class="nav-item" role="presentation">
-			<button class="nav-link active" id="info-tab-control" data-bs-toggle="tab"
-					data-bs-target="#info-tab"
-					type="button" role="tab" aria-controls="info-tab" aria-selected="true"
-					data-content-piece="Info">
-				{lang 'Informace'}
-			</button>
-		</li>
-		<li class="nav-item" role="presentation">
-			<button class="nav-link" id="tournaments-tab-control" data-bs-toggle="tab"
-					data-bs-target="#tournaments-tab"
-					type="button" role="tab" aria-controls="tournaments-tab" aria-selected="false"
-					data-content-piece="Tournaments">
-				{lang 'Turnaje'}
-			</button>
-		</li>
-		<li n:foreach="$categories as $category" class="nav-item" role="presentation">
-			<button class="nav-link" id="tournaments-category-{$category->getSlug()}-control" data-bs-toggle="tab"
-					data-bs-target="#{$category->getSlug()}-tab"
-					type="button" role="tab" aria-controls="{$category->getSlug()}-tab" aria-selected="false"
-					data-content-piece="Category - {$category->name}">
-				{lang $category->name}
-			</button>
-		</li>
-	</ul>
-	<div class="tab-content" id="tournament-tabs">
+    <ul class="nav nav-tabs mt-4" id="league-tabs" role="tablist" data-track-content=""
+        data-content-name="League tabs">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="info-tab-control" data-bs-toggle="tab"
+                    data-bs-target="#info-tab"
+                    type="button" role="tab" aria-controls="info-tab" aria-selected="true"
+                    data-content-piece="Info">
+                {lang 'Informace'}
+            </button>
+        </li>
+        {var bool $multipleCategories = count($categories) > 0}
+        {var bool $hasEvents = count($league->getEvents()) > 0}
+        <li n:class="nav-item, $multipleCategories || $hasEvents ? dropdown" role="presentation">
+            {if $multipleCategories || $hasEvents}
+                <button class="nav-link dropdown-toggle" id="tournaments-tab-control" data-bs-toggle="dropdown"
+                        aria-expanded="false" type="button" data-content-piece="Tournaments">
+                    {lang 'Turnaje'}{if $hasEvents} / {lang 'Akce'}{/if}
+                </button>
+                <ul class="dropdown-menu">
+                    <li n:foreach="$categories as $category">
+                        <button class="dropdown-item" id="tournaments-tab-control-cat-{$category->id}"
+                                data-bs-toggle="tab"
+                                data-bs-target="#tournaments-tab-cat-{$category->id}"
+                                type="button" role="tab" aria-controls="tournaments-tab-cat-{$category->id}"
+                                aria-selected="false"
+                                data-content-piece="Tournaments - {$category->name}">
+                            {lang $category->name}
+                        </button>
+                    </li>
+                    <li n:if="!$multipleCategories">
+                        <button class="nav-link" id="tournaments-tab-control" data-bs-toggle="tab"
+                                data-bs-target="#tournaments-tab"
+                                type="button" role="tab" aria-controls="tournaments-tab" aria-selected="false"
+                                data-content-piece="Tournaments">
+                            {lang 'Turnaje'}
+                        </button>
+                    </li>
+                    <li n:if="$hasEvents">
+                        <button class="dropdown-item" id="tournaments-tab-control-events" data-bs-toggle="tab"
+                                data-bs-target="#tournaments-tab-events"
+                                type="button" role="tab" aria-controls="tournaments-tab-events" aria-selected="false"
+                                data-content-piece="Events">
+                            {lang 'Ostatní akce'}
+                        </button>
+                    </li>
+                </ul>
+            {else}
+                <button class="nav-link" id="tournaments-tab-control" data-bs-toggle="tab"
+                        data-bs-target="#tournaments-tab"
+                        type="button" role="tab" aria-controls="tournaments-tab" aria-selected="false"
+                        data-content-piece="Tournaments">
+                    {lang 'Turnaje'}{if count($league->getEvents()) > 0} / {lang 'Akce'}{/if}
+                </button>
+            {/if}
+        </li>
+        <li n:if="$multipleCategories" class="nav-item dropdown" role="presentation">
+            <button class="nav-link dropdown-toggle" id="category-tab-control" data-bs-toggle="dropdown"
+                    aria-expanded="false" type="button" data-content-piece="Results">
+                {lang 'Výsledky'}
+            </button>
+            <ul class="dropdown-menu">
+                <li n:foreach="$categories as $category">
+                    <button class="dropdown-item" id="tournaments-category-{$category->getSlug()}-control"
+                            data-bs-toggle="tab"
+                            data-bs-target="#{$category->getSlug()}-tab"
+                            type="button" role="tab" aria-controls="{$category->getSlug()}-tab" aria-selected="false"
+                            data-content-piece="Category - {$category->name}">
+                        {lang $category->name}
+                    </button>
+                </li>
+            </ul>
+        </li>
+    </ul>
+    <div class="tab-content" id="tournament-tabs">
         <div class="tab-pane py-4 fade show active text-center" id="info-tab" role="tabpanel"
              aria-labelledby="info-tab-control"
-			 data-track-content="" data-content-name="Tournament info tab" tabindex="0">
-            <h2 class="mt-5">{lang 'Informace o lize'}</h2>
-            <section n:ifset="$league->description" id="league-description" class="mt-5 px-3" itemprop="description">
-                <p n:ifset="$league->shortDescription">{$league->shortDescription}</p>
-				{$league->description|noescape}
-            </section>
-            <section id="league-arena" class="mt-5">
-                <h3>{lang 'Organizuje'}:</h3>
-                <a href="{link 'arena', $league->arena->id}">
-                    {$league->arena->getLogoHtml()|noescape}
-                    <h4>{$league->arena->name}</h4>
-                </a>
-			</section>
-		</div>
-		<div class="tab-pane py-4 fade" id="tournaments-tab" role="tabpanel" aria-labelledby="tournaments-tab-control"
-			 data-track-content="" data-content-name="Tournaments tab" tabindex="0">
+             data-track-content="" data-content-name="Tournament info tab" tabindex="0">
+            {ifset $league->price}
+                <div class="row g-2">
+                    <div class="col-12 col-lg-9 p-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                {include leagueInfo}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-3 p-3">
+                        <div class="card">
+                            <section class="card-body text-center" id="league-prices">
+                                <h3 class="card-title mb-3">{lang 'Cena'}</h3>
+                                {$league->price|noescape}
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            {else}
+                {include leagueInfo}
+            {/ifset}
+
+        </div>
+        <div class="tab-pane py-4 px-3 fade" id="tournaments-tab" role="tabpanel"
+             aria-labelledby="tournaments-tab-control"
+             data-track-content="" data-content-name="Tournaments tab" tabindex="0">
             <h2 class="mt-5 text-center">{lang 'Turnaje'}</h2>
             <p class="text-center text-muted">{lang 'Seznam turnajů ligy.'}</p>
-			<div class="d-flex flex-column align-items-center">
-				<a n:foreach="$league->getTournaments() as $tournament" href="{link 'tournament', $tournament->id}"
-																		class="card my-3 w-100"
-																		style="max-width: 50rem;">
-                    <div class="row g-0 {if $iterator->counter0 % 2 === 1}flex-md-row-reverse{/if}" itemprop="subevent"
-                         itemscope itemtype="https://schema.org/SportsEvent">
-                        <meta itemprop="url" content="{link 'tournament', $tournament->id}">
-                        <meta itemprop="identifier" content="{link 'tournament', $tournament->id}">
-                        <meta itemprop="eventStatus" content="EventScheduled">
-                        <meta itemprop="sport" content="Laser Game">
-                        <meta n:ifset="$tournament->shortDescription" itemprop="description"
-                                                                      content="{$tournament->shortDescription}">
-                        <meta itemprop="keywords"
-                              content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
-                        <meta itemprop="startDate" content="{$tournament->start->format('c')}">
-                        <div itemprop="location" itemscope itemtype="https://schema.org/Place">
-                            <div n:if="$tournament->arena->address->isFilled()" itemprop="address" itemscope
-                                                                                itemtype="https://schema.org/PostalAddress">
-                                <meta n:ifset="$tournament->arena->address->street" itemprop="streetAddress"
-                                                                                    content="{$tournament->arena->address->street}">
-                                <meta n:ifset="$tournament->arena->address->city" itemprop="addressLocality"
-                                                                                  content="{$tournament->arena->address->city}">
-                                <meta n:ifset="$tournament->arena->address->postCode" itemprop="postalCode"
-                                                                                      content="{$tournament->arena->address->postCode}">
-                                <meta n:ifset="$tournament->arena->address->country" itemprop="addressCountry"
-                                                                                     content="{$tournament->arena->address->country}">
-                            </div>
-                            <meta n:ifset="$tournament->arena->lng" itemprop="longitude"
-                                                                    content="{$tournament->arena->lng}">
-                            <meta n:ifset="$tournament->arena->lat" itemprop="latitude"
-                                                                    content="{$tournament->arena->lat}">
-                            <meta itemprop="name" content="{$tournament->arena->name}">
-                            <meta itemprop="identifier" content="{link 'arena', $tournament->arena->id}">
-                            <meta n:ifset="$tournament->arena->web" itemprop="url" content="{$tournament->arena->web}">
-                            <meta content="{$tournament->arena->getLogoUrl()}" itemprop="logo">
-                        </div>
-                        <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
-                        <div n:foreach="$tournament->getTeams() as $team" itemprop="competitor" itemscope
-                                                                          itemtype="https://schema.org/SportsTeam">
-                            <meta itemprop="name" content="{$team->name}">
-                            <meta itemprop="sport" content="Laser Game">
-                            <meta n:ifset="$team->leagueTeam" itemprop="url"
-                                                              content="{link 'league', 'team', $team->leagueTeam->id}">
-                            <meta n:ifset="$team->image" itemprop="logo" content="{$team->getImageUrl()}">
-                            <div n:foreach="$team->getPlayers() as $player" itemprop="athlete" itemscope
-                                                                            itemtype="https://schema.org/Person">
-                                <meta itemprop="name" content="{$player->nickname}">
-                                <meta n:ifset="$player->user" itemprop="url"
-                                                              content="{link 'user', $player->user->getCode()}">
-                                <meta n:ifset="$player->user" itemprop="identifier"
-                                                              content="{$player->user->getCode()}">
-                            </div>
-                        </div>
-                        <meta n:ifset="$tournament->teamLimit" itemprop="maximumAttendeeCapacity"
-                                                               content="{$tournament->teamLimit}">
-                        <meta n:ifset="$tournament->end" itemprop="endDate" content="{$tournament->end->format('c')}">
-                        <div itemprop="organizer" itemscope itemtype="https://schema.org/Organization">
-                            <meta itemprop="identifier" content="{link 'arena', $tournament->arena->id}">
-                            <meta itemprop="name" content="{$tournament->arena->name}">
-                            <meta itemprop="url" content="{link 'arena', $tournament->arena->id}">
-                            <meta content="{$tournament->arena->getLogoUrl()}" itemprop="image">
-                            <div n:if="$tournament->arena->address->isFilled()" itemprop="address" itemscope
-                                                                                itemtype="https://schema.org/PostalAddress">
-                                <meta n:ifset="$tournament->arena->address->street" itemprop="streetAddress"
-                                                                                    content="{$tournament->arena->address->street}">
-                                <meta n:ifset="$tournament->arena->address->city" itemprop="addressLocality"
-                                                                                  content="{$tournament->arena->address->city}">
-                                <meta n:ifset="$tournament->arena->address->postCode" itemprop="postalCode"
-                                                                                      content="{$tournament->arena->address->postCode}">
-                                <meta n:ifset="$tournament->arena->address->country" itemprop="addressCountry"
-                                                                                     content="{$tournament->arena->address->country}">
-                            </div>
-                        </div>
-						<div class="col-md-4">
-                            <img n:ifset="$tournament->image" src="{$tournament->getImageUrl()}"
-                                                              srcset="{$tournament->getImageSrcSet()}"
-															  alt="{$tournament->name}"
-                                                              class="img-fluid" loading="lazy"
-                                                              itemprop="image">
-						</div>
-						<div class="col-md-8 d-flex align-items-center">
-							<div class="card-body">
-                                <h3 class="card-title text-center" itemprop="name">{$tournament->name}</h3>
-								<div class="text-center">{$tournament->start->format('d.m.Y')}</div>
-								<div class="text-center mt-4">
-									<button href="{link 'tournament', $tournament->id}"
-											class="btn btn-primary">{lang 'Informace'}</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				</a>
-			</div>
-		</div>
-		<div n:foreach="$categories as $category" class="tab-pane py-4 fade" id="{$category->getSlug()}-tab"
-												  role="tabpanel"
-												  aria-labelledby="tournaments-category-{$category->getSlug()}-control"
-												  data-track-content=""
-												  data-content-name="League category: {$category->name}" tabindex="0">
+            <div class="d-flex flex-column align-items-center">
+                {foreach $league->getTournaments() as $tournament}
+                    {include tournamentBox, $tournament, $iterator->counter0}
+                {/foreach}
+            </div>
+        </div>
+        <div n:foreach="$categories as $category" class="tab-pane py-4 px-3 fade"
+                                                  id="tournaments-tab-cat-{$category->id}" role="tabpanel"
+                                                  aria-labelledby="tournaments-tab-control-cat-{$category->id}"
+                                                  data-track-content=""
+                                                  data-content-name="Tournaments tab - {$category->name}" tabindex="0">
+            <h2 class="mt-5 text-center">{lang 'Turnaje'} - {lang $category->name}</h2>
+            <p class="text-center text-muted">{sprintf(lang('Seznam turnajů ligy v kategorii %s.'), $category->name)}</p>
+            <div class="d-flex flex-column align-items-center">
+                {foreach $category->getTournaments() as $tournament}
+                    {include tournamentBox, $tournament, $iterator->counter0}
+                {/foreach}
+            </div>
+        </div>
+        <div n:if="$hasEvents" class="tab-pane py-4 px-3 fade" id="tournaments-tab-events" role="tabpanel"
+                               aria-labelledby="tournaments-tab-control-events"
+                               data-track-content="" data-content-name="Tournaments tab - events" tabindex="0">
+            <h2 class="mt-5 text-center">{lang 'Ostatní akce'}</h2>
+            <p class="text-center text-muted">{lang 'Seznam dalších akcí pořádaných jako součást ligy.'}</p>
+            <div class="d-flex flex-column align-items-center">
+                {foreach $league->getEvents() as $event}
+                    {include tournamentBox, $event, $iterator->counter0}
+                {/foreach}
+            </div>
+        </div>
+        <div n:foreach="$categories as $category" class="tab-pane py-4 fade" id="{$category->getSlug()}-tab"
+                                                  role="tabpanel"
+                                                  aria-labelledby="tournaments-category-{$category->getSlug()}-control"
+                                                  data-track-content=""
+                                                  data-content-name="League category: {$category->name}" tabindex="0">
             <h2 class="mt-5 text-center">{lang $category->name}</h2>
             <p class="text-center">{lang 'Celkové výsledky ze všech turnajů v kategorii.'}</p>
-			<div class="table-responsive">
-				<table class="table table-striped">
-					<thead>
-					<tr>
-						<th></th>
-						<th>{lang 'Tým'}</th>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>{lang 'Tým'}</th>
                         <th class="text-center">{lang 'Průměrná herní úroveň registrovaných hráčů'}</th>
-						<th class="text-center">{lang 'Výhry'}</th>
-						<th class="text-center">{lang 'Remízy'}</th>
-						<th class="text-center">{lang 'Prohry'}</th>
-						<th class="text-center">{lang 'Skóre'}</th>
-						<th class="text-center">{lang 'Body'}</th>
-						<th class="text-center">{lang 'Průměrná herní úroveň'}</th>
-					</tr>
-					</thead>
-					<tbody>
+                        <th class="text-center">{lang 'Výhry'}</th>
+                        <th class="text-center">{lang 'Remízy'}</th>
+                        <th class="text-center">{lang 'Prohry'}</th>
+                        <th class="text-center">{lang 'Skóre'}</th>
+                        <th class="text-center">{lang 'Body'}</th>
+                        <th class="text-center">{lang 'Průměrná herní úroveň'}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
                     <tr n:foreach="$category->getTeams() as $team" {ifset $team}data-href="{link 'league', 'team', $team->id}"{/ifset}>
-						<td>{$iterator->counter}.</td>
-						<td>
+                        <td>{$iterator->counter}.</td>
+                        <td>
                             <img {ifset $team->image}src="{$team->getImageObj()->getSize(150)}"
                                  {else}src="{getUrl}assets/images/questionmark.jpg"{/ifset}
-								 alt="{$team->name}" class="team-logo object-fit-cover rounded-circle d-inline-block"
+                                 alt="{$team->name}" class="team-logo object-fit-cover rounded-circle d-inline-block"
                                  style="width: 2rem;" loading="lazy">
-							<span class="team-name">{$team->name}</span>
-							{ifset $team}
+                            <span class="team-name">{$team->name}</span>
+                            {ifset $team}
                                 <a href="{link 'league', 'team', $team->id}" class="visually-hidden">
                                     {sprintf(lang('Statistiky týmu %s'),$team->name)}
-								</a>
-							{/ifset}
+                                </a>
+                            {/ifset}
+                            <a n:if="$league->registrationType !== App\Models\Tournament\RegistrationType::TOURNAMENT && isset($user) && $team->validateAccess($user)"
+                                    href="{link 'league', 'registration', $league->id, $team->id}"
+                                    class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
                         </td>
                         <td class="text-center">
                             {round($team->getAveragePlayerRank())}
                             <i class="fa-solid fa-medal"></i>
-						</td>
-						<td class="text-center">{$team->getWins()}</td>
-						<td class="text-center">{$team->getDraws()}</td>
-						<td class="text-center">{$team->getLosses()}</td>
-						<td class="text-center">{$team->getScore()|number:0,',','&nbsp;'|noescape}</td>
-						<td class="text-center">{$team->points}</td>
+                        </td>
+                        <td class="text-center">{$team->getWins()}</td>
+                        <td class="text-center">{$team->getDraws()}</td>
+                        <td class="text-center">{$team->getLosses()}</td>
+                        <td class="text-center">{$team->getScore()|number:0,',','&nbsp;'|noescape}</td>
+                        <td class="text-center">{$team->points}</td>
                         <td class="text-center">
                             {$team->getSkill()|number:2,',','&nbsp;'|noescape} <i class="fa-solid fa-medal"></i>
                         </td>
-					</tr>
-					</tbody>
-				</table>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
             <h3 class="text-center">{lang 'Individuální výsledky'}</h3>
             <div class="row">
@@ -270,7 +306,135 @@
                         </tbody>
                     </table>
                 </div>
-			</div>
-		</div>
-	</div>
+            </div>
+        </div>
+    </div>
+{/define}
+
+{define tournamentBox, App\Models\Tournament\Tournament|App\Models\App\Models\Events\Event $tournament, int $counter = 0}
+    {var array $link = $tournament instanceof App\Models\Tournament\Tournament ? ['tournament', $tournament->id] : ['events', $tournament->id]}
+    <a href="{link $link}"
+       class="card my-3 w-100 bg-background-2 event-card"
+       style="max-width: 50rem;">
+        <div class="row g-0 {if $counter % 2 === 1}flex-md-row-reverse{/if}" itemprop="subevent"
+             itemscope itemtype="https://schema.org/SportsEvent">
+            <meta itemprop="url" content="{link $link}">
+            <meta itemprop="identifier" content="{link $link}">
+            <meta itemprop="eventStatus" content="EventScheduled">
+            <meta itemprop="sport" content="Laser Game">
+            <meta n:ifset="$tournament->shortDescription" itemprop="description"
+                                                          content="{$tournament->shortDescription}">
+            {if $tournament instanceof App\Models\Tournament\Tournament}
+                <meta itemprop="keywords"
+                      content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
+                <meta itemprop="startDate" content="{$tournament->start->format('c')}">
+                <meta n:ifset="$tournament->end" itemprop="endDate" content="{$tournament->end->format('c')}">
+                <div n:foreach="$tournament->getTeams() as $team" itemprop="competitor" itemscope
+                                                                  itemtype="https://schema.org/SportsTeam">
+                    <meta itemprop="name" content="{$team->name}">
+                    <meta itemprop="sport" content="Laser Game">
+                    <meta n:ifset="$team->leagueTeam" itemprop="url"
+                                                      content="{link 'league', 'team', $team->leagueTeam->id}">
+                    <meta n:ifset="$team->image" itemprop="logo" content="{$team->getImageUrl()}">
+                    <div n:foreach="$team->getPlayers() as $player" itemprop="athlete" itemscope
+                                                                    itemtype="https://schema.org/Person">
+                        <meta itemprop="name" content="{$player->nickname}">
+                        <meta n:ifset="$player->user" itemprop="url"
+                                                      content="{link 'user', $player->user->getCode()}">
+                        <meta n:ifset="$player->user" itemprop="identifier"
+                                                      content="{$player->user->getCode()}">
+                    </div>
+                </div>
+            {else}
+                <meta itemprop="startDate" content="{first($tournament->getDates())?->start?->format('c')}">
+                <meta itemprop="keywords" content="Laser Game, Laser liga, akce laser game">
+            {/if}
+            <div itemprop="location" itemscope itemtype="https://schema.org/Place">
+                <div n:if="$tournament->arena->address->isFilled()" itemprop="address" itemscope
+                                                                    itemtype="https://schema.org/PostalAddress">
+                    <meta n:ifset="$tournament->arena->address->street" itemprop="streetAddress"
+                                                                        content="{$tournament->arena->address->street}">
+                    <meta n:ifset="$tournament->arena->address->city" itemprop="addressLocality"
+                                                                      content="{$tournament->arena->address->city}">
+                    <meta n:ifset="$tournament->arena->address->postCode" itemprop="postalCode"
+                                                                          content="{$tournament->arena->address->postCode}">
+                    <meta n:ifset="$tournament->arena->address->country" itemprop="addressCountry"
+                                                                         content="{$tournament->arena->address->country}">
+                </div>
+                <meta n:ifset="$tournament->arena->lng" itemprop="longitude"
+                                                        content="{$tournament->arena->lng}">
+                <meta n:ifset="$tournament->arena->lat" itemprop="latitude"
+                                                        content="{$tournament->arena->lat}">
+                <meta itemprop="name" content="{$tournament->arena->name}">
+                <meta itemprop="identifier" content="{link 'arena', $tournament->arena->id}">
+                <meta n:ifset="$tournament->arena->web" itemprop="url" content="{$tournament->arena->web}">
+                <meta content="{$tournament->arena->getLogoUrl()}" itemprop="logo">
+            </div>
+            <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
+            <meta n:ifset="$tournament->teamLimit" itemprop="maximumAttendeeCapacity"
+                                                   content="{$tournament->teamLimit}">
+            <div itemprop="organizer" itemscope itemtype="https://schema.org/Organization">
+                <meta itemprop="identifier" content="{link 'arena', $tournament->arena->id}">
+                <meta itemprop="name" content="{$tournament->arena->name}">
+                <meta itemprop="url" content="{link 'arena', $tournament->arena->id}">
+                <meta content="{$tournament->arena->getLogoUrl()}" itemprop="image">
+                <div n:if="$tournament->arena->address->isFilled()" itemprop="address" itemscope
+                                                                    itemtype="https://schema.org/PostalAddress">
+                    <meta n:ifset="$tournament->arena->address->street" itemprop="streetAddress"
+                                                                        content="{$tournament->arena->address->street}">
+                    <meta n:ifset="$tournament->arena->address->city" itemprop="addressLocality"
+                                                                      content="{$tournament->arena->address->city}">
+                    <meta n:ifset="$tournament->arena->address->postCode" itemprop="postalCode"
+                                                                          content="{$tournament->arena->address->postCode}">
+                    <meta n:ifset="$tournament->arena->address->country" itemprop="addressCountry"
+                                                                         content="{$tournament->arena->address->country}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <img n:ifset="$tournament->image" src="{$tournament->getImageUrl()}"
+                                                  srcset="{$tournament->getImageSrcSet()}"
+                                                  alt="{$tournament->name}"
+                                                  class="img-fluid" loading="lazy"
+                                                  itemprop="image">
+            </div>
+            <div class="col-md-8 d-flex align-items-center">
+                <div class="card-body">
+                    <h3 class="card-title text-center" itemprop="name">{$tournament->name}</h3>
+                    {if $tournament instanceof App\Models\Tournament\Tournament}
+                        <div class="text-center">
+                            <time datetime="{$tournament->start->format('c')}">{$tournament->start->format('d.m.Y')}</time>
+                        </div>
+                    {else}
+                        <div n:foreach="$tournament->getDates() as $date" class="text-center">
+                            <time datetime="{$date->start->format('c')}">{$date->start->format('d.m.Y')}</time>
+                        </div>
+                    {/if}
+                    <div class="text-center mt-4">
+                        <button href="{link 'tournament', $tournament->id}"
+                                class="btn btn-primary">
+                            <i class="fa-solid fa-circle-info"></i>
+                            {lang 'Informace'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </a>
+{/define}
+
+{define leagueInfo}
+    <h2 class="mt-5">{lang 'Informace o lize'}</h2>
+    <section n:ifset="$league->description" id="league-description" class="mt-5 px-3" itemprop="description">
+        {ifset $league->shortDescription}
+            {autoParagraphs($league->shortDescription)|noescape}
+        {/ifset}
+        {$league->description|noescape}
+    </section>
+    <section id="league-arena" class="mt-5">
+        <h3>{lang 'Organizuje'}:</h3>
+        <a href="{link 'arena', $league->arena->id}">
+            {$league->arena->getLogoHtml()|noescape}
+            <h4>{$league->arena->name}</h4>
+        </a>
+    </section>
 {/define}

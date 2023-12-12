@@ -1,0 +1,81 @@
+{layout '../@layout.latte'}
+
+{varType App\Models\Events\EventPlayerBase $player}
+
+{block body}
+    <h1>{lang 'Registrace hráče'}: {$player->nickname}</h1>
+    <h2 n:if="$player instanceof App\Models\Tournament\Player">
+        {lang 'Na turnaj:'} {ifset $player->tournament->league}{$player->tournament->league->name} {/ifset}{$player->tournament->name}
+    </h2>
+    <h2 n:if="$player instanceof App\Models\Tournament\League\Player">
+        {lang 'Na ligu:'} {$player->league->name}
+    </h2>
+    <h2 n:if="$player instanceof App\Models\Events\EventPlayer">
+        {lang 'Na akci:'} {$player->event->name}
+    </h2>
+
+    {if $player instanceof App\Models\Events\EventPlayer}
+        <h3>{lang 'Termíny'}:</h3>
+        <ul>
+            <li n:foreach="$player->dates as $date">
+                {$date->start->format('d.m.Y')}
+            </li>
+        </ul>
+    {/if}
+
+    <div class="card">
+        <h3>
+            {$player->name} <i>{$player->nickname}</i> {$player->surname}
+        </h3>
+        <ul>
+            <li n:if="!($player instanceof App\Models\Events\EventPlayer) && $player->captain">{lang 'Kapitán'}</li>
+            <li n:if="!($player instanceof App\Models\Events\EventPlayer) && $player->sub">{lang 'Náhradník'}</li>
+            <li n:ifset="$player->email">{$player->email}</li>
+            <li n:ifset="$player->phone">{$player->phone}</li>
+            <li n:if="isset($player->parentEmail) || isset($player->parentPhone)">
+                {lang 'Zákonný zástupce:'}<br>
+                {ifset $player->parentEmail}
+                    {$player->parentEmail}<br>
+                {/ifset}
+                {ifset $player->parentPhone}
+                    {$player->parentPhone}
+                {/ifset}
+            </li>
+            <li>{$player->skill->getReadable()}</li>
+        </ul>
+    </div>
+
+    {if $player instanceof App\Models\Tournament\Player && isset($player->tournament->prices)}
+        <h3>{lang 'Platba'}</h3>
+        {$player->tournament->prices|noescape}
+    {elseif $player instanceof App\Models\Tournament\League\Player && isset($player->league->price)}
+        <h3>{lang 'Platba'}</h3>
+        {$player->league->price|noescape}
+    {elseif $player instanceof App\Models\Events\EventPlayer && isset($player->event->price)}
+        <h3>{lang 'Platba'}</h3>
+        {$player->event->price|noescape}
+    {/if}
+
+    {if $player instanceof App\Models\Tournament\Player}
+        <p class="mt-5">
+            <a href="{link 'tournament', 'registration', $player->tournament->id, $player->id, 'h' => $player->getHash()}"
+               class="btn">
+                {lang 'Upravit registraci'}
+            </a>
+        </p>
+    {elseif $player instanceof App\Models\Tournament\League\Player}
+        <p class="mt-5">
+            <a href="{link 'league', 'registration', $player->league->id, $player->id, 'h' => $player->getHash()}"
+               class="btn">
+                {lang 'Upravit registraci'}
+            </a>
+        </p>
+    {elseif $player instanceof App\Models\Events\EventPlayer}
+        <p class="mt-5">
+            <a href="{link 'events', 'registration', $player->event->id, $player->id, 'h' => $player->getHash()}"
+               class="btn">
+                {lang 'Upravit registraci'}
+            </a>
+        </p>
+    {/if}
+{/block}

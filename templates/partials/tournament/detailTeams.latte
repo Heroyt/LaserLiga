@@ -36,19 +36,22 @@
                     <span itemprop="name">{$player->nickname}</span>
                 </div>
             </div>
+            <div class="btn-group mt-3">
             {ifset $team->leagueTeam}
                 <a itemprop="url" href="{link 'league', 'team', $team->leagueTeam->id}"
-                   class="btn btn-primary mt-3">
+                   class="btn btn-primary">
                     <i class="fa-solid fa-eye"></i>
                     {lang 'Statistiky'}
                 </a>
             {/ifset}
             {if isset($user) && $team->validateAccess($user)}
-                <a href="{link 'tournament', 'registration', $tournament->id, $team->id}"
-                   class="btn btn-info">
+                <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $tournament->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $tournament->id, $team->id}{/if}"
+                   class="btn btn-secondary">
+                    <i class="fa-solid fa-pen-to-square"></i>
                     {lang 'Upravit přihlášku'}
                 </a>
             {/if}
+            </div>
         </div>
     </div>
 {else}

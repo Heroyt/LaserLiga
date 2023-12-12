@@ -1,8 +1,13 @@
 <?php
 
-namespace App\Models\Tournament;
+namespace App\Models\Tournament\League;
 
 use App\Models\Arena;
+use App\Models\Events\Event;
+use App\Models\Events\EventRegistrationInterface;
+use App\Models\Events\EventRegistrationTrait;
+use App\Models\Tournament\RegistrationType;
+use App\Models\Tournament\Tournament;
 use Lsr\Core\App;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -10,19 +15,33 @@ use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use OpenApi\Attributes as OA;
 
-#[PrimaryKey('id_league')]
-class League extends Model
+#[PrimaryKey('id_league'), OA\Schema]
+class League extends Model implements EventRegistrationInterface
 {
+	use EventRegistrationTrait;
 
 	public const TABLE = 'leagues';
 
+	#[OA\Property]
 	public string  $name;
+	#[OA\Property]
+	public ?string $slug  = null;
+	#[OA\Property]
 	public ?string $shortDescription = null;
+	#[OA\Property]
 	public ?string $description      = null;
+	#[OA\Property]
+	public ?string $price = null;
+	#[OA\Property]
 	public ?string $image            = null;
 
+	#[OA\Property]
+	public RegistrationType $registrationType = RegistrationType::TOURNAMENT;
+
 	#[ManyToOne]
+	#[OA\Property]
 	public Arena $arena;
 
 	/** @var Tournament[] */
@@ -30,12 +49,34 @@ class League extends Model
 
 	/** @var LeagueCategory[] */
 	private array $categories = [];
+	/** @var LeagueTeam[] */
+	private array $teams;
+
+	/** @var Event[] */
+	private array $events;
+
+	public static function getBySlug(string $slug): ?League {
+		return self::query()->where('slug = %s', $slug)->first();
+	}
 
 	public function getImageUrl(): ?string {
 		if (!isset($this->image)) {
 			return null;
 		}
 		return App::getUrl() . $this->image;
+	}
+
+	public function getUrl(string|int ...$append): string {
+		return App::getLink($this->getUrlPath(...$append));
+	}
+
+	/**
+	 * @param string|int ...$append
+	 *
+	 * @return array<string|int>
+	 */
+	public function getUrlPath(string|int ...$append): array {
+		return array_merge(!empty($this->slug) ? ['liga', $this->slug] : ['league', $this->id], $append);
 	}
 
 	/**
@@ -93,6 +134,24 @@ class League extends Model
 			$this->tournaments = Tournament::query()->where('id_league = %i AND active = 1', $this->id)->get();
 		}
 		return $this->tournaments;
+	}
+
+	/**
+	 * @return LeagueTeam[]
+	 * @throws ValidationException
+	 */
+	public function getTeams(): array {
+		$this->teams ??= LeagueTeam::query()->where('id_league = %i', $this->id)->get();
+		return $this->teams;
+	}
+
+	/**
+	 * @return Event[]
+	 * @throws ValidationException
+	 */
+	public function getEvents(): array {
+		$this->events ??= Event::query()->where('id_league = %i', $this->id)->get();
+		return $this->events;
 	}
 
 }

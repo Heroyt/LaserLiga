@@ -25,7 +25,9 @@
 {define content}
     {include meta}
 	<p class="text-start">
-        <a n:ifset="$tournament->league" href="{link 'league', $tournament->league->id}" class="btn btn-secondary">
+        <a n:ifset="$tournament->league"
+                href="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}"
+                class="btn btn-secondary">
 			<i class="fa-solid fa-angle-left"></i>
 			{lang 'Zpět na ligu'}
 		</a>
@@ -55,7 +57,7 @@
                     {lang 'Turnaj je plně obsazený'}
                 </div>
 			{else}
-				<a href="{link 'tournament', $tournament->id, 'register'}"
+                <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', $tournament->league->id, 'register'}{else}{link 'tournament', $tournament->id, 'register'}{/if}"
 				   class="btn btn-lg btn-primary">
 					<i class="fa-solid fa-user-plus"></i>
 					{lang 'Registrace'}
@@ -104,6 +106,7 @@
     'template' => './tournament/detailTeams.latte',
     'params' => [
     'tournament' => $tournament,
+    'user' => $user,
     ],
     ],
     'players' => [
@@ -177,8 +180,10 @@
     <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
     <meta n:ifset="$tournament->teamLimit" itemprop="maximumAttendeeCapacity" content="{$tournament->teamLimit}">
     <div n:ifset="$tournament->league" itemprop="superEvent" itemscope itemtype="https://schema.org/EventSeries">
-        <meta itemprop="identifier" content="{link 'league', $tournament->league->id}">
-        <meta itemprop="url" content="{link 'league', $tournament->league->id}">
+        <meta itemprop="identifier"
+              content="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}">
+        <meta itemprop="url"
+              content="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}">
         <meta itemprop="name" content="{$tournament->league->name}">
         <meta itemprop="keywords" content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
         <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">

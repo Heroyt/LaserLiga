@@ -1,0 +1,32 @@
+{layout '../@layout.latte'}
+
+{varType App\Models\Tournament\Team|App\Models\Tournament\League\LeagueTeam $team}
+
+{block body}
+    <h1>{lang 'Zrušená registrace týmu'}: {$team->name}</h1>
+
+
+    <h2>{$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}</h2>
+
+    <div class="card" n:foreach="$team->getTournamentPlayers() as $player">
+        <h3>
+            {$player->name} <i>{$player->nickname}</i> {$player->surname}
+        </h3>
+        <ul>
+            <li n:if="$player->captain">{lang 'Kapitán'}</li>
+            <li n:if="$player->sub">{lang 'Náhradník'}</li>
+            <li n:ifset="$player->email">{$player->email}</li>
+            <li n:ifset="$player->phone">{$player->phone}</li>
+            <li n:if="isset($player->parentEmail) || isset($player->parentPhone)">
+                {lang 'Zákonný zástupce:'}<br>
+                {ifset $player->parentEmail}
+                    {$player->parentEmail}<br>
+                {/ifset}
+                {ifset $player->parentPhone}
+                    {$player->parentPhone}
+                {/ifset}
+            </li>
+            <li>{$player->skill->getReadable()}</li>
+        </ul>
+    </div>
+{/block}

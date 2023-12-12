@@ -4,6 +4,9 @@ namespace App\Models\Tournament;
 
 use App\Models\Auth\User;
 use App\Models\DataObjects\Image;
+use App\Models\Events\EventTeamBase;
+use App\Models\Events\WithLeagueTeam;
+use App\Models\Tournament\League\LeagueTeam;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Lsr\Core\DB;
@@ -12,29 +15,23 @@ use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 
+/**
+ * @extends EventTeamBase<Player>
+ */
 #[PrimaryKey('id_team')]
-class Team extends Model
+class Team extends EventTeamBase
 {
-	use WithTokenValidation;
+	use WithLeagueTeam;
 
+	public const PLAYER_CLASS = Player::class;
 	public const TABLE = 'tournament_teams';
 	public const TOKEN_KEY = 'tournament-team';
-
-	public string $name;
-
-	public ?string $image = null;
 
 	public int $points = 0;
 
 	#[ManyToOne]
 	public Tournament $tournament;
 
-	#[ManyToOne('id_team', 'id_league_team')]
-	public ?LeagueTeam $leagueTeam = null;
-	public DateTimeInterface $createdAt;
-	public ?DateTimeInterface $updatedAt = null;
-	/** @var Player[] */
-	private array $players = [];
 	private int $score;
 	private int $wins;
 	private int $draws;
@@ -46,9 +43,6 @@ class Team extends Model
 	private int $deaths;
 	private int $shots;
 	private float $accuracy;
-	private float $avgPlayerRank;
-
-	private Image $imageObj;
 
 	public function getScore(): int {
 		if (!isset($this->score)) {
@@ -60,9 +54,6 @@ class Team extends Model
 	}
 
 	public function save(): bool {
-		if (empty($this->hash)) {
-			$this->hash = bin2hex(random_bytes(32));
-		}
 		if (isset($this->tournament->league)) {
 			$this->createUpdateLeagueTeam();
 		}
@@ -78,65 +69,6 @@ class Team extends Model
 		$this->leagueTeam->name = $this->name;
 		$this->leagueTeam->image = $this->image;
 		$this->leagueTeam->save();
-	}
-
-	public function insert(): bool {
-		if (!isset($this->createdAt)) {
-			$this->createdAt = new DateTimeImmutable();
-		}
-		return parent::insert();
-	}
-
-	public function update(): bool {
-		$this->updatedAt = new DateTimeImmutable();
-		return parent::update();
-	}
-
-	public function validateAccess(?User $user = null, ?string $hash = ''): bool {
-		if (isset($user)) {
-			// Check if registration's player is the currently registered player
-			// Check if team contains currently registered player
-			foreach ($this->getPlayers() as $player) {
-				if ($player->user?->id === $user->id) {
-					return true;
-				}
-			}
-		}
-		if (empty($hash)) {
-			return false;
-		}
-		return $this->validateHash($hash);
-	}
-
-	/**
-	 * @return Player[]
-	 * @throws ValidationException
-	 */
-	public function getPlayers(): array {
-		if (empty($this->players)) {
-			$this->players = Player::query()->where('id_team = %i', $this->id)->get();
-		}
-		return $this->players;
-	}
-
-	/**
-	 * @return string|null
-	 */
-	public function getImageUrl(): ?string {
-		$image = $this->getImageObj();
-		if (!isset($image)) {
-			return null;
-		}
-		$optimized = $image->getOptimized();
-		return $optimized['webp'] ?? $optimized['original'];
-	}
-
-	public function getImageSrcSet(): ?string {
-		$image = $this->getImageObj();
-		if (!isset($image)) {
-			return null;
-		}
-		return getImageSrcSet($image);
 	}
 
 	/**
@@ -235,34 +167,6 @@ class Team extends Model
 													->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
 													->fetchSingle($this->tournament->isFinished()) ?? 0.0;
 		return $this->accuracy;
-	}
-
-	public function getAveragePlayerRank(): float {
-		if (!isset($this->avgPlayerRank)) {
-			$sum = 0;
-			$count = 0;
-			foreach ($this->getPlayers() as $player) {
-				if (isset($player->user)) {
-					$count++;
-					$sum += $player->user->stats->rank;
-				}
-			}
-			$this->avgPlayerRank = $count === 0 ? 0 : $sum / $count;
-		}
-		return $this->avgPlayerRank;
-	}
-
-	/**
-	 * @return Image|null
-	 */
-	public function getImageObj(): ?Image {
-		if (!isset($this->imageObj)) {
-			if (!isset($this->image)) {
-				return null;
-			}
-			$this->imageObj = new Image($this->image);
-		}
-		return $this->imageObj;
 	}
 
 }

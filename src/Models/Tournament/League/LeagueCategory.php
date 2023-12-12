@@ -1,7 +1,10 @@
 <?php
 
-namespace App\Models\Tournament;
+namespace App\Models\Tournament\League;
 
+use App\Models\Tournament\GameTeam;
+use App\Models\Tournament\Team;
+use App\Models\Tournament\Tournament;
 use Lsr\Core\DB;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -46,7 +49,7 @@ class LeagueCategory extends Model
 	public function getTeams(): array {
 		if (empty($this->teams)) {
 			$this->teams = LeagueTeam::query()
-			                         ->join(
+				->leftJoin(
 				                         DB::select([GameTeam::TABLE, 'g'],
 				                                    'tt.[id_league_team], SUM(g.[score]) as score')
 				                           ->join(Team::TABLE, 'tt')

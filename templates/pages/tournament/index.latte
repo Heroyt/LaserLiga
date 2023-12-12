@@ -28,7 +28,7 @@
     {include 'faq.latte'}
     <div class="d-flex flex-column align-items-center">
         <div n:foreach="$tournaments as $tournament"
-                class="card my-3 w-100"
+                class="card my-3 w-100 event-card"
                 itemscope itemtype="https://schema.org/SportsEvent"
                 style="max-width: 50rem;">
             <meta itemprop="identifier" content="{link 'tournament', $tournament->id}">
@@ -77,8 +77,10 @@
             <meta n:ifset="$tournament->end" itemprop="endDate" content="{$tournament->end->format('c')}">
             <div n:ifset="$tournament->league" itemprop="superEvent" itemscope
                                                itemtype="https://schema.org/EventSeries">
-                <meta itemprop="identifier" content="{link 'league', $tournament->league->id}">
-                <meta itemprop="url" content="{link 'league', $tournament->league->id}">
+                <meta itemprop="identifier"
+                      content="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}">
+                <meta itemprop="url"
+                      content="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}">
                 <meta itemprop="name" content="{$tournament->league->name}">
                 <meta itemprop="keywords" content="Laser Game, tournament, turnaj, Laser liga, turnaj laser game">
                 <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
@@ -121,7 +123,8 @@
                         <div class="text-center">{$tournament->start->format('d.m.Y')}</div>
                         <div class="text-center mt-4">
                             <div class="btn-group">
-                                <a n:ifset="$tournament->league" href="{link 'league', $tournament->league->id}"
+                                <a n:ifset="$tournament->league"
+                                        href="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}"
                                                                  class="btn btn-primary">
                                     <i class="fa-solid fa-trophy"></i>
                                     {lang 'Liga'}

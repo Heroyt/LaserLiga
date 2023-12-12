@@ -3,8 +3,8 @@
 <h2 class="my-3 text-center">{lang 'Plánované turnaje'}:</h2>
 
 <div class="d-flex flex-column align-items-center" data-track-content="" data-content-name="Arena - Tournaments">
-	<a n:foreach="$arena->getPlannedTournaments() as $tournament" href="{link 'tournament', $tournament->id}"
-                                                                  class="card my-3 w-100 text-center"
+    <div n:foreach="$arena->getPlannedTournaments() as $tournament" data-href="{link 'tournament', $tournament->id}"
+                                                                    class="card my-3 w-100 text-center linkable"
                                                                   style="max-width: 50rem;"
                                                                   itemscope itemtype="https://schema.org/SportsEvent">
         <meta itemprop="identifier" content="{link 'tournament', $tournament->id}">
@@ -84,11 +84,26 @@
                                                         content="{$tournament->league->name}: {$tournament->name}">
 					<div class="text-center">{$tournament->start->format('d.m.Y')}</div>
 					<div class="text-center mt-4">
-                        <button itemprop="url" href="{link 'tournament', $tournament->id}"
-								class="btn btn-primary">{lang 'Informace'}</button>
+                        <a n:ifset="$tournament->league"
+                                href="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}"
+                                class="btn btn-primary">
+                            <i class="fa-solid fa-trophy"></i>
+                            {lang 'Liga'}
+                        </a>
+                        <a itemprop="url" href="{link 'tournament', $tournament->id}"
+                           class="btn btn-secondary">
+                            <i class="fa-solid fa-circle-info"></i>
+                            {lang 'Informace'}
+                        </a>
+                        <a n:if="$tournament->isRegistrationActive() && !$tournament->isFull()"
+                                href="{link 'tournament', $tournament->id, 'register'}"
+                                class="btn btn-primary">
+                            <i class="fa-solid fa-user-plus"></i>
+                            {lang 'Registrace'}
+                        </a>
 					</div>
 				</div>
 			</div>
 		</div>
-	</a>
+    </div>
 </div>

@@ -1,8 +1,8 @@
 <?php
 return [
 	[
-		'name' => lang('Plánované turnaje'),
+		'name'  => lang('Plánované akce'),
 		'icon' => 'fa-regular fa-calendar',
-		'route' => 'tournaments',
+		'route' => 'events',
 	],
 ];

@@ -14,6 +14,7 @@
 	</p>
 	<h1>{lang 'Registrace týmu'}</h1>
 	<h2>{$tournament->name}</h2>
+    <div n:ifset="$tournament->registrationText" class="my-3">{$tournament->registrationText|noescape}</div>
 	<form action="{link 'tournament', $tournament->id, 'register'}" method="post" id="tournament-register-team-form"
 		  enctype="multipart/form-data">
 		{csrfInput 'tournament-register'}

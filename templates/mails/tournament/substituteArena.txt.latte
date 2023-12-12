@@ -1,0 +1,23 @@
+{layout '../@layout.txt.latte'}
+
+{varType App\Models\Tournament\Substitute $substitute}
+
+{block body}
+    {lang 'Nový náhradník'}: {$substitute->nickname}
+
+    {if $substitute->captain}{lang 'Kapitán'}{/if}
+    {if $substitute->sub}{lang 'Náhradník'}{/if}
+    {$substitute->name} "{$substitute->nickname}" {$substitute->surname}
+    {ifset $substitute->email}- {$substitute->email}{/ifset}
+    {ifset $substitute->phone}- {$substitute->phone}{/ifset}
+    {if isset($substitute->parentEmail) || isset($substitute->parentPhone)}
+        - {lang 'Zákonný zástupce:'}
+        {ifset $substitute->parentEmail}
+            {$substitute->parentEmail}
+        {/ifset}
+        {ifset $substitute->parentPhone}
+            {$substitute->parentPhone}
+        {/ifset}
+    {/if}
+    - {$substitute->skill->getReadable()}
+{/block}

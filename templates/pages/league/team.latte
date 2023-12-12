@@ -1,7 +1,7 @@
 {layout '../../@layout.latte'}
 
 {varType App\Models\Auth\User|null $user}
-{varType App\Models\Tournament\LeagueTeam $currTeam}
+{varType App\Models\Tournament\League\LeagueTeam $currTeam}
 {var App\Models\Tournament\Team[] $teams = $currTeam->getTeams()}
 {var App\Models\Tournament\Game[] $games = $currTeam->getGames()}
 
@@ -80,7 +80,7 @@
 								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Body'}:</strong> {$team->points}</div>
 							</div>
 							{if isset($user) && !$team->tournament->isStarted() && $team->validateAccess($user)}
-								<a href="{link 'tournament', 'registration', $team->tournament->id, $team->id}"
+                                <a href="{if $team->tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $team->tournament->league->id, $currTeam}{else}{link 'tournament', 'registration', $team->tournament->id, $team->id}{/if}"
 								   class="btn btn-info">
 									{lang 'Upravit přihlášku'}
 								</a>

@@ -2,8 +2,8 @@
 
 namespace App\Controllers\Admin;
 
-use App\Models\Tournament\League;
-use App\Models\Tournament\LeagueCategory;
+use App\Models\Tournament\League\League;
+use App\Models\Tournament\League\LeagueCategory;
 use App\Models\Tournament\Stats;
 use App\Models\Tournament\Tournament;
 use Lsr\Core\Controller;

@@ -159,7 +159,7 @@ tables:
 			CONSTRAINT `game_modes-names_ibfk_1` FOREIGN KEY (`id_mode`) REFERENCES `game_modes` (`id_mode`) ON DELETE CASCADE ON UPDATE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
-	App\Models\Tournament\League:
+	App\Models\Tournament\League\League:
 		definition: '''
 		(
           `id_league` int(11) unsigned NOT NULL AUTO_INCREMENT,

@@ -5,3 +5,10 @@
 	display: block;
 	margin: 0 auto;
 }
+
+.event-card, .league-card {
+  .img-fluid {
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+}
