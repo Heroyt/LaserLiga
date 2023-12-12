@@ -51,9 +51,6 @@
         </style>
         <script n:ifset="$schema" type="application/ld+json">
             {json_encode($schema, JSON_PRETTY_PRINT)|noescape}
-
-
-
         </script>
     {/ifset}
     {ifset $style}
@@ -214,7 +211,7 @@
                 </div>
                 <div class="my-1">
                     <strong>{lang 'Datum', context: 'results.info'}:</strong>
-                    {$game->start->format('d.m.Y H:i:s')}
+                    <time datetime="{$game->start->format('c')}">{$game->start->format('d.m.Y H:i:s')}</time>
                 </div>
                 <div class="my-1">
                     <strong>{lang 'Herní mód', context: 'results.info'}:</strong>
@@ -226,7 +223,7 @@
                 </div>
             </div>
             <div class="scoring p-0">
-                <div class="rounded-10 bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+                <div class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
                      data-bs-toggle="collapse"
                      data-bs-target="#scoring-body"
                      data-track-content="" data-content-name="Results - Legenda">
@@ -313,7 +310,7 @@
                 </div>
             </div>
             <div class="icon-legend p-0">
-                <div class="rounded-10 bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+                <div class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
                      data-bs-toggle="collapse"
                      data-bs-target="#legend"
                      data-track-content="" data-content-name="Results - Legenda">
@@ -365,7 +362,7 @@
                 </div>
             </div>
             <section class="results-highlights p-0">
-                <div class="rounded-10 bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+                <div class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
                      data-bs-toggle="collapse"
                      data-bs-target="#highlights-body"
                      data-track-content="" data-content-name="Results - Analýza hry">
@@ -480,6 +477,7 @@
                                 {$player->name}
                             </h3>
                             <div class="player-rank">
+                                <span class="visually-hidden">{lang 'Trofej'}:</span>
                                 {var array $rank = $player->getBestAt()}
                                 {svgIcon $rank['icon'], '', 15}
                                 <div class="rank-name">{$rank['name']}</div>
@@ -515,10 +513,12 @@
     <div class="score-skill d-flex flex-wrap justify-content-end">
         <div n:if="$game->mode->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
             <i class="fa-solid fa-star"></i>
+            <span class="visually-hidden">{lang 'Skóre'}:</span>
             <b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
         </div>
         <div class="skill text-end ps-1" style="max-width:4.5rem;" data-toggle="tooltip" title="{lang 'Herní úroveň'}">
             <i class="fa-solid fa-medal"></i>
+            <span class="visually-hidden">{lang 'Herní úroveň'}:</span>
             {$player->getSkill()|number:0,',','&nbsp;'|noescape}
         </div>
     </div>
@@ -548,29 +548,41 @@
 
 {define resultsHits}
     {varType App\GameModels\Game\Player $player}
-    {var float $width = 87.5 / count($game->getPlayers())}
+    {var float $width = 87.5 / ($game->getPlayerCount() > 0 ? $game->getPlayerCount() : 1)}
     <section class="results-hits align-self-end d-none d-md-block">
         <h2 class="caption fs-4">
             {svgIcon 'kill', '', '1rem'}
             {lang 'Zásahy hráčů', context: 'results.hits'}
         </h2>
         <div n:foreach="$game->getPlayersSorted() as $player"
-                class="player-hits w-100 bg-background-1 rounded px-1 py-2 d-flex mt-1 align-items-center shadow">
+                class="player-hits w-100 bg-background-1 rounded py-2 px-3 d-flex mt-1 align-items-center shadow">
+            {varType App\GameModels\Game\Player $player}
             <div class="player pe-1 border-end" style="width: 17.5%;">
                 <div class="text-uppercase fw-bold text-team-{$player->getTeamColor()}">
                     {$player->name}
                 </div>
                 <div class="fs-sm">
-                    {lang 'Zasáhl si hráče', context: 'results.hits'}:
+                    {switch App\Services\GenderService::rankWord($player->name)}
+                        {case App\Helpers\Gender::OTHER}
+                        {lang 'Zasáhlo si hráče', context: 'results.hits'}:
+                        {case App\Helpers\Gender::FEMALE}
+                        {lang 'Zasáhla si hráče', context: 'results.hits'}:
+                        {default}
+                        {lang 'Zasáhl si hráče', context: 'results.hits'}:
+                    {/switch}
                 </div>
             </div>
             <div n:foreach="$game->getPlayersSorted()->getAll() as $player2" style="width: {$width|noescape}%;"
+
+                    {varType App\GameModels\Game\Player $player2}
                                                                              class="text-center px-1 {if $player->id === $player2->id}text-muted{elseif $player->getFavouriteTarget()?->id === $player2->id}fw-bold text-print-primary{/if}">
-                <div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if}">
+                <div class="text-uppercase fw-semibold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if} fs-sm">
                     {$player2->name}
                 </div>
-                <div class="">
-                    {$player->getHitsPlayer($player2)}
+                {var int $hits = $player->getHitsPlayer($player2)}
+                {var bool $isAlly = $game->getMode()->isTeam() && $player->getTeamColor() === $player2->getTeamColor()}
+                <div n:class="$hits === 0 ? text-muted, $isAlly ? 'text-danger fw-bold'">
+                    {$hits}
                 </div>
             </div>
         </div>

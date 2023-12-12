@@ -123,7 +123,7 @@ async function loadHighlights() {
                 collapse.appendChild(wrapper);
             }
             count++;
-            if (count > 10) {
+            if (count > 20) {
                 break;
             }
 

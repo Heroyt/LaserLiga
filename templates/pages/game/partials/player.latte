@@ -235,7 +235,7 @@
                 <div class="label">
                     {lang 'Zásahy', context:'results.player'}:
                 </div>
-                <div class="graph text-dark">
+                <div class="graph text-black-forced">
                     {var int $hits = $game->mode->isTeam() ? $player->hitsOther : $player->hits}
                     {var int $deaths = $game->mode->isTeam() ? $player->deathsOther : $player->deaths}
                     <div class="kills" style="width:{100*$hits / ($total > 0 ? $total : 1)|noescape}%"
@@ -267,7 +267,7 @@
                 <div class="label">
                     {lang 'Smrti', context:'results.player'}:
                 </div>
-                <div class="graph text-dark">
+                <div class="graph text-black-forced">
                     <div class="deaths" style="width:{100*$deaths / ($total > 0 ? $total : 1)|noescape}%"
                          data-toggle="tooltip" title="{lang 'Smrti od protihráčů'}">
                         <div class="main">
