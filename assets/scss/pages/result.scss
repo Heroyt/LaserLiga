@@ -211,30 +211,7 @@
     }
 
     svg.accuracy {
-      --color: rgb(72, 196, 255);
-      display: block;
       grid-area: accuracy;
-      margin: 0 auto;
-      max-width: 9rem;
-      position: relative;
-
-      * {
-        font-size: 64pt;
-      }
-
-      path,
-      rect,
-      text {
-        fill: var(--color);
-      }
-
-      .fill-circle {
-        fill: transparent;
-        opacity: .4;
-        stroke: var(--color);
-        transform: rotate(-90deg);
-        transform-origin: center;
-      }
     }
 
     .player-shots {
@@ -370,6 +347,8 @@
       text-align: center;
     }
   }
+
+  @import '../components/results/accuracy';
 }
 
 @include media-breakpoint-up(sm) {

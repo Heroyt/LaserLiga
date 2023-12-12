@@ -7,6 +7,7 @@
 </div>
 <div id="trends-stats" class="d-none py-3" data-track-content="" data-content-name="Trendy">
     <h3 class="text-center">{lang 'Trendy'}</h3>
+    <p class="text-center text-muted">{sprintf(lang('%s trendy zobrazují posun za poslední hry a měsíc.'), $user->player->locativeNickname())}</p>
     <h4 class="text-center">{lang 'Trendy za posledních 10 her'}</h4>
 	<div class="d-flex flex-wrap g-2 justify-content-evenly align-items-center">
 		{include trend,

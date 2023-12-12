@@ -7,12 +7,15 @@
 {var bool $showCompare = isset($loggedInUser) && $loggedInUser->id !== $user->id}
 {var bool $currentUser = isset($loggedInUser) && $loggedInUser->id === $user->id}
 
-<div class="player-profile">
+<div class="player-profile" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="url" content="{link 'user', $user->player->getCode()}">
+    <meta itemprop="identifier" content="{$user->player->getCode()}">
     <header>
+        <link itemprop="image" content="{link 'user', $user->player->getCode(), 'avatar'}">
         {$user->player->getAvatar()|noescape}
         <h1 class="mt-2">
             <span class="visually-hidden">{lang 'Profil uživatele'}:</span>
-            {$user->name}
+            <span itemprop="name">{$user->name}</span>
         </h1>
         <h2 n:ifset="$user->player">
             <span class="visually-hidden">{lang 'Herní kód hráče'}:</span>
@@ -24,14 +27,69 @@
             </button>
         </h2>
         {include '../title.latte', $user->player->getTitle(), false, $currentUser}
+        <p class="text-center mt-3 text-muted" itemprop="description">
+            {var App\GameModels\Game\Game|null $firstGame = $user->player->getFirstGame()}
+            {var App\Helpers\Gender $gender = $user->player->getGender()}
+            {ifset $firstGame}
+                {switch $gender}
+                    {case App\Helpers\Gender::MALE}
+                    {sprintf(lang('%s začal svou cestu laser game hráče svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
+                    {case App\Helpers\Gender::FEMALE}
+                    {sprintf(lang('%s začala svou cestu laser game hráčky svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
+                    {case App\Helpers\Gender::OTHER}
+                    {sprintf(lang('%s začalo svou cestu laser game hráče svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
+                {/switch}
+            {else}
+                {switch $gender}
+                    {case App\Helpers\Gender::MALE}
+                    {sprintf(lang('%s začal svou cestu laser game hráče registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
+                    {case App\Helpers\Gender::FEMALE}
+                    {sprintf(lang('%s začala svou cestu laser game hráčky registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
+                    {case App\Helpers\Gender::OTHER}
+                    {sprintf(lang('%s začalo svou cestu laser game hráče registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
+                {/switch}
+            {/ifset}
+            <br>
+            {switch true}
+                {case $user->player->stats->gamesPlayed > 500}
+                {sprintf(lang('Od té doby má za sebou neuvěřitelných %d her!'), $user->player->stats->gamesPlayed)}
+                {case $user->player->stats->gamesPlayed > 100}
+                {switch $gender}
+                    {case App\Helpers\Gender::MALE}
+                    {sprintf(lang('Už stihl odehrát %d her.'), $user->player->stats->gamesPlayed)}
+                    {case App\Helpers\Gender::FEMALE}
+                    {sprintf(lang('Už stihla odehrát %d her.'), $user->player->stats->gamesPlayed)}
+                    {case App\Helpers\Gender::OTHER}
+                    {sprintf(lang('Už stihlo odehrát %d her.'), $user->player->stats->gamesPlayed)}
+                {/switch}
+                {case $user->player->stats->gamesPlayed > 10}
+                {switch $gender}
+                    {case App\Helpers\Gender::MALE}
+                    {sprintf(lang('Zatím odehrál %d her.'), $user->player->stats->gamesPlayed)}
+                    {case App\Helpers\Gender::FEMALE}
+                    {sprintf(lang('Zatím odehrála %d her.'), $user->player->stats->gamesPlayed)}
+                    {case App\Helpers\Gender::OTHER}
+                    {sprintf(lang('Zatím odehrálo %d her.'), $user->player->stats->gamesPlayed)}
+                {/switch}
+                {case $user->player->stats->gamesPlayed > 0}
+                {lang 'Od té doby ještě nemá odehráno tolik her, ale každá cesta někde začíná.'}
+                {default}
+                {switch $gender}
+                    {case App\Helpers\Gender::MALE}
+                    {lang 'Od té doby bohužel ještě nehrál ani jednu hru.'}
+                    {case App\Helpers\Gender::FEMALE}
+                    {lang 'Od té doby bohužel ještě nehrála ani jednu hru.'}
+                    {case App\Helpers\Gender::OTHER}
+                    {lang 'Od té doby bohužel ještě nehrálo ani jednu hru.'}
+                {/switch}
+            {/switch}
+        </p>
         <p class="mt-3 text-center">
             <button n:if="$currentUser" type="button" class="btn btn-secondary" data-bs-toggle="modal"
                                         data-bs-target="#user-help-modal">
                 <i class="fa-solid fa-circle-question"></i> {lang 'Nápověda'}
             </button>
-            <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
-                    data-title="{sprintf(lang('Profil hráče %s na portálu Laser liga'), $user->name)}"
-                    data-url="{link 'user', $user->player->getCode()}">
+            <button type="button" class="btn btn-success my-3" data-bs-toggle="modal" data-bs-target="#shareModal">
                 <i class="fa-solid fa-share"></i>
                 {lang 'Sdílet'}
             </button>
@@ -44,24 +102,25 @@
             {/if}
         </p>
 
+        <h2 class="visually-hidden">{lang 'Základní statistiky'}</h2>
         <div class="stats">
-            <div class="stat rounded bg-background-2 p-3 text-center">
-                <h4 class="stat-title fs-5">{lang 'Pozice v žebříčku'}</h4>
-                <div class="stat-value fs-2">{($rankOrder->positionFormatted ?? '')|replace:'. - ','-'}</div>
+            <div class="stat">
+                <h3 class="stat-title">{lang 'Pozice v žebříčku'}</h3>
+                <div class="stat-value">{($rankOrder->positionFormatted ?? '')|replace:'. - ','-'}</div>
             </div>
-            <div class="stat rounded bg-background-2 p-3 text-center" data-toggle="tooltip"
+            <div class="stat" data-toggle="tooltip"
                  title="{lang 'Herní úroveň se zvyšuje a klesá s každou odehranou klasickou hrou. Při výpočtu se přihlíží k úrovni protihráčů - pokud hrajete schválně se slabšími spoluhráči, herní úroveň roste pomalu.'}">
-                <h4 class="stat-title fs-5">{lang 'Úroveň'} <i class="fa-solid fa-circle-question"></i></h4>
-                <div class="stat-value fs-2">
+                <h3 class="stat-title">{lang 'Úroveň'} <i class="fa-solid fa-circle-question"></i></h3>
+                <div class="stat-value">
                     {$user->player?->stats->rank ?? 100} <i class="fa-solid fa-medal"></i>
                 </div>
             </div>
-            <div class="stat rounded bg-background-2 p-3 text-center">
-                <h4 class="stat-title fs-5">{lang 'Odehráno her'}</h4>
-                <div class="stat-value fs-2">{$user->player?->stats->gamesPlayed ?? 0}</div>
+            <div class="stat">
+                <h3 class="stat-title">{lang 'Odehráno her'}</h3>
+                <div class="stat-value">{$user->player?->stats->gamesPlayed ?? 0}</div>
             </div>
-            <div n:ifset="$user->player->arena" class="stat rounded bg-background-2 p-3 text-center">
-                <h4 class="stat-title fs-5">{lang 'Domovská aréna'}</h4>
+            <div n:ifset="$user->player->arena" class="stat">
+                <h3 class="stat-title">{lang 'Domovská aréna'}</h3>
                 <a class="stat-value" href="{link ['arena', $user->player->arena->id]}"
                    aria-label="{lang 'Zobrazit statistiky domovské arény'}">
                     {$user->player->arena->getLogoHtml()|noescape}
@@ -70,86 +129,80 @@
         </div>
     </header>
 
-    <section class="stats align-self-start">
+    <section class="profile-stat-tabs align-self-start">
         <h2 class="visually-hidden">{lang 'Statistiky'}</h2>
-        <ul class="nav nav-tabs" id="myTab" role="tablist" data-track-content="" data-content-name="Profile tabs">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="general-tab" data-bs-toggle="tab"
-                        data-bs-target="#general-stats-tab"
-                        type="button" role="tab" aria-controls="general-stats-tab" aria-selected="true"
-                        data-content-piece="General">
-                    {lang 'Statistiky'}
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="graphs-tab" data-bs-toggle="tab"
-                        data-bs-target="#graphs-stats-tab" data-user="{$user->player->getCode()}"
-                        type="button" role="tab" aria-controls="graphs-stats-tab" aria-selected="false"
-                        data-content-piece="Graphs">
-                    {lang 'Grafy'}
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="trends-tab" data-bs-toggle="tab"
-                        data-bs-target="#trends-stats-tab" data-user="{$user->player->getCode()}"
-                        type="button" role="tab" aria-controls="trends-stats-tab" aria-selected="false"
-                        data-content-piece="Trends">
-                    {lang 'Trendy'}
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="trophies-tab" data-bs-toggle="tab"
-                        data-bs-target="#trophies-stats-tab" data-user="{$user->player->getCode()}"
-                        type="button" role="tab" aria-controls="trophies-stats-tab" aria-selected="false"
-                        data-content-piece="Trophies">
-                    {lang 'Trofeje'}
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="achievements-tab" data-bs-toggle="tab"
-                        data-bs-target="#achievements-stats-tab" data-user="{$user->player->getCode()}"
-                        type="button" role="tab" aria-controls="achievements-stats-tab" aria-selected="false"
-                        data-content-piece="Achievements">
-                    {lang 'Ocenění'}
-                </button>
-            </li>
-            <li class="nav-item" role="presentation" n:if="$showCompare">
-                <button class="nav-link" id="compare-tab" data-bs-toggle="tab" data-bs-target="#compare-stats-tab"
-                        data-user="{$user->player->getCode()}"
-                        type="button" role="tab" aria-controls="compare-stats-tab" aria-selected="false"
-                        data-content-piece="Compare">
-                    {lang 'Společné hry'}
-                </button>
-            </li>
-        </ul>
-        <div class="tab-content" id="stats-tabs">
-            <div class="tab-pane fade show active" id="general-stats-tab" role="tabpanel" aria-labelledby="general-tab"
-                 data-track-content="" data-content-name="General tab" tabindex="0">
-                {include 'tabs/general.latte'}
-            </div>
-            <div class="tab-pane fade" id="graphs-stats-tab" role="tabpanel" aria-labelledby="graphs-tab"
-                 data-track-content="" data-content-name="Graphs tab" tabindex="0">
-                {include 'tabs/graphs.latte'}
-            </div>
-            <div class="tab-pane fade" id="trends-stats-tab" role="tabpanel" aria-labelledby="trends-tab"
-                 data-track-content="" data-content-name="Trends tab" tabindex="0">
-                {include 'tabs/trends.latte'}
-            </div>
-            <div class="tab-pane fade" id="trophies-stats-tab" role="tabpanel" aria-labelledby="trophies-tab"
-                 data-track-content="" data-content-name="Trophies tab" tabindex="0">
-                {include 'tabs/trophies.latte'}
-            </div>
-            <div class="tab-pane fade" id="achievements-stats-tab" role="tabpanel" aria-labelledby="achievements-tab"
-                 data-track-content="" data-content-name="Achievements tab" tabindex="0">
-                {include 'tabs/achievements.latte'}
-            </div>
-            <div class="tab-pane fade py-3" id="compare-stats-tab" role="tabpanel" aria-labelledby="compare-tab"
-                 data-track-content=""
-                 data-content-name="Compare tab"
-                 tabindex="0" n:if="$showCompare">
-                {include 'tabs/compare.latte'}
-            </div>
-        </div>
+        {embed '../../partials/tabs.latte',
+        tabs: [
+        'general-stats-tab' => [
+        'name' => 'Statistiky',
+        'type' => 'tab',
+        'piece' => 'General profile tab',
+        'template' => './user/tabs/general.latte',
+        'buttonAttributes' => ['data-user' => $user->player->getCode()],
+        'params' => [
+        'user' => $user,
+        'loggedInUser' => $loggedInUser,
+        ],
+        ],
+        'graphs-stats-tab' => [
+        'name' => 'Grafy',
+        'type' => 'tab',
+        'piece' => 'Graphs profile tab',
+        'template' => './user/tabs/graphs.latte',
+        'buttonAttributes' => ['data-user' => $user->player->getCode()],
+        'params' => [
+        'user' => $user,
+        'loggedInUser' => $loggedInUser,
+        ],
+        ],
+        'trends-stats-tab' => [
+        'name' => 'Trendy',
+        'type' => 'tab',
+        'piece' => 'Trends profile tab',
+        'template' => './user/tabs/trends.latte',
+        'buttonAttributes' => ['data-user' => $user->player->getCode()],
+        'params' => [
+        'user' => $user,
+        ],
+        ],
+        'trophies-stats-tab' => [
+        'name' => 'Trofeje',
+        'type' => 'tab',
+        'piece' => 'Trophies profile tab',
+        'template' => './user/tabs/trophies.latte',
+        'buttonAttributes' => ['data-user' => $user->player->getCode()],
+        'params' => [
+        'user' => $user,
+        ],
+        ],
+        'achievements-stats-tab' => [
+        'name' => 'Ocenění',
+        'type' => 'tab',
+        'piece' => 'Achievements profile tab',
+        'template' => './user/tabs/achievements.latte',
+        'buttonAttributes' => ['data-user' => $user->player->getCode()],
+        'params' => [
+        'user' => $user,
+        ],
+        ],
+        'compare-stats-tab' => [
+        'name' => 'Společné hry',
+        'type' => 'tab',
+        'piece' => 'Compare profile tab',
+        'template' => './user/tabs/compare.latte',
+        'buttonAttributes' => ['data-user' => $user->player->getCode()],
+        'condition' => $showCompare,
+        'params' => [
+        'user' => $user,
+        'loggedInUser' => $loggedInUser,
+        ],
+        ],
+        ],
+        id: 'user-profile-tabs',
+        classes: '',
+        activeTab: $_GET['tab'] ?? '',
+        }
+        {/embed}
     </section>
 
     <section class="last-games">
@@ -165,7 +218,8 @@
         {else}
             <div class="games-list">
                 <a n:foreach="$lastGames as $game" class="game-row rounded" href="{link ['game', $game->code]}">
-                    <span class="datetime">{$game->start->format('d.m.Y H:i')}</span>
+                    <time datetime="{$game->start->format('c')}"
+                          class="datetime">{$game->start->format('j. n. Y H:i')}</time>
                     <span class="arena">{ifset $game->id_arena}{\App\Models\Arena::get($game->id_arena)->getLogoHtml()|noescape}{/ifset}</span>
                     <span class="gamemode">{lang $game->modeName, context: 'gameModes'}</span>
                     <span class="skill">{$game->skill}&nbsp;<i class="fa-solid fa-medal"></i></span>
@@ -178,6 +232,34 @@
             </p>
         {/if}
     </section>
+
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{lang 'Sdílet profil hráče'} {$user->name}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img itemprop="image" loading="lazy" src="{link 'user', $user->player->getCode(), 'img'}"
+                         alt="{lang 'Statistiky hráče'} {$user->name}" class="img-fluid my-3">
+                    <p>{lang 'Kliknutím na tlačítko níže můžete stáhnout obrázek profilu, nebo profil sdílet.'}</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="{link 'user', $user->player->getCode(), 'img'}" download class="btn btn-primary">
+                        <i class="fa-solid fa-download"></i>
+                        {lang 'Stáhnout obrázek'}
+                    </a>
+                    <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
+                            data-title="{sprintf(lang('Profil hráče %s na portálu Laser liga'), $user->name)}"
+                            data-url="{link 'user', $user->player->getCode()}">
+                        <i class="fa-solid fa-share"></i>
+                        {lang 'Sdílet'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal" tabindex="-1" id="user-help-modal">

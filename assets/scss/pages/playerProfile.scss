@@ -49,19 +49,6 @@
       font-weight: 700;
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      grid-gap: 1rem;
-
-      .stat {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-    }
-
     .arena-logo {
       max-height: 6rem;
     }
@@ -107,7 +94,7 @@
 		}
 	}
 
-  > .stats {
+  > .profile-stat-tabs {
 		grid-area: stats;
 
     a {
@@ -191,4 +178,6 @@
 			}
 		}
 	}
+
+  @import '../components/stats';
 }

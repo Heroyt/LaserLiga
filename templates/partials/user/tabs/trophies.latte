@@ -7,6 +7,16 @@
 </div>
 <div id="trophies-stats" class="d-none py-3 text-center" data-track-content="" data-content-name="Trophies">
 	<h3>{lang 'Trofeje'}</h3>
+    <p class="text-muted">
+        {switch $user->player->getGender()}
+            {case App\Helpers\Gender::MALE}
+            {sprintf(lang('Trofeje, které %s získal ve svých hrách. Trofeje jsou speciální ohodnocení, které vyjadřují úspěchy, kterých %s během hry dosáhl.'), $user->name, $user->name)}
+            {case App\Helpers\Gender::FEMALE}
+            {sprintf(lang('Trofeje, které %s získala ve svých hrách. Trofeje jsou speciální ohodnocení, které vyjadřují úspěchy, kterých %s během hry dosáhla.'), $user->name, $user->name)}
+            {case App\Helpers\Gender::OTHER}
+            {sprintf(lang('Trofeje, které %s získalo ve svých hrách. Trofeje jsou speciální ohodnocení, které vyjadřují úspěchy, kterých %s během hry dosáhlo.'), $user->name, $user->name)}
+        {/switch}
+    </p>
 	<div class="btn-group mb-3">
 		<input type="radio" class="btn-check" value="0" name="trophies-rankable" id="trophies-all-modes"
 			   autocomplete="off" checked>

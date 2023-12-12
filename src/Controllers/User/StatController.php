@@ -66,7 +66,7 @@ class StatController extends AbstractUserController
 		foreach ($data as $name => $count) {
 			$return[lang($name, context: 'gameModes')] = $count;
 		}
-		$this->respond($return);
+		$this->respond($return, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 
 	public function rankHistory(string $code, Request $request): never {
@@ -104,7 +104,7 @@ class StatController extends AbstractUserController
 			$history[$row->date->format('c')] = round($rank);
 		}
 
-		$this->respond($history);
+		$this->respond($history, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 
 	public function rankOrderHistory(string $code, Request $request): never {
@@ -157,7 +157,7 @@ class StatController extends AbstractUserController
 			$date = $date->add($day);
 		}
 
-		$this->respond($history);
+		$this->respond($history, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 
 	/**
@@ -181,6 +181,11 @@ class StatController extends AbstractUserController
 		};
 		if ($limit === 'all') {
 			$since = $since->modify('- ' . (((int)$since->format('d')) - 1) . ' days');
+		}
+		else if ($limit === 'year') {
+			// Prevent bug where some months may be skipped.
+			// For example, if today is the 29th, then when iterating over months, february could be skipped, because there could be no 29th of February.
+			$since = $since->setDate($since->format('Y'), $since->format('m'), 1);
 		}
 		$interval = match ($limit) {
 			'all', 'year' => "DATE_FORMAT([start], '%Y-%m')",
@@ -261,7 +266,7 @@ class StatController extends AbstractUserController
 
 		ksort($data);
 
-		$this->respond($data);
+		$this->respond($data, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 
 	public function radar(string $code, Request $request): never {
@@ -288,7 +293,7 @@ class StatController extends AbstractUserController
 			}
 		}
 
-		$this->respond($response);
+		$this->respond($response, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 
 	/**
@@ -363,7 +368,7 @@ class StatController extends AbstractUserController
 			$responseAll[$name]['count'] = $count;
 		}
 		uasort($responseAll, static fn($trophyA, $trophyB) => $trophyB['count'] - $trophyA['count']);
-		$this->respond($responseAll);
+		$this->respond($responseAll, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 
 	public function achievements(string $code): never {
@@ -371,6 +376,6 @@ class StatController extends AbstractUserController
 
 		$achievements = $this->achievementProvider
 			->getAllClaimedUnclaimed($user->createOrGetPlayer());
-		$this->respond($achievements);
+		$this->respond($achievements, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 }

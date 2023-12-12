@@ -5,6 +5,13 @@
   border-radius: var(--bs-border-radius);
   padding: 1rem;
   width: 14rem;
+  position: relative;
+
+  .fa-tag {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+  }
 
   button.btn {
     --bs-btn-color: var(--text-color);

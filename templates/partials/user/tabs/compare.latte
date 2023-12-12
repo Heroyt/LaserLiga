@@ -9,8 +9,11 @@
 <div id="compare-no-games" class="d-none">
 	<div class="alert alert-danger">{lang 'Žádné společné hry'}</div>
 </div>
-<div id="compare-stats" class="d-none">
+<div id="compare-stats" class="d-none text-center">
 	<h3>{lang 'Společné hry'}</h3>
+    <p class="text-muted">
+        {sprintf(lang('Vzájmené hry %s a %s. Je zde vidět, kolik her spolu odehráli a jak moc proti sobě vyhrávají / prohrávají.'), $user->player->genitiveNickname(), $loggedInUser->player->genitiveNickname())}
+    </p>
 	<h4>{lang 'Počet vzájemných her'}: <span id="total-games-together"></span></h4>
 	<canvas id="games-compare-graph" data-content-piece="Games graph"
 			style="max-height: 350px; width: 100%;" class="mb-3"

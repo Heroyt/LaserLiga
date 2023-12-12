@@ -143,6 +143,22 @@ class Player extends Model
 		return $query;
 	}
 
+	public function getFirstGame(): ?Game {
+		$row = $this->queryGames()->orderBy('start')->limit(1)->fetch();
+		if (!isset($row)) {
+			return null;
+		}
+		return GameFactory::getByCode($row->code);
+	}
+
+	public function getLastGame(): ?Game {
+		$row = $this->queryGames()->orderBy('start')->desc()->limit(1)->fetch();
+		if (!isset($row)) {
+			return null;
+		}
+		return GameFactory::getByCode($row->code);
+	}
+
 	/**
 	 * Generate a random unique code for player
 	 *

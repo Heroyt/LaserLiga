@@ -26,6 +26,8 @@ class User extends \Lsr\Core\Auth\Models\User
 	#[OneToOne]
 	public ?LigaPlayer $player = null;
 
+	public ?\DateTimeInterface $createdAt = null;
+
 	public static function getByCode(string $code) : ?static {
 		return LigaPlayer::getByCode($code)?->user;
 	}

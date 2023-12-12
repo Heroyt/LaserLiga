@@ -294,7 +294,7 @@ class UserController extends AbstractUserController
 				}
 
 				header('Content-Type: image/png');
-				header("Content-Disposition: inline; filename='{$this->params['user']->player->getCode()}.png'");
+				header("Content-Disposition: inline; filename={$this->params['user']->player->getCode()}.png");
 				readfile($filename);
 				exit;
 			}
