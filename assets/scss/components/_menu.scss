@@ -1,0 +1,10 @@
+header.navbar {
+  background: var(--background-0) linear-gradient(180deg, var(--background-1) 0, var(--background-0) 60%);
+
+  .nav-link {
+    border-bottom: 2px solid transparent;
+    &.active, &:hover {
+      border-bottom: 2px solid currentColor;
+    }
+  }
+}
