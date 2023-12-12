@@ -5,8 +5,10 @@ namespace App\Services;
 use App\GameModels\Factory\GameFactory;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
-use App\Models\Tournament\League;
-use App\Models\Tournament\LeagueTeam;
+use App\Models\Events\Event;
+use App\Models\GameGroup;
+use App\Models\Tournament\League\League;
+use App\Models\Tournament\League\LeagueTeam;
 use App\Models\Tournament\Tournament;
 use Lsr\Core\App;
 use Lsr\Core\Exceptions\ValidationException;
@@ -32,7 +34,7 @@ class SitemapGenerator
 		'mailtest',
 		'dashboard',
 	];
-	public const USER_IGNORE_PATHS = ['stats', 'rank', 'img', 'compare'];
+	public const USER_IGNORE_PATHS = ['stats', 'rank', 'img', 'compare', 'avatar', 'title'];
 
 	/** @var string[] */
 	private static array $lastGames = [];
@@ -52,6 +54,12 @@ class SitemapGenerator
 	 * @var LigaPlayer[]
 	 */
 	private static array $users;
+	/** @var GameGroup[] */
+	private static array $groups;
+	/**
+	 * @var Event[]
+	 */
+	private static array $events;
 
 	public static function generate(): string {
 		$xml = new SimpleXMLElement(
@@ -73,10 +81,18 @@ class SitemapGenerator
 			}
 			switch ($path[0]) {
 				case 'game':
+					if (($path[1] ?? '') === 'group' && ($path[2] ?? '') === '{groupid}' && count($path) === 3) {
+						self::updateGameGroups($xml, $path);
+						break;
+					}
 					if (count($path) > 2) {
 						break;
 					}
-					if (($path[1] ?? '') === '{code}') {
+					if (($path[1] ?? '') === '{code}' && (!isset($path[2]) || !in_array(
+								$path[2],
+								['thumb', 'highlights'],
+								true
+							))) {
 						self::updateGames($xml, $path);
 					}
 					break;
@@ -98,6 +114,15 @@ class SitemapGenerator
 						self::updateTournaments($xml, $path);
 					}
 					break;
+				case 'events':
+					if (!isset($path[1])) {
+						self::updateUrl(self::findOrCreateUrl(App::getLink(['events']), $xml), '0.9');
+						break;
+					}
+					if ($path[1] === '{id}') {
+						self::updateEvents($xml, $path);
+					}
+					break;
 				case 'league':
 					if (isset($path[2]) && $path[2] === 'team') {
 						break;
@@ -108,6 +133,15 @@ class SitemapGenerator
 					}
 					if ($path[1] === '{id}') {
 						self::updateLeagues($xml, $path);
+					}
+					break;
+				case 'liga':
+					if (!isset($path[1])) {
+						self::updateUrl(self::findOrCreateUrl(App::getLink(['liga']), $xml), '0.9');
+						break;
+					}
+					if ($path[1] === '{slug}') {
+						self::updateLeaguesSlugs($xml, $path);
 					}
 					break;
 				case 'user':
@@ -163,33 +197,20 @@ class SitemapGenerator
 
 	/**
 	 * @param SimpleXMLElement $parent
-	 * @param string[]         $path
+	 * @param array $path
 	 *
 	 * @return void
+	 * @throws ValidationException
 	 */
-	private static function updateGames(SimpleXMLElement $parent, array $path): void {
-		$lastGames = self::getLastGames();
+	private static function updateGameGroups(SimpleXMLElement $parent, array $path): void {
+		self::$groups ??= GameGroup::getAll();
 
-		foreach ($lastGames as $code) {
-			$path[1] = $code;
+		foreach (self::$groups as $group) {
+			$path[2] = $group->getEncodedId();
 			$url = App::getLink($path);
 			$element = self::findOrCreateUrl($url, $parent);
-			self::updateUrl($element, '0.6', 'never');
+			self::updateUrl($element, count($path) > 3 ? '0.6' : '0.8');
 		}
-	}
-
-	/**
-	 * @return string[]
-	 */
-	private static function getLastGames(): array {
-		if (empty(self::$lastGames)) {
-			$rows = GameFactory::queryGames()->orderBy('start')->desc()->limit(200)->fetchAll();
-			self::$lastGames = [];
-			foreach ($rows as $row) {
-				self::$lastGames[] = $row->code;
-			}
-		}
-		return self::$lastGames;
 	}
 
 	private static function findOrCreateUrl(string $url, SimpleXMLElement $parent): SimpleXMLElement {
@@ -241,6 +262,37 @@ class SitemapGenerator
 	 * @param string[]         $path
 	 *
 	 * @return void
+	 */
+	private static function updateGames(SimpleXMLElement $parent, array $path): void {
+		$lastGames = self::getLastGames();
+
+		foreach ($lastGames as $code) {
+			$path[1] = $code;
+			$url = App::getLink($path);
+			$element = self::findOrCreateUrl($url, $parent);
+			self::updateUrl($element, '0.6', 'never');
+		}
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private static function getLastGames(): array {
+		if (empty(self::$lastGames)) {
+			$rows = GameFactory::queryGames()->orderBy('start')->desc()->limit(200)->fetchAll();
+			self::$lastGames = [];
+			foreach ($rows as $row) {
+				self::$lastGames[] = $row->code;
+			}
+		}
+		return self::$lastGames;
+	}
+
+	/**
+	 * @param SimpleXMLElement $parent
+	 * @param string[]         $path
+	 *
+	 * @return void
 	 * @throws ValidationException
 	 */
 	private static function updateArenas(SimpleXMLElement $parent, array $path): void {
@@ -279,6 +331,24 @@ class SitemapGenerator
 	 * @return void
 	 * @throws ValidationException
 	 */
+	private static function updateEvents(SimpleXMLElement $parent, array $path): void {
+		self::$events ??= Event::getAll();
+
+		foreach (self::$events as $event) {
+			$path[1] = $event->id;
+			$url = App::getLink($path);
+			$element = self::findOrCreateUrl($url, $parent);
+			self::updateUrl($element, '0.8', 'weekly');
+		}
+	}
+
+	/**
+	 * @param SimpleXMLElement $parent
+	 * @param string[]         $path
+	 *
+	 * @return void
+	 * @throws ValidationException
+	 */
 	private static function updateLeagues(SimpleXMLElement $parent, array $path): void {
 		self::$leagues ??= League::getAll();
 
@@ -296,6 +366,27 @@ class SitemapGenerator
 				$element = self::findOrCreateUrl($url, $parent);
 				self::updateUrl($element, '0.8');
 			}
+		}
+	}
+
+	/**
+	 * @param SimpleXMLElement $parent
+	 * @param string[]         $path
+	 *
+	 * @return void
+	 * @throws ValidationException
+	 */
+	private static function updateLeaguesSlugs(SimpleXMLElement $parent, array $path): void {
+		self::$leagues ??= League::getAll();
+
+		foreach (self::$leagues as $league) {
+			if (!isset($league->slug)) {
+				continue;
+			}
+			$path[1] = $league->slug;
+			$url = App::getLink($path);
+			$element = self::findOrCreateUrl($url, $parent);
+			self::updateUrl($element, '0.8');
 		}
 	}
 

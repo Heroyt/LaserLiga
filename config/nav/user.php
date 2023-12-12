@@ -8,10 +8,12 @@ $nav = [
 	[
 		'name' => lang('Žebříček'),
 		'route' => 'player-leaderboard',
+		'icon' => 'fa-solid fa-ranking-star',
 	],
 	[
 		'name' => lang('Moje hry'),
 		'route' => 'my-game-history',
+		'icon' => 'fa-solid fa-gun',
 	],
 ];
 
@@ -22,6 +24,7 @@ if (!empty($user->player?->getTournaments() ?? [])) {
 	$nav[] = [
 		'name' => lang('Moje turnaje'),
 		'route' => 'my-tournaments',
+		'icon' => 'fa-solid fa-trophy',
 	];
 }
 

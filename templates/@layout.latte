@@ -16,52 +16,52 @@
 {default string[] $addCss = []}
 
 {define containerClasses}
-	py-5 mb-5 mb-lg-0
+    py-5 mb-5 mb-lg-0
 {/define}
 {define content}
 {/define}
 {define addHead}
 {/define}
 {define errors}
-	{var array $displayedErrors = []}
-	{foreach $errors as $key => $error}
-		{skipIf is_string($key)}
-		{alertDanger $error}
-		{do $displayedErrors[] = $error}
-	{/foreach}
-	{foreach $request->getErrors() as $key => $error}
-		{skipIf is_string($key) || in_array($error, $displayedErrors, true)}
-		{alertDanger $error}
-	{/foreach}
+    {var array $displayedErrors = []}
+    {foreach $errors as $key => $error}
+        {skipIf is_string($key)}
+        {alertDanger $error}
+        {do $displayedErrors[] = $error}
+    {/foreach}
+    {foreach $request->getErrors() as $key => $error}
+        {skipIf is_string($key) || in_array($error, $displayedErrors, true)}
+        {alertDanger $error}
+    {/foreach}
 {/define}
 
 <!DOCTYPE html>
 <html lang="{\Lsr\Core\App::getShortLanguageCode()}" data-bs-theme="{$_COOKIE['mode'] ?? 'light'}">
 <head>
-	<!-- Matomo Tag Manager -->
+    <!-- Matomo Tag Manager -->
     <link rel="dns-prefetch" href="https://analytics.laserliga.cz">
-	<script>
+    <script>
         let _mtm = window._mtm = window._mtm || [];
-		_mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+        _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
         let d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-		g.async = true;
-		g.src = 'https://analytics.laserliga.cz/js/container_F9NT5Iaa.js';
-		s.parentNode.insertBefore(g, s);
-	</script>
-	<!-- End Matomo Tag Manager -->
-	<meta charset="UTF-8">
-	<meta name="viewport"
-		  content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
-	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+        g.async = true;
+        g.src = 'https://analytics.laserliga.cz/js/container_F9NT5Iaa.js';
+        s.parentNode.insertBefore(g, s);
+    </script>
+    <!-- End Matomo Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="seobility" content="36aefeb049a215aadb2892ba279d1f71">
-	<!-- Favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/favicon/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/favicon/android-chrome-192x192.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="{getUrl}assets/favicon/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="{getUrl}assets/favicon/favicon-16x16.png">
-	<link rel="icon" href="{getUrl}assets/favicon/favicon.ico">
-	<link rel="manifest" href="{getUrl}assets/manifest.json">
-	<meta name="theme-color" content="#192029">
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/favicon/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{getUrl}assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="{getUrl}assets/favicon/favicon-16x16.png">
+    <link rel="icon" href="{getUrl}assets/favicon/favicon.ico">
+    <link rel="manifest" href="{getUrl}assets/manifest.json">
+    <meta name="theme-color" content="#192029">
 
     <title>{$page->getTitle()}</title>
     <meta name="description" content="{$page->getDescription()}">
@@ -77,13 +77,13 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-		  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
-	<noscript>
-		<link rel="stylesheet"
-			  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
-	</noscript>
-	<link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
+    <noscript>
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"/>
+    </noscript>
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
           href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"/>
     <noscript>
         <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"
@@ -91,18 +91,18 @@
     </noscript>
     <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
           href="{getUrl}dist/fontawesome.css?v={\Lsr\Core\App::getCacheVersion()}">
-	<noscript>
+    <noscript>
         <link rel="stylesheet" href="{getUrl}dist/fontawesome.css?v={\Lsr\Core\App::getCacheVersion()}">
-	</noscript>
+    </noscript>
     <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
           href="{getUrl}dist/bootstrap.css?v={\Lsr\Core\App::getCacheVersion()}">
     <noscript>
         <link rel="stylesheet" href="{getUrl}dist/bootstrap.css?v={\Lsr\Core\App::getCacheVersion()}">
     </noscript>
 
-	{\Tracy\Debugger::renderLoader()|noescape}
+    {\Tracy\Debugger::renderLoader()|noescape}
 
-	{include addHead}
+    {include addHead}
 
     {block tracking}
         <!-- Matomo -->
@@ -135,16 +135,25 @@
 
 {include refreshLoader}
 {include smallLoader}
+
 {if !isset($_GET['iframe'])}
-	{include header}
+    <div class="content-wrapper">
+        {include header}
+        <main class="container {include containerClasses|trim}" n:attr="$containerAttributes">
+            {include errors}
+            {include content}
+        </main>
+
+        {include footer}
+    </div>
+{else}
+    <main class="container {include containerClasses|trim}" n:attr="$containerAttributes">
+        {include errors}
+        {include content}
+    </main>
+
+    {include footer}
 {/if}
-
-<main class="container {include containerClasses|trim}" n:attr="$containerAttributes">
-    {include errors}
-	{include content}
-</main>
-
-{include footer}
 {include loader}
 
 
@@ -178,10 +187,10 @@
 </div>
 
 <script>
-	const page = {\Lsr\Core\App::getRequest()};
-	const usr = {$auth->getLoggedIn()?->id};
-	const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
-	const assetVersion = {\Lsr\Core\App::getCacheVersion()};
+    const page = {\Lsr\Core\App::getRequest()};
+    const usr = {$auth->getLoggedIn()?->id};
+    const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
+    const assetVersion = {\Lsr\Core\App::getCacheVersion()};
 </script>
 
 <script defer src="{getUrl}dist/runtime~main.js?{\Lsr\Core\App::getCacheVersion()}"></script>

@@ -16,18 +16,24 @@ body {
   background: linear-gradient(180deg, var(--bs-primary) 0%, var(--background) 20rem);
 }
 
+.content-wrapper {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+}
+
 footer {
-  position: absolute;
+  //position: absolute;
   width: 100%;
   bottom: 0;
 }
 
-main::after {
-  content: '';
-  display: block;
-  height: 10rem;
-  grid-row-start: -1;
-}
+//main::after {
+//  content: '';
+//  display: block;
+//  height: 10rem;
+//  grid-row-start: -1;
+//}
 
 @import '~bootstrap/scss/breadcrumb';
 @import '~bootstrap/scss/type';
@@ -71,4 +77,5 @@ main::after {
 @import 'components/autocomplete';
 @import 'components/tournaments';
 @import 'components/mobileMenu';
+@import 'components/menu';
 @import 'components/svg';

@@ -33,8 +33,10 @@ $utilities-bg-colors: map.merge($utilities-bg-colors, $utilityColors);
 $utilities-text-colors: map.merge($utilities-text-colors, $utilityColors);
 
 $font-sizes: map.merge(
-		$font-sizes,
-		(
-			brand: $font-size-base * 4,
-		)
+                $font-sizes,
+                (
+                        brand: $font-size-base * 4,
+                )
 );
+
+$navbar-light-color: rgba(var(--#{$prefix}emphasis-color-rgb), .8);

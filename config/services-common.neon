@@ -1,6 +1,11 @@
 parameters:
 	auth:
 		userClass: 'App\Models\Auth\User'
+	routing:
+		routeFiles:
+			- %constants.appDir%routes
+		controllers:
+			- %constants.appDir%src/Controllers
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
 services:
@@ -41,6 +46,7 @@ services:
 	achievementChecker: App\Services\Achievements\AchievementChecker
 	achievementProvider: App\Services\Achievements\AchievementProvider
 	titleProvider: App\Services\Achievements\TitleProvider
+	eventRegistration: App\Services\EventRegistrationService
 
 search:
 	achievementCheckers:

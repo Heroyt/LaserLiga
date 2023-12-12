@@ -11,6 +11,7 @@ $nav = [
 		'name' => lang('Arény'),
 		'icon' => 'fa-solid fa-location-dot',
 		'route' => 'arenas-list',
+		'path' => ['arena'],
 	],
 ];
 

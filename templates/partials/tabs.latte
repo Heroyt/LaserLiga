@@ -24,7 +24,8 @@
                             {ifset $tabInfo['link']}data-link="{link $tabInfo['link']}"{/ifset}
                             href="{ifset $tabInfo['link']}{link $tabInfo['link']}{else}#{$tabId}{/ifset}"
                             role="tab" aria-controls="{$tabId}" aria-selected="{if $active}true{else}false{/if}"
-                            data-content-piece="{$tabInfo['piece'] ?? ''}">
+                            data-content-piece="{$tabInfo['piece'] ?? ''}"
+                            n:attr="$tabInfo['buttonAttributes'] ?? []">
                         {lang $tabInfo['name']}
                     </a>
                 {/if}

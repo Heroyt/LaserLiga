@@ -68,7 +68,6 @@ if (defined('INDEX')) {
 	if (!isset($_ENV['noDb'])) {
 		(new Panel())->register(DB::getConnection());
 	}
-	/** @noinspection PhpParamsInspection */
 	Debugger::getBar()
 	        ->addPanel(new ContainerPanel(App::getContainer()))
 	        ->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line
