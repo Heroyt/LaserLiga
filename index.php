@@ -13,22 +13,26 @@ use App\Controllers\E404;
 use Lsr\Core\App;
 use Lsr\Core\Requests\Exceptions\RouteNotFoundException;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\Interfaces\RequestInterface;
 
 /** Root directory */
-const ROOT = __DIR__.'/';
+const ROOT = __DIR__ . '/';
 /** Visiting site normally */
 const INDEX = true;
 
-require_once ROOT."include/load.php";
+require_once ROOT . "include/load.php";
 
 Timer::start('app');
 try {
+	header('Cache-Control: max-age=604800,public');
 	App::run();
 } catch (RouteNotFoundException $e) {
 	// Handle 404 Error
 	$controller = App::getContainer()->getByType(E404::class);
-	$controller->init(App::getRequest());
-	$controller->show(App::getRequest());
+	/** @var RequestInterface $request */
+	$request = App::getRequest();
+	$controller->init($request);
+	$controller->show();
 }
 Timer::stop('app');
 
