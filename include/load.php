@@ -84,15 +84,16 @@ if (!PRODUCTION) {
 	$poLoader = new PoLoader();
 	/** @var Translations[] $translations */
 	$translations = [];
-	/** @var string[] $languages */
-	$languages = glob(LANGUAGE_DIR . '*');
-	foreach ($languages as $path) {
+
+	$languages = App::getSupportedLanguages();
+	foreach ($languages as $lang => $country) {
+		$concatLang = $lang . '_' . $country;
+		$path = LANGUAGE_DIR . '/' . $concatLang;
 		if (!is_dir($path)) {
 			continue;
 		}
-		$lang = str_replace(LANGUAGE_DIR, '', $path);
 		$file = $path . '/LC_MESSAGES/' . LANGUAGE_FILE_NAME . '.po';
-		$translations[$lang] = $poLoader->loadFile($file);
+		$translations[$concatLang] = $poLoader->loadFile($file);
 	}
 	Timer::stop('core.init.translations');
 }

@@ -28,7 +28,7 @@ class GenderService
 		if (preg_match('/^[^a-z\d_\s\-]*$/', $string) > 0) { // Is all uppercase
 			$string = mb_strtolower($string);
 		}
-		$normalized = mb_strtolower(Strings::toSnakeCase($string));
+		$normalized = mb_strtolower(Strings::toSnakeCase(Strings::toAscii($string)));
 
 		if (isset(self::$memory[$normalized])) {
 			return self::$memory[$normalized];

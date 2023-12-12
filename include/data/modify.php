@@ -28,6 +28,14 @@ function mw(string $suffix, string $gender): void {
 	update(MW, $mw);
 }
 
+function man(string $suffix): void {
+	mw($suffix, 'm');
+}
+
+function woman(string $suffix): void {
+	mw($suffix, 'w');
+}
+
 function update(string $file, array $data): void {
 	file_put_contents($file, serialize($data));
 }

@@ -3,13 +3,18 @@
 namespace App\Models\Auth;
 
 use App\Core\Info;
+use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\Game;
+use App\Helpers\Gender;
 use App\Models\Achievements\Title;
 use App\Models\Arena;
 use App\Models\DataObjects\PlayerStats;
 use App\Services\Achievements\TitleProvider;
 use App\Services\Avatar\AvatarService;
 use App\Services\Avatar\AvatarType;
+use App\Services\GenderService;
+use App\Services\NameInflectionService;
 use Dibi\Row;
 use Lsr\Core\App;
 use Lsr\Core\DB;
@@ -175,5 +180,38 @@ class Player extends Model
 			$this->title = first($titleProvider->getForUser($this));
 		}
 		return $this->title;
+	}
+
+	public function getGender(): Gender {
+		$this->gender ??= GenderService::rankWord($this->nickname);
+		return $this->gender;
+	}
+
+	public function accusativeNickname(): string {
+		return NameInflectionService::accusative($this->nickname);
+	}
+
+	public function dativeNickname(): string {
+		return NameInflectionService::dative($this->nickname);
+	}
+
+	public function locativeNickname(): string {
+		return NameInflectionService::locative($this->nickname);
+	}
+
+	public function vocativeNickname(): string {
+		return NameInflectionService::vocative($this->nickname);
+	}
+
+	public function genitiveNickname(): string {
+		return NameInflectionService::genitive($this->nickname);
+	}
+
+	public function nominativeNickname(): string {
+		return NameInflectionService::nominative($this->nickname);
+	}
+
+	public function instrumentalNickname(): string {
+		return NameInflectionService::instrumental($this->nickname);
 	}
 }

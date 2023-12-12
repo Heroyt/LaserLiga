@@ -58,7 +58,7 @@ class NameInflectionService
 
 		// Remove numbers from the end
 		preg_match('/^(.*[^\d_\-\s])([_\-\s]*\d+)?$/', $name, $matches);
-		$name = $matches[1];
+		$name = $matches[1] ?? '';
 		$numbers = $matches[2] ?? '';
 
 		if (str_ends_with($name, ' ')) {
