@@ -22,7 +22,6 @@ use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Templating\Latte;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Helpers\Tools\Strings;
@@ -114,6 +113,97 @@ class Games extends Controller
 		$this->view('pages/game/thumb');
 	}
 
+	public function thumbGroup(string $groupid): void {
+		$decodeGroupId = hex2bin($groupid);
+		if ($decodeGroupId === false) { // Decode error
+			http_response_code(403);
+			$this->view('pages/game/invalidGroup');
+			return;
+		}
+
+		/** @var string|false $decodeGroupId */
+		$decodeGroupId = base64_decode($decodeGroupId);
+		if ($decodeGroupId === false) { // Decode error
+			http_response_code(403);
+			$this->view('pages/game/invalidGroup');
+			return;
+		}
+
+		/**
+		 * Split one string into 3 ID values
+		 *
+		 * @var int $groupId
+		 * @var int $arenaId
+		 * @var int $localId
+		 */
+		[$groupId, $arenaId, $localId] = array_map(static fn($id) => (int)$id, explode('-', $decodeGroupId));
+
+		// Find group matching all ids
+		/** @var GameGroup|null $group */
+		$group = GameGroup::query()
+		                  ->where('id_group = %i AND id_arena = %i AND id_local = %i', $groupId, $arenaId, $localId)
+		                  ->first();
+
+		if (!isset($group)) { // Group not found
+			http_response_code(404);
+			$this->view('pages/game/invalidGroup');
+			return;
+		}
+
+		$this->params['group'] = $group;
+		if (!isset($_GET['svg']) && extension_loaded('imagick')) {
+			// Check cache
+			$tmpdir = TMP_DIR . 'thumbsGroup/';
+			if (file_exists($tmpdir) || (mkdir($tmpdir) && is_dir($tmpdir))) {
+				$filename = $tmpdir . $this->params['group']->id . '.png';
+				$filenameSvg = $tmpdir . $this->params['group']->id . '.svg';
+				if (isset($_GET['nocache']) || !file_exists($filename)) {
+					// Generate SVG
+					$content = $this->latte->viewToString('pages/game/groupThumb', $this->params);
+
+					// Convert to PNG
+					file_put_contents($filenameSvg, $content);
+					exec(
+						'inkscape --export-png-color-mode=RGBA_16 "' . $filenameSvg . '" -o "' . $filename . '"',
+						$out,
+						$code
+					);
+					bdump($out);
+					bdump($code);
+
+					// Add background
+					$images = [
+						['assets/images/img-laser.jpeg', 1200, 1600, 0, 600],
+						['assets/images/img-vesta-zbran.jpeg', 1200, 800, 0, 50],
+						['assets/images/brana.jpeg', 1200, 675, 0, 0],
+						['assets/images/cesta.jpeg', 1200, 900, 0, 0],
+						['assets/images/sloup.jpeg', 1600, 1600, 0, 600],
+						['assets/images/vesta_blue.jpeg', 1200, 800, 0, 0],
+						['assets/images/vesta_green.jpeg', 1200, 800, 0, 0],
+						['assets/images/vesta_red.jpeg', 1200, 800, 0, 0],
+					];
+					$bgImage = $images[$this->params['group']->id % count($images)];
+					$background = new Imagick(ROOT . $bgImage[0]);
+					$background->resizeImage($bgImage[1], $bgImage[2], Imagick::FILTER_LANCZOS, 1);
+					$background->cropImage(1200, 600, $bgImage[3], $bgImage[4]);
+					$image = new Imagick($filename);
+					$image->resizeImage(1200, 600, imagick::FILTER_LANCZOS, 1);
+					$background->setImageFormat('png24');
+					$background->compositeImage($image, Imagick::COMPOSITE_DEFAULT, 0, 0);
+					$background->writeImage($filename);
+				}
+
+				header('Cache-Control: max-age=86400,public');
+				header('Content-Type: image/png');
+				header("Content-Disposition: inline; filename='{$this->params['group']->name}.png'");
+				readfile($filename);
+				exit;
+			}
+		}
+
+		$this->view('pages/game/groupThumb');
+	}
+
 	/**
 	 *
 	 * @param string $code
@@ -186,6 +276,7 @@ class Games extends Controller
 			new ($this->params['game']->playerClass),
 			new ($this->params['game']->teamClass)
 		);
+		header('Cache-Control: max-age=2592000,public');
 		$this->view('pages/game/index');
 	}
 
@@ -309,7 +400,6 @@ class Games extends Controller
 		return $schema;
 	}
 
-	#[Get('/game/group/{groupid}', 'group-results')]
 	public function group(Request $request): void {
 		$this->params['addCss'][] = 'pages/gameGroup.css';
 		$this->params['groupCode'] = $request->params['groupid'] ?? '4d4330774c54413d'; // Default is '0-0-0'
@@ -442,6 +532,7 @@ class Games extends Controller
 		                             ->orderBy('value')
 		                             ->desc()
 		                             ->fetchAll();
+		header('Cache-Control: max-age=2592000,public');
 		$this->view('pages/game/leaderboard');
 	}
 
@@ -484,6 +575,7 @@ class Games extends Controller
 
 		$this->params['achievements'] = $this->achievementProvider->getForGamePlayer($this->params['player']);
 
+		header('Cache-Control: max-age=2592000,public');
 		$this->view('pages/game/partials/player');
 	}
 
@@ -523,6 +615,7 @@ class Games extends Controller
 		                                                 ->first()
 		                                                 ?->getShots() ?? 1000;
 
+		header('Cache-Control: max-age=2592000,public');
 		$this->view('pages/game/partials/team');
 	}
 
@@ -547,6 +640,7 @@ class Games extends Controller
 			return;
 		}
 
+		header('Cache-Control: max-age=2592000,public');
 		$this->view('pages/game/partials/elo');
 	}
 
@@ -571,7 +665,7 @@ class Games extends Controller
 			];
 		}
 
-		$this->respond($output);
+		$this->respond($output, headers: ['Cache-Control' => 'max-age=2592000,public']);
 	}
 
 }

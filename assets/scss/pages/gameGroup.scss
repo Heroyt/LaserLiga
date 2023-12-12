@@ -1,100 +1,126 @@
 .game-group {
 
-	path, circle, rect {
-		fill: currentColor;
-	}
+  svg:not(.player-avatar) {
+    path, circle, rect {
+      fill: currentColor;
+    }
+  }
 
-	.arena-logo {
-		height: 100%;
-		max-height: 10rem;
-		width: 100%;
-	}
+  .arena-logo {
+    height: 100%;
+    max-height: 10rem;
+    width: 100%;
+  }
 
-	.player-head {
-		align-items: center;
-		border-radius: 10px;
-		cursor: pointer;
-		display: flex;
-		margin: .1rem 0;
-		width: 100%;
+  .player-head {
+    align-items: center;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    margin: .1rem 0;
+    width: 100%;
 
-		> div {
-			flex: 1;
-		}
+    > div {
+      flex: 1;
+    }
 
-		svg {
-			display: inline-block;
-			margin: 0 auto;
-			position: relative;
-		}
+    svg {
+      display: inline-block;
+      margin: 0 auto;
+      position: relative;
+    }
 
-		.position {
-			max-width: 1.5rem;
-		}
+    .position {
+      max-width: 1.5rem;
+    }
 
-		.player-rank {
-			height: 1rem;
-			line-height: 1em;
+    .player-rank {
+      height: 1rem;
+      line-height: 1em;
 
-			.rank-name {
-				display: inline-block;
-				font-size: .6em;
-			}
-		}
+      .rank-name {
+        display: inline-block;
+        font-size: .6em;
+      }
+    }
 
-		.player-name {
+    .player-name {
 
-			.name {
-				font-size: calc(var(--font-size) * 1.3);
-				font-weight: bold;
-				text-transform: uppercase;
-			}
-		}
+      .name {
+        font-size: calc(var(--font-size) * 1.3);
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+    }
 
-		.score {
-			max-width: 7rem;
-			text-align: right;
-		}
-	}
+    .player-avatar {
+      height: 2.5rem;
+      width: 2.5rem;
+      border-radius: 50%;
+      margin: 0 .5rem;
+      background-color: var(--background-2);
+    }
 
-	.player-body {
-		table {
-			th {
-				width: 4rem;
-			}
+    .score {
+      max-width: 7rem;
+      text-align: right;
+    }
+  }
 
-			tr td:nth-of-type(1) {
-				font-weight: bold;
-				width: 13rem;
-			}
-		}
-	}
+  .player-body {
+    table {
+      th {
+        width: 4rem;
+      }
 
-	svg.accuracy {
-		--color: rgb(72, 196, 255);
-		display: block;
-		grid-area: accuracy;
-		margin: 0 auto;
-		max-width: 9rem;
-		position: relative;
+      tr td:nth-of-type(1) {
+        font-weight: bold;
+        width: 13rem;
+      }
+    }
+  }
 
-		* {
-			font-size: 64pt;
-		}
+  .team-head {
+    display: grid;
+    grid-template-columns: 2rem 1fr 10rem 2rem;
+    align-items: center;
+    grid-row-gap: .3rem;
+    border-radius: 10px;
+    cursor: pointer;
+    grid-template-areas: 'position name score indicator' 'position players wins indicator';
 
-		path,
-		rect,
-		text {
-			fill: var(--color);
-		}
+    @media screen and (max-width: 500px) {
+      grid-template-columns: 2rem 1fr 2rem;
+      grid-template-areas: 'position name indicator' 'position players indicator' 'position score indicator' 'position wins indicator';
+    }
 
-		.fill-circle {
-			fill: transparent;
-			opacity: .4;
-			stroke: var(--color);
-			transform: rotate(-90deg);
-			transform-origin: center;
-		}
-	}
+    .position {
+      grid-area: position;
+    }
+
+    .name {
+      grid-area: name;
+    }
+
+    .wins {
+      grid-area: wins;
+    }
+
+    .score {
+      grid-area: score;
+    }
+
+    .team-players {
+      grid-area: players;
+    }
+
+    .collapse-indicator {
+      grid-area: indicator;
+    }
+  }
+
+  @import '../components/results/accuracy';
+  @import '../components/stats';
+  @import '../components/titles';
 
 }

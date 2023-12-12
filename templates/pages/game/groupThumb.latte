@@ -1,0 +1,123 @@
+{contentType image/svg+xml}
+{varType App\Models\GameGroup $group}
+{var int $padding = 50}
+{var int $playerMargin = 20}
+{var int $headerHeight = 150}
+{var int $contentWidth = 1200 - ($padding * 2)}
+{var int $contentHeight = 600 - ($padding * 2) - $headerHeight - $playerMargin}
+{var int $playerCount = count($group->getPlayers())}
+{var int $gameCount = count($group->getGames())}
+{var int $playerBoxHeight = 60}
+{var int $playerBoxWidth = 400}
+{var int $statBoxHeight = 100}
+{var int $statBoxWidth = 320}
+{var int $playerBoxPadding = 20}
+{var int $playerBoxMargin = 5}
+{var array[] $images = [
+['assets/images/img-laser.jpeg', 1200, 1600, 0, -600],
+['assets/images/img-vesta-zbran.jpeg', 1200, 800, 0, -50],
+['assets/images/brana.jpeg', 1200, 675, 0, 0],
+['assets/images/cesta.jpeg', 1200, 900, 0, 0],
+['assets/images/sloup.jpeg', 1600, 1600, 0,-600],
+['assets/images/vesta_blue.jpeg', 1200, 800, 0, 0],
+['assets/images/vesta_green.jpeg', 1200, 800, 0, 0],
+['assets/images/vesta_red.jpeg', 1200, 800, 0, 0],
+]}
+{var array[] $stats = [
+['label' => 'Odehráno her', 'value' => number_format($gameCount, 0, ',', ' ')],
+['label' => 'První hra', 'value' => last($group->getGames())->start->format('j. n. Y H:i')],
+['label' => 'Poslední hra', 'value' => first($group->getGames())->start->format('j. n. Y H:i')],
+]}
+{var array $image = $images[$group->id % count($images)]}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600"
+     data-width="{$contentWidth}" data-height="{$contentHeight}">
+    <image x="{$image[3]}" y="{$image[4]}" width="{$image[1]}" height="{$image[2]}"
+           href="data:image/jpeg;base64,{base64_encode(file_get_contents(ROOT.$image[0]))}"/>
+    <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#000" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#212529" stop-opacity="0.4"/>
+        </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="1200" height="600" fill="url(#bg)"/>
+    <g class="header">
+        {extractSvg($group->arena->getLogoFileName(), ['x' => $padding, 'y' => $padding, 'height' => $headerHeight, 'width'=>$headerHeight])|replace:'#000','#fff'|replace:'black','white'|noescape}
+        <text x="{$padding}" y="{600- $padding}" text-anchor="start" font-size="50"
+              font-family="sans-serif" fill="#fff">
+            {$group->name}
+        </text>
+    </g>
+    <g class="players">
+        <text x="{1200 - $padding}" y="{$padding + 35}" font-family="sans-serif" fill="white" font-size="40"
+              text-anchor="end">
+            {lang 'Nejlepší hráči'}:
+        </text>
+        {foreach $group->getPlayers() as $player}
+            {breakIf $iterator->counter > 6}
+            {var int $top = $padding + 50 + ($iterator->counter0 * ($playerBoxHeight + $playerBoxMargin))}
+            {var int $textY = $top + $playerBoxPadding + 20}
+            <g class="player">
+                <rect width="{$playerBoxWidth}" height="{$playerBoxHeight}" x="{1200 - $padding - $playerBoxWidth}"
+                      y="{$top}" fill="#1847d5" rx="10" ry="10" opacity="0.8"/>
+                {ifset $player->player->user}
+                    <text x="{1200 - $padding - $playerBoxWidth + $playerBoxPadding}" y="{$textY}"
+                          font-family="sans-serif" fill="white" font-size="30" text-anchor="start">
+                        {$iterator->counter}.
+                    </text>
+                {var int $avatarX = (1200 - $padding - $playerBoxWidth + $playerBoxPadding + 35)}
+                {var int $avatarY = ($textY - 30)}
+                    <circle cx="{$avatarX + 20}" cy="{$avatarY + 20}" r="25" fill="#fff" opacity="0.8"/>
+                {extractSvgFromString($player->player->user->getAvatar(), ['width' => 40, 'height' => 40, 'x' => $avatarX, 'y' => $avatarY])|noescape}
+                    <text x="{1200 - $padding - $playerBoxWidth + $playerBoxPadding + 90}" y="{$textY}"
+                          font-family="sans-serif" fill="white" font-size="30" text-anchor="start">
+                        {$player->name}
+                    </text>
+                {else}
+                    <text x="{1200 - $padding - $playerBoxWidth + $playerBoxPadding}" y="{$textY}"
+                          font-family="sans-serif" fill="white" font-size="30" text-anchor="start">
+                        {$iterator->counter}.
+                        {$player->name}
+                    </text>
+                {/ifset}
+                <text y="{$textY}" x="{1200 - $padding - $playerBoxPadding - 30}" font-family="sans-serif" fill="white"
+                      font-size="30" text-anchor="end">
+                    {$player->getSkill()}
+                </text>
+                <svg y="{$textY - 22}" x="{1200 - $padding - $playerBoxPadding - 25}" xmlns="http://www.w3.org/2000/svg"
+                     height="25" width="25" viewBox="0 0 512 512">
+                    <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                    <path d="M4.1 38.2C1.4 34.2 0 29.4 0 24.6C0 11 11 0 24.6 0H133.9c11.2 0 21.7 5.9 27.4 15.5l68.5 114.1c-48.2 6.1-91.3 28.6-123.4 61.9L4.1 38.2zm503.7 0L405.6 191.5c-32.1-33.3-75.2-55.8-123.4-61.9L350.7 15.5C356.5 5.9 366.9 0 378.1 0H487.4C501 0 512 11 512 24.6c0 4.8-1.4 9.6-4.1 13.6zM80 336a176 176 0 1 1 352 0A176 176 0 1 1 80 336zm184.4-94.9c-3.4-7-13.3-7-16.8 0l-22.4 45.4c-1.4 2.8-4 4.7-7 5.1L168 298.9c-7.7 1.1-10.7 10.5-5.2 16l36.3 35.4c2.2 2.2 3.2 5.2 2.7 8.3l-8.6 49.9c-1.3 7.6 6.7 13.5 13.6 9.9l44.8-23.6c2.7-1.4 6-1.4 8.7 0l44.8 23.6c6.9 3.6 14.9-2.2 13.6-9.9l-8.6-49.9c-.5-3 .5-6.1 2.7-8.3l36.3-35.4c5.6-5.4 2.5-14.8-5.2-16l-50.1-7.3c-3-.4-5.7-2.4-7-5.1l-22.4-45.4z"
+                          fill="white"/>
+                </svg>
+            </g>
+        {/foreach}
+        {if $playerCount > 6}
+            {var int $top = $padding + 50 + (6 * ($playerBoxHeight + $playerBoxMargin))}
+            {var int $textY = $top + $playerBoxPadding + 20}
+            <rect width="{$playerBoxWidth}" height="{$playerBoxHeight}" x="{1200 - $padding - $playerBoxWidth}"
+                  y="{$top}" fill="#4c6ccd" rx="10" ry="10" opacity="0.8"/>
+            <text x="{1200 - $padding - $playerBoxWidth + $playerBoxPadding}" y="{$textY}" font-family="sans-serif"
+                  fill="white" font-size="30" text-anchor="start">
+                + {sprintf(lang('%d další hráč', '%d dalších hráčů', $playerCount-6), $playerCount - 6)}
+            </text>
+        {/if}
+    </g>
+    <g class="stats">
+        {var int $statX = 1200 - $padding - $playerBoxWidth - 30 - $statBoxWidth}
+        {foreach $stats as $stat}
+            {var int $y = $padding + 50 + ($iterator->counter0 * ($statBoxHeight + 10))}
+            <rect fill="#323c4e" opacity="0.8" x="{$statX}" y="{$y}" width="{$statBoxWidth}" height="{$statBoxHeight}"
+                  rx="10" ry="10"/>
+            <text x="{$statX + ($statBoxWidth / 2)}" y="{$y + 30}" font-family="sans-serif" fill="white" font-size="25"
+                  text-anchor="middle">
+                {lang $stat['label']}
+            </text>
+            <text x="{$statX + ($statBoxWidth / 2)}" y="{$y + 80}" font-family="sans-serif" fill="white" font-size="32"
+                  text-anchor="middle">
+                {$stat['value']}
+            </text>
+        {/foreach}
+    </g>
+</svg>

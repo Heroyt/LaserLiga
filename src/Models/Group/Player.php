@@ -23,10 +23,26 @@ class Player
 	/** @var PlayerModeAggregate[] $gameModes */
 	public array $gameModes = [];
 
+	/** @var PlayerHit[] */
+	public array $hitPlayers = [];
+
+	/** @var PlayerHit[] */
+	public array $deathPlayers = [];
+
 	public function __construct(
 		public readonly string     $asciiName,
 		public readonly GamePlayer $player,
 	) {
+	}
+
+	public function getHitPlayersSorted(): array {
+		uasort($this->hitPlayers, static fn($hit1, $hit2) => $hit2->countEnemy - $hit1->countEnemy);
+		return $this->hitPlayers;
+	}
+
+	public function getDeathPlayersSorted(): array {
+		uasort($this->deathPlayers, static fn($hit1, $hit2) => $hit2->countEnemy - $hit1->countEnemy);
+		return $this->deathPlayers;
 	}
 
 	public function addGame(GamePlayer $player, ?Game $game = null) : void {
@@ -55,10 +71,10 @@ class Player
 		$this->accuracies[] = $player->accuracy;
 		$this->shots[] = $player->shots;
 
-		if (isset($player->hitsOwn)) {
+		if (isset($player->hitsOwn) && $game->getMode()?->isTeam()) {
 			$this->hitsOwn[] = $player->hitsOwn;
 		}
-		if (isset($player->deathsOwn)) {
+		if (isset($player->deathsOwn) && $game->getMode()?->isTeam()) {
 			$this->deathsOwn[] = $player->deathsOwn;
 		}
 
