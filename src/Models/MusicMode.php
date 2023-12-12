@@ -9,8 +9,10 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
+use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_music')]
+#[OA\Schema]
 class MusicMode extends Model
 {
 
@@ -18,12 +20,18 @@ class MusicMode extends Model
 
 	#[Required]
 	#[StringLength(1, 20)]
+	#[OA\Property]
 	public string $name;
+	#[OA\Property]
 	public int    $order        = 0;
+	#[OA\Property]
 	public string $fileName     = '';
 	#[ManyToOne]
+	#[OA\Property]
 	public ?Arena $arena        = null;
+	#[OA\Property]
 	public int    $idLocal;
+	#[OA\Property]
 	public int    $previewStart = 0;
 
 	/**

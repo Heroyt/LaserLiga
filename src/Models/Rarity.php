@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(type: 'string')]
 enum Rarity: string
 {
 

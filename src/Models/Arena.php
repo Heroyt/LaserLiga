@@ -7,7 +7,7 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Factory\TeamFactory;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
-use App\Models\Tournament\League;
+use App\Models\Tournament\League\League;
 use App\Models\Tournament\Tournament;
 use DateTime;
 use Dibi\Exception;
@@ -22,9 +22,11 @@ use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use OpenApi\Attributes as OA;
 use RuntimeException;
 
 #[PrimaryKey('id_arena')]
+#[OA\Schema]
 class Arena extends Model
 {
 
@@ -32,14 +34,21 @@ class Arena extends Model
 
 	private const ARENA_USER_TYPE_ID = 3;
 
+	#[OA\Property]
 	public string $name;
+	#[OA\Property]
 	public ?float $lat = null;
+	#[OA\Property]
 	public ?float $lng = null;
 
 	#[Instantiate]
+	#[OA\Property]
 	public Address $address;
+	#[OA\Property]
 	public ?string $web          = null;
+	#[OA\Property]
 	public ?string $contactEmail = null;
+	#[OA\Property]
 	public ?string $contactPhone = null;
 
 	public ?User $user = null;
