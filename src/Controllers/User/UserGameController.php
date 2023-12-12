@@ -2,6 +2,8 @@
 
 namespace App\Controllers\User;
 
+use App\Api\Response\ErrorDto;
+use App\Api\Response\ErrorType;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Player;
@@ -21,6 +23,7 @@ use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use OpenApi\Attributes as OA;
 
 class UserGameController extends AbstractUserController
 {
@@ -66,6 +69,7 @@ class UserGameController extends AbstractUserController
 
 	/**
 	 * @param Request $request
+	 *
 	 * @return never
 	 * @throws ValidationException
 	 * @throws JsonException
@@ -193,11 +197,55 @@ class UserGameController extends AbstractUserController
 		$this->respond(['status' => 'ok']);
 	}
 
+	#[OA\Get(
+		path       : "/api/devtools/users/{id}/stats",
+		operationId: "updateStats",
+		description: "This method updates the stats for the specified user.",
+		summary    : "Update User Stats",
+		tags       : ['Devtools', 'Users']
+	)]
+	#[OA\Parameter(
+		name       : "id",
+		description: "User ID",
+		in         : "path",
+		required   : true,
+		schema     : new OA\Schema(type: "integer"),
+	)]
+	#[OA\Response(
+		response   : 200,
+		description: "Successful operation",
+		content    : new OA\JsonContent(
+			ref: "#/components/schemas/PlayerStats",
+		),
+	)]
 	public function updateStats(User $user): never {
 		$this->playerUserService->updatePlayerStats($user);
 		$this->respond($user->createOrGetPlayer()->stats);
 	}
 
+	#[OA\Get(
+		path       : "/api/devtools/users/stats",
+		operationId: "updateAllUsersStats",
+		description: "This method updates the stats for all users.",
+		summary    : "Update All User Stats",
+		tags       : ['Devtools', 'Users']
+	)]
+	#[OA\Parameter(
+		name       : "from",
+		description: "User id to start processing from",
+		in         : "query",
+		required   : false,
+		schema     : new OA\Schema(type: "integer"),
+		example    : 0,
+	)]
+	#[OA\Response(
+		response   : 200,
+		description: "Successful operation",
+		content    : new OA\JsonContent(
+			type                : "object",
+			additionalProperties: new OA\AdditionalProperties(ref: "#/components/schemas/PlayerStats"),
+		),
+	)]
 	public function updateAllUsersStats(Request $request): never {
 		$from = (int)$request->getGet('from', 0);
 		$players = LigaPlayer::query()->where('[id_user] >= %i', $from)->get();
@@ -209,11 +257,47 @@ class UserGameController extends AbstractUserController
 		$this->respond($response);
 	}
 
+	#[OA\Get(
+		path       : "/api/devtools/users/dateRanks",
+		operationId: "calculateDayRanks",
+		description: "This method calculates daily user ranks for a specific date or a range starting from a date.",
+		summary    : "Calculate Daily User Ranks",
+		tags       : ['Devtools', 'Users']
+	)]
+	#[OA\Parameter(
+		name       : "date",
+		description: "Specific date to calculate ranks for",
+		in         : "query",
+		required   : false,
+		schema     : new OA\Schema(type: "string", format: "date"),
+	)]
+	#[OA\Parameter(
+		name       : "from",
+		description: "Start date for a range to calculate ranks for",
+		in         : "query",
+		required   : false,
+		schema     : new OA\Schema(type: "string", format: "date"),
+	)]
+	#[OA\Response(
+		response   : 200,
+		description: "Day rank calculation results",
+		content    : new OA\JsonContent(
+			type : "array",
+			items: new OA\Items(
+				       ref: "#/components/schemas/PlayerRank"
+			       ),  // Replace with the actual schema for user rank
+		),
+	)]
+	#[OA\Response(
+		response   : 400,
+		description: "Missing date or from parameter",
+		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
+	)]
 	public function calculateDayRanks(Request $request): never {
 		$dateString = $request->getGet('date', '');
 		$fromString = $request->getGet('from', '');
 		if (empty($dateString) && empty($fromString)) {
-			$this->respond(['error' => 'Missing date or from parameter.'], 400);
+			$this->respond(new ErrorDto('Missing date or from parameter.', ErrorType::VALIDATION), 400);
 		}
 
 		if (!empty($dateString)) {
