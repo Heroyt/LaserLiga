@@ -1,7 +1,0 @@
-name: date
-in: query
-description: If set, games will be filtered by date.
-schema:
-    type: string
-    format: date-string
-    example: 2023-01-01

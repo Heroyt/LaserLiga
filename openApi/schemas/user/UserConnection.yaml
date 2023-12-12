@@ -1,7 +1,0 @@
-description: User's connected ID's
-type: object
-properties:
-    type:
-        $ref: './UserConnectionType.yaml'
-    identifier:
-        type: string

@@ -1,5 +1,0 @@
-name: system
-in: query
-description: If set, games will be filtered by system.
-schema:
-    $ref: '../../schemas/game/System.yaml'

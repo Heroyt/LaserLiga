@@ -22,28 +22,40 @@ use Lsr\Core\Models\Attributes\Validation\Email;
 use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Utils\Random;
+use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_user')]
+#[OA\Schema(schema: 'LigaPlayerBase')]
 class Player extends Model
 {
 
 	public const TABLE = 'players';
 
 
+	#[OA\Property]
 	public PlayerStats $stats;
 
 	/** @var string Unique code for each player - two players can have the same code if they are from different arenas. */
 	#[PlayerCode]
+	#[OA\Property]
 	public string $code;
+	#[OA\Property]
 	public string $nickname;
 	#[Email]
+	#[OA\Property]
 	public string $email;
+	#[OA\Property]
 	public ?string $avatar      = null;
+	#[OA\Property]
 	public ?string $avatarStyle = null;
+	#[OA\Property]
 	public ?string $avatarSeed  = null;
 
 	#[ManyToOne]
+	#[OA\Property]
 	public ?Title $title = null;
+
+	private Gender $gender;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		parent::__construct($id, $dbRow);

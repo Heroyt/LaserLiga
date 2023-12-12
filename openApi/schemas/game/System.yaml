@@ -1,5 +1,0 @@
-description: Laser game system
-type: string
-enum:
-    - evo5
-    - laserforce

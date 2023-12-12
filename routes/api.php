@@ -12,58 +12,99 @@ use Lsr\Core\Routing\Route;
 
 $apiToken = new ApiToken();
 
-$apiGroup = Route::group('/api')->middlewareAll($apiToken);
+$apiGroup = Route::group('api')->middlewareAll($apiToken);
 
-$apiGroup->group('/games')
-         ->get('/', [Games::class, 'listGames'])
-         ->post('/', [Games::class, 'import'])
-         ->get('/{code}', [Games::class, 'getGame'])
-         ->get('/{code}/highlights', [Games::class, 'highlights'])
-         ->get('/{code}/users', [Games::class, 'getGameUsers'])
-         ->get('/{code}/skills', [Games::class, 'recalcGameSkill'])
-         ->get('/skills', [Games::class, 'recalcMultipleGameSkills'])
-         ->group('/stats')
-         ->get('/', [Games::class, 'stats'])
-         ->endGroup();
+// Games
 
-$apiGroup->group('/tournament')
-         ->get('/', [TournamentsController::class, 'getAll'])
-         ->get('/{id}', [TournamentsController::class, 'get'])
-         ->post('/{id}', [TournamentsController::class, 'syncGames'])
-         ->get('/{id}/teams', [TournamentsController::class, 'getTournamentTeams']);
+$gamesGroup = $apiGroup->group('games')
+                       ->get('', [Games::class, 'listGames'])
+                       ->post('', [Games::class, 'import'])
+                       ->get('skills', [Games::class, 'recalcMultipleGameSkills']);
 
-$apiGroup->group('/tournaments')
-         ->get('/', [TournamentsController::class, 'getAll'])
-         ->get('/{id}', [TournamentsController::class, 'get'])
-         ->get('/{id}/teams', [TournamentsController::class, 'getTournamentTeams']);
+$gamesGroup->group('{code}')
+           ->get('', [Games::class, 'getGame'])
+           ->get('highlights', [Games::class, 'highlights'])
+           ->get('users', [Games::class, 'getGameUsers'])
+           ->get('skills', [Games::class, 'recalcGameSkill']);
 
-$apiGroup->group('league')
-         ->get('', [LeaguesController::class, 'getAll'])
-         ->get('{id}', [LeaguesController::class, 'get'])
-         ->get('{id}/points', [LeaguesController::class, 'recountPoints'])
-         ->get('{id}/tournaments', [LeaguesController::class, 'getTournaments']);
+$gamesGroup->group('stats')
+           ->get('', [Games::class, 'stats']);
 
-$apiGroup->group('/music')
-         ->post('/', [Music::class, 'import'])
-         ->delete('/{id}', [Music::class, 'removeMode'])
-         ->post('/{id}/upload', [Music::class, 'uploadFile'])
-         ->endGroup();
+// Tournaments
 
-$apiGroup->group('/players')
-         ->get('/', [Players::class, 'find'])
-         ->get('/{code}', [Players::class, 'player'])
-         ->get('/{code}/title', [Players::class, 'playerTitle'])
-         ->endGroup();
+// Keeping this path for legacy reasons - Should not be used
+$tournamentGroup = $apiGroup->group('tournament')
+                            ->get('', [TournamentsController::class, 'getAll']);
 
-$apiGroup->group('/devtools')
-         ->post('/users/stats', [UserGameController::class, 'updateAllUsersStats'])
-         ->post('/users/{id}/stats', [UserGameController::class, 'updateStats'])
-         ->get('/users/dateRanks', [UserGameController::class, 'calculateDayRanks'])
-         ->post('/relativehits', [DevController::class, 'relativeHits'])
-         ->post('/game/modes', [DevController::class, 'assignGameModes'])
-         ->post('/regression', [DevController::class, 'updateRegressionModels'])
-         ->get('/sitemap', [DevController::class, 'generateSitemap'])
-         ->post('/images/optimize', [DevController::class, 'generateOptimizedUploads'])
-         ->get('test/gender', [DevController::class, 'genderTest'])
-         ->get('test/inflection', [DevController::class, 'inflectionTest'])
-         ->get('test/achievement', [DevController::class, 'achievementCheckerTest']);
+$tournamentGroup->group('{id}')
+                ->get('', [TournamentsController::class, 'get'])
+                ->post('', [TournamentsController::class, 'syncGames'])
+                ->get('teams', [TournamentsController::class, 'getTournamentTeams']);
+
+$tournamentsGroup = $apiGroup->group('tournaments')
+                             ->get('', [TournamentsController::class, 'getAll'])
+                             ->post('', [TournamentsController::class, 'syncGames']);
+
+$tournamentsGroup->group('{id}')
+                 ->get('', [TournamentsController::class, 'get'])
+                 ->get('teams', [TournamentsController::class, 'getTournamentTeams']);
+
+// Leagues
+
+// Keeping this path for legacy reasons - Should not be used
+$leagueGroup = $apiGroup->group('league')
+                        ->get('', [LeaguesController::class, 'getAll']);
+
+$leagueGroup->group('{id}')
+            ->get('', [LeaguesController::class, 'get'])
+            ->get('points', [LeaguesController::class, 'recountPoints'])
+            ->post('fixplayers', [LeaguesController::class, 'fixLeaguePlayers'])
+            ->get('tournaments', [LeaguesController::class, 'getTournaments']);
+
+$leaguesGroup = $apiGroup->group('leagues')
+                         ->get('', [LeaguesController::class, 'getAll']);
+
+$leaguesGroup->group('{id}')
+             ->get('', [LeaguesController::class, 'get'])
+             ->get('points', [LeaguesController::class, 'recountPoints'])
+             ->post('fixplayers', [LeaguesController::class, 'fixLeaguePlayers'])
+             ->get('tournaments', [LeaguesController::class, 'getTournaments']);
+
+// Music
+
+$apiGroup->group('music')
+         ->post('', [Music::class, 'import'])
+         ->delete('{id}', [Music::class, 'removeMode'])
+         ->post('{id}/upload', [Music::class, 'uploadFile']);
+
+// Players
+
+$playersGroup = $apiGroup->group('players')
+                         ->get('', [Players::class, 'find']);
+
+$playersGroup->group('{code}')
+             ->get('', [Players::class, 'player'])
+             ->get('title', [Players::class, 'playerTitle']);
+
+// Dev tools
+
+$devToolGroup = $apiGroup->group('devtools')
+                         ->post('regression', [DevController::class, 'updateRegressionModels'])
+                         ->get('sitemap', [DevController::class, 'generateSitemap']);
+
+$devToolGroup->group('users')
+             ->get('stats', [UserGameController::class, 'updateAllUsersStats'])
+             ->get('{id}/stats', [UserGameController::class, 'updateStats'])
+             ->get('dateRanks', [UserGameController::class, 'calculateDayRanks']);
+
+$devToolGroup->group('game')
+             ->post('modes', [DevController::class, 'assignGameModes'])
+             ->post('relativehits', [DevController::class, 'relativeHits']);
+
+$devToolGroup->group('images')
+             ->post('optimize', [DevController::class, 'generateOptimizedUploads']);
+
+$devToolGroup->group('test')
+             ->get('gender', [DevController::class, 'genderTest'])
+             ->get('inflection', [DevController::class, 'inflectionTest'])
+             ->get('achievement', [DevController::class, 'achievementCheckerTest']);

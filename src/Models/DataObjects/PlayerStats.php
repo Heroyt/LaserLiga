@@ -4,25 +4,42 @@ namespace App\Models\DataObjects;
 
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema]
 class PlayerStats implements InsertExtendInterface
 {
 
 	public function __construct(
+		#[OA\Property]
 		public int   $gamesPlayed = 0,
+		#[OA\Property]
 		public int   $arenasPlayed = 0,
+		#[OA\Property]
 		public int   $rank = 100,
+		#[OA\Property]
 		public float $averageAccuracy = 0.0,
+		#[OA\Property]
 		public float $averagePosition = 0.0,
+		#[OA\Property]
 		public int   $maxAccuracy = 0,
+		#[OA\Property]
 		public int   $maxScore = 0,
+		#[OA\Property]
 		public int   $maxSkill = 0,
+		#[OA\Property]
 		public int   $shots = 0,
+		#[OA\Property]
 		public float $averageShots = 0.0,
+		#[OA\Property]
 		public float $averageShotsPerMinute = 0.0,
+		#[OA\Property]
 		public int   $totalMinutes = 0,
+		#[OA\Property]
 		public float $kd = 0.0,
+		#[OA\Property]
 		public int   $hits = 0,
+		#[OA\Property]
 		public int   $deaths = 0,
 	) {
 	}

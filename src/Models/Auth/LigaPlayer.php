@@ -13,19 +13,23 @@ use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\OneToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Nette\Caching\Cache as CacheParent;
+use OpenApi\Attributes as OA;
 
 /**
  * Same as the regular player, but with the addition of the arena and user parameters
  */
 #[PrimaryKey('id_user')]
+#[OA\Schema]
 class LigaPlayer extends Player
 {
 
 	public const CACHE_TAGS = ['liga-players'];
 
 	#[OneToOne]
+	#[OA\Property]
 	public User $user;
 	#[ManyToOne]
+	#[OA\Property]
 	public ?Arena $arena;
 	/** @var Tournament[] */
 	private array $tournaments = [];

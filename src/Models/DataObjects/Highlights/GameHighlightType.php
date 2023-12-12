@@ -2,6 +2,9 @@
 
 namespace App\Models\DataObjects\Highlights;
 
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(type: 'string')]
 enum GameHighlightType: string
 {
 

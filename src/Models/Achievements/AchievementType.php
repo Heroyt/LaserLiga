@@ -2,6 +2,9 @@
 
 namespace App\Models\Achievements;
 
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(type: 'string')]
 enum AchievementType: string
 {
 

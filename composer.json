@@ -21,7 +21,6 @@
 		"dibi/dibi": ">4.2",
     "latte/latte": ">3.0",
     "nette/utils": ">4.0",
-    "psr/log": ">3.0",
 		"nette/security": ">3.1",
 		"ext-zip": "*",
     "php": "^8.2",
@@ -43,7 +42,8 @@
 		"ext-openssl": "*",
     "minishlink/web-push": "^8.0",
     "ext-imagick": "*",
-    "ext-gd": "*"
+    "ext-gd": "*",
+    "zircote/swagger-php": "^4.8"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

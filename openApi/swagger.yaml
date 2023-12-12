@@ -1,0 +1,1657 @@
+openapi: 3.0.0
+info:
+  title: 'LaserLiga API'
+  description: 'All API methods on the Laser liga portal.'
+  version: '1.0'
+servers:
+  - url: 'https://laserliga.cz'
+paths:
+  /api/devtools/test/achievement:
+    get:
+      tags:
+        - Devtools
+      summary: 'Test Achievement Checker'
+      description: 'This method tests the Achievement Checker system.'
+      operationId: achievementCheckerTest
+      parameters:
+        - name: code
+          in: query
+          description: 'Game code'
+          required: false
+          schema:
+            type: string
+        - name: user
+          in: query
+          description: "User's id or code"
+          required: false
+          schema:
+            type: string
+        - name: all
+          in: query
+          description: 'Flag to process all games'
+          required: false
+          schema:
+            type: boolean
+        - name: save
+          in: query
+          description: 'Flag to save achievements'
+          required: false
+          schema:
+            type: boolean
+        - name: offset
+          in: query
+          description: 'Offset for games query'
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: 'Limit for the games query'
+          required: false
+          schema:
+            type: integer
+        - name: classicOnly
+          in: query
+          description: 'Flag to process only classic game modes'
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 'Test results'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { type: array, items: { $ref: '#/components/schemas/PlayerAchievement' } }
+                  - { schema: UserAchievementsByDate, type: object, example: { '2023-12-12': { g65633f08d266f: [ [ 'PlayerAchievement object' ] ] } }, additionalProperties: { type: object, additionalProperties: { type: array, items: { $ref: '#/components/schemas/PlayerAchievement' } } } }
+                  - { schema: CheckedAchievementCounts, properties: { games: { description: 'Checked game count', type: integer }, achievements: { description: 'Found achievement count', type: integer } }, type: object }
+        '400':
+          description: 'Bad Request - Nothing to process'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Not Found - Game or Player not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/devtools/test/inflection:
+    get:
+      tags:
+        - Devtools
+      summary: 'Test Name Inflection'
+      description: 'This method tests the name inflection service.'
+      operationId: inflectionTest
+      parameters:
+        - name: 'names[]'
+          in: query
+          description: 'Names to inflect'
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+          example:
+            - Tomáš
+            - Sofka
+            - Heroyt
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  description: 'Object for each input name.'
+                  properties: { gender: { type: string }, '1': { type: string }, '2': { type: string }, '3': { type: string }, '4': { type: string }, '5': { type: string }, '6': { type: string }, '7': { type: string } }
+                  type: object
+              example:
+                Tomáš:
+                  gender: m
+                  '1': Tomáš
+                  '2': Tomáše
+                  '3': Tomášovi
+                  '4': Tomáše
+                  '5': Tomáši
+                  '6': Tomášovi
+                  '7': Tomášem
+                Sofka:
+                  gender: f
+                  '1': Sofka
+                  '2': Sofky
+                  '3': Sofce
+                  '4': Sofku
+                  '5': Sofko
+                  '6': Sofce
+                  '7': Sofkou
+                Heroyt:
+                  gender: m
+                  '1': Heroyt
+                  '2': Heroyta
+                  '3': Heroytovi
+                  '4': Heroyta
+                  '5': Heroyte
+                  '6': Heroytovi
+                  '7': Heroytem
+  /api/devtools/test/gender:
+    get:
+      tags:
+        - Devtools
+      summary: 'Test Gender Service'
+      description: 'This method tests the functionality of the Gender Service.'
+      operationId: genderTest
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+              example:
+                Tomáš: m
+                Sofka: f
+                Heroyt: m
+                Koště: o
+  /api/devtools/game/relativehits:
+    post:
+      tags:
+        - Devtools
+      summary: 'Update Relative Hits'
+      description: 'This method updates the relative hits for a selection of players.'
+      operationId: relativeHits
+      parameters:
+        - name: limit
+          in: query
+          description: 'Maximum number of players to update'
+          required: false
+          schema:
+            type: integer
+          example: 50
+        - name: offset
+          in: query
+          description: 'Number of players to skip before updating'
+          required: false
+          schema:
+            type: integer
+          example: 0
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: string, example: ok }
+                type: object
+  /api/devtools/game/modes:
+    post:
+      tags:
+        - Devtools
+      summary: 'Assign Game Modes'
+      description: 'This method assigns modes to games.'
+      operationId: assignGameModes
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: string, example: ok }
+                type: object
+  /api/devtools/regression:
+    post:
+      tags:
+        - Devtools
+      summary: 'Update Regression Models'
+      description: 'This method updates all regression models.'
+      operationId: updateRegressionModels
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: string }
+                type: object
+  /api/devtools/sitemap:
+    get:
+      tags:
+        - Devtools
+      summary: 'Generate Sitemap'
+      description: 'This method generates a sitemap.'
+      operationId: generateSitemap
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: string }
+                  sitemapUrl: { type: string }
+                  content: { type: string }
+                type: object
+  /api/devtools/images/optimize:
+    post:
+      tags:
+        - Devtools
+      summary: 'Optimize Images'
+      description: 'This method optimizes images in the upload directory.'
+      operationId: generateOptimizedUploads
+      responses:
+        '200':
+          description: 'List of optimized files'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+  /api/games:
+    get:
+      tags:
+        - Games
+      summary: 'Get list of all games'
+      operationId: listGames
+      parameters:
+        - name: date
+          in: query
+          description: 'Filter games by date'
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: system
+          in: query
+          description: 'Filter games by system'
+          required: false
+          schema:
+            type: string
+        - name: returnLink
+          in: query
+          description: 'If specified, only game links will be returned'
+          required: false
+          schema:
+            type: boolean
+        - name: returnCodes
+          in: query
+          description: 'If specified, only game codes will be returned'
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 'Successful operation. List of games is returned'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GamesListResponse'
+        '400':
+          description: 'Request error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Server error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Games
+      summary: 'Import games data'
+      description: 'This method imports games data.'
+      operationId: importGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - system
+                - games
+              properties:
+                system:
+                  type: string
+                games:
+                  type: array
+                  items: { $ref: '#/components/schemas/Game' }
+              type: object
+      responses:
+        '201':
+          description: 'Successful import'
+          content:
+            application/json:
+              schema:
+                required:
+                  - success
+                  - imported
+                properties:
+                  success: { type: boolean }
+                  imported: { type: integer }
+                type: object
+        '400':
+          description: 'Bad request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 'Game belongs to a different arena'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Server error during save operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/games/{code}/users':
+    get:
+      tags:
+        - Games
+      summary: 'Returns users of the game'
+      description: 'This method returns a list of registered users for a given game code'
+      operationId: getGameUsers
+      parameters:
+        - name: code
+          in: path
+          description: 'Game code'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'List of registered users in the game'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LigaPlayer'
+        '403':
+          description: 'This games belongs to a different arena.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Game not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/games/skills:
+    post:
+      tags:
+        - Games
+      summary: 'Recalculate Multiple Game Skills'
+      description: 'This method recalculates skills of the players for multiple games.'
+      operationId: recalcMultipleGameSkills
+      requestBody:
+        description: 'Specify games to recalculate the skills for in the request body'
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                games:
+                  type: array
+                  items: { description: 'Game codes', type: string }
+                rankonly:
+                  description: "If true, only recalculate rank change, but not the actual players' skills."
+                  type: boolean
+              type: object
+      responses:
+        '200':
+          description: 'Player skills after recalculation'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties: { name: { type: string }, skill: { type: integer } }
+                  type: object
+        '500':
+          description: 'Server error during save operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/games/{code}/skills':
+    get:
+      tags:
+        - Games
+      summary: 'Recalculate Game Skill'
+      description: 'This method recalculates skills of a player for a single game.'
+      operationId: recalcGameSkill
+      parameters:
+        - name: code
+          in: path
+          description: 'Game code'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Player skills after recalculation'
+          content:
+            application/json:
+              schema:
+                properties:
+                  players: { type: array, items: { properties: { name: { type: string }, skill: { type: integer }, user: { type: integer } }, type: object } }
+                  average: { type: number }
+                  averageUser: { type: number }
+                type: object
+        '403':
+          description: 'Game belongs to a different arena'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Game not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Server error during save operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/games/{code}':
+    get:
+      tags:
+        - Games
+      summary: 'Get Game Details'
+      description: 'This method returns details about a specific game based on its code.'
+      operationId: getGame
+      parameters:
+        - name: code
+          in: path
+          description: 'Game code'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Game details'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '400':
+          description: 'Invalid game code provided'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 'Game belongs to a different arena'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Game not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/games/stats:
+    get:
+      tags:
+        - Games
+      summary: 'Get Game Stats'
+      description: 'This method returns statistical information for games.'
+      operationId: stats
+      parameters:
+        - name: date
+          in: query
+          description: 'Filter stats by this date'
+          required: false
+          schema:
+            type: string
+          example: '2023-04-01'
+        - name: system
+          in: query
+          description: 'Filter stats by this game system'
+          required: false
+          schema:
+            type: string
+          example: GameSystem1
+      responses:
+        '200':
+          description: 'Game statistics'
+          content:
+            application/json:
+              schema:
+                properties:
+                  games: { type: integer }
+                  players: { type: integer }
+                  teams: { type: integer }
+                type: object
+  '/api/games/{code}/highlights':
+    get:
+      tags:
+        - Games
+      summary: 'Get game highlights'
+      description: 'This method returns highlight information for a specific game.'
+      operationId: highlights
+      parameters:
+        - name: code
+          in: path
+          description: 'Game code'
+          required: true
+          schema:
+            type: string
+        - name: user
+          in: query
+          description: 'User ID to filter highlights'
+          required: false
+          schema:
+            type: integer
+        - name: descriptions
+          in: query
+          description: 'Flag to return only highlight descriptions'
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 'Game highlights'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { type: array, items: { $ref: '#/components/schemas/GameHighlight' } }
+                  - { type: array, items: { type: string } }
+        '400':
+          description: 'Invalid game code provided'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: 'Game belongs to a different arena'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Game not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/leagues:
+    get:
+      tags:
+        - Leagues
+      summary: 'Get All Leagues'
+      description: 'This method returns all the leagues for the current arena.'
+      operationId: getAllLeagues
+      responses:
+        '200':
+          description: 'List of all leagues'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/League'
+  '/api/leagues/{id}':
+    get:
+      tags:
+        - Leagues
+      summary: 'Get League by ID'
+      description: 'This method returns a league based on the provided ID.'
+      operationId: getLeague
+      parameters:
+        - name: id
+          in: path
+          description: 'League ID'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'League fetched successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/League'
+        '403':
+          description: 'Access denied'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/leagues/{id}/tournaments':
+    get:
+      tags:
+        - Leagues
+      summary: 'Get Tournaments of a League by ID'
+      description: 'This method returns all the tournaments of a league based on the provided ID.'
+      operationId: getLeagueTournaments
+      parameters:
+        - name: id
+          in: path
+          description: 'League ID'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Tournaments fetched successfully'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tournament'
+        '403':
+          description: 'Access denied'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/leagues/{id}/points':
+    get:
+      tags:
+        - Leagues
+      summary: 'Recount points of a League by ID'
+      description: 'This method recounts the points for each team in a league based on the provided league ID and returns the recalculated values.'
+      operationId: recountLeaguePoints
+      parameters:
+        - name: id
+          in: path
+          description: 'League ID'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Points recounted successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { properties: { team: { type: string }, points: { type: integer }, positions: { type: object, additionalProperties: { properties: { position: { type: integer }, teamCount: { type: integer } }, type: object } } }, type: object }
+        '403':
+          description: 'Access denied'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/leagues/{id}/fixplayers':
+    post:
+      tags:
+        - Leagues
+      summary: 'Fix Players of a League by ID'
+      description: 'This method fixes league players data based on the provided league ID and returns the result of the operation.'
+      operationId: fixLeaguePlayers
+      parameters:
+        - name: id
+          in: path
+          description: 'League ID'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Players fixed successfully'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: string }
+                  players: { type: integer }
+                  missing: { properties: { total: { type: integer }, foundMapPlayerCount: { type: integer }, foundPlayerCount: { type: integer }, newPlayerCount: { type: integer }, ids: { type: object } }, type: object }
+                  teams: { type: object }
+                type: object
+        '500':
+          description: 'Database error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/players:
+    get:
+      tags:
+        - Players
+      summary: 'Find Users'
+      description: 'This method returns users based on the provided search parameters.'
+      operationId: find
+      parameters:
+        - name: search
+          in: query
+          description: 'Search parameter (name, code, email)'
+          required: false
+          schema:
+            type: string
+        - name: arena
+          in: query
+          description: 'Home arena filter'
+          required: false
+          schema:
+            type: integer
+        - name: connectionType
+          in: query
+          description: 'Connected account type filter'
+          required: false
+          schema:
+            type: string
+        - name: identifier
+          in: query
+          description: 'Connected account identifier'
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'List of players'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LigaPlayer'
+  '/api/players/{code}':
+    get:
+      tags:
+        - Players
+      summary: 'Get User by Code'
+      description: 'This method returns a user based on the provided code.'
+      operationId: player
+      parameters:
+        - name: code
+          in: path
+          description: 'User code'
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+-[A-Z\d]{5}$'
+      responses:
+        '200':
+          description: 'Player fetched successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LigaPlayer'
+        '404':
+          description: 'Player not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: 'Bad request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/players/{code}/title':
+    get:
+      tags:
+        - Players
+      summary: "Get User's Title by Code"
+      description: 'This method returns the title of a user based on the provided code.'
+      operationId: playerTitle
+      parameters:
+        - name: code
+          in: path
+          description: 'User code'
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+-[A-Z\d]{5}$'
+      responses:
+        '200':
+          description: "Player's title fetched successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Title'
+        '404':
+          description: 'Player not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: 'Bad request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/tournaments:
+    get:
+      tags:
+        - Tournaments
+      summary: 'Get All Tournaments'
+      description: 'This method returns all the tournaments for the current arena.'
+      operationId: getAllTournaments
+      responses:
+        '200':
+          description: 'List of all tournaments'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tournament'
+    post:
+      tags:
+        - Tournaments
+      summary: 'Sync Tournament Games'
+      description: 'This method syncs tournament games data provided in the request body.'
+      operationId: syncTournament
+      requestBody:
+        description: 'Request body containing tournament games data'
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                group:
+                  properties: { id: { type: integer }, name: { type: string } }
+                  type: object
+                  nullable: true
+                groups:
+                  type: array
+                  items: { properties: { id_local: { type: integer }, id_public: { type: integer, nullable: true }, name: { type: string } }, type: object }
+                teams:
+                  type: array
+                  items: { properties: { id_local: { type: integer }, id_public: { type: integer, nullable: true }, points: { type: integer } }, type: object }
+                games:
+                  type: array
+                  items: { properties: { id_local: { type: integer }, id_public: { type: integer, nullable: true }, group: { type: integer, nullable: true }, code: { type: string, nullable: true }, start: { type: string, format: datetime }, teams: { type: array, items: { properties: { key: { type: integer }, team: { type: integer, nullable: true }, position: { type: integer, nullable: true }, score: { type: integer, nullable: true }, points: { type: integer, nullable: true } }, type: object } } }, type: object }
+                progressions:
+                  type: array
+                  items: { properties: { id_local: { type: integer }, id_public: { type: integer, nullable: true }, points: { type: integer }, start: { type: integer, nullable: true }, length: { type: integer, nullable: true }, keys: { type: string, nullable: true }, filters: { type: string, nullable: true }, from: { type: integer }, to: { type: integer } }, type: object }
+              type: object
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                description: 'Object ids of synchronized objects.'
+                properties:
+                  groups: { description: 'Pairs of local and public ids (object key = local id, object value = public id).', type: object, example: { '1': 1, '2': 3, '3': 10 }, additionalProperties: { type: integer } }
+                  games: { description: 'Pairs of local and public ids (object key = local id, object value = public id).', type: object, example: { '1': 1, '2': 3, '3': 10 }, additionalProperties: { type: integer } }
+                  progressions: { description: 'Pairs of local and public ids (object key = local id, object value = public id).', type: object, example: { '1': 1, '2': 3, '3': 10 }, additionalProperties: { type: integer } }
+                type: object
+        '403':
+          description: 'Access denied'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/tournaments/{id}':
+    get:
+      tags:
+        - Tournaments
+      summary: 'Get Tournament by ID'
+      description: 'This method returns a tournament based on the provided ID.'
+      operationId: getTournament
+      parameters:
+        - name: id
+          in: path
+          description: 'Tournament ID'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Tournament fetched successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tournament'
+        '403':
+          description: 'Access denied'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/tournaments/{id}/teams':
+    get:
+      tags:
+        - Tournaments
+      summary: 'Get Tournament Teams'
+      description: 'This method returns all teams within a tournament by the provided tournament ID.'
+      operationId: getTournamentTeams
+      parameters:
+        - name: id
+          in: path
+          description: 'Tournament ID'
+          required: true
+          schema:
+            type: integer
+        - name: withPlayers
+          in: query
+          description: 'Include players in each team'
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties: { id: { type: integer }, name: { type: string }, image: { type: string }, hash: { type: string }, createdAt: { type: string, format: date-time }, updatedAt: { type: string, format: date-time }, players: { type: array, items: { properties: { id: { type: integer }, nickname: { type: string }, name: { type: string }, surname: { type: string }, phone: { type: string }, email: { type: string }, parentEmail: { type: string }, parentPhone: { type: string }, birthYear: { type: integer }, image: { type: string }, captain: { type: boolean }, sub: { type: boolean }, skill: { type: integer }, user: { type: object }, createdAt: { type: string, format: date-time }, updatedAt: { type: string, format: date-time } }, type: object }, nullable: true } }
+                  type: object
+        '403':
+          description: 'Access denied'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/devtools/users/{id}/stats':
+    get:
+      tags:
+        - Devtools
+        - Users
+      summary: 'Update User Stats'
+      description: 'This method updates the stats for the specified user.'
+      operationId: updateStats
+      parameters:
+        - name: id
+          in: path
+          description: 'User ID'
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerStats'
+  /api/devtools/users/stats:
+    get:
+      tags:
+        - Devtools
+        - Users
+      summary: 'Update All User Stats'
+      description: 'This method updates the stats for all users.'
+      operationId: updateAllUsersStats
+      parameters:
+        - name: from
+          in: query
+          description: 'User id to start processing from'
+          required: false
+          schema:
+            type: integer
+          example: 0
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/PlayerStats'
+  /api/devtools/users/dateRanks:
+    get:
+      tags:
+        - Devtools
+        - Users
+      summary: 'Calculate Daily User Ranks'
+      description: 'This method calculates daily user ranks for a specific date or a range starting from a date.'
+      operationId: calculateDayRanks
+      parameters:
+        - name: date
+          in: query
+          description: 'Specific date to calculate ranks for'
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: from
+          in: query
+          description: 'Start date for a range to calculate ranks for'
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 'Day rank calculation results'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlayerRank'
+        '400':
+          description: 'Missing date or from parameter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      properties:
+        title:
+          type: string
+        type:
+          $ref: '#/components/schemas/ErrorType'
+        detail:
+          type: string
+          nullable: true
+        exception:
+          properties:
+            message:
+              type: string
+            code:
+              type: integer
+            trace:
+              type: array
+              items:
+                type: object
+          type: object
+          nullable: true
+        values:
+          type: object
+          nullable: true
+      type: object
+    ErrorType:
+      type: string
+      enum:
+        - validation_error
+        - database_error
+        - internal_error
+        - resource_not_found_error
+        - resource_access_error
+    GamesListResponse:
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/Game'
+          - type: string
+          - type: string
+    GameModeType:
+      description: 'Types of game modes'
+      type: string
+      enum:
+        - TEAM
+        - SOLO
+    Game:
+      description: 'Base class for game models'
+      properties:
+        fileTime:
+          type: string
+          format: date-time
+          nullable: true
+        start:
+          type: string
+          format: date-time
+          nullable: true
+        importTime:
+          type: string
+          format: date-time
+          nullable: true
+        end:
+          type: string
+          format: date-time
+          nullable: true
+        timing:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/Timing'
+        code:
+          type: string
+        mode:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/AbstractMode'
+        gameType:
+          $ref: '#/components/schemas/GameModeType'
+        scoring:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/Scoring'
+        arena:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/Arena'
+        music:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/MusicMode'
+        group:
+          nullable: true
+      type: object
+    AbstractMode:
+      description: 'Base class for all game mode models'
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          $ref: '#/components/schemas/GameModeType'
+        loadName:
+          type: string
+          nullable: true
+        teams:
+          type: string
+        settings:
+          $ref: '#/components/schemas/ModeSettings'
+        rankable:
+          type: boolean
+      type: object
+    ModeSettings:
+      description: 'Data-model for all game mode settings'
+      properties:
+        public:
+          type: boolean
+        mines:
+          type: boolean
+        partWin:
+          type: boolean
+        partTeams:
+          type: boolean
+        partPlayers:
+          type: boolean
+        partHits:
+          type: boolean
+        partBest:
+          type: boolean
+        partBestDay:
+          type: boolean
+        playerScore:
+          type: boolean
+        playerShots:
+          type: boolean
+        playerMiss:
+          type: boolean
+        playerAccuracy:
+          type: boolean
+        playerMines:
+          type: boolean
+        playerPlayers:
+          type: boolean
+        playerPlayersTeams:
+          type: boolean
+        playerKd:
+          type: boolean
+        playerFavourites:
+          type: boolean
+        playerLives:
+          type: boolean
+        teamScore:
+          type: boolean
+        teamAccuracy:
+          type: boolean
+        teamShots:
+          type: boolean
+        teamHits:
+          type: boolean
+        teamZakladny:
+          type: boolean
+        bestScore:
+          type: boolean
+        bestHits:
+          type: boolean
+        bestDeaths:
+          type: boolean
+        bestAccuracy:
+          type: boolean
+        bestHitsOwn:
+          type: boolean
+        bestDeathsOwn:
+          type: boolean
+        bestShots:
+          type: boolean
+        bestMiss:
+          type: boolean
+        bestMines:
+          type: boolean
+      type: object
+    Scoring:
+      description: "Structure containing game's scoring settings\n\nScoring = how many points does a player get for an action."
+      properties:
+        deathOther:
+          type: integer
+        hitOther:
+          type: integer
+        deathOwn:
+          type: integer
+        hitOwn:
+          type: integer
+        hitPod:
+          type: integer
+        shot:
+          type: integer
+        machineGun:
+          type: integer
+        invisibility:
+          type: integer
+        agent:
+          type: integer
+        shield:
+          type: integer
+      type: object
+    Timing:
+      description: "Game's timing settings"
+      properties:
+        before:
+          type: integer
+        gameLength:
+          type: integer
+        after:
+          type: integer
+      type: object
+    Gender:
+      type: string
+      enum:
+        - m
+        - f
+        - o
+    Achievement:
+      properties:
+        icon:
+          type: string
+          nullable: true
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        info:
+          type: string
+          nullable: true
+        type:
+          $ref: '#/components/schemas/AchievementType'
+        rarity:
+          $ref: '#/components/schemas/Rarity'
+        value:
+          type: integer
+          nullable: true
+        key:
+          type: string
+          nullable: true
+        getAvatar:
+          type: boolean
+        title:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/Title'
+        group:
+          type: boolean
+      type: object
+    AchievementType:
+      type: string
+      enum:
+        - game_count
+        - games_per_day
+        - accuracy
+        - arenas
+        - position
+        - hits
+        - deaths
+        - 'k:d'
+        - shots_min
+        - shots_max
+        - game_days_successive
+        - games_per_month
+        - signup
+        - tournament_play
+        - tournament_position
+        - league_position
+        - bonus
+        - bonus_shield
+        - bonus_machine_gun
+        - bonus_invisibility
+        - bonus_spy
+        - trophy
+    PlayerAchievement:
+      properties:
+        icon:
+          description: SVG
+          type: string
+        achievement:
+          $ref: '#/components/schemas/Achievement'
+        player:
+          $ref: '#/components/schemas/LigaPlayerBase'
+        game:
+          $ref: '#/components/schemas/Game'
+        datetime:
+          type: string
+          format: date-time
+      type: object
+    Title:
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        rarity:
+          $ref: '#/components/schemas/Rarity'
+        unlocked:
+          type: boolean
+      type: object
+    Arena:
+      properties:
+        name:
+          type: string
+        lat:
+          type: number
+          format: float
+          nullable: true
+        lng:
+          type: number
+          format: float
+          nullable: true
+        address: { }
+        web:
+          type: string
+          nullable: true
+        contactEmail:
+          type: string
+          nullable: true
+        contactPhone:
+          type: string
+          nullable: true
+      type: object
+    LigaPlayer:
+      description: 'Same as the regular player, but with the addition of the arena and user parameters'
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/LigaPlayerBase'
+        - properties:
+            user: { }
+            arena:
+              nullable: true
+              oneOf:
+                - $ref: '#/components/schemas/Arena'
+          type: object
+    LigaPlayerBase:
+      properties:
+        stats:
+          $ref: '#/components/schemas/PlayerStats'
+        code:
+          description: 'Unique code for each player - two players can have the same code if they are from different arenas.'
+          type: string
+        nickname:
+          type: string
+        email:
+          type: string
+        avatar:
+          type: string
+          nullable: true
+        avatarStyle:
+          type: string
+          nullable: true
+        avatarSeed:
+          type: string
+          nullable: true
+        title:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/Title'
+        gender:
+          $ref: '#/components/schemas/Gender'
+      type: object
+    GameHighlight:
+      properties:
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/GameHighlightType'
+        value:
+          type: string
+        rarityScore:
+          type: integer
+      type: object
+    GameHighlightType:
+      type: string
+      enum:
+        - trophy
+        - other
+        - alone
+        - hits
+        - user_average
+    PlayerRank:
+      properties:
+        userId:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        rank:
+          type: integer
+        position:
+          type: integer
+        positionFormatted:
+          type: string
+      type: object
+    PlayerStats:
+      properties:
+        gamesPlayed:
+          type: integer
+        arenasPlayed:
+          type: integer
+        rank:
+          type: integer
+        averageAccuracy:
+          type: number
+          format: float
+        averagePosition:
+          type: number
+          format: float
+        maxAccuracy:
+          type: integer
+        maxScore:
+          type: integer
+        maxSkill:
+          type: integer
+        shots:
+          type: integer
+        averageShots:
+          type: number
+          format: float
+        averageShotsPerMinute:
+          type: number
+          format: float
+        totalMinutes:
+          type: integer
+        kd:
+          type: number
+          format: float
+        hits:
+          type: integer
+        deaths:
+          type: integer
+      type: object
+    MusicMode:
+      properties:
+        name:
+          type: string
+        order:
+          type: integer
+        fileName:
+          type: string
+        arena:
+          nullable: true
+          oneOf:
+            - $ref: '#/components/schemas/Arena'
+        idLocal:
+          type: integer
+        previewStart:
+          type: integer
+      type: object
+    Rarity:
+      type: string
+      enum:
+        - common
+        - uncommon
+        - rare
+        - epic
+        - legendary
+        - mythic
+    League:
+      properties:
+        format:
+          $ref: '#/components/schemas/GameModeType'
+        teamLimit:
+          type: integer
+          nullable: true
+        teamSize:
+          type: integer
+        subCount:
+          type: integer
+        registrationsActive:
+          type: boolean
+        registrationText:
+          type: string
+          nullable: true
+        substituteRegistration:
+          type: boolean
+        requirements:
+          $ref: '#/components/schemas/Requirements'
+        name:
+          type: string
+        slug:
+          type: string
+          nullable: true
+        shortDescription:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        price:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        registrationType:
+          $ref: '#/components/schemas/RegistrationType'
+        arena:
+          $ref: '#/components/schemas/Arena'
+      type: object
+    RegistrationType:
+      type: string
+      enum:
+        - league
+        - tournament
+        - both
+    Requirement:
+      type: string
+      enum:
+        - required
+        - captain
+        - optional
+        - hidden
+    Requirements:
+      properties:
+        playerName:
+          $ref: '#/components/schemas/Requirement'
+        playerSurname:
+          $ref: '#/components/schemas/Requirement'
+        playerEmail:
+          $ref: '#/components/schemas/Requirement'
+        playerParentEmail:
+          $ref: '#/components/schemas/Requirement'
+        playerPhone:
+          $ref: '#/components/schemas/Requirement'
+        playerParentPhone:
+          $ref: '#/components/schemas/Requirement'
+        playerBirthYear:
+          $ref: '#/components/schemas/Requirement'
+        playerSkill:
+          $ref: '#/components/schemas/Requirement'
+      type: object
+    Tournament:
+      properties:
+        league:
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+          type: object
+          nullable: true
+        arena:
+          $ref: '#/components/schemas/Arena'
+        name:
+          type: string
+        rules:
+          type: string
+          nullable: true
+        prices:
+          type: string
+          nullable: true
+        resultsSummary:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        shortDescription:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+        finished:
+          type: boolean
+        format:
+          $ref: '#/components/schemas/GameModeType'
+        teamLimit:
+          type: integer
+          nullable: true
+        teamSize:
+          type: integer
+        subCount:
+          type: integer
+        registrationsActive:
+          type: boolean
+        registrationText:
+          type: string
+          nullable: true
+        substituteRegistration:
+          type: boolean
+        requirements:
+          $ref: '#/components/schemas/Requirements'
+      type: object
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: [ ]

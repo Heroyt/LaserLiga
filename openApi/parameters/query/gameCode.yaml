@@ -1,5 +1,0 @@
-name: code
-in: query
-description: If set, games will be filtered by game code.
-schema:
-    $ref: '../../schemas/game/GameCode.yaml'

@@ -1,6 +1,0 @@
-name: code
-in: path
-description: Code's unique code
-required: true
-schema:
-    $ref: '../../schemas/game/GameCode.yaml'

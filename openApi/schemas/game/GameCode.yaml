@@ -1,4 +1,0 @@
-description: The unique identifier of a game
-type: string
-format: /[a-z\d]{14}/
-example: g61b107935cbca

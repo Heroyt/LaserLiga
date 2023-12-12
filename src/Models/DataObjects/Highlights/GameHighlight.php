@@ -3,7 +3,9 @@
 namespace App\Models\DataObjects\Highlights;
 
 use JsonSerializable;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(properties: [new OA\Property(property: 'description', type: 'string')])]
 class GameHighlight implements JsonSerializable
 {
 
@@ -17,7 +19,13 @@ class GameHighlight implements JsonSerializable
 	 * @param string            $value
 	 * @param int               $rarityScore Score that indicates the importance of this highlight (for sorting) - higher value = more important/interesting highlight
 	 */
-	public function __construct(public readonly GameHighlightType $type, public string $value, public int $rarityScore = self::LOW_RARITY,) {
+	public function __construct(
+		#[OA\Property]
+		public readonly GameHighlightType $type,
+		#[OA\Property]
+		public string                     $value,
+		#[OA\Property]
+		public int                        $rarityScore = self::LOW_RARITY,) {
 	}
 
 	public function jsonSerialize(): array {

@@ -7,17 +7,24 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Dibi\Row;
 use Exception;
+use \OpenApi\Attributes as OA;
 
+#[OA\Schema]
 class PlayerRank
 {
 
 	private LigaPlayer $player;
 
 	public function __construct(
+		#[OA\Property]
 		public int               $userId,
+		#[OA\Property(type: 'string', format: 'date-time')]
 		public DateTimeInterface $date,
+		#[OA\Property]
 		public int               $rank,
+		#[OA\Property]
 		public int               $position,
+		#[OA\Property]
 		public string            $positionFormatted
 	) {
 	}
