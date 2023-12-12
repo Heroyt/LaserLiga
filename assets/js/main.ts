@@ -11,7 +11,7 @@ import route from "./router";
 import initDatePickers from "./datePickers";
 import {initClearButtons} from "./pages/utils";
 import {Tab} from 'bootstrap';
-import {registerPush, updatePush} from "./push";
+import {checkPush, registerPush, updatePush} from "./push";
 
 declare global {
     const usr: number | null;
@@ -55,17 +55,21 @@ if ('serviceWorker' in navigator) {
                                 const subscribed = await registration.pushManager.getSubscription();
                                 if (!subscribed) {
                                     await registerPush(registration);
+                                } else {
+                                    await checkPush(subscribed);
                                 }
                             }
                         })
                         .catch(() => {
 
                         });
-                } else if (Notification.permission === 'granted' && userChanged) {
-                    registration.pushManager.getSubscription().then(subscription => {
+                } else if (Notification.permission === 'granted') {
+                    registration.pushManager.getSubscription().then(async (subscription) => {
                         if (subscription) {
-                            // noinspection JSIgnoredPromiseFromCall
-                            updatePush(subscription);
+                            await checkPush(subscription);
+                            if (userChanged) {
+                                await updatePush(subscription);
+                            }
                         }
                     })
                 }

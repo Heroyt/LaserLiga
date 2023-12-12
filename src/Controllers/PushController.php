@@ -24,6 +24,17 @@ class PushController extends Controller
 		parent::__construct($latte);
 	}
 
+	public function isSubscribed(Request $request): never {
+		$endpoint = (string)$request->getGet('endpoint', '');
+		if (empty($endpoint) || !Validators::isUri($endpoint)) {
+			$this->respond(['error' => 'Invalid endpoint'], 400);
+		}
+		$subscription = Subscription::query()
+		                            ->where('endpoint = %s', $endpoint)
+		                            ->first();
+		$this->respond(['subscribed' => isset($subscription), 'id' => $subscription?->id]);
+	}
+
 	/**
 	 * @param Request $request
 	 * @return never
