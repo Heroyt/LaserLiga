@@ -75,7 +75,10 @@ class Image
 	}
 
 	private function pathToUrl(string $file): string {
-		return App::getUrl() . str_replace(ROOT, '', $file);
+		$path = explode('/', str_replace(ROOT, '', $file));
+		$index = count($path) - 1;
+		$path[$index] = urlencode($path[$index]);
+		return App::getUrl() . implode('/', $path);
 	}
 
 	/**
@@ -119,6 +122,10 @@ class Image
 		$imageService = App::getServiceByType(ImageService::class);
 
 		$imageService->optimize($this->image);
+	}
+
+	public function getPath(): string {
+		return $this->image;
 	}
 
 }
