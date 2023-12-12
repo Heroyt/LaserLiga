@@ -50,7 +50,7 @@ class Evo5HighlightChecker implements GameHighlightChecker
 			}
 		}
 
-		if (count($mineDeaths) === 1) {
+		if (isset($mineDeaths[0]->name) && count($mineDeaths) === 1) {
 			$name = $mineDeaths[0]->name;
 			$gender = GenderService::rankWord($name);
 			$highlights->add(
@@ -69,8 +69,8 @@ class Evo5HighlightChecker implements GameHighlightChecker
 			);
 		}
 
-		if (count($powers) === 1) {
-			$name = $mineDeaths[0]->name;
+		if (isset($powers[0]->name) && count($powers) === 1) {
+			$name = $powers[0]->name;
 			$gender = GenderService::rankWord($name);
 			$highlights->add(
 				new GameHighlight(
