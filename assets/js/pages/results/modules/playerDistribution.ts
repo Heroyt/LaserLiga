@@ -1,20 +1,20 @@
 import {Modal} from "bootstrap";
-import {Chart} from "chart.js/auto";
+import {BarController, BarElement, CategoryScale, Chart, Colors, Legend, LinearScale, Tooltip} from "chart.js";
 import Annotation from "chartjs-plugin-annotation";
 import {startLoading, stopLoading} from "../../../loaders";
-import axios, {AxiosResponse} from "axios";
 import {DistributionModuleInterface} from "../playerModules";
+import {getGamePlayerDistribution} from "../../../api/endpoints/game";
 
-interface DistributionResponse {
-    player: { [index: string]: any },
-    distribution: { [index: string]: number },
-    percentile: number,
-    min: number,
-    max: number,
-    value: number,
-}
-
-Chart.register(Annotation);
+Chart.register(
+    Annotation,
+    Legend,
+    Tooltip,
+    Colors,
+    BarController,
+    BarElement,
+    LinearScale,
+    CategoryScale,
+);
 
 export default class DistributionModule implements DistributionModuleInterface {
 
@@ -102,7 +102,7 @@ export default class DistributionModule implements DistributionModuleInterface {
         _paq.push(['trackEvent', 'Results', 'PlayerDistribution', this.selectedParam, this.selectedPlayer]);
         startLoading();
         try {
-            const response: AxiosResponse<DistributionResponse> = await axios.get(`/game/${gameCode}/player/${this.selectedPlayer}/distribution/${this.selectedParam}?dates=${this.dates.value}`);
+            const response = await getGamePlayerDistribution(gameCode, this.selectedPlayer, this.selectedParam, this.dates.value);
 
             this.chart.data.labels = [];
             this.chart.data.datasets = [
@@ -112,22 +112,22 @@ export default class DistributionModule implements DistributionModuleInterface {
                 },
             ];
 
-            Object.entries(response.data.distribution).forEach(([group, count]) => {
+            Object.entries(response.distribution).forEach(([group, count]) => {
                 this.chart.data.labels.push(group);
                 this.chart.data.datasets[0].data.push(count);
             });
 
             this.chart.update('reset');
 
-            this.chart.options.scales.x1.min = response.data.min;
-            this.chart.options.scales.x1.max = response.data.max;
+            this.chart.options.scales.x1.min = response.min;
+            this.chart.options.scales.x1.max = response.max;
 
             // @ts-ignore
-            this.chart.options.plugins.annotation.annotations.percentile.value = response.data.value;
+            this.chart.options.plugins.annotation.annotations.percentile.value = response.value;
             // @ts-ignore
-            this.chart.options.plugins.annotation.annotations.percentile.endValue = response.data.value;
+            this.chart.options.plugins.annotation.annotations.percentile.endValue = response.value;
             // @ts-ignore
-            this.chart.options.plugins.annotation.annotations.percentile.label.content = response.data.percentile > 50 ? `${this.canvas.dataset.top} ${100 - response.data.percentile} %` : `${this.canvas.dataset.bottom} ${response.data.percentile} %`;
+            this.chart.options.plugins.annotation.annotations.percentile.label.content = response.percentile > 50 ? `${this.canvas.dataset.top} ${100 - response.data.percentile} %` : `${this.canvas.dataset.bottom} ${response.data.percentile} %`;
 
             console.log(this.chart.options.plugins.annotation, this.chart.data);
             this.chart.scales.x1.configure();

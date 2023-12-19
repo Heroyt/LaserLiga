@@ -31,13 +31,10 @@ $gameGroup->get('', [Games::class, 'show'])->name('game-empty');    // This will
 
 $gameCodeGroup = $gameGroup->group('{code}');
 
-$gameCodeGroup->get('', [Games::class, 'show'])->name('game')->get('thumb', [Games::class, 'thumb'])->get(
-	'highlights',
-	[
-		Games::class,
-		'highlights',
-	]
-);
+$gameCodeGroup->get('', [Games::class, 'show'])->name('game')
+              ->get('{user}', [Games::class, 'show'])->name('user-game')
+              ->get('thumb', [Games::class, 'thumb'])
+              ->get('highlights', [Games::class, 'highlights']);
 
 $gameCodeGroup->group('player')->get('{id}', [Games::class, 'playerResults'])->get(
 	'{id}/distribution/{param}',
@@ -58,7 +55,8 @@ $gameGroup->group('group')->group('{groupid}')->get('', [Games::class, 'group'])
 );
 
 // Alias to 'game' group
-Route::group('g')->get('', [Games::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
+Route::group('g')
+     ->get('', [Games::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
      ->get('abcdefghij', [Dashboard::class, 'bp'])->get('{code}', [Games::class, 'show'])->name('game-alias')->get(
 	'{code}/thumb',
 	[Games::class, 'thumb']
@@ -117,11 +115,11 @@ Route::group('arena')
      )
      ->name('arenas-detail')
      ->group('tab')
-     ->get('stats', [Arenas::class, 'show'])
-     ->get('music', [Arenas::class, 'show'])
-     ->get('games', [Arenas::class, 'show'])
-     ->get('tournaments', [Arenas::class, 'show'])
-     ->get('info', [Arenas::class, 'show'])
+	->get('stats', [Arenas::class, 'show'])->name('arena-detail-stats')
+	->get('music', [Arenas::class, 'show'])->name('arena-detail-music')
+	->get('games', [Arenas::class, 'show'])->name('arena-detail-games')
+	->get('tournaments', [Arenas::class, 'show'])->name('arena-detail-tournaments')
+	->get('info', [Arenas::class, 'show'])->name('arena-detail-info')
      ->endGroup()
      ->get('games', [Arenas::class, 'games'])
      ->group('stats')

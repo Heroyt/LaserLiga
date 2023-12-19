@@ -1,6 +1,6 @@
 import {TeamModuleInterface} from "../teamModules";
-import axios, {AxiosResponse} from "axios";
 import {initTooltips} from "../../../functions";
+import {getGameTeamResults} from "../../../api/endpoints/game";
 
 export default class TeamModule implements TeamModuleInterface {
     init(wrapper: HTMLDivElement): void {
@@ -8,8 +8,7 @@ export default class TeamModule implements TeamModuleInterface {
     }
 
     async load(body: HTMLDivElement, id: number): Promise<void> {
-        const response: AxiosResponse<string> = await axios.get(`/game/${gameCode}/team/${id}`);
-        body.innerHTML = response.data;
+        body.innerHTML = await getGameTeamResults(gameCode, id);
         this.init(body);
         body.classList.add('loaded');
     }

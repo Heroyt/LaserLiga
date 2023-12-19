@@ -1,6 +1,6 @@
 import {initDataTableForm} from "../../components/dataTable";
-import axios from "axios";
 import {startLoading, stopLoading} from "../../loaders";
+import {userUnsetMe} from "../../api/endpoints/user";
 
 export default function initUserHistory() {
 	const form = document.getElementById('user-history-form') as HTMLFormElement;
@@ -14,7 +14,7 @@ export default function initUserHistory() {
                 }
                 const code = btn.dataset.code;
                 startLoading();
-                axios.post('/user/player/unsetme', {code})
+                userUnsetMe(code)
                     .then(() => {
                         stopLoading(true);
                         btn.findParentElement('tr').remove();

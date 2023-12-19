@@ -1,28 +1,6 @@
 import {startLoading, stopLoading} from "../../../loaders";
-import axios, {AxiosResponse} from "axios";
 import {initTooltips} from "../../../functions";
-
-interface Achievement {
-    id: number;
-    icon: string | null;
-    name: string;
-    description: string;
-    info: string | null;
-    type: string;
-    rarity: string;
-    key: string | null;
-    group: boolean;
-    title: null | { id: number, name: string },
-}
-
-interface AchievementClaimDto {
-    achievement: Achievement;
-    icon: string;
-    claimed: boolean;
-    code: string | null;
-    dateTime: { date: string, timezone_type: number, timezone: string } | null;
-    totalCount: number;
-}
+import {getUserAchievements} from "../../../api/endpoints/userStats";
 
 let achievementsLoaded = false;
 
@@ -53,17 +31,17 @@ export default function initAchievementTab(achievementsTabBtn: HTMLAnchorElement
         startLoading(true);
         achievementsWrapper.innerHTML = '';
         achievementsUnclaimedWrapper.innerHTML = '';
-        axios.get('/user/' + code + '/stats/achievements')
-            .then((response: AxiosResponse<AchievementClaimDto[]>) => {
+        getUserAchievements(code)
+            .then(response => {
                 stopLoading(true, true);
                 achievementsLoaderWrapper.classList.add('d-none');
                 achievementsStatsWrapper.classList.remove('d-none');
 
-                achievementsCount.innerText = response.data.length.toString();
+                achievementsCount.innerText = response.length.toString();
 
                 const achievementGroups: Map<string, HTMLDivElement> = new Map;
                 let claimed = 0;
-                response.data.forEach(achievement => {
+                response.forEach(achievement => {
                     const achievementEl = document.createElement('div');
                     achievementEl.classList.add('achievement-card', 'm-2', 'rarity-' + achievement.achievement.rarity, achievement.claimed ? 'achievement-claimed' : 'achievement-unclaimed');
                     achievementEl.id = 'achievement-' + achievement.achievement.id.toString();

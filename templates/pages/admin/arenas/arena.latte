@@ -6,9 +6,10 @@
 {block content}
 	<p class="text-start">
 		<a href="{link ['admin', 'arenas']}" class="btn btn-warning"><i
-					class="fa-solid fa-caret-left"></i> {lang 'Zpět'}</a>
+                    class="fa-solid fa-angle-left"></i> {lang 'Zpět'}</a>
 	</p>
-	<form action="{link ['admin', 'arenas', $arena->id]}" method="post" enctype="multipart/form-data" id="arena-form">
+    <form action="{link ['admin', 'arenas', $arena->id]}" method="post" enctype="multipart/form-data" id="arena-form"
+          data-arena="{$arena->id}">
 		<div class="form-floating mb-3">
 			<input type="text" name="name" class="form-control" id="arena-name" placeholder="{lang 'Název'}" required
 				   value="{$arena->name}">

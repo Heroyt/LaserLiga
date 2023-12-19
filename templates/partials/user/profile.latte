@@ -217,7 +217,8 @@
             <p class="text-center">{lang 'Hráč nemá zatím žádné hry'}</p>
         {else}
             <div class="games-list">
-                <a n:foreach="$lastGames as $game" class="game-row rounded" href="{link ['game', $game->code]}">
+                <a n:foreach="$lastGames as $game" class="game-row rounded"
+                                                   href="{link ['game', $game->code, $user->player->getCode()]}">
                     <time datetime="{$game->start->format('c')}"
                           class="datetime">{$game->start->format('j. n. Y H:i')}</time>
                     <span class="arena">{ifset $game->id_arena}{\App\Models\Arena::get($game->id_arena)->getLogoHtml()|noescape}{/ifset}</span>

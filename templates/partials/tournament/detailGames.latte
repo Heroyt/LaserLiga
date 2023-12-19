@@ -34,8 +34,20 @@
         <tr>
             <th class="text-center">{lang 'Začátek'}</th>
             <th class="text-center">{lang 'Skupina'}</th>
-            <th>{lang 'Domácí'}</th>
-            <th>{lang 'Hosté'}</th>
+            {switch $tournament->teamsInGame}
+                {case 2}
+                <th>{lang 'Domácí'}</th>
+                <th>{lang 'Hosté'}</th>
+            {case 3}
+                <th>{lang 'Tým 1'}</th>
+                <th>{lang 'Tým 2'}</th>
+                <th>{lang 'Tým 3'}</th>
+            {case 4}
+                <th>{lang 'Tým 1'}</th>
+                <th>{lang 'Tým 2'}</th>
+                <th>{lang 'Tým 3'}</th>
+                <th>{lang 'Tým 4'}</th>
+            {/switch}
             <th>{lang 'Výsledky'}</th>
             <th></th>
         </tr>

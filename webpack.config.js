@@ -1,3 +1,4 @@
+const {fontawesomeSubset} = require("fontawesome-subset");
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CompressionPlugin = require("compression-webpack-plugin");
@@ -37,6 +38,53 @@ files.forEach(([name, data]) => {
 });
 
 console.log(entry);
+
+fontawesomeSubset(
+    {
+        brands: ['discord'],
+        regular: ['calendar', 'circle-xmark', 'circle-check'],
+        solid: [
+            'medal',
+            'location-dot',
+            'star',
+            'ranking-star',
+            'trophy',
+            'gear',
+            'gun',
+            'user',
+            'right-to-bracket',
+            'right-from-bracket',
+            'angle-down',
+            'angle-up',
+            'angle-left',
+            'angle-right',
+            'user-plus',
+            'share',
+            'info',
+            'circle-info',
+            'xmark',
+            'filter',
+            'cancel',
+            'user-clock',
+            'edit',
+            'eye',
+            'pen-to-square',
+            'question',
+            'circle-question',
+            'magnifying-glass-plus',
+            'download',
+            'tag',
+            'list',
+            'plus',
+            'ban',
+        ],
+    },
+    "assets/fonts",
+    {
+        package: 'free',
+        targetFormats: ['woff2', "woff", 'sfnt'],
+    }
+);
 
 module.exports = {
     mode: isDevelopment ? 'development' : 'production',
@@ -158,12 +206,12 @@ module.exports = {
         runtimeChunk: true,
         moduleIds: 'deterministic',
         splitChunks: {
-            chunks: 'all',
-            usedExports: true,
+            //chunks: 'all',
+            //usedExports: true,
             cacheGroups: {
-                vendor: {
-                    test: /[\\/]node_modules[\\/](axios|flatpickr)[\\/]/,
-                    name: 'vendors',
+                chart: {
+                    test: /[\\/]node_modules[\\/](chart.js|chartjs-adapter-date-fns|chartjs-plugin-annotation|date-fns)[\\/]/,
+                    name: 'chart',
                     chunks: 'all',
                 },
                 bootstrap: {

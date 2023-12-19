@@ -5,6 +5,7 @@ namespace App\Models\Events;
 use App\Models\Arena;
 use App\Models\DataObjects\Image;
 use DateTimeImmutable;
+use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Model;
 use OpenApi\Attributes as OA;
@@ -31,6 +32,8 @@ abstract class EventBase extends Model
 	public ?string $shortDescription = null;
 	#[OA\Property]
 	public ?string $description      = null;
+	#[OA\Property, Instantiate]
+	public EventPopup $popup;
 
 	#[OA\Property]
 	public bool $active   = true;

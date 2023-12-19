@@ -35,7 +35,7 @@
         {$group->arena->getLogoHtml()|noescape}
         <h2>{lang 'Skupina'} - {$group->name}</h2>
         {var string $range = $group->getDateRange()}
-        <h4 n:if="!empty($range)">{$range}</h4>
+        <h3 n:if="!empty($range)" class="fs-4">{$range}</h3>
         <div class="text-center">
             <button type="button" class="btn-lg btn btn-success d-none my-3" data-trigger="share"
                     data-title="{sprintf(lang('Skupina - %s'), $group->name)}"
@@ -60,10 +60,10 @@
             <h5>{lang 'Herní mód'}</h5>
             <div class="d-flex flex-wrap justify-content-evenly">
                 <div n:foreach="$group->getModes() as $modeId => $mode" class="form-check">
-                    <input class="form-check-input" type="checkbox" value="{$modeId}" id="modeFilter{$modeId}"
+                    <input class="form-check-input" type="checkbox" value="{$modeId}" id="groupModeFilter{$modeId}"
                            name="modes[]"
                            {if empty($modes) || in_array($modeId, $modes, true)}checked{/if}>
-                    <label class="form-check-label" for="modeFilter{$modeId}">
+                    <label class="form-check-label" for="groupModeFilter{$modeId}">
                         {lang $mode->name, context: 'gameModes'}
                     </label>
                 </div>
@@ -87,7 +87,7 @@
     <h3>{lang 'Hráči'} ({count($players)})</h3>
     <section id="groupPlayers" class="d-flex flex-column">
         <div n:foreach="$players as $player" class="group-player rounded-10 my-2 bg-white flex-fill shadow">
-            <div class="player-head collapsed bg-primary py-2 px-3" data-bs-toggle="collapse"
+            <div class="player-head collapsed text-bg-primary py-2 px-3" data-bs-toggle="collapse"
                  data-bs-target="#player-body-{$player->asciiName|replace:' ','_'}"
                  id="player-{$player->asciiName|replace:' ','_'}">
                 <div class="position">
@@ -165,7 +165,7 @@
                         {var float $accuracy = empty($modes) ? $player->getAverageAccuracy() : $player->getModesAverageAccuracy($modes)}
                         <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
                              class="accuracy" xml:space="preserve"
-                             style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                             style="--color:var(--text);fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
 							<circle class="fill-circle" r="{$circleRadius}" cx="250" cy="250" fill="transparent"
                                     stroke="tomato"
                                     stroke-width="{2*$circleRadius}"
@@ -444,7 +444,7 @@
         <h3 class="mt-4">{lang 'Týmy'} ({$teams|length})</h3>
         <section id="groupTeams" class="d-flex flex-column">
             <div n:foreach="$teams as $team" class="group-team rounded-10 my-2 bg-white flex-fill shadow">
-                <div class="team-head collapsed bg-primary py-2 px-3" data-bs-toggle="collapse"
+                <div class="team-head collapsed text-bg-primary py-2 px-3" data-bs-toggle="collapse"
                      data-bs-target="#team-body-{$team->key}">
                     <div class="position">
                         {$iterator->counter}.
@@ -497,7 +497,7 @@
                             {var float $accuracy = $team->getAccuracyAvg()}
                             <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
                                  class="accuracy" xml:space="preserve"
-                                 style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                                 style="--color:var(--text);fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
 							<circle class="fill-circle" r="{$circleRadius}" cx="250" cy="250" fill="transparent"
                                     stroke="tomato"
                                     stroke-width="{2*$circleRadius}"

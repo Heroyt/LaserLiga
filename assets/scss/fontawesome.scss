@@ -1,11 +1,76 @@
 // Font Awesome
-$fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
+// $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
+$fa-font-path: "/assets/fonts/";
 @import '~@fortawesome/fontawesome-free/scss/functions';
 @import '~@fortawesome/fontawesome-free/scss/variables';
+
+$icons: (
+        'discord': $fa-var-discord,
+        'calendar': $fa-var-calendar,
+        'circle-xmark': $fa-var-circle-xmark,
+        'circle-check': $fa-var-circle-check,
+        'medal': $fa-var-medal,
+        'location-dot': $fa-var-location-dot,
+        'star': $fa-var-star,
+        'ranking-star': $fa-var-ranking-star,
+        'trophy': $fa-var-trophy,
+        'gear': $fa-var-gear,
+        'gun': $fa-var-gun,
+        'user': $fa-var-user,
+        'right-to-bracket': $fa-var-right-to-bracket,
+        'right-from-bracket': $fa-var-right-from-bracket,
+        'angle-down': $fa-var-angle-down,
+        'angle-up': $fa-var-angle-up,
+        'angle-left': $fa-var-angle-left,
+        'angle-right': $fa-var-angle-right,
+        'user-plus': $fa-var-user-plus,
+        'share': $fa-var-share,
+        'info': $fa-var-info,
+        'circle-info': $fa-var-circle-info,
+        'xmark': $fa-var-xmark,
+        'filter': $fa-var-filter,
+        'cancel': $fa-var-cancel,
+        'user-clock': $fa-var-user-clock,
+        'edit': $fa-var-edit,
+        'eye': $fa-var-eye,
+        'pen-to-square': $fa-var-pen-to-square,
+        'question': $fa-var-question,
+        'circle-question': $fa-var-circle-question,
+        'magnifying-glass-plus': $fa-var-magnifying-glass-plus,
+        'download': $fa-var-download,
+        'tag': $fa-var-tag,
+        'list': $fa-var-list,
+        'plus': $fa-var-plus,
+        'ban': $fa-var-ban,
+);
+
 @import '~@fortawesome/fontawesome-free/scss/mixins';
-@import '~@fortawesome/fontawesome-free/scss/core';
-@import '~@fortawesome/fontawesome-free/scss/icons';
-@import '~@fortawesome/fontawesome-free/scss/screen-reader';
 @import '~@fortawesome/fontawesome-free/scss/regular';
 @import '~@fortawesome/fontawesome-free/scss/solid';
-@import '~@fortawesome/fontawesome-free/scss/brands';
+
+:root, :host {
+  --#{$fa-css-prefix}-style-family-brands: 'Font Awesome 6 Brands';
+  --#{$fa-css-prefix}-font-brands: normal 400 1em/1 'Font Awesome 6 Brands';
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Brands';
+  font-style: normal;
+  font-weight: 400;
+  font-display: $fa-font-display;
+  src: url('#{$fa-font-path}/fa-brands-400.woff2') format('woff2'),
+  url('#{$fa-font-path}/fa-brands-400.ttf') format('truetype');
+}
+
+.fab,
+.#{$fa-css-prefix}-brands {
+  font-weight: 400;
+}
+
+@import '~@fortawesome/fontawesome-free/scss/core';
+
+@each $name, $icon in $icons {
+  .#{$fa-css-prefix}-#{$name}::before {
+    content: unquote("\"#{ $icon }\"");
+  }
+}

@@ -15,7 +15,7 @@
     <meta property="og:description" content="{$event->shortDescription ?? $page->getDescription()}"/>
     <meta property="og:site_name" content="LaserLiga"/>
     <meta property="og:type" content="event"/>
-    <meta property="og:url" content="{link 'tournament', $event->id}"/>
+    <meta property="og:url" content="{link 'events', $event->id}"/>
     <meta n:ifset="$event->image" property="og:image" content="{$event->getImageUrl()}"/>
 {/define}
 

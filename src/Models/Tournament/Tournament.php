@@ -39,6 +39,9 @@ class Tournament extends EventBase implements EventRegistrationInterface
 
 	public const TABLE = 'tournaments';
 
+	#[OA\Property]
+	public int $teamsInGame = 2;
+
 	#[ManyToOne]
 	public ?League $league = null;
 	#[ManyToOne]
@@ -52,6 +55,7 @@ class Tournament extends EventBase implements EventRegistrationInterface
 	public array $groups = [];
 
 	#[Instantiate]
+	#[OA\Property]
 	public TournamentPoints $points;
 	/** @var Team[] */
 	protected array $teams = [];
@@ -64,7 +68,10 @@ class Tournament extends EventBase implements EventRegistrationInterface
 	/** @var Team[] */
 	private array $sortedTeams = [];
 
+
+	#[OA\Property]
 	public DateTimeInterface  $start;
+	#[OA\Property]
 	public ?DateTimeInterface $end = null;
 
 	protected bool $started;

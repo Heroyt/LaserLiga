@@ -1,25 +1,10 @@
 import {Modal} from 'bootstrap';
-import axios, {AxiosResponse} from "axios";
 import {PlayerModuleInterface} from "./playerModules";
 import {TeamModuleInterface} from "./teamModules";
+import {getGameHighlights} from "../../api/endpoints/game";
 
 declare global {
     const gameCode: string;
-}
-
-interface DistributionResponse {
-    player: { [index: string]: any },
-    distribution: { [index: string]: number },
-    percentile: number,
-    min: number,
-    max: number,
-    value: number,
-}
-
-interface HighlightResponse {
-    rarity: number,
-    description: string,
-    html: string
 }
 
 export default function initResults() {
@@ -54,15 +39,17 @@ export default function initResults() {
 
     // Auto-open tournament modal
     const modalDom = document.getElementById('tournament-modal') as HTMLDivElement;
-    const dontShow = modalDom.querySelector('#dont-show') as HTMLButtonElement;
-    const modal = new Modal(modalDom);
-    const hide = window.localStorage.getItem('hide-tournament-modal') === 'true';
-    if (modalDom.dataset.show && modalDom.dataset.show === 'true' && !hide) {
-        modal.show();
-        dontShow.addEventListener('click', () => {
-            window.localStorage.setItem('hide-tournament-modal', 'true');
-            modal.hide();
-        });
+    if (modalDom) {
+        const dontShow = modalDom.querySelector('#dont-show') as HTMLButtonElement;
+        const modal = new Modal(modalDom);
+        const hide = window.localStorage.getItem('hide-tournament-modal') === 'true';
+        if (modalDom.dataset.show && modalDom.dataset.show === 'true' && !hide) {
+            modal.show();
+            dontShow.addEventListener('click', () => {
+                window.localStorage.setItem('hide-tournament-modal', 'true');
+                modal.hide();
+            });
+        }
     }
 
     (document.querySelectorAll('.player-body') as NodeListOf<HTMLDivElement>).forEach(playerBody => {
@@ -104,7 +91,7 @@ export default function initResults() {
 
 async function loadHighlights() {
     try {
-        const response: AxiosResponse<HighlightResponse[]> = await axios.get(`/game/${gameCode}/highlights`);
+        const response = await getGameHighlights(gameCode);
         const highlightsWrapper = document.querySelector('.results-highlights') as HTMLDivElement;
         const top = highlightsWrapper.querySelector('.top') as HTMLDivElement;
         const empty = highlightsWrapper.querySelector('.empty') as HTMLDivElement;
@@ -112,7 +99,7 @@ async function loadHighlights() {
         const more = highlightsWrapper.querySelector('.show-more') as HTMLParagraphElement;
 
         let count = 0;
-        for (const highlight of response.data) {
+        for (const highlight of response) {
             const wrapper = document.createElement('div');
             wrapper.classList.add('highlight');
             wrapper.setAttribute('data-rarity', highlight.rarity.toString());

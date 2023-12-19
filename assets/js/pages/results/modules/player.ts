@@ -1,4 +1,3 @@
-import axios, {AxiosResponse} from "axios";
 import {initSetMe} from "../../../userPlayer";
 import {initTooltips} from "../../../functions";
 import {
@@ -7,6 +6,7 @@ import {
     LeaderboardModuleInterface,
     PlayerModuleInterface
 } from "../playerModules";
+import {getGamePlayerResults} from "../../../api/endpoints/game";
 
 export default class PlayerModule implements PlayerModuleInterface {
 
@@ -42,8 +42,7 @@ export default class PlayerModule implements PlayerModuleInterface {
     }
 
     async load(body: HTMLDivElement, id: number) {
-        const response: AxiosResponse<string> = await axios.get(`/game/${gameCode}/player/${id}`);
-        body.innerHTML = response.data;
+        body.innerHTML = await getGamePlayerResults(gameCode, id);
         await this.init(body);
         body.classList.add('loaded');
     }

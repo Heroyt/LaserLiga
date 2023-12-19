@@ -6,7 +6,6 @@ import {
     initTableRowLink,
     initTooltips
 } from './functions';
-import axios from 'axios';
 import route from "./router";
 import initDatePickers from "./datePickers";
 import {initClearButtons} from "./pages/utils";
@@ -19,10 +18,6 @@ declare global {
     const _mtm: any[];
     const _paq: any[][];
 }
-
-axios.defaults.headers.post['X-Requested-With'] = 'XMLHttpRequest';
-axios.defaults.headers.get['X-Requested-With'] = 'XMLHttpRequest';
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

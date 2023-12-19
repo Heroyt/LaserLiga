@@ -495,7 +495,7 @@ class RankCalculator
 			"UPDATE %n [a] SET [rank] = 100 + COALESCE((SELECT SUM([b].[difference]) FROM [player_game_rating] [b] WHERE [a].[id_user] = [b].[id_user]),0)",
 			Player::TABLE
 		);
-		$this->cache->clean([$this->cache::Tags => Player::TABLE]);
+		$this->cache->clean([$this->cache::Tags => [Player::TABLE, Player::TABLE . '/query']]);
 	}
 
 	/**

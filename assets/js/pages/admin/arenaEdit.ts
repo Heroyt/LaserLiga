@@ -1,6 +1,7 @@
-import axios, {AxiosResponse} from "axios";
 import {startLoading, stopLoading} from "../../loaders";
 import {initCopyToClipboard} from "../../functions";
+import {fetchPost} from "../../api/client";
+import {generateApiKey, invalidateApiKey} from "../../api/endpoints/admin";
 
 declare global {
 	const translations: { [index: string]: string }
@@ -8,6 +9,7 @@ declare global {
 
 export default function initArenaEdit() {
 	const form = document.getElementById('arena-form') as HTMLFormElement;
+    const idArena = parseInt(form.dataset.arena);
 	const imgInput = document.getElementById('arena-image') as HTMLInputElement;
 	const imgWrapper = document.getElementById('img') as HTMLDivElement;
 	imgInput.addEventListener('change', () => {
@@ -18,16 +20,11 @@ export default function initArenaEdit() {
 			data.append('image', file);
 
 			startLoading(true);
-			axios.post(
+            fetchPost(
 				form.action + '/image',
-				data,
-				{
-					headers: {
-						"Content-Type": "multipart/form-data",
-					}
-				}
+                data
 			)
-				.then(response => {
+                .then(() => {
 					stopLoading(true, true);
 				})
 				.catch(error => {
@@ -38,7 +35,7 @@ export default function initArenaEdit() {
 			const fileReader = new FileReader();
 			fileReader.readAsDataURL(file);
 			fileReader.addEventListener("load", function () {
-				imgWrapper.innerHTML = `<img src="${this.result}">`;
+                imgWrapper.innerHTML = `<img alt="arena logo" src="${this.result}">`;
 			});
 		}
 	});
@@ -47,12 +44,12 @@ export default function initArenaEdit() {
 	const apiKeysWrapper = document.getElementById('api-keys') as HTMLDivElement;
 	addApiKeyBtn.addEventListener('click', () => {
 		startLoading(true);
-		axios.post(form.action + '/apiKey', {})
-			.then((response: AxiosResponse<{ key: string, id: number, name: string }>) => {
+        generateApiKey(idArena)
+            .then(response => {
 				stopLoading(true, true);
 				const keyInput = document.createElement('div');
-				const key = response.data.key;
-				const id = response.data.id;
+                const key = response.key;
+                const id = response.id;
 				keyInput.classList.add('input-group', 'mb-2');
 				keyInput.dataset.id = id.toString();
 				keyInput.innerHTML = `<input type="text" readonly="readonly" class="form-control col-9 text-center font-monospace bg-light-grey text-black" id="key-${id}" value="${key}">` +
@@ -60,7 +57,7 @@ export default function initArenaEdit() {
 					`<i class="fa-solid fa-clipboard"></i>` +
 					`</button>` +
 					`<div class="form-floating">` +
-					`<input type="text" name="key[${id}][name]" class="form-control" id="key-${id}-name" placeholder="${translations.name}" required value="${response.data.name}">` +
+                    `<input type="text" name="key[${id}][name]" class="form-control" id="key-${id}-name" placeholder="${translations.name}" required value="${response.name}">` +
 					`<label for="key-${id}-name">${translations.name}</label>` +
 					`</div>` +
 					`<button type="button" class="delete btn btn-danger"><i class="fa-solid fa-trash"></i></button>`;
@@ -82,7 +79,7 @@ function initApiKey(element: HTMLDivElement) {
 	const id = parseInt(element.dataset.id);
 	deleteBtn.addEventListener('click', () => {
 		startLoading(true);
-		axios.post(`/admin/arenas/apikey/${id}/invalidate`, {})
+        invalidateApiKey(id)
 			.then(() => {
 				stopLoading(true, true);
 				element.remove();

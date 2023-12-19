@@ -1,12 +1,6 @@
 import {startLoading, stopLoading} from "../../../loaders";
-import axios, {AxiosResponse} from "axios";
 import {Tooltip} from "bootstrap";
-
-interface TrendData {
-    before: number,
-    now: number,
-    diff: number,
-}
+import {getUserTrends} from "../../../api/endpoints/userStats";
 
 export default function initTrendsTab(trendsTabBtn: HTMLAnchorElement, trendsTabWrapper: HTMLDivElement): void {
     let trendsLoaded = false;
@@ -27,31 +21,21 @@ export default function initTrendsTab(trendsTabBtn: HTMLAnchorElement, trendsTab
 
     function loadTrends() {
         startLoading(true);
-        axios.get('/user/' + code + '/stats/trends')
-            .then((response: AxiosResponse<{
-                accuracy: number,
-                averageShots: number,
-                rank: number,
-                games: TrendData,
-                rankableGames: TrendData,
-                sumShots: TrendData,
-                sumHits: TrendData,
-                sumDeaths: TrendData,
-                rankOrder: TrendData
-            }>) => {
+        getUserTrends(code)
+            .then(response => {
                 stopLoading(true, true);
                 trendsLoaderWrapper.classList.add('d-none');
                 trendsStatsWrapper.classList.remove('d-none');
 
-                initTrend(document.getElementById('rank-trend') as HTMLDivElement, response.data.rank);
-                initTrend(document.getElementById('accuracy-trend') as HTMLDivElement, response.data.accuracy);
-                initTrend(document.getElementById('average-shots-trend') as HTMLDivElement, response.data.averageShots);
-                initTrend(document.getElementById('game-count-trend') as HTMLDivElement, response.data.games.diff);
-                initTrend(document.getElementById('rankable-game-count-trend') as HTMLDivElement, response.data.rankableGames.diff);
-                initTrend(document.getElementById('sum-shots-trend') as HTMLDivElement, response.data.sumShots.diff);
-                initTrend(document.getElementById('sum-hits-trend') as HTMLDivElement, response.data.sumHits.diff);
-                initTrend(document.getElementById('sum-deaths-trend') as HTMLDivElement, response.data.sumDeaths.diff);
-                initTrend(document.getElementById('rank-order-trend') as HTMLDivElement, response.data.rankOrder.diff);
+                initTrend(document.getElementById('rank-trend') as HTMLDivElement, response.rank);
+                initTrend(document.getElementById('accuracy-trend') as HTMLDivElement, response.accuracy);
+                initTrend(document.getElementById('average-shots-trend') as HTMLDivElement, response.averageShots);
+                initTrend(document.getElementById('game-count-trend') as HTMLDivElement, response.games.diff);
+                initTrend(document.getElementById('rankable-game-count-trend') as HTMLDivElement, response.rankableGames.diff);
+                initTrend(document.getElementById('sum-shots-trend') as HTMLDivElement, response.sumShots.diff);
+                initTrend(document.getElementById('sum-hits-trend') as HTMLDivElement, response.sumHits.diff);
+                initTrend(document.getElementById('sum-deaths-trend') as HTMLDivElement, response.sumDeaths.diff);
+                initTrend(document.getElementById('rank-order-trend') as HTMLDivElement, response.rankOrder.diff);
 
                 trendsLoaded = true;
             })

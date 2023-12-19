@@ -1,8 +1,8 @@
 import initDatePickers from "../datePickers";
 import {startLoading, stopLoading} from "../loaders";
-import axios, {AxiosResponse} from "axios";
 import {initCheckAll, initTableRowLink, initTooltips} from "../functions";
 import {initClearButtons} from "../pages/utils";
+import {fetchGet} from "../api/client";
 
 export function initDataTableForm(form: HTMLFormElement, afterUpdate: (() => void) | null = null) {
 	const updateHistory = (form.dataset.noHistory ?? '') !== '1';
@@ -101,19 +101,18 @@ export function initDataTableForm(form: HTMLFormElement, afterUpdate: (() => voi
 
 	function updateTable() {
 		const data = new FormData(form);
-		let query: string[] = [];
+        let query = new URLSearchParams;
 
 		data.forEach((value, name) => {
-			query.push(name + '=' + value);
+            query.append(name, value.toString());
 		});
 
 		startLoading(true);
-		const url = form.action + (query.length > 0 ? '?' + query.join('&') : '');
-		axios.get(url)
-			.then((response: AxiosResponse<string>) => {
-				form.innerHTML = response.data;
+        fetchGet(form.action, query)
+            .then((response: string) => {
+                form.innerHTML = response;
 				if (updateHistory) {
-					window.history.pushState({}, '', url);
+                    window.history.pushState({}, '', form.action + (query.size > 0 ? '?' + query.toString() : ''));
 				}
 				initForm();
 				stopLoading(true, true);

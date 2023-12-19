@@ -1,6 +1,6 @@
-import autocomplete, {AutocompleteItem, PreventSubmit} from 'autocompleter';
+import autocomplete, {AutocompleteItem} from 'autocompleter';
 import {UserSearchData} from "../interfaces/userSearchData";
-import axios, {AxiosResponse} from "axios";
+import {findUsers} from "../api/endpoints/userSearch";
 
 interface UserSearchAutocompleteItem extends AutocompleteItem {
     label: string,
@@ -15,10 +15,10 @@ export function initUserAutocomplete(input: HTMLInputElement, callback: (user: U
         preventSubmit: 1,
         debounceWaitMs: 100,
         fetch: (search, update: (items: UserSearchAutocompleteItem[]) => void) => {
-            findPlayersLocal(search, true)
-                .then((response: AxiosResponse<UserSearchData[]>) => {
+            findUsers(search, true)
+                .then(response => {
                     const autocompleteData: UserSearchAutocompleteItem[] = [];
-                    response.data.forEach(playerData => {
+                    response.forEach(playerData => {
                         autocompleteData.push({label: playerData.code + ': ' + playerData.nickname, data: playerData});
                     });
                     update(autocompleteData);
@@ -31,12 +31,4 @@ export function initUserAutocomplete(input: HTMLInputElement, callback: (user: U
             callback(item.data);
         }
     });
-}
-
-export function findPlayersLocal(search: string, noMail: boolean = false): Promise<AxiosResponse<UserSearchData[]>> {
-    const searchParams = new URLSearchParams({search});
-    if (noMail) {
-        searchParams.append('nomail', '1');
-    }
-    return axios.get('/players/find?' + searchParams.toString());
 }

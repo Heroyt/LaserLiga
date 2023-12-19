@@ -1,6 +1,7 @@
 import {registerPush, unregisterPush} from "../../push";
-import axios from "axios";
 import {startLoading, stopLoading} from "../../loaders";
+import {fetchPost} from "../../api/client";
+import {sendPushTestNotification} from "../../api/endpoints/push";
 
 export default function initUserSettings() {
     const avatarPreview = document.getElementById('avatarPreview') as HTMLImageElement;
@@ -32,8 +33,8 @@ export default function initUserSettings() {
                     return;
                 }
                 startLoading();
-                axios.post(avatarSave.dataset.action, {seed: avatarSeed.value, type: avatarType.value})
-                    .then(response => {
+                fetchPost(avatarSave.dataset.action, {seed: avatarSeed.value, type: avatarType.value})
+                    .then(() => {
                         stopLoading(true);
                     })
                     .catch(() => {
@@ -87,7 +88,7 @@ export default function initUserSettings() {
 				});
 				testBtn.addEventListener('click', () => {
 					startLoading();
-					axios.get('/push/test')
+                    sendPushTestNotification()
 						.then(() => {
 							stopLoading(true);
 						})

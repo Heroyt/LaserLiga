@@ -1,5 +1,5 @@
 import {startLoading, stopLoading} from "../../loaders";
-import axios from "axios";
+import {userSetAllMe, userSetMe, userSetNotMe} from "../../api/endpoints/user";
 
 export default function initFindGames(): void {
 	const lines = document.querySelectorAll('#user-possible-matches-table tbody tr') as NodeListOf<HTMLTableRowElement>;
@@ -13,7 +13,7 @@ export default function initFindGames(): void {
         }
 
         startLoading();
-        axios.post('/user/player/setallme', {})
+        userSetAllMe()
             .then(() => {
                 stopLoading(true);
                 lines.forEach(line => {
@@ -29,14 +29,14 @@ export default function initFindGames(): void {
 	lines.forEach(line => {
 		const setMe = line.querySelector('.setMe') as HTMLButtonElement;
 		const setNotMe = line.querySelector('.setNotMe') as HTMLButtonElement;
-		const matchId = line.dataset.id;
-		const playerId = setMe.dataset.id;
+        const matchId = parseInt(line.dataset.id);
+        const playerId = parseInt(setMe.dataset.id);
 		const system = setMe.dataset.system;
 		console.log(matchId, playerId, system, setMe, setNotMe)
 
 		setMe.addEventListener('click', () => {
 			startLoading();
-			axios.post('/user/player/setme', {id: playerId, system})
+            userSetMe(playerId, system)
 				.then(() => {
 					stopLoading(true);
 					line.remove();
@@ -49,7 +49,7 @@ export default function initFindGames(): void {
 
 		setNotMe.addEventListener('click', () => {
 			startLoading();
-			axios.post('/user/player/setnotme', {id: matchId})
+            userSetNotMe(matchId)
 				.then(() => {
 					stopLoading(true);
 					line.remove();

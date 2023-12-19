@@ -4,6 +4,7 @@ namespace App\Models\Tournament\League;
 
 use App\Models\Arena;
 use App\Models\Events\Event;
+use App\Models\Events\EventPopup;
 use App\Models\Events\EventRegistrationInterface;
 use App\Models\Events\EventRegistrationTrait;
 use App\Models\Tournament\RegistrationType;
@@ -11,6 +12,7 @@ use App\Models\Tournament\Tournament;
 use Lsr\Core\App;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
@@ -36,6 +38,8 @@ class League extends Model implements EventRegistrationInterface
 	public ?string $price = null;
 	#[OA\Property]
 	public ?string $image            = null;
+	#[OA\Property, Instantiate]
+	public EventPopup $popup;
 
 	#[OA\Property]
 	public RegistrationType $registrationType = RegistrationType::TOURNAMENT;

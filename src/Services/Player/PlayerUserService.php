@@ -96,6 +96,8 @@ readonly class PlayerUserService
 		$player->save();
 
 		$this->updateUserTrophies($user);
+		$player::clearInstances();
+		$player::clearModelCache();
 
 		$this->rankCalculator->recalculateUsersRanksFromDifference();
 	}

@@ -202,13 +202,13 @@
                 <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionAsc"
                        value="asc" autocomplete="off" n:attr="checked: !$desc">
                 <label class="btn btn-outline-secondary" for="mobileOrderDirectionAsc">
-                    <i class="fa-solid fa-angle-up"></i>
+                    <i class="fa-solid fa-angle-up"></i> <span class="visually-hidden">{lang 'Řadit vzestupně'}</span>
                 </label>
 
                 <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionDesc"
                        value="desc" autocomplete="off" n:attr="checked: $desc">
                 <label class="btn btn-outline-secondary" for="mobileOrderDirectionDesc">
-                    <i class="fa-solid fa-angle-down"></i>
+                    <i class="fa-solid fa-angle-down"></i> <span class="visually-hidden">{lang 'Řadit sestupně'}</span>
                 </label>
             </div>
             <div n:foreach="$players as $player" class="card w-100 my-2 linkable" data-code="{$player->getCode()}"

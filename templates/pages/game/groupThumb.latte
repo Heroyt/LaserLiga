@@ -25,8 +25,8 @@
 ]}
 {var array[] $stats = [
 ['label' => 'Odehráno her', 'value' => number_format($gameCount, 0, ',', ' ')],
-['label' => 'První hra', 'value' => last($group->getGames())->start->format('j. n. Y H:i')],
-['label' => 'Poslední hra', 'value' => first($group->getGames())->start->format('j. n. Y H:i')],
+['label' => 'První hra', 'value' => last($group->getGames())?->start?->format('j. n. Y H:i') ?? ''],
+['label' => 'Poslední hra', 'value' => first($group->getGames())?->start?->format('j. n. Y H:i') ?? ''],
 ]}
 {var array $image = $images[$group->id % count($images)]}
 <?xml version="1.0" encoding="UTF-8"?>

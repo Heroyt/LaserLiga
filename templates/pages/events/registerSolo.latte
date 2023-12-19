@@ -6,6 +6,7 @@
 {varType array $_POST}
 {varType string[] $errors}
 {varType App\Models\Auth\User|null $user}
+{varType Lsr\Core\Controller $page}
 
 {var array $playerNames = [
 ['Karel', 'Novák'],
@@ -30,6 +31,16 @@
 
 {do shuffle($playerNames)}
 {do shuffle($nickNames)}
+
+{define addHead}
+    <meta property="og:title"
+          content="{lang 'Registrace'} {ifset $event->league}{$event->league->name}: {/ifset}{$event->name}"/>
+    <meta property="og:description" content="{$event->shortDescription ?? $page->getDescription()}"/>
+    <meta property="og:site_name" content="LaserLiga"/>
+    <meta property="og:type" content="event"/>
+    <meta property="og:url" content="{link 'events', $event->id, 'register'}"/>
+    <meta n:ifset="$event->image" property="og:image" content="{$event->getImageUrl()}"/>
+{/define}
 
 {define content}
     <p class="text-start">

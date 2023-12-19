@@ -31,7 +31,10 @@ class TitleProvider
 		$ids = [];
 		$achievements = $this->achievementProvider->getForUser($player);
 		foreach ($achievements as $achievement) {
-			$ids[] = $achievement->achievement->title->id;
+			if (!isset($achievement->achievement->title)) {
+				continue;
+			}
+			$ids[] = $achievement->achievement->title?->id;
 		}
 		return DB::select(['titles', 't'], 't.id_title, t.name, t.description, t.rarity, t.unlocked, a.real_rarity')
 		         ->leftJoin('vAchievements', 'a')

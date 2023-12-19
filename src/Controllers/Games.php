@@ -4,12 +4,14 @@ namespace App\Controllers;
 
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\Today;
 use App\Helpers\Gender;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
 use App\Services\Achievements\AchievementProvider;
@@ -213,10 +215,10 @@ class Games extends Controller
 	 * @throws GameModeNotFoundException
 	 * @throws Throwable
 	 */
-	public function show(string $code): void {
+	public function show(string $code, ?string $user = null): void {
 		$this->params['addCss'][] = 'pages/result.css';
-		$this->params['game'] = GameFactory::getByCode($code);
-		if (!isset($this->params['game'])) {
+		$this->params['game'] = $game = GameFactory::getByCode($code);
+		if (!isset($game)) {
 			$this->title = 'Hra nenalezena';
 			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
 
@@ -224,35 +226,35 @@ class Games extends Controller
 			$this->view('pages/game/empty');
 			return;
 		}
-		$this->params['gameDescription'] = $this->getGameDescription($this->params['game']);
-		$this->params['schema'] = $this->getSchema($this->params['game'], $this->params['gameDescription']);
+		$this->params['gameDescription'] = $this->getGameDescription($game);
+		$this->params['schema'] = $this->getSchema($game, $this->params['gameDescription']);
 		$this->title = 'Výsledky laser game - %s %s (%s)';
 		$this->titleParams = [
-			$this->params['game']->start?->format('d.m.Y H:i'),
-			lang($this->params['game']->getMode()?->name, context: 'gameModes'),
-			$this->params['game']->arena?->name,
+			$game->start?->format('d.m.Y H:i'),
+			lang($game->getMode()?->name, context: 'gameModes'),
+			$game->arena?->name,
 		];
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'                                                   => [],
 			lang('Arény')                                                  => ['arena'],
-			$this->params['game']->arena->name                             => [
+			$game->arena->name                                             => [
 				'arena',
-				$this->params['game']->arena->id,
+				$game->arena->id,
 			],
-			(sprintf(lang('Výsledky ze hry - %s'), $this->titleParams[0])) => ['game', $this->params['game']->code],
+			(sprintf(lang('Výsledky ze hry - %s'), $this->titleParams[0])) => ['game', $game->code],
 		];
 		$this->description = 'Výsledky ze hry laser game z data %s z arény %s v herním módu %s.';
 		$this->descriptionParams = [
-			$this->params['game']->start?->format('d.m.Y H:i'),
-			$this->params['game']->arena?->name,
-			lang($this->params['game']->getMode()?->name, context: 'gameModes'),
+			$game->start?->format('d.m.Y H:i'),
+			$game->arena?->name,
+			lang($game->getMode()?->name, context: 'gameModes'),
 		];
 
 		$this->params['prevGame'] = '';
 		$this->params['nextGame'] = '';
-		if (isset($this->params['game']->group)) {
+		if (isset($game->group)) {
 			// Get all game codes for the same group
-			$codes = $this->params['game']->group->getGamesCodes();
+			$codes = $game->group->getGamesCodes();
 			// Find previous and next game code from the same group
 			$found = false;
 			foreach ($codes as $gameCode) {
@@ -267,14 +269,46 @@ class Games extends Controller
 				$this->params['prevGame'] = $gameCode;
 			}
 		}
-		/*if (!$this->params['game']->visited) {
-			$this->params['game']->visited = true;
-			$this->params['game']->save();
-		}*/
+
+		$this->params['prevUserGame'] = '';
+		$this->params['nextUserGame'] = '';
+		$this->params['activeUser'] = null;
+		$player = null;
+		if (!empty($user)) {
+			$player = LigaPlayer::getByCode($user);
+		}
+		else if (isset($this->params['user'])) {
+			foreach ($game->getPlayers() as $gamePlayer) {
+				if ($gamePlayer->user?->id === $this->params['user']->id) {
+					$player = $this->params['user']->player;
+					break;
+				}
+			}
+		}
+
+		if (isset($player)) {
+			$this->params['activeUser'] = $player;
+			$prevGameRow = PlayerFactory::queryPlayerGames()
+			                            ->where('id_user = %i AND start < %dt', $player->id, $game->start)
+			                            ->orderBy('start')
+			                            ->desc()
+			                            ->fetch();
+			if (isset($prevGameRow)) {
+				$this->params['prevUserGame'] = $prevGameRow->code;
+			}
+			$nextGameRow = PlayerFactory::queryPlayerGames()
+			                            ->where('id_user = %i AND start > %dt', $player->id, $game->start)
+			                            ->orderBy('start')
+			                            ->fetch();
+			if (isset($nextGameRow)) {
+				$this->params['nextUserGame'] = $nextGameRow->code;
+			}
+		}
+
 		$this->params['today'] = new Today(
-			$this->params['game'],
-			new ($this->params['game']->playerClass),
-			new ($this->params['game']->teamClass)
+			$game,
+			new ($game->playerClass),
+			new ($game->teamClass)
 		);
 		header('Cache-Control: max-age=2592000,public');
 		$this->view('pages/game/index');

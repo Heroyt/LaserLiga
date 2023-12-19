@@ -31,6 +31,21 @@
 {do shuffle($playerNames)}
 {do shuffle($nickNames)}
 
+{var int $categoryCount = count($league->getCategories())}
+
+{define addHead}
+    <link rel="canonical" href="{$league->getUrl('substitute')}"/>
+    <meta property="og:title"
+          content="{lang 'Registrace náhradníka'} {$league->name} - {lang 'Liga turnajů laser game'}"/>
+    <meta property="og:description"
+          content="{if $categoryCount < 2}{sprintf(lang('Liga laser game v %s'), $league->arena->name)}{else}{sprintf(lang('Liga laser game v %s rozdělená do %d kategorie', 'Liga laser game v aréně: %s rozdělená do %d kategorií', $categoryCount), $league->arena->name, $categoryCount)}{/if}"/>
+    <meta property="og:site_name" content="LaserLiga"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="{$league->getUrl('substitute')}"/>
+    <meta property="og:image" content="{$league->getImageUrl()}"/>
+    <meta property="og:image:type" content="image/png"/>
+{/define}
+
 {define content}
     <p class="text-start">
         <a href="{$league->getUrl()}" class="btn btn-info">

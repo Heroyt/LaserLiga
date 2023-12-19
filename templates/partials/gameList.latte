@@ -171,7 +171,8 @@
                 </thead>
                 <tbody>
                 {foreach $games as $game}
-                    <tr data-code="{$game->code}" data-href="{link 'game', $game->code}">
+                    {var string[] $link = isset($user->player) ? ['game', $game->code, $user->player->getCode()] : ['game', $game->code]}
+                    <tr data-code="{$game->code}" data-href="{link $link}">
                         {var App\GameModels\Game\Player $userPlayer = null}
                         {foreach $game->getPlayers() as $player}
                             {varType App\GameModels\Game\Player $player}
@@ -182,7 +183,7 @@
                         {/foreach}
                         <td>
                             {$game->start->format('d.m.Y H:i')}
-                            <a href="{link 'game', $game->code}" class="visually-hidden">
+                            <a href="{link $link}" class="visually-hidden">
                                 {sprintf(lang('Zobrazit výsledky ze hry %s'), $game->arena?->name.' '.$game->start->format('d.m.Y H:i'))}
                             </a>
                         </td>
@@ -223,7 +224,7 @@
                         </td>
                         <td>
                         <span class="btn-group">
-                            <a href="{link ['game', $game->code]}" class="btn btn-secondary" data-toggle="tooltip"
+                            <a href="{link $link}" class="btn btn-secondary" data-toggle="tooltip"
                                title="{lang 'Výsledky'}">
                                 <i class="fa-solid fa-eye"></i>
                             </a>
@@ -255,10 +256,11 @@
                         <i class="fa-solid fa-angle-down"></i>
                     </label>
                 </div>
-                <div n:foreach="$games as $game" data-code="{$game->code}" class="card w-100 my-2 linkable"
-                                                 data-href="{link 'game', $game->code}">
+                <div n:foreach="$games as $game"
+                        {var string[] $link = isset($user->player) ? ['game', $game->code, $user->player->getCode()] : ['game', $game->code]}
+                        data-code="{$game->code}" class="card w-100 my-2 linkable" data-href="{link $link}">
                     <div class="card-body">
-                        <a href="{link 'game', $game->code}" class="visually-hidden">
+                        <a href="{link $link}" class="visually-hidden">
                             {sprintf(lang('Zobrazit výsledky ze hry %s'), $game->arena?->name.' '.$game->start->format('d.m.Y H:i'))}
                         </a>
                         {ifset $user}

@@ -1,6 +1,6 @@
 import {Modal} from "bootstrap";
-import axios, {AxiosResponse} from "axios";
 import {LeaderboardModuleInterface} from "../playerModules";
+import {fetchGet} from "../../../api/client";
 
 export default class LeaderboardModule implements LeaderboardModuleInterface {
     private readonly modalDom: HTMLDivElement;
@@ -15,8 +15,7 @@ export default class LeaderboardModule implements LeaderboardModuleInterface {
 
     async load(url: string) {
         try {
-            const response: AxiosResponse<string> = await axios.get(url);
-            this.modalBody.innerHTML = response.data;
+            this.modalBody.innerHTML = await fetchGet(url);
             this.modal.show();
         } catch (e) {
             console.error(e);

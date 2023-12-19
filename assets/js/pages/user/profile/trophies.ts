@@ -1,6 +1,6 @@
 import {startLoading, stopLoading} from "../../../loaders";
-import axios, {AxiosResponse} from "axios";
 import {initTooltips} from "../../../functions";
+import {getUserTrophies} from "../../../api/endpoints/userStats";
 
 export default function initTrophiesTab(trophiesTabBtn: HTMLAnchorElement, trophiesTabWrapper: HTMLDivElement): void {
     let trophiesLoaded = false;
@@ -32,16 +32,14 @@ export default function initTrophiesTab(trophiesTabBtn: HTMLAnchorElement, troph
 
     function updateTrophies() {
         startLoading(true);
-        axios.get('/user/' + code + '/stats/trophies' + (trophiesRankableModesCheck.checked ? '?rankable=1' : ''))
-            .then((response: AxiosResponse<{
-                [index: string]: { name: string, icon: string, description: string, count: number }
-            }>) => {
+        getUserTrophies(code, trophiesRankableModesCheck.checked)
+            .then(response => {
                 stopLoading(true, true);
                 trophiesLoaderWrapper.classList.add('d-none');
                 trophiesStatsWrapper.classList.remove('d-none');
 
                 trophiesWrapper.innerHTML = '';
-                Object.entries(response.data).forEach(([key, trophy]) => {
+                Object.entries(response).forEach(([key, trophy]) => {
                     const trophyEl = document.createElement('div');
                     trophyEl.classList.add('card', 'm-2', 'text-center');
                     trophyEl.style.width = '14rem';

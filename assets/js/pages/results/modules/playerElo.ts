@@ -1,8 +1,8 @@
 import {EloModuleInterface} from "../playerModules";
 import {Modal} from "bootstrap";
-import axios, {AxiosResponse} from "axios";
 import {startLoading, stopLoading} from "../../../loaders";
 import {initPopovers} from "../../../functions";
+import {fetchGet} from "../../../api/client";
 
 export default class EloModule implements EloModuleInterface {
 
@@ -20,8 +20,7 @@ export default class EloModule implements EloModuleInterface {
         this.modalBody.innerHTML = '';
         startLoading();
         try {
-            const response: AxiosResponse<string> = await axios.get(url);
-            this.modalBody.innerHTML = response.data;
+            this.modalBody.innerHTML = await fetchGet(url);
             initPopovers(this.modalBody);
             stopLoading(true);
             this.show();

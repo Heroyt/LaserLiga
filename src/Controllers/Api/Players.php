@@ -90,7 +90,7 @@ class Players extends ApiController
 		}
 
 		// Filter by home arena
-		if (!empty($arena)) {
+		if (empty($arena)) {
 			$arena = (int) $request->getGet('arena', 0);
 		}
 		if ($arena > 0) {

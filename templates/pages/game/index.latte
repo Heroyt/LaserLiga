@@ -5,9 +5,12 @@
 {varType App\GameModels\Game\Today $today}
 {varType string $prevGame}
 {varType string $nextGame}
+{varType string $prevUserGame}
+{varType string $nextUserGame}
 {varType \App\Models\Auth\User|null $user}
 {default array|null $schema = null}
 {default string $gameDescription = ''}
+{default App\Models\Auth\LigaPlayer|null $activeUser = null}
 
 {define teamColor}
     {default int $teamColor = 0}
@@ -51,6 +54,7 @@
         </style>
         <script n:ifset="$schema" type="application/ld+json">
             {json_encode($schema, JSON_PRETTY_PRINT)|noescape}
+
         </script>
     {/ifset}
     {ifset $style}
@@ -132,7 +136,7 @@
 
     {include './partials/distribution.latte'}
 
-    <div class="modal fade" id="tournament-modal" tabindex="-1" data-show="true">
+    {*<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="false">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
@@ -165,7 +169,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>*}
 
     <script>
         const gameCode = {$game->code};
@@ -216,6 +220,10 @@
                 <div class="my-1">
                     <strong>{lang 'Herní mód', context: 'results.info'}:</strong>
                     {lang $game->mode->name, context: 'gameModes'}
+                </div>
+                <div n:ifset="$game->music" class="my-1">
+                    <strong>{lang 'Hudební mód', context: 'results.info'}:</strong>
+                    {lang $game->music->name, context: 'musicModes'}
                 </div>
                 <div n:ifset="$game->group">
                     <strong>{lang 'Skupina', context: 'results.info'}:</strong>
@@ -402,14 +410,47 @@
                 {lang 'Sdílet'}
             </button>
         </div>
+        <div n:if="$prevUserGame !== '' || $nextUserGame !== ''"
+                class="input-group input-group-lg mt-3 justify-content-center">
+            <a n:if="!empty($prevUserGame)" href="{link ['game', $prevUserGame, $activeUser->getCode()]}"
+                                            class="btn btn-secondary"
+                                            data-track-content=""
+                                            aria-label="{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            data-toggle="tooltip"
+                                            title="{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            data-content-name="Results - Previous game"
+                                            data-content-piece="Button">
+                <i class="fa-solid fa-angle-left"></i>
+                <span class="visually-hidden">
+					{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}
+					</span>
+            </a>
+            <div class="input-group-text text-bg-secondary">{$activeUser->nickname}</div>
+            <a n:if="!empty($nextUserGame)" href="{link ['game', $nextUserGame, $activeUser->getCode()]}"
+                                            class="btn btn-secondary"
+                                            data-track-content=""
+                                            aria-label="{sprintf(lang('Následující hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            data-toggle="tooltip"
+                                            title="{sprintf(lang('Následující hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            data-content-name="Results - Previous game"
+                                            data-content-piece="Button">
+                    <span class="visually-hidden">
+					{sprintf(lang('Následující hra hráče %s', context: 'results.group'), $activeUser->nickname)}
+					</span>
+                <i class="fa-solid fa-angle-right"></i>
+            </a>
+        </div>
         <div n:if="isset($game->group) || $game->getTournamentGame() !== null" class="col-12 mt-3 text-center">
             <div class="btn-group btn-group-lg">
                 <a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-primary"
                                             data-track-content=""
+                                            aria-label="{lang 'Předchozí hra', context: 'results.group'}"
+                                            data-toggle="tooltip"
+                                            title="{lang 'Předchozí hra', context: 'results.group'}"
                                             data-content-name="Results - Previous game"
                                             data-content-piece="Button">
-                    <i class="fa-solid fa-caret-left"></i>
-                    <span class="d-none d-lg-inline">
+                    <i class="fa-solid fa-angle-left"></i>
+                    <span class="visually-hidden">
 					{lang 'Předchozí hra', context: 'results.group'}
 					</span>
                 </a>
@@ -429,11 +470,14 @@
                 </a>
                 <a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-primary"
                                             data-track-content="" data-content-name="Results - Next game"
+                                            aria-label="{lang 'Následující hra', context: 'results.group'}"
+                                            data-toggle="tooltip"
+                                            title="{lang 'Následující hra', context: 'results.group'}"
                                             data-content-piece="Button">
-					<span class="d-none d-lg-inline">
+					<span class="visually-hidden">
 					{lang 'Následující hra', context: 'results.group'}
 					</span>
-                    <i class="fa-solid fa-caret-right"></i>
+                    <i class="fa-solid fa-angle-right"></i>
                 </a>
             </div>
         </div>

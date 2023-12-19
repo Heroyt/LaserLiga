@@ -1,6 +1,14 @@
-import {Chart} from "chart.js/auto";
+import {ArcElement, Chart, Colors, DoughnutController, Legend, Tooltip} from "chart.js";
 import {startLoading, stopLoading} from "../../../loaders";
-import axios, {AxiosResponse} from "axios";
+import {getUserCompare} from "../../../api/endpoints/user";
+
+Chart.register(
+    Legend,
+    Tooltip,
+    Colors,
+    DoughnutController,
+    ArcElement
+);
 
 export default function initCompareTab(compareTabBtn: HTMLAnchorElement, compareTabWrapper: HTMLDivElement): void {
     let compareLoaded = false;
@@ -52,7 +60,7 @@ export default function initCompareTab(compareTabBtn: HTMLAnchorElement, compare
     if (compareTabWrapper.classList.contains('show')) {
         loadCompare();
     }
-    compareTabBtn.addEventListener('show.bs.tab', e => {
+    compareTabBtn.addEventListener('show.bs.tab', () => {
         if (compareLoaded) {
             return; // Do not load data more than once
         }
@@ -61,90 +69,74 @@ export default function initCompareTab(compareTabBtn: HTMLAnchorElement, compare
 
     function loadCompare() {
         startLoading(true);
-        axios.get('/user/' + code + '/compare')
-            .then((response: AxiosResponse<{
-                gameCount: number,
-                gameCountTogether: number,
-                gameCountEnemy: number,
-                gameCountEnemyTeam: number,
-                gameCountEnemySolo: number,
-                winsTogether: number,
-                lossesTogether: number,
-                drawsTogether: number,
-                winsEnemy: number,
-                lossesEnemy: number,
-                drawsEnemy: number,
-                hitsEnemy: number,
-                deathsEnemy: number,
-                hitsTogether: number,
-                deathsTogether: number
-            }>) => {
+        getUserCompare(code)
+            .then(response => {
                 stopLoading(true, true);
                 compareLoaderWrapper.classList.add('d-none');
-                if (response.data.gameCount <= 0) {
+                if (response.gameCount <= 0) {
                     compareNoGamesWrapper.classList.remove('d-none');
                     return;
                 }
                 compareStatsWrapper.classList.remove('d-none');
 
-                if (response.data.gameCountTogether === 0) {
+                if (response.gameCountTogether === 0) {
                     compareStatsWrapper.querySelectorAll('.compare-stat-together').forEach(el => {
                         el.classList.add('d-none');
                     });
                 } else {
-                    (winsTogether.querySelector('span') as HTMLSpanElement).innerText = response.data.winsTogether.toString();
-                    (lossesTogether.querySelector('span') as HTMLSpanElement).innerText = response.data.lossesTogether.toString();
-                    (drawsTogether.querySelector('span') as HTMLSpanElement).innerText = response.data.drawsTogether.toString();
+                    (winsTogether.querySelector('span') as HTMLSpanElement).innerText = response.winsTogether.toString();
+                    (lossesTogether.querySelector('span') as HTMLSpanElement).innerText = response.lossesTogether.toString();
+                    (drawsTogether.querySelector('span') as HTMLSpanElement).innerText = response.drawsTogether.toString();
 
-                    (hitsTogether.querySelector('span') as HTMLSpanElement).innerText = response.data.hitsTogether.toString();
-                    (deathsTogether.querySelector('span') as HTMLSpanElement).innerText = response.data.deathsTogether.toString();
+                    (hitsTogether.querySelector('span') as HTMLSpanElement).innerText = response.hitsTogether.toString();
+                    (deathsTogether.querySelector('span') as HTMLSpanElement).innerText = response.deathsTogether.toString();
 
-                    winsTogether.style.width = `${100 * response.data.winsTogether / response.data.gameCountTogether}%`;
-                    winsTogether.setAttribute('aria-valuenow', `${100 * response.data.winsTogether / response.data.gameCountTogether}`);
-                    lossesTogether.style.width = `${100 * response.data.lossesTogether / response.data.gameCountTogether}%`;
-                    lossesTogether.setAttribute('aria-valuenow', `${100 * response.data.lossesTogether / response.data.gameCountTogether}`);
-                    drawsTogether.style.width = `${100 * response.data.drawsTogether / response.data.gameCountTogether}%`;
-                    drawsTogether.setAttribute('aria-valuenow', `${100 * response.data.drawsTogether / response.data.gameCountTogether}`);
+                    winsTogether.style.width = `${100 * response.winsTogether / response.gameCountTogether}%`;
+                    winsTogether.setAttribute('aria-valuenow', `${100 * response.winsTogether / response.gameCountTogether}`);
+                    lossesTogether.style.width = `${100 * response.lossesTogether / response.gameCountTogether}%`;
+                    lossesTogether.setAttribute('aria-valuenow', `${100 * response.lossesTogether / response.gameCountTogether}`);
+                    drawsTogether.style.width = `${100 * response.drawsTogether / response.gameCountTogether}%`;
+                    drawsTogether.setAttribute('aria-valuenow', `${100 * response.drawsTogether / response.gameCountTogether}`);
 
-                    const hitsTogetherTotal = response.data.hitsTogether + response.data.deathsTogether;
+                    const hitsTogetherTotal = response.hitsTogether + response.deathsTogether;
 
-                    hitsTogether.style.width = hitsTogetherTotal === 0 ? '50%' : `${100 * response.data.hitsTogether / hitsTogetherTotal}%`;
-                    hitsTogether.setAttribute('aria-valuenow', `${100 * response.data.hitsTogether / hitsTogetherTotal}`);
-                    deathsTogether.style.width = hitsTogetherTotal === 0 ? '50%' : `${100 * response.data.deathsTogether / hitsTogetherTotal}%`;
-                    deathsTogether.setAttribute('aria-valuenow', `${100 * response.data.deathsTogether / hitsTogetherTotal}`);
+                    hitsTogether.style.width = hitsTogetherTotal === 0 ? '50%' : `${100 * response.hitsTogether / hitsTogetherTotal}%`;
+                    hitsTogether.setAttribute('aria-valuenow', `${100 * response.hitsTogether / hitsTogetherTotal}`);
+                    deathsTogether.style.width = hitsTogetherTotal === 0 ? '50%' : `${100 * response.deathsTogether / hitsTogetherTotal}%`;
+                    deathsTogether.setAttribute('aria-valuenow', `${100 * response.deathsTogether / hitsTogetherTotal}`);
                 }
 
-                if (response.data.gameCountEnemy === 0) {
+                if (response.gameCountEnemy === 0) {
                     compareStatsWrapper.querySelectorAll('.compare-stat-enemy').forEach(el => {
                         el.classList.add('d-none');
                     });
                 } else {
-                    (winsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.data.winsEnemy.toString();
-                    (lossesEnemy.querySelector('span') as HTMLSpanElement).innerText = response.data.lossesEnemy.toString();
-                    (drawsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.data.drawsEnemy.toString();
+                    (winsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.winsEnemy.toString();
+                    (lossesEnemy.querySelector('span') as HTMLSpanElement).innerText = response.lossesEnemy.toString();
+                    (drawsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.drawsEnemy.toString();
 
-                    (hitsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.data.hitsEnemy.toString();
-                    (deathsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.data.deathsEnemy.toString();
+                    (hitsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.hitsEnemy.toString();
+                    (deathsEnemy.querySelector('span') as HTMLSpanElement).innerText = response.deathsEnemy.toString();
 
-                    winsEnemy.style.width = `${100 * response.data.winsEnemy / response.data.gameCountEnemy}%`;
-                    winsEnemy.setAttribute('aria-valuenow', `${100 * response.data.winsEnemy / response.data.gameCountEnemy}`);
-                    lossesEnemy.style.width = `${100 * response.data.lossesEnemy / response.data.gameCountEnemy}%`;
-                    lossesEnemy.setAttribute('aria-valuenow', `${100 * response.data.lossesEnemy / response.data.gameCountEnemy}`);
-                    drawsEnemy.style.width = `${100 * response.data.drawsEnemy / response.data.gameCountEnemy}%`;
-                    drawsEnemy.setAttribute('aria-valuenow', `${100 * response.data.drawsEnemy / response.data.gameCountEnemy}`);
+                    winsEnemy.style.width = `${100 * response.winsEnemy / response.gameCountEnemy}%`;
+                    winsEnemy.setAttribute('aria-valuenow', `${100 * response.winsEnemy / response.gameCountEnemy}`);
+                    lossesEnemy.style.width = `${100 * response.lossesEnemy / response.gameCountEnemy}%`;
+                    lossesEnemy.setAttribute('aria-valuenow', `${100 * response.lossesEnemy / response.gameCountEnemy}`);
+                    drawsEnemy.style.width = `${100 * response.drawsEnemy / response.gameCountEnemy}%`;
+                    drawsEnemy.setAttribute('aria-valuenow', `${100 * response.drawsEnemy / response.gameCountEnemy}`);
 
-                    const hitsEnemyTotal = response.data.hitsEnemy + response.data.deathsEnemy;
+                    const hitsEnemyTotal = response.hitsEnemy + response.deathsEnemy;
 
-                    hitsEnemy.style.width = hitsEnemyTotal === 0 ? '50%' : `${100 * response.data.hitsEnemy / hitsEnemyTotal}%`;
-                    hitsEnemy.setAttribute('aria-valuenow', `${100 * response.data.hitsEnemy / hitsEnemyTotal}`);
-                    deathsEnemy.style.width = hitsEnemyTotal === 0 ? '50%' : `${100 * response.data.deathsEnemy / hitsEnemyTotal}%`;
-                    deathsEnemy.setAttribute('aria-valuenow', `${100 * response.data.deathsEnemy / hitsEnemyTotal}`);
+                    hitsEnemy.style.width = hitsEnemyTotal === 0 ? '50%' : `${100 * response.hitsEnemy / hitsEnemyTotal}%`;
+                    hitsEnemy.setAttribute('aria-valuenow', `${100 * response.hitsEnemy / hitsEnemyTotal}`);
+                    deathsEnemy.style.width = hitsEnemyTotal === 0 ? '50%' : `${100 * response.deathsEnemy / hitsEnemyTotal}%`;
+                    deathsEnemy.setAttribute('aria-valuenow', `${100 * response.deathsEnemy / hitsEnemyTotal}`);
                 }
 
-                totalGamesTogether.innerText = response.data.gameCount.toString();
-                gamesCompareChart.data.datasets[0].data[0] = response.data.gameCountTogether;
-                gamesCompareChart.data.datasets[0].data[1] = response.data.gameCountEnemyTeam;
-                gamesCompareChart.data.datasets[0].data[2] = response.data.gameCountEnemySolo;
+                totalGamesTogether.innerText = response.gameCount.toString();
+                gamesCompareChart.data.datasets[0].data[0] = response.gameCountTogether;
+                gamesCompareChart.data.datasets[0].data[1] = response.gameCountEnemyTeam;
+                gamesCompareChart.data.datasets[0].data[2] = response.gameCountEnemySolo;
                 gamesCompareChart.update();
 
                 compareLoaded = true;
