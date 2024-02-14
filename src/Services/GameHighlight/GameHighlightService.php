@@ -6,6 +6,7 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\Models\DataObjects\Highlights\HighlightCollection;
+use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Throwable;
 
@@ -77,7 +78,9 @@ class GameHighlightService
 		}
 
 		// @phpstan-ignore-next-line
-		return $this->cache->load('game.' . $game->code . '.highlights', function (array &$dependencies) use ($game) {
+		return $this->cache->load(
+			'game.' . $game->code . '.highlights.' . App::getShortLanguageCode(),
+			function (array &$dependencies) use ($game) {
 			$dependencies[$this->cache::Tags] = [
 				'highlights',
 				'games',

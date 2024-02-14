@@ -53,7 +53,8 @@ class HitsHighlightChecker implements GameHighlightChecker
 										Gender::MALE   => '%s zasáhl více spoluhráčů, než protihráčů',
 										Gender::FEMALE => '%s zasáhla více spoluhráčů, než protihráčů',
 										Gender::OTHER  => '%s zasáhlo více spoluhráčů, než protihráčů',
-									}
+									},
+									context: 'results.highlights'
 								),
 								'@' . $name1 . '@'
 							),
@@ -77,7 +78,8 @@ class HitsHighlightChecker implements GameHighlightChecker
 										Gender::MALE   => '%s zasáhl ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
 										Gender::FEMALE => '%s zasáhla ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
 										Gender::OTHER  => '%s zasáhlo ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-									}
+									},
+									context: 'results.highlights'
 								),
 								'@' . $name1 . '@',
 								'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>'
@@ -103,7 +105,7 @@ class HitsHighlightChecker implements GameHighlightChecker
 						new GameHighlight(
 							GameHighlightType::HITS,
 							sprintf(
-								lang('Hráči %s a %s se oba navzájem zasáhli %dx.'),
+								lang('Hráči %s a %s se oba navzájem zasáhli %dx.', context: 'results.highlights'),
 								'@' . $name1 . '@',
 								'@' . $name2 . '@',
 								$hits->count
@@ -131,7 +133,8 @@ class HitsHighlightChecker implements GameHighlightChecker
 										Gender::MALE   => '%s zasáhl nejvíce spoluhráčů (%d).',
 										Gender::FEMALE => '%s zasáhla nejvíce spoluhráčů (%d).',
 										Gender::OTHER  => '%s zasáhlo nejvíce spoluhráčů (%d).',
-									}
+									},
+									context: 'results.highlights'
 								),
 								'@' . $maxHitsOwnPlayers[0]->name . '@',
 								$maxHitsOwn,
@@ -173,7 +176,8 @@ class HitsHighlightChecker implements GameHighlightChecker
 										Gender::MALE   => '%s byl zasažen nejvíce spoluhráči (%d).',
 										Gender::FEMALE => '%s byla zasažena nejvíce spoluhráči (%d).',
 										Gender::OTHER  => '%s bylo zasaženo nejvíce spoluhráči (%d).',
-									}
+									},
+									context: 'results.highlights'
 								),
 								'@' . $maxDeathsOwnPlayers[0]->name . '@',
 								$maxDeathsOwn,
@@ -190,7 +194,7 @@ class HitsHighlightChecker implements GameHighlightChecker
 						new GameHighlight(
 							GameHighlightType::HITS,
 							sprintf(
-								lang('%s byli zasaženi nejvíce spoluhráči (%d).'),
+								lang('%s byli zasaženi nejvíce spoluhráči (%d).', context: 'results.highlights'),
 								$firstNames . ' ' . lang('a', context: 'spojka') . ' ' . last($playerNames),
 								$maxDeathsOwn,
 							),

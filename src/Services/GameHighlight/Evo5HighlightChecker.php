@@ -88,7 +88,7 @@ class Evo5HighlightChecker implements GameHighlightChecker
 			);
 		}
 
-		if (isset($powersMaxPlayer) && $powersSecondMax !== self::DUPLICATE_MAX_POWER && ($ratio = $powersMax / $powersSecondMax) >= 2) {
+		if (isset($powersMaxPlayer) && $powersSecondMax !== self::DUPLICATE_MAX_POWER && $powersSecondMax !== 0 && ($ratio = $powersMax / $powersSecondMax) >= 2) {
 			$ratio = floor($ratio * 2) / 2;
 			$name = $powersMaxPlayer->name;
 			$gender = GenderService::rankWord($name);
