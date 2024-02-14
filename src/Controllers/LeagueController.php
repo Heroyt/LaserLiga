@@ -701,6 +701,18 @@ class LeagueController extends Controller
 
 						// Update existing tournament teams
 						if ($tournamentTeam->tournament->category?->id === $category?->id) {
+							foreach ($data->players as $player) {
+								$player->playerId = null;
+								if ($player->leaguePlayer?->id === null) {
+									continue;
+								}
+								foreach ($tournamentTeam->getPlayers() as $tournamentPlayer) {
+									if ($tournamentPlayer->leaguePlayer?->id === $player->leaguePlayer?->id) {
+										$player->playerId = $tournamentPlayer->id;
+										break;
+									}
+								}
+							}
 							$this->eventRegistrationService->registerTeam(
 								      $tournamentTeam->tournament,
 								      $data,

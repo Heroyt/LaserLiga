@@ -374,10 +374,19 @@ class EventController extends Controller
 			$dates = [$dates];
 		}
 
+		/** @var int[] $dates */
+		$dates = array_map(static fn($id) => (int)$id, $dates);
+
 		if (empty($dates)) {
 			$this->params['errors']['dates'] = lang(
 				$event->datesType === DatesType::MULTIPLE ? 'Vyberte alespoň jeden termín' : 'Vyberte termín'
 			);
+		}
+
+		foreach ($event->getDates() as $date) {
+			if ($date->canceled && in_array($date->id, $dates, true)) {
+				$this->params['errors']['dates'] = lang('Vybraný termín je zrušený', context: 'errors');
+			}
 		}
 
 		if (empty($_POST['gdpr'])) {
@@ -413,7 +422,7 @@ class EventController extends Controller
 				/** @var EventPlayer $registeredPlayer */
 				$registeredPlayer = $this->eventRegistrationService->registerPlayer($event, $player);
 				foreach ($dates as $dateId) {
-					$registeredPlayer->dates[] = EventDate::get((int)$dateId);
+					$registeredPlayer->dates[] = EventDate::get($dateId);
 				}
 				$registeredPlayer->save();
 			} catch (ModelSaveFailedException|ValidationException $e) {

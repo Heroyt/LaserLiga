@@ -11,6 +11,7 @@ use App\Models\DataObjects\Event\PlayerRegistrationDTO;
 use App\Models\DataObjects\Event\TeamRegistrationDTO;
 use App\Models\DataObjects\Image;
 use App\Models\Tournament\PlayerSkill;
+use App\Models\Tournament\RegistrationType;
 use App\Models\Tournament\Stats;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
@@ -107,6 +108,9 @@ class TournamentController extends Controller
 	}
 
 	public function register(Tournament $tournament): void {
+		if ($tournament->league?->registrationType === RegistrationType::LEAGUE) {
+			App::redirect($tournament->league->getUrlPath('register'));
+		}
 		$this->setRegisterTitleDescription($tournament);
 		if ($tournament->format === GameModeType::TEAM) {
 			$this->registerTeam($tournament);
