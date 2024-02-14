@@ -1078,21 +1078,19 @@ class Games extends ApiController
 	)]
 	public function stats(Request $request): void {
 		$date = null;
+		$cache = !isset($request->get['noCache']);
 		if (isset($request->get['date'])) {
 			$date = new DateTime($request->get['date']);
 		}
 
-		$gameCount = (isset($request->get['system']) ? $this->arena->queryGamesSystem(
-			$request->get['system'],
-			$date
-		) : $this->arena->queryGames($date))->count();
-		$playerCount = $this->arena->queryPlayers($date)->count();
-		$teamCount = $this->arena->queryTeams($date)->count();
-
 		$this->respond([
-			               'games'   => $gameCount,
-			               'players' => $playerCount,
-			               'teams'   => $teamCount,
+			               'games'   => (
+			               isset($request->get['system']) ?
+				               $this->arena->queryGamesSystem($request->get['system'], $date) :
+				               $this->arena->queryGames($date)
+			               )->count(cache: $cache),
+			               'players' => $this->arena->queryPlayers($date, cache: $cache)->count(cache: $cache),
+			               'teams'   => $this->arena->queryTeams($date, cache: $cache)->count(cache: $cache),
 		               ]);
 	}
 
