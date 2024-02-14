@@ -62,6 +62,7 @@ Debugger::getBar()
 Loader::init();
 
 define('CHECK_TRANSLATIONS', (bool)(App::getConfig()['General']['TRANSLATIONS'] ?? false));
+define('TRANSLATIONS_COMMENTS', (bool)(App::getConfig()['General']['TRANSLATIONS_COMMENTS'] ?? false));
 
 if (defined('INDEX')) {
 	// Register library tracy panels
