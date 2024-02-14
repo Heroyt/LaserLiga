@@ -6,6 +6,7 @@ use App\Controllers\Api\LeaguesController;
 use App\Controllers\Api\Music;
 use App\Controllers\Api\Players;
 use App\Controllers\Api\TournamentsController;
+use App\Controllers\Api\VestController;
 use App\Controllers\User\UserGameController;
 use App\Core\Middleware\ApiToken;
 use Lsr\Core\Routing\Route;
@@ -15,7 +16,6 @@ $apiToken = new ApiToken();
 $apiGroup = Route::group('api')->middlewareAll($apiToken);
 
 // Games
-
 $gamesGroup = $apiGroup->group('games')
                        ->get('', [Games::class, 'listGames'])
                        ->post('', [Games::class, 'import'])
@@ -85,6 +85,11 @@ $playersGroup = $apiGroup->group('players')
 $playersGroup->group('{code}')
              ->get('', [Players::class, 'player'])
              ->get('title', [Players::class, 'playerTitle']);
+
+// Vests
+$apiGroup->group('vests')
+         ->get('', [VestController::class, 'getVests'])
+         ->post('', [VestController::class, 'syncVests']);
 
 // Dev tools
 

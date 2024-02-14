@@ -34,21 +34,21 @@ class Arena extends Model
 
 	private const ARENA_USER_TYPE_ID = 3;
 
-	#[OA\Property]
+	#[OA\Property(example: 'Laser arena Písek')]
 	public string $name;
-	#[OA\Property]
+	#[OA\Property(example: 49.307678)]
 	public ?float $lat = null;
-	#[OA\Property]
+	#[OA\Property(example: 14.147773)]
 	public ?float $lng = null;
 
 	#[Instantiate]
 	#[OA\Property]
 	public Address $address;
-	#[OA\Property]
+	#[OA\Property(example: 'https://laserarenapisek.cz')]
 	public ?string $web          = null;
-	#[OA\Property]
+	#[OA\Property(example: 'info@laserarenapisek.cz')]
 	public ?string $contactEmail = null;
-	#[OA\Property]
+	#[OA\Property(example: '+420 776 606 631')]
 	public ?string $contactPhone = null;
 
 	public ?User $user = null;

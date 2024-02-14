@@ -9,26 +9,27 @@ readonly class ErrorDto implements \JsonSerializable
 {
 
 	public function __construct(
-		#[OA\Property]
+		#[OA\Property(example: 'Error title')]
 		public string      $title,
 		#[OA\Property]
 		public ErrorType   $type = ErrorType::INTERNAL,
-		#[OA\Property]
+		#[OA\Property(example: 'Error description')]
 		public ?string     $detail = null,
 		#[OA\Property(
 			properties: [
-				new OA\Property('message', type: 'string'),
-				new OA\Property('code', type: 'int'),
+				new OA\Property('message', type: 'string', example: 'Some exception description'),
+				new OA\Property('code', type: 'int', example: 123),
 				new OA\Property(
 					       'trace',
 					type : 'array',
-					items: new OA\Items(type: 'object')
+					items: new OA\Items(type: 'object'),
+					example: [['file' => 'index.php', 'line' => 1, 'function' => 'abc', 'args' => ['Argument value']]],
 				),
 			],
 			type      : 'object',
 		)]
 		public ?\Throwable $exception = null,
-		#[OA\Property(type: 'object')]
+		#[OA\Property(type: 'object', example: ['key1' => 'value1', 'key2' => 'value2'])]
 		public ?array      $values = null,
 	) {
 	}

@@ -30,7 +30,7 @@ class TournamentPoints implements InsertExtendInterface
 		public int   $second = 2,
 		#[OA\Property]
 		public int   $third = 1,
-		#[OA\Property]
+		#[OA\Property(items: new OA\Items(type: 'integer'))]
 		public array $other = [],
 	) {
 	}

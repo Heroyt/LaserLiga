@@ -4,14 +4,20 @@ namespace App\Models;
 
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema()]
 class Address implements InsertExtendInterface
 {
 
 	public function __construct(
+		#[OA\Property(example: 'OD Luna 3. patro, Velké náměstí 175')]
 		public ?string $street = null,
+		#[OA\Property(example: 'Písek')]
 		public ?string $city = null,
+		#[OA\Property(example: '39701')]
 		public ?string $postCode = null,
+		#[OA\Property(example: 'Česko')]
 		public ?string $country = null,
 	) {
 	}

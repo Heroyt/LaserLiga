@@ -970,6 +970,63 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/vests:
+    get:
+      tags:
+        - Vests
+      summary: 'Get all vests'
+      description: 'Get all vests for current arena.'
+      operationId: getVests
+      responses:
+        '200':
+          description: 'All vest data'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vest'
+    post:
+      tags:
+        - Vests
+      summary: 'Import vest information.'
+      description: 'This method imports vest information from LaserArenaControl.'
+      operationId: vestSync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - vest
+              properties:
+                vest:
+                  type: array
+                  items: { required: [ vestNum, system, status ], properties: { vestNum: { type: string, example: '1' }, system: { type: string, example: evo5 }, status: { $ref: '#/components/schemas/VestStatus' }, info: { type: string, example: 'Zbraň vynechává', nullable: true } }, type: object }
+              type: object
+      responses:
+        '200':
+          description: 'Successful import'
+          content:
+            application/json:
+              schema:
+                required:
+                  - vest
+                properties:
+                  vest: { type: array, items: { $ref: '#/components/schemas/Vest' } }
+                type: object
+        '400':
+          description: 'Bad request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Server error during save operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   '/api/devtools/users/{id}/stats':
     get:
       tags:
@@ -1061,25 +1118,37 @@ components:
       properties:
         title:
           type: string
+          example: 'Error title'
         type:
           $ref: '#/components/schemas/ErrorType'
         detail:
           type: string
+          example: 'Error description'
           nullable: true
         exception:
           properties:
             message:
               type: string
+              example: 'Some exception description'
             code:
               type: integer
+              example: 123
             trace:
               type: array
               items:
                 type: object
+              example:
+                - file: index.php
+                  line: 1
+                  function: abc
+                  args: [ 'Argument value' ]
           type: object
           nullable: true
         values:
           type: object
+          example:
+            key1: value1
+            key2: value2
           nullable: true
       type: object
     ErrorType:
@@ -1103,6 +1172,13 @@ components:
       enum:
         - TEAM
         - SOLO
+    VestStatus:
+      description: 'Statuses for vests'
+      type: string
+      enum:
+        - ok
+        - playable
+        - broken
     Game:
       description: 'Base class for game models'
       properties:
@@ -1271,6 +1347,23 @@ components:
         after:
           type: integer
       type: object
+    Vest:
+      properties:
+        arena:
+          $ref: '#/components/schemas/Arena'
+        vestNum:
+          type: string
+          example: '1'
+        system:
+          type: string
+          example: evo5
+        status:
+          $ref: '#/components/schemas/VestStatus'
+        info:
+          type: string
+          example: 'Zbraň vynechává'
+          nullable: true
+      type: object
     Gender:
       type: string
       enum:
@@ -1361,27 +1454,53 @@ components:
         unlocked:
           type: boolean
       type: object
+    Address:
+      properties:
+        street:
+          type: string
+          example: 'OD Luna 3. patro, Velké náměstí 175'
+          nullable: true
+        city:
+          type: string
+          example: Písek
+          nullable: true
+        postCode:
+          type: string
+          example: '39701'
+          nullable: true
+        country:
+          type: string
+          example: Česko
+          nullable: true
+      type: object
     Arena:
       properties:
         name:
           type: string
+          example: 'Laser arena Písek'
         lat:
           type: number
           format: float
+          example: 49.307678
           nullable: true
         lng:
           type: number
           format: float
+          example: 14.147773
           nullable: true
-        address: { }
+        address:
+          $ref: '#/components/schemas/Address'
         web:
           type: string
+          example: 'https://laserarenapisek.cz'
           nullable: true
         contactEmail:
           type: string
+          example: info@laserarenapisek.cz
           nullable: true
         contactPhone:
           type: string
+          example: '+420 776 606 631'
           nullable: true
       type: object
     LigaPlayer:
@@ -1420,8 +1539,6 @@ components:
           nullable: true
           oneOf:
             - $ref: '#/components/schemas/Title'
-        gender:
-          $ref: '#/components/schemas/Gender'
       type: object
     GameHighlight:
       properties:
@@ -1494,6 +1611,23 @@ components:
         deaths:
           type: integer
       type: object
+    EventPopup:
+      properties:
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        image:
+          type: string
+          nullable: true
+        link:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+      type: object
     MusicMode:
       properties:
         name:
@@ -1557,6 +1691,8 @@ components:
         image:
           type: string
           nullable: true
+        popup:
+          $ref: '#/components/schemas/EventPopup'
         registrationType:
           $ref: '#/components/schemas/RegistrationType'
         arena:
@@ -1626,6 +1762,8 @@ components:
         description:
           type: string
           nullable: true
+        popup:
+          $ref: '#/components/schemas/EventPopup'
         active:
           type: boolean
         finished:
@@ -1648,6 +1786,34 @@ components:
           type: boolean
         requirements:
           $ref: '#/components/schemas/Requirements'
+        teamsInGame:
+          type: integer
+        points:
+          $ref: '#/components/schemas/TournamentPoints'
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+          nullable: true
+      type: object
+    TournamentPoints:
+      properties:
+        win:
+          type: integer
+        draw:
+          type: integer
+        loss:
+          type: integer
+        second:
+          type: integer
+        third:
+          type: integer
+        other:
+          type: array
+          items:
+            type: integer
       type: object
   securitySchemes:
     bearerAuth:
