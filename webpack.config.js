@@ -77,6 +77,8 @@ fontawesomeSubset(
             'list',
             'plus',
             'ban',
+            'play',
+            'check',
         ],
     },
     "assets/fonts",
