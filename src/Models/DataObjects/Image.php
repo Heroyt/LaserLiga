@@ -12,7 +12,7 @@ class Image
 
 	private string $name;
 	private string $path;
-	private string $type;
+	private ?string $type = null;
 
 	private array $optimized = [];
 
@@ -23,10 +23,10 @@ class Image
 			throw new RuntimeException('Image doesn\'t exist.');
 		}
 
-		$this->type = strtolower(pathinfo($this->image, PATHINFO_EXTENSION));
 		$this->name = pathinfo($this->image, PATHINFO_FILENAME);
 		$this->path = pathinfo($this->image, PATHINFO_DIRNAME) . '/';
 	}
+
 
 	public function getSize(int $size): string {
 		$optimized = $this->getOptimized();
@@ -35,13 +35,7 @@ class Image
 			return $optimized[$index];
 		}
 		$index = (string)$size;
-		if (isset($optimized[$index])) {
-			return $optimized[$index];
-		}
-		if (isset($optimized['webp'])) {
-			return $optimized['webp'];
-		}
-		return $optimized['original'];
+		return $optimized[$index] ?? $optimized['webp'] ?? $optimized['original'];
 	}
 
 	/**
@@ -95,7 +89,7 @@ class Image
 		$optimizedDir = $this->path . 'optimized/';
 
 		foreach (ImageService::SIZES as $size) {
-			$file = $optimizedDir . $this->name . 'x' . $size . '.' . $this->type;
+			$file = $optimizedDir . $this->name . 'x' . $size . '.' . $this->getType();
 			if (file_exists($file)) {
 				$images[(string)$size] = $this->pathToUrl($file);
 			}
@@ -107,6 +101,9 @@ class Image
 	}
 
 	public function getWebp(): ?string {
+		if ($this->getType() === 'webp') {
+			return $this->pathToUrl($this->image);
+		}
 		$webp = $this->path . 'optimized/' . $this->name . '.webp';
 		if (!file_exists($webp)) {
 			return null;
@@ -126,6 +123,27 @@ class Image
 
 	public function getPath(): string {
 		return $this->image;
+	}
+
+	public function getType(): string {
+		if (!isset($this->type)) {
+			if (function_exists('exif_imagetype')) {
+				/** @var int|false $type */
+				$type = exif_imagetype($this->image);
+				if ($type !== false) {
+					$this->type = match ($type) {
+						IMAGETYPE_JPEG => 'jpg',
+						IMAGETYPE_GIF  => 'gif',
+						IMAGETYPE_PNG  => 'png',
+						IMAGETYPE_WEBP => 'webp',
+						default        => null,
+					};
+				}
+			}
+			// Default to using provided extension
+			$this->type ??= strtolower(pathinfo($this->name, PATHINFO_EXTENSION));
+		}
+		return $this->type;
 	}
 
 }

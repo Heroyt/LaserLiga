@@ -44,14 +44,19 @@ class ImageService
 			'jpg', 'jpeg' => \imagecreatefromjpeg($file),
 			'png'         => \imagecreatefrompng($file),
 			'gif'         => \imagecreatefromgif($file),
+			'webp' => \imagecreatefromwebp($file),
 			default       => throw new RuntimeException('Invalid image type'),
 		};
 
 		if (!$image) {
+			bdump($image);
+			bdump($type);
 			throw new RuntimeException('Failed to read image');
 		}
 
-		imagewebp($image, $optimizedDir . '/' . $name . '.webp');
+		if ($type !== 'webp') {
+			imagewebp($image, $optimizedDir . '/' . $name . '.webp');
+		}
 
 		$originalWidth = imagesx($image);
 

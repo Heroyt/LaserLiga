@@ -250,7 +250,7 @@ function autoParagraphs(string $text): string {
 	return '<p>' . implode('</p><p>', $paragraphs) . '</p>';
 }
 
-function getImageSrcSet(Image|string $image): string {
+function getImageSrcSet(Image|string $image, bool $includeAllSizes = true): string {
 	if (is_string($image)) {
 		$image = new Image($image);
 	}
@@ -259,15 +259,17 @@ function getImageSrcSet(Image|string $image): string {
 
 	$srcSet = [];
 
-	foreach (array_reverse(ImageService::SIZES) as $size) {
-		$index = $size . '-webp';
-		if (isset($versions[$index])) {
-			$srcSet[] = $versions[$index] . ' ' . $size . 'w';
-			continue;
-		}
-		$index = (string)$size;
-		if (isset($versions[$index])) {
-			$srcSet[] = $versions[$index] . ' ' . $size . 'w';
+	if ($includeAllSizes) {
+		foreach (array_reverse(ImageService::SIZES) as $size) {
+			$index = $size . '-webp';
+			if (isset($versions[$index])) {
+				$srcSet[] = $versions[$index] . ' ' . $size . 'w';
+				continue;
+			}
+			$index = (string)$size;
+			if (isset($versions[$index])) {
+				$srcSet[] = $versions[$index] . ' ' . $size . 'w';
+			}
 		}
 	}
 
