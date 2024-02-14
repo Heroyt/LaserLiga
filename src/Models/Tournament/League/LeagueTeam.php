@@ -2,11 +2,11 @@
 
 namespace App\Models\Tournament\League;
 
+use App\Models\Events\EventBase;
 use App\Models\Events\EventTeamBase;
 use App\Models\Tournament\Game;
 use App\Models\Tournament\Player as TournamentPlayer;
 use App\Models\Tournament\Team;
-use App\Models\Tournament\WithTokenValidation;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -171,4 +171,7 @@ class LeagueTeam extends EventTeamBase
 		return $positions;
 	}
 
+	public function getEvent(): EventBase|League {
+		return $this->league;
+	}
 }

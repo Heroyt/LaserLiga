@@ -22,6 +22,8 @@ class EventDate extends Model
 
 	public ?string $description = null;
 
+	public bool $canceled = false;
+
 	/** @var EventPlayer[] */
 	private array $players;
 	/** @var EventTeam[] */

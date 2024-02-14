@@ -4,6 +4,7 @@ namespace App\Models\Events;
 
 use App\Models\Auth\User;
 use App\Models\DataObjects\Image;
+use App\Models\Tournament\League\League;
 use App\Models\Tournament\WithTokenValidation;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -34,6 +35,8 @@ abstract class EventTeamBase extends Model
 	protected Image $imageObj;
 	protected float $avgPlayerRank;
 
+	abstract public function getEvent(): EventBase|League;
+
 	public function save(): bool {
 		if (empty($this->hash)) {
 			$this->hash = bin2hex(random_bytes(32));
@@ -55,7 +58,16 @@ abstract class EventTeamBase extends Model
 
 	public function validateAccess(?User $user = null, ?string $hash = ''): bool {
 		if (isset($user)) {
-			if ($user->hasRight('manage-tournaments') || ($user->hasRight('manage-own-tournaments'))) {
+			if (
+				$user->hasRight('manage-tournaments') ||
+				(
+					$user->managesArena($this->getEvent()->arena) &&
+					(
+						$user->hasRight('manage-arena-tournaments') ||
+						$user->hasRight('edit-arena-tournaments-teams')
+					)
+				)
+			) {
 				return true;
 			}
 			// Check if registration's player is the currently registered player

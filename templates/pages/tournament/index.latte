@@ -124,7 +124,7 @@
                         <div class="text-center mt-4">
                             <div class="btn-group">
                                 <a n:ifset="$tournament->league"
-                                        href="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}"
+                                        href="{$tournament->league->getUrl()}"
                                                                  class="btn btn-primary">
                                     <i class="fa-solid fa-trophy"></i>
                                     {lang 'Liga'}
@@ -134,7 +134,7 @@
                                     {lang 'Informace'}
                                 </a>
                                 <a n:if="$tournament->isRegistrationActive() && !$tournament->isFull()"
-                                        href="{link 'tournament', $tournament->id, 'register'}"
+                                        href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{$tournament->league->getUrl('register')}{else}{link 'tournament', $tournament->id, 'register'}{/if}"
                                         class="btn btn-primary">
                                     <i class="fa-solid fa-user-plus"></i>
                                     {lang 'Registrace'}

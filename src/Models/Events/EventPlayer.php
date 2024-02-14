@@ -2,6 +2,7 @@
 
 namespace App\Models\Events;
 
+use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\Player as LeaguePlayer;
 use Lsr\Core\DB;
 use Lsr\Core\Models\Attributes\ManyToMany;
@@ -43,4 +44,7 @@ class EventPlayer extends EventPlayerBase
 		return $success;
 	}
 
+	public function getEvent(): EventBase|League {
+		return $this->event;
+	}
 }

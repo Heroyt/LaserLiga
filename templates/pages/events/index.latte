@@ -155,7 +155,7 @@
                                     {lang 'Informace'}
                                 </a>
                                 <a n:if="$event->isRegistrationActive() && ($event instanceof App\Models\Events\Event || !$event->isFull())"
-                                        href="{link array_merge($link, ['register'])}"
+                                        href="{if $event->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', $event->league->id, 'register'}{else}{link array_merge($link, ['register'])}{/if}"
                                         class="btn btn-primary">
                                     <i class="fa-solid fa-user-plus"></i>
                                     {lang 'Registrace'}

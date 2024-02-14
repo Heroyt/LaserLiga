@@ -2,9 +2,8 @@
 
 namespace App\Models\Events;
 
-use App\Models\Events\EventTeamBase;
+use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueTeam;
-use App\Models\Tournament\WithTokenValidation;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToMany;
@@ -66,4 +65,7 @@ class EventTeam extends EventTeamBase
 		$this->leagueTeam->save();
 	}
 
+	public function getEvent(): EventBase|League {
+		return $this->event;
+	}
 }

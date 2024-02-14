@@ -59,13 +59,13 @@
             {switch $event->datesType}
                 {case App\Models\Events\DatesType::MULTIPLE}
                 <div n:foreach="$event->getDates() as $date" class="form-check">
-                    <input n:class="form-check-input, isset($errors['dates']) ? is-invalid"
+                    <input n:class="form-check-input, $date->canceled ? 'disabled', isset($errors['dates']) ? is-invalid"
                             type="checkbox" value="{$date->id}"
                             id="event-{$event->id}-date-{$date->id}"
                             name="dates[]"
-                            n:attr="checked: isset($_POST['dates']) && is_array($_POST['dates']) && in_array($date->id, $_POST['dates'])">
+                            n:attr="checked: isset($_POST['dates']) && is_array($_POST['dates']) && in_array($date->id, $_POST['dates']), disabled: $date->canceled">
                     <label class="form-check-label" for="event-{$event->id}-date-{$date->id}">
-                        {$date->start->format('d.m.Y H:i')}{ifset $date->end} - {$date->end->format('H:i')}{/ifset}
+                        {if $date->canceled}{lang 'Zrušeno'}: {/if}{$date->start->format('d.m.Y H:i')}{ifset $date->end} - {$date->end->format('H:i')}{/ifset}
                     </label>
                     <div n:ifset="$errors['dates']"
                             id="event-{$event->id}-feedback" class="invalid-feedback">

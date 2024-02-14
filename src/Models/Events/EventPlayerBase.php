@@ -4,6 +4,7 @@ namespace App\Models\Events;
 
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
+use App\Models\Tournament\League\League;
 use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\WithTokenValidation;
 use DateTimeImmutable;
@@ -43,8 +44,26 @@ abstract class EventPlayerBase extends Model
 	public DateTimeInterface  $createdAt;
 	public ?DateTimeInterface $updatedAt = null;
 
+	abstract public function getEvent(): EventBase|League;
+
 	public function validateAccess(?User $user = null, ?string $hash = ''): bool {
-		return (isset($user, $this->user) && $user->id === $this->user->id) || $this->validateHash($hash);
+		if (isset($user)) {
+			if (
+				$user->hasRight('manage-tournaments') ||
+				(
+					$user->managesArena($this->getEvent()->arena) &&
+					(
+						$user->hasRight('manage-arena-tournaments') ||
+						$user->hasRight('edit-arena-tournaments-teams')
+					)
+				)
+			) {
+				return true;
+			}
+		}
+		return (isset($user, $this->user) && $user->id === $this->user->id) || (!empty($hash) && $this->validateHash(
+					$hash
+				));
 	}
 
 	public function insert(): bool {

@@ -2,7 +2,9 @@
 
 namespace App\Models\Tournament;
 
+use App\Models\Events\EventBase;
 use App\Models\Events\EventPlayerBase;
+use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\Player as LeaguePlayer;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
@@ -165,4 +167,7 @@ class Player extends EventPlayerBase
 		return $this->accuracy;
 	}
 
+	public function getEvent(): EventBase|League {
+		return $this->tournament;
+	}
 }

@@ -20,6 +20,8 @@
 {/define}
 {define content}
 {/define}
+{define afterContent}
+{/define}
 {define addHead}
 {/define}
 {define errors}
@@ -144,6 +146,8 @@
             {include content}
         </main>
 
+        {include afterContent}
+
         {include footer}
     </div>
 {else}
@@ -151,6 +155,8 @@
         {include errors}
         {include content}
     </main>
+
+    {include afterContent}
 
     {include footer}
 {/if}

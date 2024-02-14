@@ -30,7 +30,8 @@
                     <strong>{lang 'Termíny'}:</strong>
                 </p>
                 <ul class="list-group mb-3">
-                    <li n:foreach="$event->getDates() as $date" class="list-group-item">
+                    <li n:foreach="$event->getDates() as $date" n:class="'list-group-item', $date->canceled ? 'text-decoration-line-through'">
+                        {if $date->canceled}{lang 'Zrušený'}: {/if}
                         <time datetime="{$date->start->format('c')}">
                             {$date->start->format('d.m.Y H:i')}
                         </time>

@@ -2,18 +2,14 @@
 
 namespace App\Models\Tournament;
 
-use App\Models\Auth\User;
-use App\Models\DataObjects\Image;
+use App\Models\Events\EventBase;
 use App\Models\Events\EventTeamBase;
 use App\Models\Events\WithLeagueTeam;
+use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueTeam;
-use DateTimeImmutable;
-use DateTimeInterface;
 use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
 
 /**
  * @extends EventTeamBase<Player>
@@ -24,7 +20,7 @@ class Team extends EventTeamBase
 	use WithLeagueTeam;
 
 	public const PLAYER_CLASS = Player::class;
-	public const TABLE = 'tournament_teams';
+	public const TABLE     = 'tournament_teams';
 	public const TOKEN_KEY = 'tournament-team';
 
 	public int $points = 0;
@@ -142,31 +138,38 @@ class Team extends EventTeamBase
 	}
 
 	public function getKills(): int {
-		$this->kills ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(hits)')
-											 ->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-											 ->fetchSingle($this->tournament->isFinished()) ?? 0;
+		$this->kills ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(hits)')->where(
+			'id_tournament_player IN %sql',
+			DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent
+		)->fetchSingle($this->tournament->isFinished()) ?? 0;
 		return $this->kills;
 	}
 
 	public function getDeaths(): int {
-		$this->deaths ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(deaths)')
-												->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-												->fetchSingle($this->tournament->isFinished()) ?? 0;
+		$this->deaths ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(deaths)')->where(
+			'id_tournament_player IN %sql',
+			DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent
+		)->fetchSingle($this->tournament->isFinished()) ?? 0;
 		return $this->deaths;
 	}
 
 	public function getShots(): int {
-		$this->shots ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(shots)')
-											 ->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-											 ->fetchSingle($this->tournament->isFinished()) ?? 0;
+		$this->shots ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(shots)')->where(
+			'id_tournament_player IN %sql',
+			DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent
+		)->fetchSingle($this->tournament->isFinished()) ?? 0;
 		return $this->shots;
 	}
 
 	public function getAccuracy(): float {
-		$this->accuracy ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'AVG(accuracy)')
-													->where('id_tournament_player IN %sql', DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent)
-													->fetchSingle($this->tournament->isFinished()) ?? 0.0;
+		$this->accuracy ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'AVG(accuracy)')->where(
+			'id_tournament_player IN %sql',
+			DB::select(Player::TABLE, 'id_player')->where('id_team = %i', $this->id)->fluent
+		)->fetchSingle($this->tournament->isFinished()) ?? 0.0;
 		return $this->accuracy;
 	}
 
+	public function getEvent(): EventBase|League {
+		return $this->tournament;
+	}
 }

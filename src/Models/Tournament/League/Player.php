@@ -2,6 +2,7 @@
 
 namespace App\Models\Tournament\League;
 
+use App\Models\Events\EventBase;
 use App\Models\Events\EventPlayerBase;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -16,4 +17,8 @@ class Player extends EventPlayerBase
 	public League      $league;
 	#[ManyToOne]
 	public ?LeagueTeam $team = null;
+
+	public function getEvent(): EventBase|League {
+		return $this->league;
+	}
 }

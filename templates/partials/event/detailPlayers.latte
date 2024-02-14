@@ -27,7 +27,9 @@
             aria-labelledby="event-date-tab-{$date->id}-control"
             data-track-content="" data-content-name="League {$date->name} tournaments" tabindex="0">
         {var App\Models\Events\EventPlayer[] $players = $date->getPlayers()}
-        {if count($players) > 0}
+        {if $date->canceled}
+            <h4 class="text-danger text-center">{lang 'Termín je zrušený'}</h4>
+        {elseif count($players) > 0}
             <div class="list-group">
                 <div n:foreach="$players as $player"
                         class="list-group-item text-center d-flex justify-content-center align-items-center lh-1 flex-wrap"

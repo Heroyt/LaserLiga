@@ -28,15 +28,27 @@ class User extends \Lsr\Core\Auth\Models\User
 
 	public ?\DateTimeInterface $createdAt = null;
 
-	public static function getByCode(string $code) : ?static {
+	/** @var int[] */
+	private array $managedArenaIds;
+
+	public static function getByCode(string $code): ?static {
 		return LigaPlayer::getByCode($code)?->user;
+	}
+
+	public static function getByEmail(string $email): ?User {
+		return static::query()->where('[email] = %s', $email)->first();
+	}
+
+	public static function existsByEmail(string $email): bool {
+		$test = DB::select(static::TABLE, 'count(*)')->where('[email] = %s', $email)->fetchSingle(cache: false);
+		return $test > 0;
 	}
 
 	/**
 	 * @return bool
 	 * @throws ValidationException
 	 */
-	public function saveConnections() : bool {
+	public function saveConnections(): bool {
 		foreach ($this->connections as $connection) {
 			if (!$connection->save()) {
 				return false;
@@ -45,23 +57,11 @@ class User extends \Lsr\Core\Auth\Models\User
 		return true;
 	}
 
-	public function save() : bool {
+	public function save(): bool {
 		return parent::save() && $this->saveConnections() && (!isset($this->player) || $this->player->save());
 	}
 
-
-	/**
-	 * @return UserConnection[]
-	 * @throws ValidationException
-	 */
-	public function getConnections() : array {
-		if (empty($this->connections)) {
-			$this->connections = UserConnection::getForUser($this);
-		}
-		return $this->connections;
-	}
-
-	public function addConnection(UserConnection $connection) : User {
+	public function addConnection(UserConnection $connection): User {
 		// Find duplicates
 		$found = false;
 		foreach ($this->getConnections() as $connectionToTest) {
@@ -76,13 +76,15 @@ class User extends \Lsr\Core\Auth\Models\User
 		return $this;
 	}
 
-	public static function getByEmail(string $email) : ?User {
-		return static::query()->where('[email] = %s', $email)->first();
-	}
-
-	public static function existsByEmail(string $email) : bool {
-		$test = DB::select(static::TABLE, 'count(*)')->where('[email] = %s', $email)->fetchSingle(cache: false);
-		return $test > 0;
+	/**
+	 * @return UserConnection[]
+	 * @throws ValidationException
+	 */
+	public function getConnections(): array {
+		if (empty($this->connections)) {
+			$this->connections = UserConnection::getForUser($this);
+		}
+		return $this->connections;
 	}
 
 	/**
@@ -91,7 +93,7 @@ class User extends \Lsr\Core\Auth\Models\User
 	 * @return LigaPlayer
 	 * @throws ValidationException
 	 */
-	public function createOrGetPlayer(?Arena $arena = null) : LigaPlayer {
+	public function createOrGetPlayer(?Arena $arena = null): LigaPlayer {
 		if (!isset($this->player)) {
 			$this->player = new LigaPlayer();
 			$this->player->arena = $arena;
@@ -103,5 +105,19 @@ class User extends \Lsr\Core\Auth\Models\User
 			$this->player->insert();
 		}
 		return $this->player;
+	}
+
+	/**
+	 * @return int[]
+	 */
+	public function getManagedArenaIds(): array {
+		$this->managedArenaIds ??= DB::select('user_managed_arena', 'id_arena')
+		                             ->where('id_user = %i', $this->id)
+		                             ->fetchPairs();
+		return $this->managedArenaIds;
+	}
+
+	public function managesArena(Arena $arena): bool {
+		return in_array($arena->id, $this->getManagedArenaIds(), true);
 	}
 }
