@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Mails\Message;
 use App\Services\MailService;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
 

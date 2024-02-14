@@ -7,7 +7,7 @@ use App\Models\Push\Subscription;
 use App\Services\PushService;
 use JsonException;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;

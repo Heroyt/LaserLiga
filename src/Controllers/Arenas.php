@@ -12,7 +12,7 @@ use DateTime;
 use DateTimeImmutable;
 use Dibi\Row;
 use Exception;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Requests\Request;

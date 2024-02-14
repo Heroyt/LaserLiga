@@ -8,7 +8,7 @@ use App\Services\QuestionnaireHelper;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\App;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;

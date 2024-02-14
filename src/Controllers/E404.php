@@ -12,7 +12,7 @@
 
 namespace App\Controllers;
 
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 
 /**
  * @class   E404

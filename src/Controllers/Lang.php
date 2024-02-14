@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use Lsr\Core\App;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 
 class Lang extends Controller

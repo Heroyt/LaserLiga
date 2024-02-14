@@ -70,6 +70,8 @@
 		}
 	],
 	"config": {
+    "optimize-autoloader": true,
+    "apcu-autoloader": true,
 		"allow-plugins": {
 			"phpstan/extension-installer": true
 		}

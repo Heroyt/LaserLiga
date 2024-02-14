@@ -6,7 +6,7 @@ use App\GameModels\Factory\GameFactory;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Tournament\Tournament;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 
 class Index extends Controller
 {

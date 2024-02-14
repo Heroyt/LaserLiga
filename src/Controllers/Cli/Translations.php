@@ -9,7 +9,7 @@ use Gettext\Generator\PoGenerator;
 use Gettext\Loader\PoLoader;
 use Gettext\Translation;
 use Gettext\Translations as GettextTranslations;
-use Lsr\Core\CliController;
+use Lsr\Core\Controllers\CliController;
 use Lsr\Core\Requests\CliRequest;
 
 class Translations extends CliController

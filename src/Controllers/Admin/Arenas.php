@@ -3,7 +3,7 @@
 namespace App\Controllers\Admin;
 
 use App\Models\Arena;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;

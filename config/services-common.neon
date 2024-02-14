@@ -6,24 +6,40 @@ parameters:
 			- %constants.appDir%routes
 		controllers:
 			- %constants.appDir%src/Controllers
+	redis:
+		host: redis
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
 services:
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
+
+	redis:
+		create: \Redis
+		setup:
+			- connect(%redis.host%)
+
 	regression.evo5: App\GameModels\Tools\Evo5\RegressionStatCalculator
-	rankCalculator: App\Services\Player\RankCalculator
+
+	caching.journal: Lsr\Core\Caching\RedisJournal(@redis)
+	cache.storage: Lsr\Core\Caching\RedisStorage(@redis, '', @caching.journal)
+	cache: Lsr\Core\Caching\Cache(@cache.storage, null, %constants.debug%)
+
+	avatars: App\Services\Avatar\AvatarService
+
 	user: App\Models\Auth\User
-	caching.journal: Nette\Caching\Storages\SQLiteJournal('%constants.tempDir%journal.s3db')
+	rankCalculator: App\Services\Player\RankCalculator
+
 	playerUser: App\Services\Player\PlayerUserService
 	playerRankOrder: App\Services\Player\PlayerRankOrderService
-	mailer: Nette\Mail\SendmailMailer
-	mail: App\Services\MailService
-	image: App\Services\ImageService
 	playerDistribution: App\Services\PlayerDistribution\PlayerDistributionService
 	playerGamesTogether: App\Services\Player\PlayersGamesTogetherService
 	playerStatsProvider: App\Services\Player\PlayerStatsProvider
-	avatars: App\Services\Avatar\AvatarService
+
+	mailer: Nette\Mail\SendmailMailer
+	mail: App\Services\MailService
+
+	image: App\Services\ImageService
 
 	evo5HighlightChecker:
 		type: App\Services\GameHighlight\Evo5HighlightChecker

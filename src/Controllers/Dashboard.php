@@ -6,7 +6,7 @@ use App\Models\Auth\User;
 use App\Services\Player\PlayerRankOrderService;
 use DateTimeImmutable;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Templating\Latte;
 
 class Dashboard extends Controller

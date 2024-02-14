@@ -5,7 +5,7 @@ namespace App\Controllers\Cli;
 use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
 use JsonException;
-use Lsr\Core\CliController;
+use Lsr\Core\Controllers\CliController;
 use Lsr\Core\Requests\CliRequest;
 use Lsr\Core\Routing\CliRoute;
 use Lsr\Core\Routing\Router;

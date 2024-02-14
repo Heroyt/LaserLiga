@@ -8,7 +8,7 @@ use App\Models\Auth\Enums\ConnectionType;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\UserConnection;
 use JsonException;
-use Lsr\Core\ApiController;
+use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use OpenApi\Attributes as OA;

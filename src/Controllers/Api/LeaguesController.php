@@ -10,7 +10,7 @@ use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\Player;
 use Dibi\DriverException;
 use JsonException;
-use Lsr\Core\ApiController;
+use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;

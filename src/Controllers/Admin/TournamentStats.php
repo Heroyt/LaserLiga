@@ -6,7 +6,7 @@ use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueCategory;
 use App\Models\Tournament\Stats;
 use App\Models\Tournament\Tournament;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 
 class TournamentStats extends Controller
 {

@@ -9,7 +9,7 @@ use DateTimeImmutable;
 use Dibi\DateTime;
 use Dibi\Exception;
 use Lsr\Core\App;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;

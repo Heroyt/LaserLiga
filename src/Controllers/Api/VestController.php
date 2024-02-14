@@ -9,7 +9,7 @@ use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Enums\VestStatus;
 use App\GameModels\Vest;
 use App\Models\Arena;
-use Lsr\Core\ApiController;
+use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 use OpenApi\Attributes as OA;

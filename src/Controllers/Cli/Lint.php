@@ -4,7 +4,7 @@ namespace App\Controllers\Cli;
 
 use Latte\Engine;
 use Latte\Tools\Linter;
-use Lsr\Core\CliController;
+use Lsr\Core\Controllers\CliController;
 use Lsr\Core\Requests\CliRequest;
 use Lsr\Core\Routing\Attributes\Cli;
 

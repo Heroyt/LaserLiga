@@ -10,7 +10,7 @@ use DateInterval;
 use DateTime;
 use DateTimeImmutable;
 use JsonException;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
 use Lsr\Helpers\Tools\Strings;

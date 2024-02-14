@@ -10,7 +10,7 @@ use App\Models\Arena;
 use App\Services\Player\PlayerRankOrderService;
 use App\Services\Player\PlayerUserService;
 use DateTimeImmutable;
-use Lsr\Core\CliController;
+use Lsr\Core\Controllers\CliController;
 use Lsr\Logging\Logger;
 
 class Cron extends CliController

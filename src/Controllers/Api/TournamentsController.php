@@ -14,7 +14,7 @@ use App\Models\Tournament\Progression;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use DateTimeImmutable;
-use Lsr\Core\ApiController;
+use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;

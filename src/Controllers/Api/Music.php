@@ -7,7 +7,7 @@ use App\Models\Arena;
 use App\Models\MusicMode;
 use Dibi\Exception;
 use JsonException;
-use Lsr\Core\ApiController;
+use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;

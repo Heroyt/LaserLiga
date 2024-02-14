@@ -15,7 +15,7 @@ use App\Models\Auth\LigaPlayer;
 use App\Services\Player\PlayerUserService;
 use App\Services\PushService;
 use Lsr\Core\App;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;

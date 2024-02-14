@@ -4,7 +4,7 @@ namespace App\Controllers\Cli;
 
 use App\Services\ImportService;
 use App\Services\SyncService;
-use Lsr\Core\CliController;
+use Lsr\Core\Controllers\CliController;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\CliRequest;

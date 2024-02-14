@@ -24,7 +24,7 @@ use App\Services\EventRegistrationService;
 use Dibi\DriverException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;

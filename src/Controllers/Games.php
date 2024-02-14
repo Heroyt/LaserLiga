@@ -21,7 +21,7 @@ use Imagick;
 use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;

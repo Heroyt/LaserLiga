@@ -3,7 +3,7 @@
 namespace App\Controllers\User;
 
 use App\Models\Auth\User;
-use Lsr\Core\Controller;
+use Lsr\Core\Controllers\Controller;
 
 abstract class AbstractUserController extends Controller
 {

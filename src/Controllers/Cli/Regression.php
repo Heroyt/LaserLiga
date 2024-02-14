@@ -8,7 +8,7 @@ use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Evo5\RegressionStatCalculator;
 use App\Models\Arena;
 use App\Services\Maths\RegressionCalculator;
-use Lsr\Core\CliController;
+use Lsr\Core\Controllers\CliController;
 use Lsr\Core\Requests\CliRequest;
 use Lsr\Helpers\Cli\Colors;
 use Lsr\Helpers\Cli\Enums\ForegroundColors;

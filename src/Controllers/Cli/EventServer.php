@@ -6,7 +6,7 @@
 namespace App\Controllers\Cli;
 
 use App\Services\EventService;
-use Lsr\Core\CliController;
+use Lsr\Core\Controllers\CliController;
 use Socket;
 
 class EventServer extends CliController
