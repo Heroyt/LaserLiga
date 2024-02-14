@@ -79,6 +79,8 @@ export default function initCreateGame() {
 				}
 			});
 
+            playerData.accuracy = playerData.shots === 0 ? 0 : Math.round(100 * playerData.hits / playerData.shots) / 100;
+
 			players.set(playerId, playerData);
 
 			const hitsDom = document.getElementById(`player-${playerId}-hits`) as HTMLSpanElement;
@@ -89,6 +91,11 @@ export default function initCreateGame() {
 			deathsDom.innerText = playerData.deaths.toString();
 			const deathsOwnDom = document.getElementById(`player-${playerId}-deathsOwn`) as HTMLSpanElement;
 			deathsOwnDom.innerText = playerData.deathsOwn.toString();
+            const accuracyDom = document.getElementById(`player-${playerId}-accuracy`) as HTMLSpanElement;
+            accuracyDom.innerText = playerData.accuracy.toLocaleString(undefined, {
+                style: 'percent',
+                maximumFractionDigits: 0
+            });
 		});
 	})
 
@@ -126,10 +133,7 @@ export default function initCreateGame() {
 			`<input type="number" value="0" min="0" class="form-control" id="player-${playerId}-shots" placeholder="Výstřely" name="players[${playerId}][shots]">` +
 			`<label for="player-${playerId}-shots">Výstřely</label>` +
 			`</div>` +
-			`<div class="form-floating">` +
-			`<input type="number" value="0" min="0" max="100" class="form-control" id="player-${playerId}-accuracy" placeholder="Přesnost" name="players[${playerId}][accuracy]">` +
-			`<label for="player-${playerId}-accuracy">Přesnost</label>` +
-			`</div>` +
+            `<div class="input-group-text">Přesnost: <span id="player-${playerId}-accuracy">0%</span></div>` +
 			`<div class="input-group-text">Zásahy: <span id="player-${playerId}-hits">0</span></div>` +
 			`<div class="input-group-text">Zásahy vlastních: <span id="player-${playerId}-hitsOwn">0</span></div>` +
 			`<div class="input-group-text">Smrti: <span id="player-${playerId}-deaths">0</span></div>` +
@@ -217,6 +221,16 @@ export default function initCreateGame() {
 			data.team = parseInt(team.value);
 			players.set(playerId, data);
 		});
+
+        const shots = wrapper.querySelector(`#player-${playerId}-shots`) as HTMLInputElement;
+        const accuracy = wrapper.querySelector(`#player-${playerId}-shots`) as HTMLSpanElement;
+        shots.addEventListener('input', () => {
+            const data = players.get(playerId);
+            data.shots = shots.valueAsNumber;
+            data.accuracy = data.shots === 0 ? 0 : Math.round(100 * data.hits / data.shots) / 100;
+            accuracy.innerText = data.accuracy.toLocaleString(undefined, {style: 'percent', maximumFractionDigits: 0});
+            players.set(playerId, data);
+        });
 
 		playerWrapper.appendChild(wrapper);
 	}
