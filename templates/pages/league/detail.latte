@@ -311,6 +311,17 @@
     </div>
 {/define}
 
+{define afterContent}
+    {if $league->popup->isActive()}
+        {if $league->popup->getImageObj() !== null}
+            <div class="marketing-popup image" n:tag="$league->popup->link !== null ? a : div" n:attr="href: $league->popup->link">
+                <img srcset="{getImageSrcSet($league->popup->getImageObj(), false)}"
+                     src="{$league->popup->getImageObj()?->getUrl()}" alt="{$league->popup->title}" class="popup-image">
+            </div>
+        {/if}
+    {/if}
+{/define}
+
 {define tournamentBox, App\Models\Tournament\Tournament|App\Models\App\Models\Events\Event $tournament, int $counter = 0}
     {var array $link = $tournament instanceof App\Models\Tournament\Tournament ? ['tournament', $tournament->id] : ['events', $tournament->id]}
     <a href="{link $link}"

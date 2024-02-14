@@ -1,0 +1,29 @@
+.marketing-popup {
+  bottom: 4rem;
+  max-width: 100vw;
+  position: fixed;
+  right: 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, .6);
+  border-radius: 1rem;
+  overflow: hidden;
+  max-height: min(20rem, 35vh);
+  aspect-ratio: 3 / 2;
+  animation: slide-in-right 300ms;
+  animation-delay: 2s;
+  animation-fill-mode: forwards;
+  transform: translateX(100%);
+
+  img {
+    width: 100%;
+    object-fit: cover;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

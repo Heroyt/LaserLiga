@@ -22,6 +22,8 @@ class EventPopup implements InsertExtendInterface
 		public ?string $image = null,
 		#[OA\Property]
 		public ?string $link = null,
+		#[OA\Property]
+		public bool $active = true,
 	) {
 	}
 
@@ -34,6 +36,7 @@ class EventPopup implements InsertExtendInterface
 			$row->popup_description,
 			$row->popup_image,
 			$row->popup_link,
+			(bool)$row->popup_active,
 		);
 	}
 
@@ -45,17 +48,18 @@ class EventPopup implements InsertExtendInterface
 		$data['popup_description'] = $this->description;
 		$data['popup_image'] = $this->image;
 		$data['popup_link'] = $this->link;
+		$data['popup_active'] = $this->active;
 	}
 
 	public function isActive(): bool {
-		return !empty($this->image) || !empty($this->title);
+		return $this->active && (!empty($this->image) || !empty($this->title));
 	}
 
 	public function getImageObj(): ?Image {
 		if (empty($this->image)) {
 			return null;
 		}
-		$this->imageObj ??= new Image($this->image);
+		$this->imageObj ??= new Image($this->image[0] === '/' ? ROOT . substr($this->image, 1) : $this->image);
 		return $this->imageObj;
 	}
 }
