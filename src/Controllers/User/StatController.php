@@ -312,61 +312,88 @@ class StatController extends AbstractUserController
 			DistributionParam::hits,
 			15 * $player->stats->hits / $player->stats->totalMinutes
 		);
+		$deathsPercentile = $this->distributionService->getPercentile(
+			DistributionParam::deaths,
+			15 * $player->stats->deaths / $player->stats->totalMinutes
+		);
 		$kdPercentile = $this->distributionService->getPercentile(
 			DistributionParam::kd,
 			$player->stats->kd
 		);
 		$hitsLabel = $player->stats->hits / $player->stats->totalMinutes;
+		$deathsLabel = $player->stats->deaths / $player->stats->totalMinutes;
 		return [
 			'rank'           => [
 				'value'           => $rankPercentile,
 				'label'           => (string)$player->stats->rank,
 				'percentileLabel' => lang('Percentil') . ': ' . ($rankPercentile >= 50 ? sprintf(
-						lang('Nejlepší %d%%', 'Nejlepších %d%%', $rankPercentile === 100 ? 1 : 100 - $rankPercentile),
+						lang('Nejlepší %d %%', 'Nejlepších %d %%', $rankPercentile === 100 ? 1 : 100 - $rankPercentile),
 						$rankPercentile === 100 ? 1 : 100 - $rankPercentile
-					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $rankPercentile), $rankPercentile)),
+					) : sprintf(lang('Nejhorší %d %%', 'Nejhorších %d %%', $rankPercentile), $rankPercentile)),
 			],
 			'shotsPerMinute' => [
 				'value'           => $shotsPercentile,
 				'label'           => sprintf(
-					lang('%d výstřel za minutu', '%d výstřelů za minutu', $player->stats->averageShotsPerMinute),
+					lang('%d výstřel za minutu', '%d výstřelů za minutu', (int)$player->stats->averageShotsPerMinute),
 					$player->stats->averageShotsPerMinute
 				),
 				'percentileLabel' => lang('Percentil') . ': ' . ($shotsPercentile >= 50 ? sprintf(
-						lang('Nejlepší %d%%', 'Nejlepších %d%%', $shotsPercentile === 100 ? 1 : 100 - $shotsPercentile),
+						lang(
+							'Nejlepší %d %%',
+							'Nejlepších %d %%',
+							$shotsPercentile === 100 ? 1 : 100 - $shotsPercentile
+						),
 						$shotsPercentile === 100 ? 1 : 100 - $shotsPercentile
-					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $shotsPercentile), $shotsPercentile)),
+					) : sprintf(lang('Nejhorší %d %%', 'Nejhorších %d %%', $shotsPercentile), $shotsPercentile)),
 			],
 			'accuracy'       => [
 				'value'           => $accuracyPercentile,
-				'label'           => $player->stats->averageAccuracy . ' %',
+				'label'           => sprintf('%.2f %%', $player->stats->averageAccuracy),
 				'percentileLabel' => lang('Percentil') . ': ' . ($accuracyPercentile >= 50 ? sprintf(
 						lang(
-							'Nejlepší %d%%',
-							'Nejlepších %d%%',
+							'Nejlepší %d %%',
+							'Nejlepších %d %%',
 							$accuracyPercentile === 100 ? 1 : 100 - $accuracyPercentile
 						),
 						$accuracyPercentile === 100 ? 1 : 100 - $accuracyPercentile
-					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $accuracyPercentile), $accuracyPercentile)),
+					) : sprintf(lang('Nejhorší %d %%', 'Nejhorších %d %%', $accuracyPercentile), $accuracyPercentile)),
 			],
 			'hits'           => [
 				'value'           => $hitsPercentile,
-				'label'           => sprintf(lang('%d zásah za minutu', '%d zásahů za minutu', $hitsLabel), $hitsLabel),
+				'label'           => sprintf(
+					lang('%.2f zásah za minutu', '%.2f zásahů za minutu', $hitsLabel),
+					$hitsLabel
+				),
 				'percentileLabel' => lang('Percentil') . ': ' . ($hitsPercentile >= 50 ? sprintf(
-						lang('Nejlepší %d%%', 'Nejlepších %d%%', $hitsPercentile === 100 ? 1 : 100 - $hitsPercentile),
+						lang('Nejlepší %d %%', 'Nejlepších %d %%', $hitsPercentile === 100 ? 1 : 100 - $hitsPercentile),
 						$hitsPercentile === 100 ? 1 : 100 - $hitsPercentile
-					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $hitsPercentile), $hitsPercentile)),
+					) : sprintf(lang('Nejhorší %d %%', 'Nejhorších %d %%', $hitsPercentile), $hitsPercentile)),
+			],
+			'deaths'         => [
+				'value'           => $deathsPercentile,
+				'label'           => sprintf(
+					lang('%.2f smrt za minutu', '%.2f smrtí za minutu', $deathsLabel),
+					$deathsLabel
+				),
+				'percentileLabel' => lang('Percentil') . ': ' . ($deathsPercentile >= 50 ? sprintf(
+						lang(
+							'Nejlepší %d %%',
+							'Nejlepších %d %%',
+							$deathsPercentile === 100 ? 1 : 100 - $deathsPercentile
+						),
+						$deathsPercentile === 100 ? 1 : 100 - $deathsPercentile
+					) : sprintf(lang('Nejhorší %d %%', 'Nejhorších %d %%', $deathsPercentile), $deathsPercentile)),
 			],
 			'kd'             => [
 				'value'           => $kdPercentile,
 				'label'           => sprintf(
-					lang('%s zásahů na jednu smrt'),
-					number_format($player->stats->kd, 2, ',')
+					lang('%.2f zásahů na jednu smrt'),
+					$player->stats->kd
 				),
 				'percentileLabel' => lang('Percentil') . ': ' . ($kdPercentile >= 50 ? sprintf(
-						lang('Nejlepší %d%%', 'Nejlepších %d%%', $kdPercentile === 100 ? 1 : 100 - $kdPercentile),
+						lang('Nejlepší %d %%', 'Nejlepších %d %%', $kdPercentile === 100 ? 1 : 100 - $kdPercentile),
 						$kdPercentile === 100 ? 1 : 100 - $kdPercentile
-					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $kdPercentile), $kdPercentile)),
+					) : sprintf(lang('Nejhorší %d %%', 'Nejhorších %d %%', $kdPercentile), $kdPercentile)),
 			],
 		];
 	}

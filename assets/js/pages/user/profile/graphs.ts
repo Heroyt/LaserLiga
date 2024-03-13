@@ -83,7 +83,8 @@ export default function initGraphsTab(graphsTabBtn: HTMLAnchorElement, graphsTab
     const radarChart = new Chart(radarCanvas, {
         type: "radar",
         data: {
-            labels: Object.values(radarCategories), datasets: [],
+            labels: Object.values(radarCategories),
+            datasets: [],
         },
         options: {
             parsing: {
@@ -98,11 +99,15 @@ export default function initGraphsTab(graphsTabBtn: HTMLAnchorElement, graphsTab
                 r: {
                     grid: {
                         display: true, color: '#777',
-                    }, angleLines: {
+                    },
+                    angleLines: {
                         display: true, color: '#aaa',
-                    }, ticks: {
+                    },
+                    ticks: {
                         backdropColor: null, color: '#aaa',
-                    }
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 100
                 }
             },
             plugins: {
