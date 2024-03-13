@@ -76,7 +76,9 @@ class LigaPlayer extends Player
 
 	public function fetch(bool $refresh = false): void {
 		parent::fetch($refresh);
-		$this->email = $this->user->email;
+		if (!isset($this->email) && isset($this->user->email)) {
+			$this->email = $this->user->email;
+		}
 	}
 
 	public function jsonSerialize(): array {
