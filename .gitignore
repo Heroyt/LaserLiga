@@ -40,3 +40,6 @@ devHelpers/
 upload
 .unlighthouse
 sitemap.xml
+tmp/
+.config/
+assets/*/optimized
