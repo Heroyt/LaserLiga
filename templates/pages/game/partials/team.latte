@@ -16,7 +16,7 @@
     {var int $deaths = $team->getDeaths()}
     {var int $total = $hits + $deaths}
     <div class="team-hits" data-content-piece="Hits">
-        <div n:if="$game->mode->settings->playerPlayers" class="hits mt-1 mb-2">
+        <div n:if="$game->getMode()?->settings->playerPlayers" class="hits mt-1 mb-2">
             <div class="kills-row">
                 <div class="label">
                     {lang 'Zásahy', context:'results.player'}:
@@ -65,7 +65,7 @@
 
 {define teamAccuracy, App\GameModels\Game\Team $team}
     {var float $accuracy = $team->getAccuracy()}
-    <svg n:if="$game->mode->settings->playerAccuracy" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
+    <svg n:if="$game->getMode()?->settings->playerAccuracy" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
                                                       class="accuracy" xml:space="preserve"
                                                       data-content-piece="Accuracy"
                                                       style="--color:var(--team-{$team->getTeamColor()});fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
@@ -98,7 +98,7 @@
 
 {define teamShots, App\GameModels\Game\Team $team, int $maxShots}
     {var int $shots = $team->getShots()}
-    <div n:if="$game->mode->settings->playerShots" class="team-shots" data-content-piece="Shots">
+    <div n:if="$game->getMode()?->settings->playerShots" class="team-shots" data-content-piece="Shots">
         {var int $step = ceil($maxShots / 10)}
         {var int $count = ceil($shots / $step)}
         <svg viewBox="0 0 1720 504" class="mb-1">
@@ -131,7 +131,7 @@
 {/define}
 
 {define teamHitsTeam, App\GameModels\Game\Team $team}
-    <div n:if="$game->mode->settings->partHits" data-content-piece="Hits teams"
+    <div n:if="$game->getMode()?->settings->partHits" data-content-piece="Hits teams"
                                                 class="team-hits-team d-flex flex-wrap justify-content-center align-items-start text-center">
         <div class="hits-my col-12 col-sm-5">
             <h4 class="caption mt-3">

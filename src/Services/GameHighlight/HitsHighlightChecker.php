@@ -42,7 +42,7 @@ class HitsHighlightChecker implements GameHighlightChecker
 				}
 				$maxDeathsOwnPlayers[] = $player;
 			}
-			if ($game->mode->isTeam()) {
+			if ($game->getMode()?->isTeam()) {
 				if ($player->hitsOwn > $player->hitsOther) {
 					$highlights->add(
 						new GameHighlight(
@@ -117,7 +117,7 @@ class HitsHighlightChecker implements GameHighlightChecker
 			}
 		}
 
-		if ($game->mode?->isTeam()) {
+		if ($game->getMode()?->isTeam()) {
 			$maxHitsOwnPlayerCount = count($maxHitsOwnPlayers);
 			switch ($maxHitsOwnPlayerCount) {
 				case 0:

@@ -18,7 +18,7 @@
 {/define}
 
 {define containerClasses}
-    game-results {if $game->mode->isSolo()}solo{/if} py-5 mb-5 mb-lg-0
+    game-results {if $game->getMode()?->isSolo()}solo{/if} py-5 mb-5 mb-lg-0
 {/define}
 
 {define addHead}
@@ -64,13 +64,13 @@
 
 {define content}
     {include resultsHeader}
-    {if $game->mode->isTeam() && $game->mode->settings->partTeams}
+    {if $game->getMode()?->isTeam() && $game->getMode()?->settings->partTeams}
         {include resultsTeams}
     {/if}
-    {if $game->mode->settings->partPlayers}
+    {if $game->getMode()?->settings->partPlayers}
         {include resultsPlayers}
     {/if}
-    {if $game->mode->settings->partHits}
+    {if $game->getMode()?->settings->partHits}
         {include resultsHits}
     {/if}
 
@@ -177,7 +177,7 @@
 {/define}
 
 {define resultsWin}
-    {var App\GameModels\Game\Player|App\GameModels\Game\Team|null $win = $game->mode->getWin($game)}
+    {var App\GameModels\Game\Player|App\GameModels\Game\Team|null $win = $game->getMode()?->getWin($game)}
     <div class="results-win">
         {if is_null($win)}
             <div class="print-primary">
@@ -188,7 +188,7 @@
                 {lang 'Vítězství', context: 'results'}: {$win->name}
             </div>
         {elseif $win instanceof App\GameModels\Game\Player}
-            <div class="{if $game->mode->isSolo()}print-primary{else}bg-team-{$win->getTeam()->color}{/if}">
+            <div class="{if $game->getMode()?->isSolo()}print-primary{else}bg-team-{$win->getTeam()->color}{/if}">
                 {lang 'Vítězství', context: 'results'}: {$win->name}
             </div>
         {/if}
@@ -204,10 +204,10 @@
         <div class="col-12 mt-2 game-head">
             <div class="game-info py-3 rounded-10 shadow bg-background-1 text-center d-flex flex-column justify-content-center align-items-center">
                 <h2 class="visually-hidden">{lang 'Informace o hře'}</h2>
-                <a href="{link ['arena', $game->arena->id]}" aria-label="{lang 'Zobrazit stránku arény'}"
+                <a href="{link ['arena', $game->arena?->id]}" aria-label="{lang 'Zobrazit stránku arény'}"
                    title="{lang 'Zobrazit stránku arény'}" class="text-black">
-                    {$game->arena->getLogoHtml()|noescape}
-                    <h3 class="visually-hidden">{$game->arena->name}</h3>
+                    {$game->arena?->getLogoHtml()|noescape}
+                    <h3 class="visually-hidden">{$game->arena?->name}</h3>
                 </a>
                 <div class="my-1">
                     <strong>{lang 'Kód hry', context: 'results.info'}:</strong>
@@ -215,19 +215,19 @@
                 </div>
                 <div class="my-1">
                     <strong>{lang 'Datum', context: 'results.info'}:</strong>
-                    <time datetime="{$game->start->format('c')}">{$game->start->format('d.m.Y H:i:s')}</time>
+                    <time datetime="{$game->start?->format('c')}">{$game->start?->format('d.m.Y H:i:s')}</time>
                 </div>
                 <div class="my-1">
                     <strong>{lang 'Herní mód', context: 'results.info'}:</strong>
-                    {lang $game->mode->name, context: 'gameModes'}
+                    {lang $game->getMode()?->name, context: 'gameModes'}
                 </div>
-                <div n:ifset="$game->music" class="my-1">
+                <div n:if="$game->getMusic() !== null" class="my-1">
                     <strong>{lang 'Hudební mód', context: 'results.info'}:</strong>
-                    {lang $game->music->name, context: 'musicModes'}
+                    {lang $game->getMusic()?->name, context: 'musicModes'}
                 </div>
-                <div n:ifset="$game->group">
+                <div n:if="$game->getGroup() !== null">
                     <strong>{lang 'Skupina', context: 'results.info'}:</strong>
-                    {$game->group->name}
+                    {$game->getGroup()?->name}
                 </div>
             </div>
             <div class="scoring p-0">
@@ -349,7 +349,7 @@
                         <div class="legend m-3">
                             {svgIcon 'dead', '', '1em'} - {lang 'Zásahy od/do spoluhráčů', context: 'results'}
                         </div>
-                        {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode->settings->playerMines}
+                        {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->getMode()?->settings->playerMines}
                             <div class="legend m-3">
                                 {svgIcon 'base_2', '', '1em'} - {lang 'Bonusy', context: 'results'}
                             </div>
@@ -440,7 +440,7 @@
                 <i class="fa-solid fa-angle-right"></i>
             </a>
         </div>
-        <div n:if="isset($game->group) || $game->getTournamentGame() !== null" class="col-12 mt-3 text-center">
+        <div n:if="$game->getGroup() !== null || $game->getTournamentGame() !== null" class="col-12 mt-3 text-center">
             <div class="btn-group btn-group-lg">
                 <a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-primary"
                                             data-track-content=""
@@ -454,7 +454,7 @@
 					{lang 'Předchozí hra', context: 'results.group'}
 					</span>
                 </a>
-                <a n:ifset="$game->group" href="{link ['game', 'group', $game->group->getEncodedId()]}"
+                <a n:if="$game->getGroup() !== null" href="{link ['game', 'group', $game->getGroup()?->getEncodedId()]}"
                                           class="btn btn-secondary"
                                           data-track-content="" data-content-name="Results - Group"
                                           data-content-piece="Button">
@@ -482,7 +482,7 @@
             </div>
         </div>
 
-        <div n:if="$game->mode->isTeam()" class="btn-group mt-3 col-12" data-track-content=""
+        <div n:if="$game->getMode()?->isTeam()" class="btn-group mt-3 col-12" data-track-content=""
                                           data-content-name="Result mode switch">
             <input type="radio" class="btn-check" name="result-mode-select" value="players" id="result-mode-players"
                    autocomplete="off" checked>
@@ -555,7 +555,7 @@
 {define playerScore}
     {varType App\GameModels\Game\Player $player}
     <div class="score-skill d-flex flex-wrap justify-content-end">
-        <div n:if="$game->mode->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
+        <div n:if="$game->getMode()?->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
             <i class="fa-solid fa-star"></i>
             <span class="visually-hidden">{lang 'Skóre'}:</span>
             <b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
@@ -570,7 +570,7 @@
 
 {define resultsTeams}
     {var int $totalScore = array_sum(array_map(function($team){ return $team->score > 0 ? $team->score : 0;},$game->getTeams()->getAll()))}
-    {var App\GameModels\Game\Team|null $win = $game->mode->getWin($game)}
+    {var App\GameModels\Game\Team|null $win = $game->getMode()?->getWin($game)}
     <div class="results-teams" data-teams="{count($game->getTeams())}">
         <h2 class="visually-hidden">{lang 'Výsledky týmů'}</h2>
         {foreach $game->getTeamsSorted() as $team}

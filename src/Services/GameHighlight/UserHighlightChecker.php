@@ -43,7 +43,10 @@ class UserHighlightChecker implements GameHighlightChecker
 
 			$this->checkPlayerShots($player, $game, $highlights);
 
-			$this->checkComparePlayerHighlights($game, $player, $highlights);
+			try {
+				$this->checkComparePlayerHighlights($game, $player, $highlights);
+			} catch (ModelNotFoundException|ValidationException|Throwable) {
+			}
 		}
 	}
 
@@ -84,7 +87,7 @@ class UserHighlightChecker implements GameHighlightChecker
 			}
 
 			// Skip players that are not registered, or if the player2 is the same as player1 or if
-			if (!isset($player2->user) || ($game->mode?->isTeam() && $player->getTeam()?->color === $player2->getTeam(
+			if (!isset($player2->user) || ($game->getMode()?->isTeam() && $player->getTeam()?->color === $player2->getTeam(
 					)?->color)) {
 				continue;
 			}
@@ -96,9 +99,9 @@ class UserHighlightChecker implements GameHighlightChecker
 
 			// Detect win, draw and loss
 			$isWin = false;
-			if ($game->mode?->isTeam()) {
+			if ($game->getMode()?->isTeam()) {
 				/** @var Team|null $winTeam */
-				$winTeam = $game->mode?->getWin($game);
+				$winTeam = $game->getMode()?->getWin($game);
 				if ($winTeam?->color === $player->getTeam()?->color) {
 					$isWin = true;
 				}
@@ -175,7 +178,7 @@ class UserHighlightChecker implements GameHighlightChecker
 						$player2->name
 					) . '>',
 				) .
-				($game->mode?->isTeam() ? ' (' . lang('Týmové skóre', context: 'results.highlights') . ')' : ''),
+				($game->getMode()?->isTeam() ? ' (' . lang('Týmové skóre', context: 'results.highlights') . ')' : ''),
 				(int)round(GameHighlight::MEDIUM_RARITY + (20 / $winLossRatio))
 			)
 		);

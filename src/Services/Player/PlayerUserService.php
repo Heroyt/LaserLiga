@@ -50,7 +50,7 @@ readonly class PlayerUserService
 		}
 		$player->user = $user->player;
 		if ($player->save()) {
-			$player->game->clearCache();
+			$player->getGame()->clearCache();
 			$this->cache->clean(
 				[
 					CacheParent::Tags => [
@@ -189,7 +189,7 @@ readonly class PlayerUserService
 		$user = $player->user;
 		$player->user = null;
 		if ($player->save()) {
-			$player->game->clearCache();
+			$player->getGame()->clearCache();
 			$this->cache->clean(
 				[
 					CacheParent::Tags => [
@@ -200,8 +200,8 @@ readonly class PlayerUserService
 				]
 			);
 			try {
-				DB::delete('player_game_rating', ['id_user = %i AND code = %s', $user->id, $player->game->code]);
-				DB::delete('possible_matches', ['id_user = %i AND code = %s', $user->id, $player->game->code]);
+				DB::delete('player_game_rating', ['id_user = %i AND code = %s', $user->id, $player->getGame()->code]);
+				DB::delete('possible_matches', ['id_user = %i AND code = %s', $user->id, $player->getGame()->code]);
 			} catch (Exception $e) {
 				return false;
 			}

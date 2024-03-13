@@ -103,9 +103,30 @@ readonly class PlayersGamesTogetherService
 			$game = GameFactory::getByCode($gameRow->code);
 			//$gameObjects[$game->code] = $game;
 			$data->gameCodes[] = $gameRow->code;
-			[$user1, $user2] = explode(',', $gameRow->users);
-			[$vest1, $vest2] = explode(',', $gameRow->vests);
-			[$team1, $team2] = explode(',', $gameRow->teams);
+			$user1 = $user2 = null;
+			if (!empty($gameRow->users)) {
+				$users = explode(',', $gameRow->users);
+				$user1 = $users[0] ?? null;
+				if (count($users) > 1) {
+					$user2 = $users[1];
+				}
+			}
+			$vest1 = $vest2 = null;
+			if (!empty($gameRow->vests)) {
+				$vests = explode(',', $gameRow->vests);
+				$vest1 = $vests[0] ?? null;
+				if (count($vests) > 1) {
+					$vest2 = $vests[1];
+				}
+			}
+			$team1 = $team2 = null;
+				if (!empty($gameRow->teams)) {
+					$teams = explode(',', $gameRow->teams);
+					$team1 = $teams[0] ?? null;
+					if (count($teams) > 1) {
+						$team2 = $teams[1];
+					}
+				}
 			if (((int)$user1) === $player1->id) {
 				/** @var \App\GameModels\Game\Player $currentPlayer */
 				$currentPlayer = $game->getVestPlayer($vest1);
@@ -124,7 +145,7 @@ readonly class PlayersGamesTogetherService
 				$data->gameCodesTogether[] = $gameRow->code;
 				$data->gameCountTogether++;
 				/** @var Team|null $winTeam */
-				$winTeam = $game->mode?->getWin($game);
+				$winTeam = $game->getMode()?->getWin($game);
 				if (isset($winTeam) && $winTeam->id === (int)$team1) {
 					$data->winsTogether++;
 				}
@@ -142,14 +163,14 @@ readonly class PlayersGamesTogetherService
 				$data->gameCodesEnemy[] = $gameRow->code;
 				$data->gameCountEnemy++;
 
-				if ($game->mode->isTeam()) {
+				if ($game->getMode()?->isTeam()) {
 					$data->gameCountEnemyTeam++;
 					/** @var Team|null $winTeam */
-					$winTeam = $game->mode?->getWin($game);
-					if ($currentPlayer->getTeam()->id === $winTeam->id) {
+					$winTeam = $game->getMode()?->getWin($game);
+					if ($currentPlayer->getTeam()?->id === $winTeam?->id) {
 						$data->winsEnemy++;
 					}
-					elseif ($otherPlayer->getTeam()->id === $winTeam->id) {
+					elseif ($otherPlayer->getTeam()?->id === $winTeam?->id) {
 						$data->lossesEnemy++;
 					}
 					else {

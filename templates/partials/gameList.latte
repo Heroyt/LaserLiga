@@ -188,7 +188,7 @@
                             </a>
                         </td>
                         <td n:ifset="$fields['arena']">{$game->arena->getLogoHtml()|noescape}</td>
-                        <td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
+                        <td>{if $game->getMode() !== null}{lang $game->getMode()->name, context: 'gameModes'}{/if}</td>
                         <td n:ifset="$fields['players']">
 						<span n:foreach="$game->getPlayersSorted() as $player"
                                 n:tag="isset($player->user) ? 'a' : 'span'"
@@ -278,9 +278,9 @@
                                 <i class="me-1 fa-solid fa-calendar-days"></i>
                                 {$game->start->format('d.m.Y H:i')}
                             </div>
-                            <div n:ifset="$game->mode" class="mode">
+                            <div n:if="$game->getMode() !== null" class="mode">
                                 <i class="me-1 fa-solid fa-gun"></i>
-                                {lang $game->mode->name, context: 'gameModes'}
+                                {lang $game->getMode()->name, context: 'gameModes'}
                             </div>
                         </div>
                         <div class="actions">

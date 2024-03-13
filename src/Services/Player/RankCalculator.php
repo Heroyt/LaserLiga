@@ -15,6 +15,7 @@ use Dibi\Row;
 use JsonException;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Throwable;
 
@@ -86,7 +87,7 @@ class RankCalculator
 
 		// Check if game is in a group - then for unregistered players, take their average skill as a rank
 		$game = GameFactory::getByCode($code);
-		$group = $game?->group;
+		$group = $game?->getGroup();
 
 		/** @var array{id_user:int|null,skill:int,id_team:int,rank:int}[] $teammates */
 		$teammates = [];
@@ -399,7 +400,7 @@ class RankCalculator
 	 * @throws Exception
 	 */
 	public function recalculateRatingForGame(Game $game): void {
-		if (!$game->mode?->rankable) {
+		if (!$game->getMode()?->rankable) {
 			return;
 		}
 
@@ -432,8 +433,13 @@ class RankCalculator
 				'skill'   => $player->skill,
 			];
 
-			if (!isset($teams[$team->id][$player->id]['id_user']) && isset($game->group)) {
-				$teams[$team->id][$player->id]['rank'] = $game->group->getPlayerByName($player->name)?->getSkill();
+			try {
+				if (!isset($teams[$team->id][$player->id]['id_user']) && $game->getGroup() !== null) {
+					$teams[$team->id][$player->id]['rank'] = $game->getGroup()
+					                                              ->getPlayerByName($player->name)
+					                                              ?->getSkill();
+				}
+			} catch (ModelNotFoundException|ValidationException|Throwable) {
 			}
 
 			if (isset($player->user)) {
@@ -448,7 +454,7 @@ class RankCalculator
 
 		foreach ($users as $player) {
 			$enemies = [];
-			if ($game->mode->isSolo()) {
+			if ($game->getMode()?->isSolo()) {
 				$teammates = [$teams[$player->team->id][$player->id]];
 				foreach ($teams[$player->team->id] as $id => $playerInfo) {
 					if ($id === $player->id) {
@@ -515,7 +521,7 @@ class RankCalculator
 			return -1;
 		}
 
-		if (!$player->game->mode->rankable) {
+		if (!$player->getGame()->getMode()?->rankable) {
 			return $user->stats->rank;
 		}
 
@@ -555,10 +561,10 @@ class RankCalculator
 				'id_team' => $gamePlayer->team->id,
 			];
 
-			if (!isset($playerData['id_user']) && isset($game->group)) {
-				$playerData['rank'] = $game->group->getPlayerByName($playerData['name'])?->getSkill();
+			if (!isset($playerData['id_user']) && $game->getGroup() !== null) {
+				$playerData['rank'] = $game->getGroup()->getPlayerByName($playerData['name'])?->getSkill();
 			}
-			if ($game->mode->isSolo() || $gamePlayer->team->id !== $player->team->id) {
+			if ($game->getMode()?->isSolo() || $gamePlayer->team->id !== $player->team->id) {
 				$enemies[] = $playerData;
 			}
 			else {

@@ -121,7 +121,7 @@ class GameGroup extends Model
 						}
 
 						/** @var GameTeam|null $win */
-						$win = $game->mode?->getWin($game);
+						$win = $game->getMode()?->getWin($game);
 
 						/** @var GameTeam $gameTeam */
 						foreach ($game->getTeams() as $gameTeam) {
@@ -270,7 +270,7 @@ class GameGroup extends Model
 			);
 		}
 		if (!empty($modes)) {
-			return array_filter($this->games, static fn(Game $game) => in_array($game->mode?->id, $modes, true));
+			return array_filter($this->games, static fn(Game $game) => in_array($game->getMode()?->id, $modes, true));
 		}
 
 		/** @phpstan-ignore-next-line */
@@ -534,8 +534,8 @@ class GameGroup extends Model
 	public function getModes(): array {
 		if (empty($this->modes)) {
 			foreach ($this->getGames() as $game) {
-				if (isset($game->mode) && !isset($this->modes[$game->mode->id])) {
-					$this->modes[$game->mode->id] = $game->mode;
+				if ($game->getMode() !== null && !isset($this->modes[$game->getMode()->id])) {
+					$this->modes[$game->getMode()->id] = $game->getMode();
 				}
 			}
 		}

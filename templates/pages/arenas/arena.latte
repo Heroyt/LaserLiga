@@ -17,30 +17,30 @@
 {varType string[] $dates}
 
 {define addHead}
-	{\App\Tools\Color::getGamesColor($games)|noescape}
+    {\App\Tools\Color::getGamesColor($games)|noescape}
 {/define}
 
 {block content}
     <div class="card bg-background-1 px-3 pt-3">
-		{$arena->getLogoHtml()|noescape}
-		<div class="card-header">
+        {$arena->getLogoHtml()|noescape}
+        <div class="card-header">
             <h1 class="card-title fs-3 text-center">{$arena->name}</h1>
             <div class="visually-hidden">
                 {sprintf(lang('Stránka s informacemi o laser game aréně - %s.'), $arena->name)}
             </div>
-		</div>
-		<div class="card-body text-center">
-			<p class="text-decoration-none">
-				<strong>{lang 'Registrováno hráčů'}:</strong> {$arena->getRegisteredPlayerCount()}
-			</p>
-			<label for="date-select">{lang 'Datum'}:</label>
-			<input type="text" value="{ifset $date}{$date->format('d.m.Y')}{else}{date('d.m.Y')}{/ifset}"
-				   class="form-control date-picker mx-auto mb-3 text-center" id="date-select" style="max-width: 10em"
-				   data-max="{date('d.m.Y')}">
-			<p class="text-decoration-none"><strong>{lang 'Dnes odehráno her'}:</strong> {$todayGames}</p>
-			<p class="text-decoration-none"><strong>{lang 'Dnes odehráno hráčů'}:</strong> {$todayPlayers}</p>
-		</div>
-	</div>
+        </div>
+        <div class="card-body text-center">
+            <p class="text-decoration-none">
+                <strong>{lang 'Registrováno hráčů'}:</strong> {$arena->getRegisteredPlayerCount()}
+            </p>
+            <label for="date-select">{lang 'Datum'}:</label>
+            <input type="text" value="{ifset $date}{$date->format('d.m.Y')}{else}{date('d.m.Y')}{/ifset}"
+                   class="form-control date-picker mx-auto mb-3 text-center" id="date-select" style="max-width: 10em"
+                   data-max="{date('d.m.Y')}">
+            <p class="text-decoration-none"><strong>{lang 'Dnes odehráno her'}:</strong> {$todayGames}</p>
+            <p class="text-decoration-none"><strong>{lang 'Dnes odehráno hráčů'}:</strong> {$todayPlayers}</p>
+        </div>
+    </div>
     {embed '../../partials/tabs.latte',
     tabs: [
     'stats' => [

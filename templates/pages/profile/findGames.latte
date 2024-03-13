@@ -48,7 +48,7 @@
 					{var App\GameModels\Game\Game $game = $match->getGame()}
 					{var App\GameModels\Game\Player|null $playerMatch = null}
 					<td>{$game->start->format('d.m.Y H:i')}</td>
-					<td>{ifset $game->mode}{lang $game->mode->name, context: 'gameModes'}{/ifset}</td>
+					<td>{if $game->getMode() !== null}{lang $game->getMode()->name, context: 'gameModes'}{/if}</td>
 					<td>
 						<span n:foreach="$game->getPlayersSorted() as $player"
 								{varType App\GameModels\Game\Player $player}

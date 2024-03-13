@@ -90,8 +90,8 @@ class AchievementProvider
 			$achievements[] = new AchievementClaimDto(
 				$achievement,
 				isset($playerAchievements[$achievement->id]),
-				$playerAchievements[$achievement->id]?->code,
-				$playerAchievements[$achievement->id]?->datetime,
+				($playerAchievements[$achievement->id] ?? null)?->code,
+				($playerAchievements[$achievement->id] ?? null)?->datetime,
 				$counts[$achievement->id] ?? 0,
 			);
 		}

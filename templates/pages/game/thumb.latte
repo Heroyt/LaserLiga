@@ -58,7 +58,7 @@
 			<tspan font-weight="bold">
 				{lang 'Herní mód', context: 'results.info'}:
 			</tspan>
-			{lang $game->mode->name, context: 'gameModes'}
+			{lang $game->getMode()?->name, context: 'gameModes'}
 		</text>
 	</g>
 	{foreach $game->getPlayersSorted() as $player}
