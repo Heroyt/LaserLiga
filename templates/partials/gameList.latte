@@ -197,7 +197,7 @@
                                 {/ifset}
 						data-toggle="tooltip"
                         title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
-                        class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+                        class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'background-2'}">
 					{$player->position}.&nbsp;{$player->name}
 				</span>
                         </td>
@@ -294,7 +294,7 @@
                                     {ifset $player->user}href="{link ['user', $player->user->getCode()]}"{/ifset}
                                     data-toggle="tooltip"
                                     title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
-                                    class="badge m-1 bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+                                    class="badge m-1 bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'background-2'}">
                                 {$player->position}.&nbsp;{$player->name}
                             </span>
                         </div>

@@ -58,7 +58,7 @@
 								{/ifset}
 								data-toggle="tooltip"
 								title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
-								class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'dark'}">
+                                class="badge bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'background-2'}">
 							{if !isset($player->user) && comparePlayerNames($loggedInUser->name, $player->name)}
 								{do $playerMatch = $player}
 							{/if}
