@@ -28,7 +28,7 @@ class Arenas extends Controller
 		$this->title = 'Seznam arén';
 		$this->description = 'Seznam všech laser game arén, registrovaných v LaserLize.';
 
-		$this->params['arenas'] = Arena::getAll();
+		$this->params['arenas'] = Arena::getAllVisible();
 		$this->view('pages/arenas/index');
 	}
 

@@ -3,6 +3,10 @@
 	max-height: 10rem;
 	width: 100%;
 
+  &.img-fluid {
+    width: auto;
+  }
+
   path[fill="white"],
   path[fill="#fff"],
   path[fill="#ffffff"],

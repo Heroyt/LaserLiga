@@ -52,6 +52,9 @@ class Arena extends Model
 	public ?string $contactPhone = null;
 
 	public ?User $user = null;
+
+	public bool $hidden = false;
+
 	/** @var array<string,array<string, int[]>> */
 	private array $gameIds = [];
 
@@ -60,6 +63,14 @@ class Arena extends Model
 
 	/** @var Tournament[] */
 	private array $tournaments = [];
+
+	/**
+	 * @return Arena[]
+	 * @throws ValidationException
+	 */
+	public static function getAllVisible(): array {
+		return static::query()->where('hidden = 0')->get();
+	}
 
 	/**
 	 * Try to get the Arena object for given API key
@@ -190,6 +201,9 @@ class Arena extends Model
 		}
 		if (file_exists($imageBase.'.png')) {
 			return $imageBase.'.png';
+		}
+		if (file_exists($imageBase . '.jpg')) {
+			return $imageBase . '.jpg';
 		}
 		return '';
 	}
