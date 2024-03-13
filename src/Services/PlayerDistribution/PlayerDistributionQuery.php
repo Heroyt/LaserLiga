@@ -6,6 +6,7 @@ use App\GameModels\Game\Evo5\Game;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
+use App\Models\Auth\LigaPlayer;
 use Lsr\Core\DB;
 
 class PlayerDistributionQuery
@@ -87,6 +88,9 @@ class PlayerDistributionQuery
 	}
 
 	public function getPercentile(int $value): int {
+		if ($this->param === DistributionParam::rank) {
+			return $this->getRankPercentile($value);
+		}
 		$query = DB::select([Player::TABLE, 'p'],
 		                    'COUNT(*) as [count], IF(p.[' . $this->param->value . '] > ' . $value . ', 1, 0) as [group]'
 		)
@@ -95,6 +99,20 @@ class PlayerDistributionQuery
 		if (!empty($this->filters)) {
 			$query->where('%and', array_values($this->filters));
 		}
+		/** @var array{0?:int,1?:int} $counts */
+		$counts = $query->groupBy('group')->fetchPairs('group', 'count');
+
+		$total = array_sum($counts);
+		if ($total === 0) {
+			return 100;
+		}
+		return (int)round(100 * ($counts[0] ?? 0) / $total);
+	}
+
+	private function getRankPercentile(int $value): int {
+		$query = DB::select([LigaPlayer::TABLE, 'p'],
+		                    'COUNT(*) as [count], IF(p.[' . $this->param->value . '] > ' . $value . ', 1, 0) as [group]'
+		);
 		/** @var array{0?:int,1?:int} $counts */
 		$counts = $query->groupBy('group')->fetchPairs('group', 'count');
 

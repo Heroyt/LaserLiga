@@ -14,6 +14,8 @@ enum DistributionParam: string
 	case hits     = 'hits';
 	case deaths   = 'deaths';
 	case shots    = 'shots';
+	case rank = 'rank';
+	case kd   = 'kd';
 
 	public function readableName(): string {
 		return match ($this) {
@@ -22,6 +24,8 @@ enum DistributionParam: string
 			self::hits     => lang('Zásahy'),
 			self::deaths   => lang('Smrti'),
 			self::shots    => lang('Výstřely'),
+			self::rank => lang('Herní úroveň'),
+			self::kd   => lang('Zásahy:Smrti'),
 		};
 	}
 
@@ -32,6 +36,8 @@ enum DistributionParam: string
 			self::hits     => 'kill',
 			self::deaths   => 'skull',
 			self::shots    => 'bullets',
+			self::rank => 'medal',
+			self::kd   => 'kill',
 		};
 	}
 

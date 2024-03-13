@@ -2,12 +2,12 @@
 
 namespace App\Controllers\User;
 
-use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\PlayerTrophy;
 use App\Models\Auth\LigaPlayer;
 use App\Services\Achievements\AchievementProvider;
 use App\Services\Player\PlayerRankOrderService;
+use App\Services\PlayerDistribution\DistributionParam;
+use App\Services\PlayerDistribution\PlayerDistributionService;
 use DateInterval;
 use DateTimeImmutable;
 use Dibi\Row;
@@ -20,16 +20,13 @@ use Lsr\Core\Templating\Latte;
 class StatController extends AbstractUserController
 {
 
-	/**
-	 * @var array<int,string>
-	 */
-	private array $rankableModes;
 	private int $maxRank;
 
 	public function __construct(
-		Latte                                   $latte,
-		private readonly PlayerRankOrderService $rankOrderService,
-		private readonly AchievementProvider $achievementProvider,
+		Latte                                      $latte,
+		private readonly PlayerRankOrderService    $rankOrderService,
+		private readonly AchievementProvider       $achievementProvider,
+		private readonly PlayerDistributionService $distributionService
 	) {
 		parent::__construct($latte);
 	}
@@ -37,18 +34,18 @@ class StatController extends AbstractUserController
 	public function modes(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		$since = match ($request->getGet('limit', 'month')) {
-			'year' => new DateTimeImmutable('-1 years'),
+			'year'  => new DateTimeImmutable('-1 years'),
 			'6 months' => new DateTimeImmutable('-6 months'),
 			'3 months' => new DateTimeImmutable('-3 months'),
-			'week' => new DateTimeImmutable('-7 days'),
-			'day'  => new DateTimeImmutable('-1 days'),
-			'all'  => new DateTimeImmutable('2000-01-01 00:00:00'),
+			'week'  => new DateTimeImmutable('-7 days'),
+			'day'   => new DateTimeImmutable('-1 days'),
+			'all'   => new DateTimeImmutable('2000-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
 
 		$gamesQuery = $user->createOrGetPlayer()->queryGames()
-		                                        ->where('[start] >= %dt', $since);
+			->where('[start] >= %dt', $since);
 		$query = new Fluent(
 			DB::getConnection()
 			  ->select('COUNT([a].[id_mode]) as [count], [a].[modeName] as [name]')
@@ -72,12 +69,12 @@ class StatController extends AbstractUserController
 	public function rankHistory(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		$since = match ($request->getGet('limit', 'month')) {
-			'year' => new DateTimeImmutable('-1 years'),
+			'year'  => new DateTimeImmutable('-1 years'),
 			'6 months' => new DateTimeImmutable('-6 months'),
 			'3 months' => new DateTimeImmutable('-3 months'),
-			'week' => new DateTimeImmutable('-7 days'),
-			'day'  => new DateTimeImmutable('-1 days'),
-			'all'  => new DateTimeImmutable('2000-01-01 00:00:00'),
+			'week'  => new DateTimeImmutable('-7 days'),
+			'day'   => new DateTimeImmutable('-1 days'),
+			'all'   => new DateTimeImmutable('2000-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
@@ -110,12 +107,12 @@ class StatController extends AbstractUserController
 	public function rankOrderHistory(string $code, Request $request): never {
 		$user = $this->getUser($code);
 		$since = match ($request->getGet('limit', 'month')) {
-			'year' => new DateTimeImmutable('-1 years'),
+			'year'  => new DateTimeImmutable('-1 years'),
 			'6 months' => new DateTimeImmutable('-6 months'),
 			'3 months' => new DateTimeImmutable('-3 months'),
-			'week' => new DateTimeImmutable('-7 days'),
-			'day'  => new DateTimeImmutable('-1 days'),
-			'all'  => new DateTimeImmutable('2022-01-01 00:00:00'),
+			'week'  => new DateTimeImmutable('-7 days'),
+			'day'   => new DateTimeImmutable('-1 days'),
+			'all'   => new DateTimeImmutable('2022-01-01 00:00:00'),
 			default => new DateTimeImmutable('-1 months'),
 		};
 		$since = $since->setTime(0, 0);
@@ -174,7 +171,7 @@ class StatController extends AbstractUserController
 		$limit = $request->getGet('limit', 'month');
 		/** @var DateTimeImmutable $since */
 		$since = match ($limit) {
-			'all' => $player->queryGames()->orderBy('start')->fetch()->start,
+			'all'  => $player->queryGames()->orderBy('start')->fetch()->start,
 			'year' => new DateTimeImmutable('-1 years'),
 			'week' => new DateTimeImmutable('-7 days'),
 			default => new DateTimeImmutable('-1 months'),
@@ -189,7 +186,7 @@ class StatController extends AbstractUserController
 		}
 		$interval = match ($limit) {
 			'all', 'year' => "DATE_FORMAT([start], '%Y-%m')",
-			'week' => "DATE_FORMAT([start], '%Y-%m-%d')",
+			'week'  => "DATE_FORMAT([start], '%Y-%m-%d')",
 			default => "DATE_FORMAT([start], '%Y-%u')",
 		};
 		$since = $since->setTime(0, 0);
@@ -219,13 +216,13 @@ class StatController extends AbstractUserController
 		$interval = new DateInterval(
 			match ($limit) {
 				'all', 'year' => "P1M",
-				'week' => "P1D",
+				'week'  => "P1D",
 				default => "P7D",
 			}
 		);
 		$format = match ($limit) {
 			'all', 'year' => "Y-m",
-			'week' => "Y-m-d",
+			'week'  => "Y-m-d",
 			default => "Y-W",
 		};
 		$now = new DateTimeImmutable();
@@ -299,59 +296,79 @@ class StatController extends AbstractUserController
 	/**
 	 * @param LigaPlayer $player
 	 *
-	 * @return array{accuracy:float,kd:float,hits:float}
+	 * @return array{accuracy:array{value:float,label:string,percentileLabel?:string},kd:array{value:float,label:string,percentileLabel?:string},hits:array{value:float,label:string,percentileLabel?:string},rank:array{value:float,label:string,percentileLabel?:string},shots:array{value:float,label:string,percentileLabel?:string}}
 	 */
 	private function getPlayerRadarData(LigaPlayer $player): array {
-		$data = [
-			'rank'           => 100 * $player->stats->rank / $this->getMaxRank(),
-			'shotsPerMinute' => $player->stats->averageShotsPerMinute,
-			'accuracy'       => $player->stats->averageAccuracy,
-		];
-
-		// Get rankable modes
-		$modes = $this->getRankableModes();
-
-		$query = new Fluent(
-			DB::getConnection()
-			  ->select('AVG([relative_hits])')
-			  ->from(
-				  PlayerFactory::queryPlayersWithGames(playerFields: ['relative_hits'])
-				               ->where('[id_user] = %i', $player->id)
-				               ->where('[id_mode] IN %in', array_keys($modes))
-					  ->fluent,
-				  'a'
-			  )
+		$rankPercentile = $this->distributionService->getPercentile(DistributionParam::rank, $player->stats->rank);
+		$shotsPercentile = $this->distributionService->getPercentile(
+			DistributionParam::shots,
+			$player->stats->averageShots
 		);
-		$hits = $query->cacheTags('user/' . $player->id . '/games', 'relative_hits')
-		              ->fetchSingle();
-		$ex = exp(4 * ($hits - 1));
-		$data['hits'] = 100 * $ex / ($ex + 1);
-		$ex = exp(4 * ($player->stats->kd - 1));
-		$data['kd'] = 100 * $ex / ($ex + 1);
-		return $data;
-	}
-
-	private function getMaxRank(): int {
-		if (!isset($this->maxRank)) {
-			$this->maxRank = DB::getConnection()
-			                   ->select('MAX([rank])')
-			                   ->from(LigaPlayer::TABLE)
-			                   ->fetchSingle();
-		}
-		return $this->maxRank;
-	}
-
-	/**
-	 * @return array<int,string>
-	 */
-	private function getRankableModes(): array {
-		if (!isset($this->rankableModes)) {
-			$this->rankableModes = DB::select(AbstractMode::TABLE, '[id_mode], [name]')
-			                         ->where('[rankable] = 1')
-			                         ->cacheTags(AbstractMode::TABLE, 'modes/rankable')
-			                         ->fetchPairs('id_mode', 'name');
-		}
-		return $this->rankableModes;
+		$accuracyPercentile = $this->distributionService->getPercentile(
+			DistributionParam::accuracy,
+			$player->stats->averageAccuracy
+		);
+		$hitsPercentile = $this->distributionService->getPercentile(
+			DistributionParam::hits,
+			15 * $player->stats->hits / $player->stats->totalMinutes
+		);
+		$kdPercentile = $this->distributionService->getPercentile(
+			DistributionParam::kd,
+			$player->stats->kd
+		);
+		$hitsLabel = $player->stats->hits / $player->stats->totalMinutes;
+		return [
+			'rank'           => [
+				'value'           => $rankPercentile,
+				'label'           => (string)$player->stats->rank,
+				'percentileLabel' => lang('Percentil') . ': ' . ($rankPercentile >= 50 ? sprintf(
+						lang('Nejlepší %d%%', 'Nejlepších %d%%', $rankPercentile === 100 ? 1 : 100 - $rankPercentile),
+						$rankPercentile === 100 ? 1 : 100 - $rankPercentile
+					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $rankPercentile), $rankPercentile)),
+			],
+			'shotsPerMinute' => [
+				'value'           => $shotsPercentile,
+				'label'           => sprintf(
+					lang('%d výstřel za minutu', '%d výstřelů za minutu', $player->stats->averageShotsPerMinute),
+					$player->stats->averageShotsPerMinute
+				),
+				'percentileLabel' => lang('Percentil') . ': ' . ($shotsPercentile >= 50 ? sprintf(
+						lang('Nejlepší %d%%', 'Nejlepších %d%%', $shotsPercentile === 100 ? 1 : 100 - $shotsPercentile),
+						$shotsPercentile === 100 ? 1 : 100 - $shotsPercentile
+					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $shotsPercentile), $shotsPercentile)),
+			],
+			'accuracy'       => [
+				'value'           => $accuracyPercentile,
+				'label'           => $player->stats->averageAccuracy . ' %',
+				'percentileLabel' => lang('Percentil') . ': ' . ($accuracyPercentile >= 50 ? sprintf(
+						lang(
+							'Nejlepší %d%%',
+							'Nejlepších %d%%',
+							$accuracyPercentile === 100 ? 1 : 100 - $accuracyPercentile
+						),
+						$accuracyPercentile === 100 ? 1 : 100 - $accuracyPercentile
+					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $accuracyPercentile), $accuracyPercentile)),
+			],
+			'hits'           => [
+				'value'           => $hitsPercentile,
+				'label'           => sprintf(lang('%d zásah za minutu', '%d zásahů za minutu', $hitsLabel), $hitsLabel),
+				'percentileLabel' => lang('Percentil') . ': ' . ($hitsPercentile >= 50 ? sprintf(
+						lang('Nejlepší %d%%', 'Nejlepších %d%%', $hitsPercentile === 100 ? 1 : 100 - $hitsPercentile),
+						$hitsPercentile === 100 ? 1 : 100 - $hitsPercentile
+					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $hitsPercentile), $hitsPercentile)),
+			],
+			'kd'             => [
+				'value'           => $kdPercentile,
+				'label'           => sprintf(
+					lang('%s zásahů na jednu smrt'),
+					number_format($player->stats->kd, 2, ',')
+				),
+				'percentileLabel' => lang('Percentil') . ': ' . ($kdPercentile >= 50 ? sprintf(
+						lang('Nejlepší %d%%', 'Nejlepších %d%%', $kdPercentile === 100 ? 1 : 100 - $kdPercentile),
+						$kdPercentile === 100 ? 1 : 100 - $kdPercentile
+					) : sprintf(lang('Nejhorší %d%%', 'Nejhorších %d%%', $kdPercentile), $kdPercentile)),
+			],
+		];
 	}
 
 	public function trophies(string $code, Request $request): never {
@@ -377,5 +394,15 @@ class StatController extends AbstractUserController
 		$achievements = $this->achievementProvider
 			->getAllClaimedUnclaimed($user->createOrGetPlayer());
 		$this->respond($achievements, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
+	}
+
+	private function getMaxRank(): int {
+		if (!isset($this->maxRank)) {
+			$this->maxRank = DB::getConnection()
+			                   ->select('MAX([rank])')
+			                   ->from(LigaPlayer::TABLE)
+			                   ->fetchSingle();
+		}
+		return $this->maxRank;
 	}
 }

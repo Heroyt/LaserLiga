@@ -28,8 +28,8 @@
 	<hr>
     <h4 class="my-3 text-center">{lang 'Souhrn herních schopností'}:</h4>
     <p class="text-muted text-center">
-		{lang 'Data v tomto grafu jsou uváděna v rozmezí 0-100.'}<br>
-		{lang 'K:D a počet zásahů je relativní. Hodnota 50 na grafu odpovídá obecnému průměru.'}
+        {lang 'Data v tomto grafu jsou uváděna v rozmezí 0-100%.'}<br>
+        {lang 'Umístění na grafu je relativní vůči ostatním hráčům a vyjadřuje váš percentil (kolik % hráčů je lepší, nebo horší, než váš průměr).'}
 	</p>
 	<canvas id="radar-graphs-graph" data-content-piece="Radar graph"
 			{if isset($loggedInUser) && $loggedInUser->id !== $user->id}data-compare="{$loggedInUser->player?->getCode()}"{/if}

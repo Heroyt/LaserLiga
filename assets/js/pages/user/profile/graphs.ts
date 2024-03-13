@@ -81,14 +81,20 @@ export default function initGraphsTab(graphsTabBtn: HTMLAnchorElement, graphsTab
     const radarCategories: { [index: string]: string } = JSON.parse(radarCanvas.dataset.categories);
     const radarCompare = radarCanvas.dataset.compare ?? '';
     const radarChart = new Chart(radarCanvas, {
-        type: "radar", data: {
+        type: "radar",
+        data: {
             labels: Object.values(radarCategories), datasets: [],
-        }, options: {
+        },
+        options: {
+            parsing: {
+                key: 'value'
+            },
             maintainAspectRatio: false, responsive: true, elements: {
                 line: {
                     borderWidth: 2,
                 }
-            }, scales: {
+            },
+            scales: {
                 r: {
                     grid: {
                         display: true, color: '#777',
@@ -96,6 +102,33 @@ export default function initGraphsTab(graphsTabBtn: HTMLAnchorElement, graphsTab
                         display: true, color: '#aaa',
                     }, ticks: {
                         backdropColor: null, color: '#aaa',
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            console.log(context);
+                            let label = context.dataset.label || '';
+
+                            if (label) {
+                                label += ': ';
+                            }
+                            // @ts-ignore
+                            if (context.raw.label) {
+                                // @ts-ignore
+                                label += context.raw.label;
+                            } else if (context.parsed.r !== null) {
+                                label += context.parsed.r.toLocaleString();
+                            }
+                            // @ts-ignore
+                            if (context.raw.percentileLabel) {
+                                // @ts-ignore
+                                label += ` (${context.raw.percentileLabel})`
+                            }
+                            return label;
+                        }
                     }
                 }
             }
