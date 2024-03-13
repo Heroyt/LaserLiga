@@ -20,6 +20,15 @@
 				</select>
 			</div>
 			<div class="form-group my-2 col-md-6">
+                <label for="system" class="form-label">{lang 'Vybavení'}:</label>
+                <select name="system" id="system" class="form-select">
+                    <option n:foreach="App\GameModels\Factory\GameFactory::getSupportedSystems() as $system"
+                            value="{$system}">
+                        {$system}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group my-2 col-md-6">
 				<label for="start" class="form-label">{lang 'Začátek'}:</label>
 				<input type="text" class="form-control datetime-picker" data-max="today" name="start" id="start">
 			</div>
