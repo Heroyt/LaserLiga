@@ -176,7 +176,7 @@
                         {var App\GameModels\Game\Player $userPlayer = null}
                         {foreach $game->getPlayers() as $player}
                             {varType App\GameModels\Game\Player $player}
-                            {if isset($player->user) && $player->user->id === $user->id}
+                            {if isset($player->user) && $player->user->id === $user?->id}
                                 {do $userPlayer = $player}
                                 {breakIf true}
                             {/if}

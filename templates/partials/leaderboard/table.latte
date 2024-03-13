@@ -105,7 +105,7 @@
             </thead>
             <tbody>
             <tr n:foreach="$players as $player" data-href="{link 'user', $player->getCode()}"
-                    n:class="$player->id === $user->id ? table-primary, isset($searchedPlayer) && $player->id === $searchedPlayer->id ? table-success"
+                    n:class="$player->id === $user?->id ? table-primary, isset($searchedPlayer) && $player->id === $searchedPlayer?->id ? table-success"
                                                 data-code="{$player->getCode()}">
                 <td>
                     {ifset $ranks[$player->id]}
@@ -126,7 +126,7 @@
                         {$iterator->counter + (($p-1) * $limit)}.
                     {/ifset}
                     <a href="{link ['user', $player->getCode()]}" class="visually-hidden">
-                        {sprintf(lang('Profil uživatele %s'), $player->name)}
+                        {sprintf(lang('Profil uživatele %s'), $player->nickname)}
                     </a>
                 </td>
                 <td n:foreach="$activeFields as $field => $info" class="text-center"
@@ -213,7 +213,7 @@
             </div>
             <div n:foreach="$players as $player" class="card w-100 my-2 linkable" data-code="{$player->getCode()}"
                                                  data-href="{link 'user', $player->getCode()}">
-                <div n:class="card-body, $player->id === $user->id ? text-bg-primary, isset($searchedPlayer) && $player->id === $searchedPlayer->id ? text-bg-success">
+                <div n:class="card-body, $player->id === $user?->id ? text-bg-primary, isset($searchedPlayer) && $player->id === $searchedPlayer?->id ? text-bg-success">
                     <a href="{link 'user', $player->getCode()}" class="visually-hidden">
                         {sprintf(lang('Zobrazit profil hráče %s'), $player->nickname)}
                     </a>
