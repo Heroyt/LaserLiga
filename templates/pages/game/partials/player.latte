@@ -319,6 +319,14 @@
                 ({($player->hitsOther / ($player->deathsOther === 0 ? 1 : $player->deathsOther))|number:2,',',''})
             {/if}
         </p>
+        <p class="text-center time-dead">
+            <strong>{lang 'Čas mrtvý'}:</strong>
+            {var int $seconds = $player->deaths * (property_exists($game, 'respawn') ? $game->respawn ?? 5 : 5)}
+            {if $seconds >= 60}
+                {floor($seconds/60)}min
+            {/if}
+            {$seconds%60}s
+        </p>
     </div>
 {/define}
 
