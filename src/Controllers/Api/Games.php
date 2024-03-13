@@ -722,6 +722,77 @@ class Games extends ApiController
 	}
 
 	/**
+	 * @param string $code
+	 *
+	 * @return never
+	 * @throws JsonException
+	 * @throws Throwable
+	 * @pre Must be authorized
+	 */
+	#[OA\Get(
+		path       : "/api/games/{code}/recalc",
+		operationId: "recalcGame",
+		description: "This method recalculates all scores accuracy and skills of the players for a single game.",
+		summary    : "Recalculate Game Skill",
+		tags       : ['Games'],
+	)]
+	#[OA\Parameter(
+		name       : "code",
+		description: "Game code",
+		in         : "path",
+		required   : true,
+		schema     : new OA\Schema(type: "string")
+	)]
+	#[OA\Response(
+		response   : 200,
+		description: "Game info",
+		content    : new OA\JsonContent(ref: '#/components/schemas/Game')
+	)]
+	#[OA\Response(
+		response   : 403,
+		description: "Game belongs to a different arena",
+		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
+	)]
+	#[OA\Response(
+		response   : 404,
+		description: "Game not found",
+		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
+	)]
+	#[OA\Response(
+		response   : 500,
+		description: "Server error during save operation",
+		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
+	)]
+	public function recalcGame(string $code): never {
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->respond(
+				new ErrorDto('Game not found', ErrorType::NOT_FOUND),
+				404
+			);
+		}
+		if ($game->arena->id !== $this->arena->id) {
+			$this->respond(
+				new ErrorDto('This game belongs to a different arena.', ErrorType::ACCESS),
+				403
+			);
+		}
+		foreach ($game->getPlayers() as $player) {
+			$player->accuracy = (int)round(100 * $player->hits / $player->shots);
+		}
+		$game->recalculateScores();
+		$game->calculateSkills();
+		$this->rankCalculator->recalculateRatingForGame($game);
+		if (!$game->save()) {
+			$this->respond(
+				new ErrorDto('Save failed', ErrorType::DATABASE),
+				500
+			);
+		}
+		$this->respond($game);
+	}
+
+	/**
 	 * Import games from local to public
 	 *
 	 * @param Request $request

@@ -25,7 +25,8 @@ $gamesGroup->group('{code}')
            ->get('', [Games::class, 'getGame'])
            ->get('highlights', [Games::class, 'highlights'])
            ->get('users', [Games::class, 'getGameUsers'])
-           ->get('skills', [Games::class, 'recalcGameSkill']);
+	->get('skills', [Games::class, 'recalcGameSkill'])
+	->get('recalc', [Games::class, 'recalcGame']);
 
 $gamesGroup->group('stats')
            ->get('', [Games::class, 'stats']);
