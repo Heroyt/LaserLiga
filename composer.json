@@ -14,7 +14,7 @@
 		"test": "./vendor/bin/phpunit",
 		"docs": "doxygen",
 		"build-production": "composer update --no-dev && composer dump-autoload --no-dev && npm install && npm run build && npm prune --production",
-    "build": "composer update && composer dump-autoload && npm install && npm run buildDev",
+    "build": "composer update && composer dump-autoload && npm install && npm run build",
     "swagger": "./vendor/bin/openapi src -o openApi/swagger.yaml"
 	},
 	"require": {

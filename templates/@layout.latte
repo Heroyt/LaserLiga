@@ -199,9 +199,7 @@
     const assetVersion = {\Lsr\Core\App::getCacheVersion()};
 </script>
 
-<script defer src="{getUrl}dist/runtime~main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
-<script defer src="{getUrl}dist/bootstrap-lib.js?{\Lsr\Core\App::getCacheVersion()}"></script>
-<script defer src="{getUrl}dist/main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+<script defer type="module" src="{getUrl}dist/main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
 {include svgSymbols}
 </body>
 </html>
