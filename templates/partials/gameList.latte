@@ -187,7 +187,7 @@
                                 {sprintf(lang('Zobrazit výsledky ze hry %s'), $game->arena?->name.' '.$game->start->format('d.m.Y H:i'))}
                             </a>
                         </td>
-                        <td n:ifset="$fields['arena']">{$game->arena->getLogoHtml()|noescape}</td>
+                        <td n:if="isset($fields['id_arena']) || isset($fields['arena'])">{$game->arena->getLogoHtml()|noescape}</td>
                         <td>{if $game->getMode() !== null}{lang $game->getMode()->name, context: 'gameModes'}{/if}</td>
                         <td n:ifset="$fields['players']">
 						<span n:foreach="$game->getPlayersSorted() as $player"
