@@ -6,4 +6,5 @@
 
 return [
 	'evo5',
+	'evo6',
 ];

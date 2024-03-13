@@ -7,8 +7,7 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Evo5\Game;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Evo5\PlayerHit;
-use App\GameModels\Game\Evo5\Team;
-use App\GameModels\Game\Scoring;
+use App\GameModels\Game\Evo5\Scoring;
 use App\GameModels\Game\Timing;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
@@ -55,10 +54,46 @@ class Games extends Controller
 	}
 
 	public function createProcess(Request $request): never {
-		$game = new Game();
+		$system = $request->getPost('system', 'evo5');
+		switch ($system) {
+			case 'evo5':
+				$game = new Game();
+
+				$game->scoring = new Scoring(
+					(int)$request->getPost('score-death'),
+					(int)$request->getPost('score-hit'),
+					(int)$request->getPost('score-death-own'),
+					(int)$request->getPost('score-hit-own'),
+					(int)$request->getPost('score-death-pod'),
+					(int)$request->getPost('score-shot'),
+					(int)$request->getPost('score-machine-gun'),
+					(int)$request->getPost('score-invisibility'),
+					(int)$request->getPost('score-spy'),
+					(int)$request->getPost('score-shield'),
+				);
+				break;
+			case 'evo6':
+				$game = new \App\GameModels\Game\Evo6\Game();
+
+				$game->scoring = new \App\GameModels\Game\Evo6\Scoring(
+					(int)$request->getPost('score-death'),
+					(int)$request->getPost('score-hit'),
+					(int)$request->getPost('score-death-own'),
+					(int)$request->getPost('score-hit-own'),
+					(int)$request->getPost('score-death-pod'),
+					(int)$request->getPost('score-shot'),
+					(int)$request->getPost('score-machine-gun'),
+					(int)$request->getPost('score-invisibility'),
+					(int)$request->getPost('score-spy'),
+					(int)$request->getPost('score-shield'),
+				);
+				break;
+			default:
+				$this->respond(['error' => 'Unknown game type'], 400);
+		}
 		$game->arena = Arena::get((int)$request->getPost('arena'));
 		$game->mode = GameModeFactory::getById((int)$request->getPost('gameMode'));
-		$game->modeName = $game->mode->loadName;
+		$game->modeName = $game->mode->loadName ?? '';
 		$game->start = new \DateTimeImmutable($request->getPost('start'));
 		$game->code = $request->getPost('code');
 		$game->fileNumber = (int)$request->getPost('fileNumber');
@@ -71,24 +106,12 @@ class Games extends Controller
 			(int)$request->getPost('timing-end'),
 		);
 
-		$game->scoring = new Scoring(
-			(int)$request->getPost('score-death'),
-			(int)$request->getPost('score-hit'),
-			(int)$request->getPost('score-death-own'),
-			(int)$request->getPost('score-hit-own'),
-			(int)$request->getPost('score-death-pod'),
-			(int)$request->getPost('score-shot'),
-			(int)$request->getPost('score-machine-gun'),
-			(int)$request->getPost('score-invisibility'),
-			(int)$request->getPost('score-spy'),
-			(int)$request->getPost('score-shield'),
-		);
-
 		$game->end = $game->start->add(new \DateInterval('PT' . $game->timing->gameLength . 'M' . ($game->timing->before + $game->timing->after) . 'S'));
 
 		$teams = [];
 		foreach ($request->getPost('teams', []) as $id => $data) {
-			$team = new Team();
+			/** @var \App\GameModels\Game\Lasermaxx\Team $team */
+			$team = new $game->teamClass;
 			$game->addTeam($team);
 			$teams[$id] = $team;
 
@@ -102,7 +125,8 @@ class Games extends Controller
 		$players = [];
 		$users = [];
 		foreach ($request->getPost('players', []) as $id => $data) {
-			$player = new Player();
+			/** @var \App\GameModels\Game\Lasermaxx\Player $player */
+			$player = new $game->playerClass;
 			$player->team = $teams[(int)$data['team']];
 			$player->team->addPlayer($player);
 			$game->addPlayer($player);
@@ -132,11 +156,15 @@ class Games extends Controller
 			$player->scoreMines = $game->scoring->hitPod * $player->minesHits;
 			$player->shots = (int)$data['shots'];
 			$player->shotPoints = $game->scoring->shot * $player->shots;
-			$player->accuracy = (int)$data['accuracy'];
-			$player->bonus->agent = (int)$data['agent'];
-			$player->bonus->invisibility = (int)$data['invisibility'];
-			$player->bonus->machineGun = (int)$data['machineGun'];
-			$player->bonus->shield = (int)$data['shield'];
+			if ($player instanceof Player) {
+				$player->bonus->agent = (int)$data['agent'];
+				$player->bonus->invisibility = (int)$data['invisibility'];
+				$player->bonus->machineGun = (int)$data['machineGun'];
+				$player->bonus->shield = (int)$data['shield'];
+			}
+			else if ($player instanceof \App\GameModels\Game\Evo6\Player) {
+				$player->bonuses = (int)$data['agent'] + (int)$data['invisibility'] + (int)$data['machineGun'] + (int)$data['shield'];
+			}
 			$player->scorePowers = ($game->scoring->machineGun * $player->bonus->machineGun) + ($game->scoring->agent * $player->bonus->agent) + ($game->scoring->invisibility * $player->bonus->invisibility) + ($game->scoring->shield * $player->bonus->shield);
 			$player->vest = $id + 1;
 		}
@@ -146,7 +174,18 @@ class Games extends Controller
 			foreach ($data as $targetId => $count) {
 				$target = $players[$targetId];
 
-				$player->hitPlayers[$target->vest] = new PlayerHit($player, $target, $count);
+				switch ($system) {
+					case 'evo5':
+						$player->hitPlayers[$target->vest] = new PlayerHit($player, $target, $count);
+						break;
+					case 'evo6':
+						$player->hitPlayers[$target->vest] = new \App\GameModels\Game\Evo6\PlayerHit(
+							$player,
+							$target,
+							$count
+						);
+						break;
+				}
 				$player->hits += $count;
 				$target->deaths += $count;
 				if ($player->teamNum === $target->teamNum) {
@@ -160,10 +199,16 @@ class Games extends Controller
 			}
 		}
 
+		foreach ($players as $player) {
+			$player->accuracy = (int)round(100 * $player->hits / $player->shots);
+		}
+
 		$game->recalculateScores();
 		$game->calculateSkills();
 
-		$game->save();
+		if (!$game->save()) {
+			$this->respond(['error' => 'Failed to save the game'], 500);
+		}
 
 		foreach ($users as $user) {
 			$user['user']->clearCache();
