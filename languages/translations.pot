@@ -5546,3 +5546,117 @@ msgstr ""
 msgctxt "musicModes"
 msgid "Lasermaxx"
 msgstr ""
+
+msgctxt "pageDescription"
+msgid "Page not found"
+msgstr ""
+
+msgid "Žádné hry neodpovídají filtrům"
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s má %0.2fx lepší přesnost, než obvykle"
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s proti %s většinou prohrává, ale teď ho porazil."
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s proti %s většinou prohrává, ale teď jí porazil."
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s proti %s většinou prohrává, ale teď jí porazila."
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s proti %s většinou prohrává, ale teď ho porazila."
+msgstr ""
+
+msgid "Algoritmus nepracuje se skórem, ale s herní úrovní hráče z dané hry."
+msgstr ""
+
+msgid "Rozdíl k herní úrovni se počítá upraveným ELO algoritmem, který vyhodnocuje výsledky jednotlivých hráčů mezi sebou. Pro každého protihráče a spoluhráče vypočítá pravděpodobnost, že daného hráče porazíte a poté podle skutečných výsledků vás ohodnotí body. Porovnání se spoluhráči navíc nemá takovou váhu jako protihráči."
+msgstr ""
+
+msgid "Algoritmus zároveň přihlíží k vyrovnání týmů a pokud jsou týmy nevyrovnané, upraví své hodnoty."
+msgstr ""
+
+msgid "V následujícím srovnání je několik hodnot. Nejdůležitější je ale šance na výhru a reálný výsledek. Pokud je reálný výsledek větší než šance na výhru, body získáváte. Pokud je menší, body ztrácíte. Jak moc bodů ztratíte určuje rozdíl v hodnotách šance na výhru a výsledku, ale i koeficient výhry."
+msgstr ""
+
+msgid "Srovnání s jednotlivými hráči"
+msgstr ""
+
+msgid "Šance na výhru nad hráčem"
+msgstr ""
+
+msgid "Reálný výsledek"
+msgstr ""
+
+msgid "Co to znamená?"
+msgstr ""
+
+msgid "Hodnota blízká 100% znamená definitivní výhru.<br>Hodnota blízká 50% je remíza (totožná herní úroveň).<br>Hodnota 0% je definitivní prohra."
+msgstr ""
+
+msgid "Koeficient výhry"
+msgstr ""
+
+msgid "Hodnota vypočítaná podle toho, jak jsou hráči vyrovnaní. Výsledná hodnota násobí počet bodů."
+msgstr ""
+
+msgid "Získáno bodů z hráče"
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s má %0.2fx více výstřelů za minutu, než obvykle"
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s a %s mají stejné skóre."
+msgstr ""
+
+msgctxt "results.highlights"
+msgid "%s si zasedl na %s"
+msgstr ""
+
+msgctxt "musicModes"
+msgid "Anime Vykyndr"
+msgstr ""
+
+msgid "aréna"
+msgid_plural "arén"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgid "Najít hry"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Najít hry - %s"
+msgstr ""
+
+msgctxt "pageDescription"
+msgid "Najít další hry hráče pro přiřazení."
+msgstr ""
+
+msgid "Najít mé hry"
+msgstr ""
+
+msgid "Zde se zobrazují všechny hry, které nemáte přiřazené k účtu, ale mohli by být vaše. Hry se párují podle domovské arény a přezdívky."
+msgstr ""
+
+msgid "Opravdu chcete všechny hry přiřadit do profilu? Hry, které nechcete přiřadit musíte nejprve manuálně označit jako \"To nejsem já.\""
+msgstr ""
+
+msgid "Přivlastnit vše"
+msgstr ""
+
+msgid "Přivlastnit"
+msgstr ""
+
+msgid "Marco polo"
+msgstr ""
