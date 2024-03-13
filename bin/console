@@ -1,0 +1,14 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+use Lsr\Core\App;
+use Symfony\Component\Console\Application;
+
+const ROOT = __DIR__.'/../';
+const INDEX = false;
+
+require_once ROOT."include/load.php";
+
+$application = App::getServiceByType(Application::class);
+exit($application->run());

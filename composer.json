@@ -44,11 +44,16 @@
     "minishlink/web-push": "^8.0",
     "ext-imagick": "*",
     "ext-gd": "*",
-    "zircote/swagger-php": "^4.8"
-	},
+    "zircote/swagger-php": "^4.8",
+    "orisai/scheduler": "^2",
+    "orisai/nette-scheduler": "^1.1",
+    "symfony/lock": "^6",
+    "orisai/nette-console": "^1.4",
+    "ext-redis": "*"
+  },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",
-		"phpunit/phpunit": "^10",
+		"phpunit/phpunit": "^11",
 		"gettext/gettext": "^5.7",
 		"phpstan/phpstan": "^1.8",
 		"phpstan/extension-installer": "^1.1",

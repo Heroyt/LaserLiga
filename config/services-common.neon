@@ -7,9 +7,19 @@ parameters:
 		controllers:
 			- %constants.appDir%src/Controllers
 	redis:
-		host: redis
+		host: liga-redis
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
+	orisai.console: OriNette\Console\DI\ConsoleExtension
+	orisai.scheduler: OriNette\Scheduler\DI\SchedulerExtension
+orisai.scheduler:
+	console:
+		script: '%constants.appDir%bin/console'
+	errorHandler: tracy
+	jobs:
+		logArchive:
+			expression: 0 6 * * *
+			callback: [@cron.logArchive, 'run']
 services:
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
@@ -63,6 +73,8 @@ services:
 	achievementProvider: App\Services\Achievements\AchievementProvider
 	titleProvider: App\Services\Achievements\TitleProvider
 	eventRegistration: App\Services\EventRegistrationService
+
+	cron.logArchive: App\Cron\LogArchiveJob
 
 search:
 	achievementCheckers:
