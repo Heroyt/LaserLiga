@@ -1,0 +1,72 @@
+version: "3"
+services:
+  liga-db:
+    restart: always
+    image: "mariadb:10.6.9"
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "laser-arena-control"
+      MARIADB_ROOT_PASSWORD: "laser-arena-control"
+      MYSQL_DATABASE: "lac"
+      MARIADB_DATABASE: "lac"
+    volumes:
+      - mariadb-liga-dev:/var/lib/mysql
+    networks:
+      - backend
+  liga-redis:
+    restart: always
+    image: redis/redis-stack-server:latest
+    ports:
+      - "6378:6379"
+    networks:
+      - backend
+      - frontend
+    volumes:
+      - ./redis/data:/data
+  liga-php:
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    working_dir: /var/www/
+    links:
+      - liga-db
+      - liga-redis
+    depends_on:
+      - liga-db
+      - liga-redis
+    volumes:
+      - ../:/var/www
+      - ./fpm/:/etc/php/
+      - ./core/php.ini:/usr/local/etc/php/php.ini
+    networks:
+      - backend
+    environment:
+      APP_NAME: "Laser liga"
+      DB_HOST: "liga-db"
+      DB_PORT: 3306
+      DB_DATABASE: "lac"
+      DB_USER: "root"
+      DB_PASSWORD: "laser-arena-control"
+  liga-web:
+    restart: always
+    image: nginx:alpine
+    depends_on:
+      - liga-php
+      - liga-db
+    ports:
+      - "8002:80"
+    networks:
+      - backend
+      - frontend
+    links:
+      - liga-php
+    volumes:
+      - ../:/var/www
+      - ./nginx:/etc/nginx
+volumes:
+  mariadb-liga-dev:
+networks:
+  backend:
+  frontend:
