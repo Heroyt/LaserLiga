@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\GameHighlight;
+namespace App\Services\GameHighlight\Checkers;
 
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Game;
@@ -8,6 +8,7 @@ use App\Helpers\Gender;
 use App\Models\DataObjects\Highlights\GameHighlight;
 use App\Models\DataObjects\Highlights\GameHighlightType;
 use App\Models\DataObjects\Highlights\HighlightCollection;
+use App\Services\GameHighlight\GameHighlightChecker;
 use App\Services\GenderService;
 
 class Evo5HighlightChecker implements GameHighlightChecker

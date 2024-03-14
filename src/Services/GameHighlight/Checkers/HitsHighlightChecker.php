@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\GameHighlight;
+namespace App\Services\GameHighlight\Checkers;
 
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
@@ -8,10 +8,12 @@ use App\Helpers\Gender;
 use App\Models\DataObjects\Highlights\GameHighlight;
 use App\Models\DataObjects\Highlights\GameHighlightType;
 use App\Models\DataObjects\Highlights\HighlightCollection;
+use App\Services\GameHighlight\GameHighlightChecker;
+use App\Services\GameHighlight\PlayerHighlightChecker;
 use App\Services\GenderService;
 use App\Services\NameInflectionService;
 
-class HitsHighlightChecker implements GameHighlightChecker
+class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightChecker
 {
 
 	/**
@@ -26,8 +28,6 @@ class HitsHighlightChecker implements GameHighlightChecker
 		/** @var Player[] $maxDeathsOwnPlayers */
 		$maxDeathsOwnPlayers = [];
 		foreach ($game->getPlayers()->getAll() as $player) {
-			$name1 = $player->name;
-			$gender1 = GenderService::rankWord($name1);
 			if ($maxHitsOwn <= $player->hitsOwn && $player->hitsOwn > 0) {
 				if ($maxHitsOwn !== $player->hitsOwn) {
 					$maxHitsOwn = $player->hitsOwn;
@@ -42,53 +42,8 @@ class HitsHighlightChecker implements GameHighlightChecker
 				}
 				$maxDeathsOwnPlayers[] = $player;
 			}
-			if ($game->getMode()?->isTeam()) {
-				if ($player->hitsOwn > $player->hitsOther) {
-					$highlights->add(
-						new GameHighlight(
-							GameHighlightType::HITS,
-							sprintf(
-								lang(
-									match ($gender1) {
-										Gender::MALE   => '%s zasáhl více spoluhráčů, než protihráčů',
-										Gender::FEMALE => '%s zasáhla více spoluhráčů, než protihráčů',
-										Gender::OTHER  => '%s zasáhlo více spoluhráčů, než protihráčů',
-									},
-									context: 'results.highlights'
-								),
-								'@' . $name1 . '@'
-							),
-							GameHighlight::VERY_HIGH_RARITY + 20
-						)
-					);
-				}
-				if ($player->getFavouriteTarget()?->getTeam()?->color === $player->getTeam()?->color) {
-					$name2 = $player->getFavouriteTarget()?->name ?? '';
-					$gender2 = GenderService::rankWord($name2);
-					$name2Verb = match ($gender2) {
-						Gender::OTHER, Gender::MALE => 'svého spoluhráče',
-						Gender::FEMALE              => 'svou spoluhráčku',
-					};
-					$highlights->add(
-						new GameHighlight(
-							GameHighlightType::HITS,
-							sprintf(
-								lang(
-									match ($gender1) {
-										Gender::MALE   => '%s zasáhl ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-										Gender::FEMALE => '%s zasáhla ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-										Gender::OTHER  => '%s zasáhlo ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-									},
-									context: 'results.highlights'
-								),
-								'@' . $name1 . '@',
-								'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>'
-							),
-							GameHighlight::VERY_HIGH_RARITY + 20
-						)
-					);
-				}
-			}
+
+			$name1 = $player->name;
 			foreach ($player->getHitsPlayers() as $hits) {
 				if ($hits->count > 0 && $hits->count === $hits->playerTarget->getHitsPlayer($player)) {
 					// Check for duplicate pairs (1-2 and 2-1 should be the same)
@@ -203,6 +158,61 @@ class HitsHighlightChecker implements GameHighlightChecker
 					);
 					break;
 			}
+		}
+	}
+
+	public function checkPlayer(Player $player, HighlightCollection $highlights): void {
+		if ($player->getGame()->getMode()?->isSolo()) {
+			return;
+		}
+		$name1 = $player->name;
+		$gender1 = GenderService::rankWord($name1);
+
+		if ($player->hitsOwn > $player->hitsOther) {
+			$highlights->add(
+				new GameHighlight(
+					GameHighlightType::HITS,
+					sprintf(
+						lang(
+							match ($gender1) {
+								Gender::MALE   => '%s zasáhl více spoluhráčů, než protihráčů',
+								Gender::FEMALE => '%s zasáhla více spoluhráčů, než protihráčů',
+								Gender::OTHER  => '%s zasáhlo více spoluhráčů, než protihráčů',
+							},
+							context: 'results.highlights'
+						),
+						'@' . $name1 . '@'
+					),
+					GameHighlight::VERY_HIGH_RARITY + 20
+				)
+			);
+		}
+
+		if ($player->getFavouriteTarget()?->getTeam()?->color === $player->getTeam()?->color) {
+			$name2 = $player->getFavouriteTarget()?->name ?? '';
+			$gender2 = GenderService::rankWord($name2);
+			$name2Verb = match ($gender2) {
+				Gender::OTHER, Gender::MALE => 'svého spoluhráče',
+				Gender::FEMALE              => 'svou spoluhráčku',
+			};
+			$highlights->add(
+				new GameHighlight(
+					GameHighlightType::HITS,
+					sprintf(
+						lang(
+							match ($gender1) {
+								Gender::MALE   => '%s zasáhl ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+								Gender::FEMALE => '%s zasáhla ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+								Gender::OTHER  => '%s zasáhlo ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+							},
+							context: 'results.highlights'
+						),
+						'@' . $name1 . '@',
+						'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>'
+					),
+					GameHighlight::VERY_HIGH_RARITY + 20
+				)
+			);
 		}
 	}
 }

@@ -7,19 +7,18 @@ use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\Models\DataObjects\Highlights\HighlightCollection;
 
-interface GameHighlightChecker
+interface TeamHighlightChecker
 {
-
 	/**
-	 * Check highlights for game
+	 * Check highlights for a team
 	 *
-	 * @template T of Team
 	 * @template P of Player
-	 * @param Game<T,P>           $game
+	 * @template G of Game
+	 *
+	 * @param Team<P, G>          $team
 	 * @param HighlightCollection $highlights
 	 *
 	 * @return void
 	 */
-	public function checkGame(Game $game, HighlightCollection $highlights): void;
-
+	public function checkTeam(Team $team, HighlightCollection $highlights): void;
 }

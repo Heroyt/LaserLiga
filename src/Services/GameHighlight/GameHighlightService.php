@@ -21,13 +21,32 @@ class GameHighlightService
 	/** @var Player[][] */
 	private array $playerCache = [];
 
+	/** @var GameHighlightChecker[] */
+	private array $gameCheckers = [];
+	/** @var PlayerHighlightChecker[] */
+	private array $playerCheckers = [];
+	/** @var TeamHighlightChecker[] */
+	private array $teamCheckers = [];
+
 	/**
-	 * @param GameHighlightChecker[] $checkers
+	 * @param array<GameHighlightChecker|PlayerHighlightChecker|TeamHighlightChecker> $checkers
 	 */
 	public function __construct(
-		private readonly array $checkers,
+		array $checkers,
 		private readonly Cache $cache,
 	) {
+		// Distribute checkers
+		foreach ($checkers as $checker) {
+			if ($checker instanceof GameHighlightChecker) {
+				$this->gameCheckers[] = $checker;
+			}
+			if ($checker instanceof PlayerHighlightChecker) {
+				$this->playerCheckers[] = $checker;
+			}
+			if ($checker instanceof TeamHighlightChecker) {
+				$this->teamCheckers[] = $checker;
+			}
+		}
 	}
 
 	/**
@@ -133,7 +152,19 @@ class GameHighlightService
 	private function loadHighlightsForGame(Game $game): HighlightCollection {
 		$highlights = new HighlightCollection();
 
-		foreach ($this->checkers as $checker) {
+		foreach ($game->getTeams() as $team) {
+			foreach ($this->teamCheckers as $checker) {
+				$checker->checkTeam($team, $highlights);
+			}
+		}
+
+		foreach ($game->getPlayers() as $player) {
+			foreach ($this->playerCheckers as $checker) {
+				$checker->checkPlayer($player, $highlights);
+			}
+		}
+
+		foreach ($this->gameCheckers as $checker) {
 			$checker->checkGame($game, $highlights);
 		}
 
