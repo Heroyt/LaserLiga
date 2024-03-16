@@ -36,6 +36,8 @@ class Arena extends Model
 
 	#[OA\Property(example: 'Laser arena Písek')]
 	public string $name;
+	#[OA\Property(example: 'g')]
+	public string $gameCodePrefix = 'g';
 	#[OA\Property(example: 49.307678)]
 	public ?float $lat = null;
 	#[OA\Property(example: 14.147773)]

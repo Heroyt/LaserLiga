@@ -76,6 +76,10 @@ services:
 
 	cron.logArchive: App\Cron\LogArchiveJob
 
+	result.parser: App\Tools\ResultParsing\ResultsParser
+	result.parser.evo5: App\Tools\ResultParsing\Evo5\ResultsParser
+	result.parser.evo6: App\Tools\ResultParsing\Evo6\ResultsParser
+
 search:
 	achievementCheckers:
 		in: %constants.appDir%/src/Services/Achievements/Checkers

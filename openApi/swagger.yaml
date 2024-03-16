@@ -475,6 +475,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  '/api/games/{code}/recalc':
+    get:
+      tags:
+        - Games
+      summary: 'Recalculate Game Skill'
+      description: 'This method recalculates all scores accuracy and skills of the players for a single game.'
+      operationId: recalcGame
+      parameters:
+        - name: code
+          in: path
+          description: 'Game code'
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Game info'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '403':
+          description: 'Game belongs to a different arena'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Game not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Server error during save operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   '/api/games/{code}':
     get:
       tags:
@@ -596,6 +635,51 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: 'Game not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/import:
+    post:
+      tags:
+        - Games
+        - Import
+      summary: 'Import results from a game file.'
+      description: 'Import results from a game file.'
+      operationId: importGameFile
+      parameters:
+        - name: players
+          in: query
+          description: 'Player meta information'
+          required: false
+          schema:
+            type: array
+            items:
+              additionalProperties:
+                properties:
+                  name: { description: 'Full UTF-8 name of a player', type: string }
+                  user: { description: "User's unique code", type: string }
+                type: object
+        - name: group
+          in: query
+          description: 'Game group ID'
+          required: false
+          schema:
+            type: int
+      requestBody:
+        description: "Game file's content."
+        required: true
+        content:
+          text/plain: { }
+      responses:
+        '201':
+          description: 'Game imported'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '500':
+          description: 'Server error during save operation'
           content:
             application/json:
               schema:
@@ -1179,6 +1263,76 @@ components:
         - ok
         - playable
         - broken
+    GameEvo5:
+      description: 'LaserMaxx Evo5 game model'
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Game'
+        - properties:
+            scoring:
+              $ref: '#/components/schemas/ScoringEvo5'
+          type: object
+    ScoringEvo5:
+      title: 'Scoring Evo5'
+      description: "Structure containing game's scoring settings\n\nScoring = how many points does a player get for an action."
+      properties:
+        deathOther:
+          type: integer
+        hitOther:
+          type: integer
+        deathOwn:
+          type: integer
+        hitOwn:
+          type: integer
+        hitPod:
+          type: integer
+        shot:
+          type: integer
+        machineGun:
+          type: integer
+        invisibility:
+          type: integer
+        agent:
+          type: integer
+        shield:
+          type: integer
+      type: object
+    GameEvo6:
+      description: 'LaserMaxx Evo6 game model'
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Game'
+        - properties:
+            scoring:
+              $ref: '#/components/schemas/ScoringEvo6'
+          type: object
+    ScoringEvo6:
+      title: 'Scoring Evo6'
+      description: "Structure containing game's scoring settings\n\nScoring = how many points does a player get for an action."
+      properties:
+        deathOther:
+          type: integer
+        hitOther:
+          type: integer
+        deathOwn:
+          type: integer
+        hitOwn:
+          type: integer
+        hitPod:
+          type: integer
+        shot:
+          type: integer
+        machineGun:
+          type: integer
+        invisibility:
+          type: integer
+        agent:
+          type: integer
+        shield:
+          type: integer
+        highscore:
+          type: integer
+      type: object
     Game:
       description: 'Base class for game models'
       properties:
@@ -1210,10 +1364,6 @@ components:
             - $ref: '#/components/schemas/AbstractMode'
         gameType:
           $ref: '#/components/schemas/GameModeType'
-        scoring:
-          nullable: true
-          oneOf:
-            - $ref: '#/components/schemas/Scoring'
         arena:
           nullable: true
           oneOf:
@@ -1313,30 +1463,6 @@ components:
         bestMines:
           type: boolean
       type: object
-    Scoring:
-      description: "Structure containing game's scoring settings\n\nScoring = how many points does a player get for an action."
-      properties:
-        deathOther:
-          type: integer
-        hitOther:
-          type: integer
-        deathOwn:
-          type: integer
-        hitOwn:
-          type: integer
-        hitPod:
-          type: integer
-        shot:
-          type: integer
-        machineGun:
-          type: integer
-        invisibility:
-          type: integer
-        agent:
-          type: integer
-        shield:
-          type: integer
-      type: object
     Timing:
       description: "Game's timing settings"
       properties:
@@ -1362,6 +1488,10 @@ components:
         info:
           type: string
           example: 'Zbraň vynechává'
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
           nullable: true
       type: object
     Gender:
@@ -1478,6 +1608,9 @@ components:
         name:
           type: string
           example: 'Laser arena Písek'
+        gameCodePrefix:
+          type: string
+          example: g
         lat:
           type: number
           format: float
@@ -1558,6 +1691,7 @@ components:
         - other
         - alone
         - hits
+        - deaths
         - user_average
     PlayerRank:
       properties:
