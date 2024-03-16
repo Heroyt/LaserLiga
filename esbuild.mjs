@@ -52,6 +52,8 @@ await fontawesomeSubset(
                 'user-clock',
                 'user-plus',
                 'xmark',
+                'moon',
+                'sun',
             ],
         },
         "assets/fonts",

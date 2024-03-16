@@ -8,7 +8,9 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Achievements\Title;
 use App\Models\Arena;
+use App\Models\Auth\Enums\ConnectionType;
 use App\Models\Auth\User;
+use App\Models\Auth\UserConnection;
 use App\Models\DataObjects\PlayerRank;
 use App\Services\Achievements\TitleProvider;
 use App\Services\Avatar\AvatarService;
@@ -129,6 +131,36 @@ class UserController extends AbstractUserController
 			} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 				$request->passErrors['title'] = lang('Titul neexistuje', context: 'errors');
 			}
+		}
+
+		$laserMaxx = $request->getPost('mylasermaxx');
+		$laserMaxxConnection = $user->getConnectionByType(ConnectionType::MY_LASERMAXX);
+		if (empty($laserMaxx) && isset($laserMaxxConnection)) {
+			$user->removeConnection($laserMaxxConnection);
+		}
+		else if (!empty($laserMaxx)) {
+			if (!isset($laserMaxxConnection)) {
+				$laserMaxxConnection = new UserConnection();
+				$laserMaxxConnection->user = $user;
+				$laserMaxxConnection->type = ConnectionType::MY_LASERMAXX;
+				$user->addConnection($laserMaxxConnection);
+			}
+			$laserMaxxConnection->identifier = $laserMaxx;
+		}
+
+		$laserForce = $request->getPost('laserforce');
+		$laserForceConnection = $user->getConnectionByType(ConnectionType::LASER_FORCE);
+		if (empty($laserForce) && isset($laserForceConnection)) {
+			$user->removeConnection($laserForceConnection);
+		}
+		else if (!empty($laserForce)) {
+			if (!isset($laserForceConnection)) {
+				$laserForceConnection = new UserConnection();
+				$laserForceConnection->user = $user;
+				$laserForceConnection->type = ConnectionType::LASER_FORCE;
+				$user->addConnection($laserForceConnection);
+			}
+			$laserForceConnection->identifier = $laserForce;
 		}
 
 		if (!empty($request->passErrors)) {

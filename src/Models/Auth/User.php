@@ -3,6 +3,7 @@
 namespace App\Models\Auth;
 
 use App\Models\Arena;
+use App\Models\Auth\Enums\ConnectionType;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -57,6 +58,16 @@ class User extends \Lsr\Core\Auth\Models\User
 		return true;
 	}
 
+	public function removeConnection(UserConnection $connection): void {
+		foreach ($this->connections as $key => $test) {
+			if ($connection === $test) {
+				unset($this->connections[$key]);
+				$connection->delete();
+				return;
+			}
+		}
+	}
+
 	public function save(): bool {
 		return parent::save() && $this->saveConnections() && (!isset($this->player) || $this->player->save());
 	}
@@ -76,6 +87,15 @@ class User extends \Lsr\Core\Auth\Models\User
 		return $this;
 	}
 
+	public function getConnectionByType(ConnectionType $type): ?UserConnection {
+		foreach ($this->getConnections() as $connection) {
+			if ($connection->type === $type) {
+				return $connection;
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * @return UserConnection[]
 	 * @throws ValidationException
@@ -85,6 +105,20 @@ class User extends \Lsr\Core\Auth\Models\User
 			$this->connections = UserConnection::getForUser($this);
 		}
 		return $this->connections;
+	}
+
+	/**
+	 * @return UserConnection[]
+	 * @throws ValidationException
+	 */
+	public function getPublicConnections(): array {
+		$connections = [];
+		foreach ($this->getConnections() as $connection) {
+			if (in_array($connection->type, [ConnectionType::MY_LASERMAXX, ConnectionType::LASER_FORCE], true)) {
+				$connections[] = $connection;
+			}
+		}
+		return $connections;
 	}
 
 	/**

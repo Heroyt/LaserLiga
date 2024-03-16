@@ -27,6 +27,11 @@
                 </a>
             </p>
         {/if}
+        {if $player instanceof App\GameModels\Game\Lasermaxx\Player && !empty($player->myLasermaxx)}
+            <p class="text-center"><a href="{$player->myLasermaxx}" target="_blank" rel="nofollow" class="btn btn-dark">
+                    {svgIcon 'lasermaxx', auto, '1em'} My Lasermaxx
+                </a></p>
+        {/if}
     </div>
 
     {include playerTrophies, $player, $achievements}
@@ -81,7 +86,7 @@
     </div>
 {/define}
 
-{define playerScoreDetail, App\GameModels\Game\Evo5\Player $player, App\GameModels\Game\Game $game}
+{define playerScoreDetail, App\GameModels\Game\Lasermaxx\Player $player, App\GameModels\Game\Game $game}
     {var float|null $diff = $player->getRankDifference()}
     <div class="player-score-detail text-center" data-content-piece="Score">
         <h4>{lang 'Rozpad skóre a herní úrovně'}</h4>
@@ -227,7 +232,7 @@
     </div>
 {/define}
 
-{define playerHits, App\GameModels\Game\Evo5\Player $player, App\GameModels\Game\Game $game}
+{define playerHits, App\GameModels\Game\Lasermaxx\Player $player, App\GameModels\Game\Game $game}
     <div class="player-hits" data-content-piece="Hits">
         {var int $total = $player->hits + $player->deaths + $player->minesHits}
         <div n:if="$game->getMode()?->settings->playerPlayers" class="hits mt-1 mb-2">
@@ -409,15 +414,21 @@
     </div>
 {/define}
 
-{define playerMines, App\GameModels\Game\Evo5\Player $player}
+{define playerMines, App\GameModels\Game\Lasermaxx\Player $player}
     <div class="player_mines mt-2" data-content-piece="Bonus">
         {svgIcon 'base_2', '3rem'}
         <div class="bonus">
+            {if $player instanceof App\GameModels\Game\Evo5\Player}
             <div n:foreach="$player->bonus->getArray() as $name => $value" class="{$name}" data-toggle="tooltip"
                                                                            title="{lang $player->bonus::NAMES[$name] ?? ''}">
                 {svgIcon $name, '2rem'}
                 {$value}
             </div>
+            {elseif $player instanceof App\GameModels\Game\Evo6\Player}
+                <div class="bonuses" data-toggle="tooltip" title="{lang 'Bonusů celkem'}">
+                    {$player->bonuses}
+                </div>
+            {/if}
         </div>
     </div>
 {/define}

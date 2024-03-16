@@ -101,6 +101,14 @@
                 </a>
             {/if}
         </p>
+        {var App\Models\Auth\UserConnection[] $connections = $user->getPublicConnections()}
+        <div n:if="count($connections) > 0" class="my-3 text-center">
+            <h3 class="fs-5">{lang 'Další Laser game účty'}</h3>
+            <a n:foreach="$connections as $connection" href="{$connection->getUrl()}" target="_blank" rel="nofollow"
+                                                       class="btn btn-{$connection->type->getColor()}">
+                {svgIcon $connection->type->getIcon(), 'auto', '1em'} {$connection->type->getName()}
+            </a>
+        </div>
 
         <h2 class="visually-hidden">{lang 'Základní statistiky'}</h2>
         <div class="stats">

@@ -21,6 +21,14 @@ class UserConnection extends Model
 	public User           $user;
 	public string|int     $identifier;
 
+	public function getUrl(): string {
+		return match ($this->type) {
+			ConnectionType::LASER_FORCE  => 'https://v2.iplaylaserforce.com/iframe.php?memberId=' . $this->identifier,
+			ConnectionType::MY_LASERMAXX => $this->identifier,
+			default                      => '#',
+		};
+	}
+
 	/**
 	 * Get all connections for a specific user
 	 *

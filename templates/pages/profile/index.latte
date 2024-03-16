@@ -127,6 +127,24 @@
                 </div>
             </div>
         </div>
+
+        <section class="my-4" id="connected-accounts">
+            <h3>{lang 'Další Laser game účty'}</h3>
+
+            <div class="form-group mb-3">
+                <label for="mylasermaxx" class="form-label">My LaserMaxx</label>
+                <input class="form-control" type="url" name="mylasermaxx" id="mylasermaxx"
+                       value="{$user->getConnectionByType(App\Models\Auth\Enums\ConnectionType::MY_LASERMAXX)?->identifier}">
+                <div class="form-text">{lang 'Zadejte URL vašeho profilu ve formátu https://my.lasermaxx.com/profile/0000000000.'}</div>
+            </div>
+            <div class="form-group mb-3">
+                <label for="laserforce" class="form-label">LaserForce</label>
+                <input class="form-control" type="text" pattern="\d\d-\d-\d\d\d" name="laserforce" id="laserforce"
+                       value="{$user->getConnectionByType(App\Models\Auth\Enums\ConnectionType::LASER_FORCE)?->identifier}">
+                <div class="form-text">{lang 'Zadejte Váš kód hráče ve formátu 00-0-000.'}</div>
+            </div>
+        </section>
+
         <div class="text-center">
             <button type="submit" class="btn btn-success btn-lg">
                 {lang 'Uložit', context: 'actions'}
