@@ -43,3 +43,4 @@ sitemap.xml
 tmp/
 .config/
 assets/*/optimized
+config/local.neon

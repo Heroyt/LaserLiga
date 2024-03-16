@@ -1,3 +1,5 @@
+includes:
+	- local.neon
 parameters:
 	auth:
 		userClass: 'App\Models\Auth\User'
@@ -6,8 +8,6 @@ parameters:
 			- %constants.appDir%routes
 		controllers:
 			- %constants.appDir%src/Controllers
-	redis:
-		host: liga-redis
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
 	orisai.console: OriNette\Console\DI\ConsoleExtension
@@ -52,19 +52,23 @@ services:
 	image: App\Services\ImageService
 
 	evo5HighlightChecker:
-		type: App\Services\GameHighlight\Evo5HighlightChecker
+		type: App\Services\GameHighlight\Checkers\Evo5HighlightChecker
 		tags:
 			- highlightChecker
 	userHighlightChecker:
-		type: App\Services\GameHighlight\UserHighlightChecker
+		type: App\Services\GameHighlight\Checkers\UserHighlightChecker
 		tags:
 			- highlightChecker
 	hitsHighlightChecker:
-		type: App\Services\GameHighlight\HitsHighlightChecker
+		type: App\Services\GameHighlight\Checkers\HitsHighlightChecker
+		tags:
+			- highlightChecker
+	deathsHighlightChecker:
+		type: App\Services\GameHighlight\Checkers\DeathsHighlightChecker
 		tags:
 			- highlightChecker
 	trophyHighlightChecker:
-		type: App\Services\GameHighlight\TrophyHighlightChecker
+		type: App\Services\GameHighlight\Checkers\TrophyHighlightChecker
 		tags:
 			- highlightChecker
 
