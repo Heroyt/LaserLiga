@@ -2,6 +2,8 @@
 
 **Author:** Tomáš Vojík <[vojik@wboy.cz](mailto:vojik@wboy.cz)>
 
+**Web:** [laserliga.cz](https://laserliga.cz)
+
 ## Directory structure
 
 - **assets** - frontend files go here
