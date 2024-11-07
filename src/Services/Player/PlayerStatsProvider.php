@@ -6,7 +6,7 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Auth\Player;
 use App\Models\Auth\User;
-use App\Models\DataObjects\PlayerStats;
+use App\Models\DataObjects\Player\PlayerStats;
 use DateTimeInterface;
 use Dibi\DateTime;
 use Dibi\Exception;

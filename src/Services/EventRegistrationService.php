@@ -47,15 +47,19 @@ readonly class EventRegistrationService
 	 */
 	public function validateRegistration(EventRegistrationInterface $event, Request $request): array {
 		$errors = [];
-		if (empty($request->post['team-name'])) {
+		/** @var string|null $teamName */
+		$teamName = $request->getPost('team-name');
+		if (empty($teamName)) {
 			$errors['team-name'] = lang('Jméno týmu je povinné');
 		}
 
 		if ($event instanceof League && count($event->getCategories()) > 0) {
-			if (empty($request->post['category'])) {
+			/** @var numeric|null $categoryId */
+			$categoryId = $request->getPost('category');
+			if (empty($categoryId)) {
 				$errors['category'] = lang('Vyberte kategorii');
 			}
-			else if (!LeagueCategory::exists((int)$request->post['category'])) {
+			else if (!LeagueCategory::exists((int)$categoryId) || !isset($event->getCategories()[$categoryId])) {
 				$errors['category'] = lang('Kategorie neexistuje');
 			}
 		}

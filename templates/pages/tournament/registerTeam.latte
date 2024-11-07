@@ -4,6 +4,7 @@
 {varType array $_POST}
 {varType array $errors}
 {varType App\Models\Auth\User|null $user}
+{varType string $turnstileKey}
 
 {define addHead}
     <meta property="og:title"
@@ -18,7 +19,7 @@
 {define content}
 	<p class="text-start">
 		<a href="{link 'tournament', $tournament->id}" class="btn btn-info">
-			<i class="fa-solid fa-angle-left"></i>
+			{faSolid 'angle-left'}
 			{lang 'Zpět'}
 		</a>
 	</p>
@@ -47,6 +48,7 @@
 				</div>
 			</div>
 		</div>
+        <div class="cf-turnstile mb-3" data-sitekey="{$turnstileKey}"></div>
 		<p class="text-center">
 			<button type="submit" class="btn btn-lg btn-primary">{lang 'Odeslat'}</button>
 		</p>

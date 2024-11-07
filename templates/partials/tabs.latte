@@ -6,7 +6,7 @@
     string $activeTab = ''
 }
 
-<ul class="nav nav-tabs {$classes}" id="{$id}" role="tablist" data-track-content="" data-content-name="{$name}">
+<ul class="nav nav-tabs {$classes}" id="{$id}" role="tablist" data-track-content="" data-content-name="{$name}" data-active="{$activeTab}">
     {foreach $tabs as $tabId => $tabInfo}
         {continueIf !($tabInfo['condition'] ?? true)}
         {block 'tab-'.$tabId}

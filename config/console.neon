@@ -1,0 +1,30 @@
+extensions:
+	orisai.console: App\DI\Extensions\ConsoleExtension
+orisai.console:
+	name: 'LaserLiga'
+services:
+	# Commands
+	command.theme.generate: App\Cli\Commands\Theme\GenerateThemeCommand
+
+	command.cache.clean: App\Cli\Commands\Cache\CleanCacheCommand
+
+	command.games.skills: App\Cli\Commands\Games\RecalculateSkillsGameCommand
+	command.games.gameModes: App\Cli\Commands\Games\AssignGameModesCommand
+	command.games.removeDuplicates: App\Cli\Commands\Games\RemoveDuplicateGamesCommand
+
+	command.regression.hits: App\Cli\Commands\Regression\CalculateHitsRegressionCommand
+	command.regression.hitsOwn: App\Cli\Commands\Regression\CalculateHitsOwnRegressionCommand
+	command.regression.deaths: App\Cli\Commands\Regression\CalculateDeathsRegressionCommand
+	command.regression.deathsOwn: App\Cli\Commands\Regression\CalculateDeathsOwnRegressionCommand
+	command.regression.update: App\Cli\Commands\Regression\UpdateRegressionModelsCommand
+
+	command.translation.compile: App\Cli\Commands\Translation\CompileTranslationsCommand
+	command.translation.removeComments: App\Cli\Commands\Translation\RemoveCommentsCommand
+	command.translation.removeDuplicates: App\Cli\Commands\Translation\RemoveTranslationsDuplicatesCommand
+
+	command.logs.archive: App\Cli\Commands\Logs\ArchiveLogsCommand
+	command.logs.clear: App\Cli\Commands\Logs\ClearLogsCommand
+
+	command.sitemap: App\Cli\Commands\GenerateSitemapCommand
+
+	command.league.recalcPoints: App\Cli\Commands\League\RecalcPointsCommand

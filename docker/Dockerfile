@@ -1,5 +1,5 @@
-FROM node:19-slim AS node_base
-FROM php:8.2-fpm-bullseye as setup
+FROM node:slim AS node_base
+FROM php:8.3-fpm-bullseye AS setup
 LABEL authors="heroyt"
 
 #COPY --from=node_base / /
@@ -27,17 +27,36 @@ RUN docker-php-ext-enable spx
 
 COPY docker/core/spx.ini "$PHP_INI_DIR/conf.d/docker-php-ext-spx.ini"
 
-FROM setup as extensions
+FROM setup AS extensions
 
 # PHP extensions
 RUN apt-get install -y libzip-dev unzip libicu-dev cifs-utils ffmpeg libpng-dev libwebp-dev
 RUN apt install -y curl libcurl4-openssl-dev
 RUN docker-php-ext-install mysqli curl gettext sockets pdo_mysql zip pcntl intl opcache gd
+
 # Imagick
-RUN apt-get update && apt-get install -y libmagickwand-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
-RUN pecl install imagick
+RUN apt-get update &&  \
+    apt-get install -y libmagickwand-dev --no-install-recommends &&  \
+    rm -rf /var/lib/apt/lists/*  # Clear apt cache
+
+# Build imagick from source (PHP 8.3)
+RUN git clone https://github.com/Imagick/imagick.git --depth 1 /tmp/imagick && \
+    cd /tmp/imagick && \
+    git fetch origin master && \
+    git switch master && \
+    cd /tmp/imagick && \
+    phpize && \
+    ./configure && \
+    make && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/imagick # Clean up sources
+
+# Igbinary
+RUN pecl install igbinary
+
 # Enable all extensions
-RUN docker-php-ext-enable mysqli curl gettext sockets pdo_mysql zip pcntl intl opcache imagick
+RUN docker-php-ext-enable mysqli curl gettext sockets pdo_mysql zip pcntl intl opcache imagick igbinary
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype --with-webp && docker-php-ext-install gd
 
 RUN apt-get update  \
@@ -51,7 +70,7 @@ RUN docker-php-ext-enable apcu
 RUN pecl install redis
 RUN docker-php-ext-enable redis
 
-FROM extensions as langs
+FROM extensions AS langs
 
 # Setup gettext languages
 RUN apt-get update  \
@@ -66,16 +85,16 @@ RUN apt-get update  \
 RUN locale-gen cs_CZ.UTF-8
 RUN update-locale -y
 
-FROM langs as composer
+FROM langs AS composer
 
 # Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-RUN php -r "if (hash_file('sha384', 'composer-setup.php') === 'edb40769019ccf227279e3bdd1f5b2e9950eb000c3233ee85148944e555d97be3ea4f40c3c2fe73b22f875385f6a5155') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+RUN php -r "if (hash_file('sha384', 'composer-setup.php') === 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
 RUN php composer-setup.php
 RUN rm composer-setup.php
 RUN mv composer.phar /usr/local/bin/composer
 
-FROM composer as base
+FROM composer AS base
 
 # Project files
 RUN mkdir -p "/var/www/.npm" && chown -R 33:33 "/var/www/.npm"
@@ -85,10 +104,10 @@ RUN cron
 #USER www-data
 
 # Inkscape
-RUN apt-get update
-RUN apt-get install -y ca-certificates apt-transport-https software-properties-common lsb-release
-RUN apt-get install -y snap
-RUN snap install -y inkscape
+RUN add-apt-repository universe \
+    & add-apt-repository ppa:inkscape.dev/stable \
+    & apt-get update \
+    & apt -y install inkscape
 
 # Move to project directory
 WORKDIR /var/www/

@@ -1,28 +1,15 @@
+{templateType App\Templates\Player\LeaderboardParameters}
 {layout '../../@layout.latte'}
-
-{varType App\Models\Arena|null $arena}
-{varType App\GameModels\Auth\Player[] $players}
-{varType App\GameModels\Auth\LigaPlayer|null $searchedPlayer}
-{varType int $p}
-{varType int $pages}
-{varType int $limit}
-{varType int $total}
-{varType int $orderBy}
-{varType bool $desc}
-{varType int $userOrder}
-{default string $activeType = 'rank'}
-{default array $ranks = []}
-
 
 {block content}
 	<p n:ifset="$arena" class="mb-5 text-start">
 		<span class="btn-group">
 		<a href="{link ['arena', $arena->id]}" class="btn btn-secondary">
-			<i class="fa-solid fa-angle-left"></i>
+			{faSolid 'angle-left'}
 			{lang 'Zpět na stránku arény'}
 		</a>
 		<a href="{link ['user', 'leaderboard']}" class="btn btn-secondary">
-			<i class="fa-solid fa-angle-left"></i>
+			{faSolid 'angle-left'}
 			{lang 'Zpět na celkový žebříček'}
 		</a>
 			</span>

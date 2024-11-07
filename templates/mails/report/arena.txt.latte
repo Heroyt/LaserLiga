@@ -1,0 +1,19 @@
+{layout '../@layout.latte'}
+
+{varType \DateTimeInterface $date}
+{varType int $games}
+{varType int $players}
+{varType App\GameModels\Vest[] $vests}
+
+{block body}
+    LaserLiga report {$date->format('j. n. Y')}
+
+    Odehráno her
+    - Her: {$games}
+    - Hráčů: {$players}
+
+    Stav vest
+    {foreach $vests as $vest}
+    -{$vest->vestNum}: {$vest->status->getName()}{if !empty($vest->info)} - {$vest->info}{/if}
+    {/foreach}
+{/block}

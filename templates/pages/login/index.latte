@@ -2,6 +2,7 @@
 
 {varType string[] $errors}
 {varType array $_POST}
+{varType string $turnstileKey}
 
 {define containerClasses}
     mb-5 mb-lg-0
@@ -55,6 +56,7 @@
                                 <a href="{link ['login', 'forgot']}">{lang 'Zapomenuté heslo'}</a>
                             </div>
                         </div>
+                        <div class="cf-turnstile mb-3" data-sitekey="{$turnstileKey}"></div>
                         <div class="d-flex justify-content-center">
                             <div class="form-check mb-3">
                                 <input type="checkbox" class="form-check-input" id="remember-me" name="remember"

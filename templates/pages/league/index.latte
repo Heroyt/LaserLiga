@@ -12,7 +12,7 @@
 
 {define content}
     <h1 class="text-center">
-        <i class="fa-solid fa-trophy fs-1"></i>
+        {faSolid 'trophy', 'fs-1'}
         <br>
         {lang 'Organizované ligy laser game'}
     </h1>
@@ -62,13 +62,13 @@
                             <div class="btn-group">
                                 <a href="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}"
                                    class="btn btn-secondary" itemprop="url">
-                                    <i class="fa-solid fa-circle-info"></i>
+                                    {faSolid 'circle-info'}
                                     {lang 'Informace'}
                                 </a>
                                 <a n:if="$league->isRegistrationActive() && $league->registrationType !== App\Models\Tournament\RegistrationType::TOURNAMENT"
                                         href="{link 'league', $league->id, 'register'}"
                                         class="btn btn-primary">
-                                    <i class="fa-solid fa-user-plus"></i>
+                                    {faSolid 'user-plus'}
                                     {lang 'Registrace'}
                                 </a>
                             </div>

@@ -5,10 +5,11 @@
  */
 
 $services = [
-	ROOT.'vendor/lsr/routing/services.neon',
-	ROOT.'vendor/lsr/logging/services.neon',
-	ROOT.'vendor/lsr/core/services.neon',
-	ROOT.'vendor/lsr/auth/services.neon',
+	ROOT . 'vendor/lsr/routing/services.neon',
+	ROOT . 'vendor/lsr/logging/services.neon',
+	ROOT . 'vendor/lsr/core/services.neon',
+	ROOT . 'vendor/lsr/auth/services.neon',
+	ROOT . 'config/constants.php',
 ];
-$services[] = PRODUCTION ? ROOT.'config/services.neon' : ROOT.'config/servicesDebug.neon';
+$services[] = PRODUCTION ? ROOT . 'config/services.neon' : ROOT . 'config/servicesDebug.neon';
 return $services;

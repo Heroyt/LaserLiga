@@ -40,13 +40,13 @@
                     {ifset $player->user}
                         <a itemprop="url" href="{link 'user', $player->user->getCode()}"
                            class="btn btn-primary mx-3 my-2">
-                            <i class="fa-solid fa-user"></i> {lang 'Profil'}
+                            {faSolid 'user'} {lang 'Profil'}
                         </a>
                     {/ifset}
                     {if isset($user) && $player->validateAccess($user)}
                         <a href="{link 'events', 'registration', $event->id, $player->id}"
                            class="btn btn-secondary my-2">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                            {faSolid 'pen-to-square'}
                             {lang 'Upravit přihlášku'}
                         </a>
                     {/if}

@@ -4,7 +4,10 @@ use App\Controllers\Dashboard;
 use App\Controllers\User\LeaderboardController;
 use App\Controllers\User\StatController;
 use App\Controllers\User\UserController;
+use App\Controllers\User\UserFindGamesController;
 use App\Controllers\User\UserGameController;
+use App\Controllers\User\UserHistoryController;
+use App\Controllers\User\UserSettingsController;
 use App\Controllers\User\UserTournamentController;
 use App\Core\Middleware\CSRFCheck;
 use App\Core\Middleware\LoggedIn;
@@ -24,12 +27,12 @@ $publicUserRoutes = Route::group('/user')
 
 $publicUserIdGroup = $publicUserRoutes
 	->group('/{code}')
-	->get('/', [UserController::class, 'public'])->name('public-profile')
+	->get('/', [UserController::class, 'show'])->name('public-profile')
 	->get('/img', [UserController::class, 'thumb'])
 	->get('/avatar', [UserController::class, 'avatar'])
-	->post('/avatar', [UserController::class, 'updateAvatar'])
+	->post('/avatar', [UserSettingsController::class, 'updateAvatar'])
 	->get('/title/svg', [UserController::class, 'title'])
-	->get('/history', [UserController::class, 'gameHistory'])->name('player-game-history')
+	->get('/history', [UserHistoryController::class, 'show'])->name('player-game-history')
 	->get('/tournaments', [UserTournamentController::class, 'myTournaments'])->name('player-tournaments')
 	->group('stats')
 	->get('trends', [UserController::class, 'getTrends'])
@@ -47,11 +50,11 @@ $publicUserIdGroup = $publicUserRoutes
 
 $userGroup = $routes
 	->group('/user')
-	->get('/', [UserController::class, 'show'])->name('profile')
-	->post('/', [UserController::class, 'processProfile'])->middleware(new CSRFCheck('user-profile'))
-	->get('/history', [UserController::class, 'gameHistory'])->name('my-game-history')
+	->get('/', [UserSettingsController::class, 'show'])->name('profile')
+	->post('/', [UserSettingsController::class, 'process'])->middleware(new CSRFCheck('user-profile'))
+	->get('/history', [UserHistoryController::class, 'show'])->name('my-game-history')
 	->get('/tournaments', [UserTournamentController::class, 'myTournaments'])->name('my-tournaments')
-	->get('/findgames', [UserController::class, 'findGames'])->name('find-my-games')
+	->get('/findgames', [UserFindGamesController::class, 'show'])->name('find-my-games')
 	->group('/player')
 	->post('/setme', [UserGameController::class, 'setMe'])
 	->post('/setallme', [UserGameController::class, 'setAllMe'])

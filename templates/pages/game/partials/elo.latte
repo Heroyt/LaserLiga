@@ -27,7 +27,7 @@
                        data-bs-html="true"
                        data-bs-toggle="popover" data-bs-title="{lang 'Co to znamená?'}"
                        data-bs-content="{lang 'Hodnota blízká 100% znamená definitivní výhru.<br>Hodnota blízká 50% je remíza (totožná herní úroveň).<br>Hodnota 0% je definitivní prohra.'}">
-                        <i class="fa-solid fa-question"></i>
+                        {faSolid 'question'}
                     </a>
                 </th>
                 <td>{(100*$playerInfo['result'])|number:2,','}%</td>
@@ -39,7 +39,7 @@
                        data-bs-html="true"
                        data-bs-toggle="popover" data-bs-title="{lang 'Co to znamená?'}"
                        data-bs-content="{lang 'Hodnota vypočítaná podle toho, jak jsou hráči vyrovnaní. Výsledná hodnota násobí počet bodů.'}">
-                        <i class="fa-solid fa-question"></i>
+                        {faSolid 'question'}
                     </a>
                 </th>
                 <td>{$playerInfo['marginOfVictory']|number:2,','}</td>

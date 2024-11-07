@@ -250,6 +250,45 @@ function autoParagraphs(string $text): string {
 	return '<p>' . implode('</p><p>', $paragraphs) . '</p>';
 }
 
+function getImageStyleSet(Image|string $image, bool $includeAllSizes = true): string {
+	if (is_string($image)) {
+		$image = new Image($image);
+	}
+
+	$type = $image->getType();
+	$mime = match($type) {
+		'jpg', 'jpeg' => 'image/jpeg',
+		'png' => 'image/png',
+		default => 'image/'.$type,
+	};
+
+	$versions = $image->getOptimized();
+
+	$srcSet = [];
+
+	if ($includeAllSizes) {
+		foreach (array_reverse(ImageService::SIZES) as $key => $size) {
+			$index = $size . '-webp';
+			if (isset($versions[$index])) {
+				$srcSet[] = 'url("'.$versions[$index] . '") ' . ($key+1) . 'x type("image/webp")';
+				continue;
+			}
+
+			$index = (string)$size;
+			if (isset($versions[$index])) {
+				$srcSet[] = 'url("'.$versions[$index] . '") ' . ($key+1) . 'x type("'.$mime.'")';
+			}
+		}
+	}
+
+	if (isset($versions['webp'])) {
+		$srcSet[] = 'url("'.$versions['webp'].'") type("image/webp")';
+	}
+	$srcSet[] = 'url("'.$versions['original'].'") type("'.$mime.'")';
+
+	return implode(',', $srcSet);
+}
+
 function getImageSrcSet(Image|string $image, bool $includeAllSizes = true): string {
 	if (is_string($image)) {
 		$image = new Image($image);

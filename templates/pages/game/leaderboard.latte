@@ -1,6 +1,4 @@
-{varType string $property}
-{varType int $highlight}
-{varType Dibi\Row[] $players}
+{templateType App\Templates\Games\GameTodayLeaderboardParameters}
 
 {var array $icons = ['Score' => 'star', 'Accuracy' => 'target', 'Shots' => 'bullets', 'Hits' => 'kill', 'Deaths' => 'skull']}
 {var array $units = ['Score' => '', 'Accuracy' => '%', 'Shots' => '', 'Hits' => '', 'Deaths' => '']}
@@ -15,8 +13,8 @@
 	</tr>
 	</thead>
 	<tbody>
-	<tr n:foreach="$players as $player" data-id="{$player->id_player}"
-										class="{if $player->id_player === $highlight}table-primary{/if}">
+	<tr n:foreach="$players as $player" data-id="{$player->idPlayer}"
+										class="{if $player->idPlayer === $highlight}table-primary{/if}">
 		<td>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</td>
 		<th scope="col" class="text-center text-uppercase">{$player->name}</th>
 		<td class="text-center">{lang $player->mode, context: 'gameModes'}</td>

@@ -15,42 +15,44 @@ use App\Services\Player\PlayerRankOrderService;
 use App\Services\Player\PlayerUserService;
 use DateInterval;
 use DateTimeImmutable;
-use JsonException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use OpenApi\Attributes as OA;
+use Psr\Http\Message\ResponseInterface;
 
 class UserGameController extends AbstractUserController
 {
 
 	private readonly ?User $user;
 
+	/**
+	 * @param Auth<User> $auth
+	 */
 	public function __construct(
-		protected Latte                         $latte,
 		protected readonly Auth                 $auth,
 		protected readonly PlayerUserService    $playerUserService,
 		private readonly PlayerRankOrderService $rankOrderService,
 	) {
-		parent::__construct($latte);
+		parent::__construct();
 		$this->user = $this->auth->getLoggedIn();
 	}
 
-	public function unsetMe(Request $request): never {
+	public function unsetMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			$this->respond(['error' => 'User is not logged in'], 401);
+			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
 		}
 		$code = $request->getPost('code', '');
 		try {
 			$game = GameFactory::getByCode($code);
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 		}
 		if (!isset($game)) {
-			$this->respond(['error' => 'Game not found'], 404);
+			return $this->respond(new ErrorDto('Game not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		$player = null;
@@ -64,66 +66,59 @@ class UserGameController extends AbstractUserController
 		if (isset($player)) {
 			$this->playerUserService->unsetPlayerUser($player);
 		}
-		$this->respond(['status' => 'ok']);
+		return $this->respond(new SuccessResponse());
 	}
 
-	/**
-	 * @param Request $request
-	 *
-	 * @return never
-	 * @throws ValidationException
-	 * @throws JsonException
-	 */
-	public function setNotMe(Request $request): never {
+	public function setNotMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			$this->respond(['error' => 'User is not logged in'], 401);
+			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
 		}
 		// @phpstan-ignore-next-line
 		$matchId = (int)$request->getPost('id', 0);
 		try {
 			$match = PossibleMatch::get($matchId);
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
-			$this->respond(['error' => 'Possible match not found'], 404);
+			return $this->respond(new ErrorDto('Possible match not found', ErrorType::NOT_FOUND), 404);
 		}
 		if ($match->user->id !== $this->user->id) {
-			$this->respond(['error' => 'Cannot set match. The match ID and logged in user do not match.'], 400);
+			return $this->respond(new ErrorDto('Cannot set match. The match ID and logged in user do not match.', ErrorType::VALIDATION), 400);
 		}
 
 		$match->matched = false;
 		if (!$match->save()) {
-			$this->respond(['error' => 'Save failed'], 500);
+			return $this->respond(new ErrorDto('Save failed', ErrorType::INTERNAL), 500);
 		}
-		$this->respond(['status' => 'ok']);
+		return $this->respond(new SuccessResponse());
 	}
 
-	public function setMe(Request $request): never {
+	public function setMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			$this->respond(['error' => 'User is not logged in'], 401);
+			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
 		}
 		$playerId = (int)$request->getPost('id', 0);
 		$player = PlayerFactory::getById($playerId, ['system' => $request->getPost('system', 'evo5')]);
 		if (!isset($player)) {
-			$this->respond(['error' => 'Player not found'], 404);
+			return $this->respond(new ErrorDto('Player not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		if (isset($player->user) && $player->user->id !== $this->user->id) {
-			$this->respond(['error' => 'Cannot overwrite a player\'s user.'], 400);
+			return $this->respond(new ErrorDto('Cannot overwrite a player\'s user.', ErrorType::VALIDATION), 400);
 		}
 
 		if (!comparePlayerNames($this->user->name, $player->name)) {
-			$this->respond(['error' => 'User names don\'t match.'], 400);
+			return $this->respond(new ErrorDto('User names don\'t match.', ErrorType::VALIDATION), 400);
 		}
 
 		if (!$this->playerUserService->setPlayerUser($this->user, $player)) {
-			$this->respond(['error' => 'Setting a user failed'], 500);
+			return $this->respond(new ErrorDto('Setting a user failed', ErrorType::INTERNAL), 500);
 		}
 
-		$this->respond(['status' => 'ok']);
+		return $this->respond(new SuccessResponse());
 	}
 
-	public function setAllMe(Request $request): never {
+	public function setAllMe(): ResponseInterface {
 		if (!isset($this->user)) {
-			$this->respond(['error' => 'User is not logged in'], 401);
+			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
 		}
 
 		$matches = PossibleMatch::getForUser($this->user);
@@ -144,18 +139,18 @@ class UserGameController extends AbstractUserController
 			}
 		}
 
-		$this->respond(['status' => 'ok']);
+		return $this->respond(new SuccessResponse());
 	}
 
-	public function setGroupMe(Request $request): never {
+	public function setGroupMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			$this->respond(['errors' => ['User is not logged in']], 401);
+			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
 		}
 		$groupId = (int)$request->getPost('id', 0);
 		try {
 			$group = GameGroup::get($groupId);
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
-			$this->respond(['errors' => ['Group not found']], 404);
+		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
+			return $this->respond(new ErrorDto('Group not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		$errors = [];
@@ -163,7 +158,7 @@ class UserGameController extends AbstractUserController
 		$normalizedName = strtolower(trim(Strings::toAscii($this->user->name)));
 
 		$games = [];
-		// Find player's game
+		// Find player’s game
 		foreach ($group->getPlayers() as $player) {
 			if (trim($player->asciiName) === $normalizedName) {
 				$games = $player->gameCodes;
@@ -189,12 +184,12 @@ class UserGameController extends AbstractUserController
 		}
 
 		if (!empty($errors)) {
-			$this->respond(['errors' => $errors], 500);
+			return $this->respond(new ErrorDto('Internal error', ErrorType::INTERNAL, values: ['errors' => $errors]), 500);
 		}
 
 		$group->clearCache();
 
-		$this->respond(['status' => 'ok']);
+		return $this->respond(new SuccessResponse());
 	}
 
 	#[OA\Get(
@@ -218,9 +213,9 @@ class UserGameController extends AbstractUserController
 			ref: "#/components/schemas/PlayerStats",
 		),
 	)]
-	public function updateStats(User $user): never {
+	public function updateStats(User $user): ResponseInterface {
 		$this->playerUserService->updatePlayerStats($user);
-		$this->respond($user->createOrGetPlayer()->stats);
+		return $this->respond($user->createOrGetPlayer()->stats);
 	}
 
 	#[OA\Get(
@@ -246,7 +241,7 @@ class UserGameController extends AbstractUserController
 			additionalProperties: new OA\AdditionalProperties(ref: "#/components/schemas/PlayerStats"),
 		),
 	)]
-	public function updateAllUsersStats(Request $request): never {
+	public function updateAllUsersStats(Request $request): ResponseInterface {
 		$from = (int)$request->getGet('from', 0);
 		$players = LigaPlayer::query()->where('[id_user] >= %i', $from)->get();
 		$response = [];
@@ -254,7 +249,7 @@ class UserGameController extends AbstractUserController
 			$this->playerUserService->updatePlayerStats($player->user);
 			$response[$player->getCode()] = $player->stats;
 		}
-		$this->respond($response);
+		return $this->respond($response);
 	}
 
 	#[OA\Get(
@@ -293,16 +288,16 @@ class UserGameController extends AbstractUserController
 		description: "Missing date or from parameter",
 		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
 	)]
-	public function calculateDayRanks(Request $request): never {
-		$dateString = $request->getGet('date', '');
-		$fromString = $request->getGet('from', '');
+	public function calculateDayRanks(Request $request): ResponseInterface {
+		$dateString = (string) $request->getGet('date', ''); // @phpstan-ignore-line
+		$fromString = (string) $request->getGet('from', ''); // @phpstan-ignore-line
 		if (empty($dateString) && empty($fromString)) {
-			$this->respond(new ErrorDto('Missing date or from parameter.', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorDto('Missing date or from parameter.', ErrorType::VALIDATION), 400);
 		}
 
 		if (!empty($dateString)) {
 			$date = new DateTimeImmutable($dateString);
-			$this->respond($this->rankOrderService->getDateRanks($date));
+			return $this->respond($this->rankOrderService->getDateRanks($date));
 		}
 
 		$date = new DateTimeImmutable($fromString);
@@ -314,6 +309,6 @@ class UserGameController extends AbstractUserController
 			$response = $this->rankOrderService->getDateRanks($date);
 			$date = $date->add($day);
 		}
-		$this->respond($response);
+		return $this->respond($response);
 	}
 }

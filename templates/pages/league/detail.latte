@@ -29,11 +29,11 @@
     <meta itemprop="eventAttendanceMode" content="OfflineEventAttendanceMode">
     <p class="text-start">
         <a href="{link 'league'}" class="btn btn-secondary">
-            <i class="fa-solid fa-angle-left"></i>
+            {faSolid 'angle-left'}
             {lang 'Zpět na ligy'}
         </a>
         <a href="{link 'arena', $league->arena->id}" class="btn btn-secondary">
-            <i class="fa-solid fa-angle-left"></i>
+            {faSolid 'angle-left'}
             {lang 'Zpět na arénu'}
         </a>
     </p>
@@ -53,12 +53,12 @@
     <div n:if="$league->registrationType !== App\Models\Tournament\RegistrationType::TOURNAMENT" class="text-center">
         {if $league->isRegistrationActive()}
             <a href="{$league->getUrl('register')}" class="btn btn-lg btn-primary">
-                <i class="fa-solid fa-user-plus"></i>
+                {faSolid 'user-plus'}
                 {lang 'Registrace'}
             </a>
             <a n:if="$league->substituteRegistration" href="{$league->getUrl('substitute')}"
                                                       class="btn btn-lg btn-secondary">
-                <i class="fa-solid fa-user-clock"></i>
+                {faSolid 'user-clock'}
                 {lang 'Registrace náhradníka'}
             </a>
         {else}
@@ -71,7 +71,7 @@
         <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
                 data-title="{$league->name} - {lang 'Liga turnajů laser game'}"
                 data-url="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}">
-            <i class="fa-solid fa-share"></i>
+            {faSolid 'share'}
             {lang 'Sdílet'}
         </button>
     </div>
@@ -242,6 +242,7 @@
                                  alt="{$team->name}" class="team-logo object-fit-cover rounded-circle d-inline-block"
                                  style="width: 2rem;" loading="lazy">
                             <span class="team-name">{$team->name}</span>
+                            <span n:if="$team->disqualified" class="text-danger">- {_'Odhlášený'}</span>
                             {ifset $team}
                                 <a href="{link 'league', 'team', $team->id}" class="visually-hidden">
                                     {sprintf(lang('Statistiky týmu %s'),$team->name)}
@@ -250,12 +251,12 @@
                             <a n:if="$league->registrationType !== App\Models\Tournament\RegistrationType::TOURNAMENT && isset($user) && $team->validateAccess($user)"
                                     href="{link 'league', 'registration', $league->id, $team->id}"
                                     class="btn btn-sm btn-outline-primary ms-2">
-                                <i class="fa-solid fa-edit"></i>
+                                {faSolid 'edit'}
                             </a>
                         </td>
                         <td class="text-center">
                             {round($team->getAveragePlayerRank())}
-                            <i class="fa-solid fa-medal"></i>
+                            {faSolid 'medal'}
                         </td>
                         <td class="text-center">{$team->getWins()}</td>
                         <td class="text-center">{$team->getDraws()}</td>
@@ -263,7 +264,7 @@
                         <td class="text-center">{$team->getScore()|number:0,',','&nbsp;'|noescape}</td>
                         <td class="text-center">{$team->points}</td>
                         <td class="text-center">
-                            {$team->getSkill()|number:2,',','&nbsp;'|noescape} <i class="fa-solid fa-medal"></i>
+                            {$team->getSkill()|number:2,',','&nbsp;'|noescape} {faSolid 'medal'}
                         </td>
                     </tr>
                     </tbody>
@@ -294,7 +295,7 @@
                                 {if $stat->type === App\Models\Tournament\StatType::SOLO && isset($model->user)}
                                     <a href="{link 'user', $model->user->getCode()}"
                                        class="btn btn-primary ms-2 btn-sm">
-                                        <i class="fa-solid fa-user"></i>
+                                        {faSolid 'user'}
                                     </a>
                                 {/if}
                             </td>
@@ -423,7 +424,7 @@
                     <div class="text-center mt-4">
                         <button href="{link 'tournament', $tournament->id}"
                                 class="btn btn-primary">
-                            <i class="fa-solid fa-circle-info"></i>
+                            {faSolid 'circle-info'}
                             {lang 'Informace'}
                         </button>
                     </div>

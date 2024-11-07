@@ -7,7 +7,7 @@ use App\Models\Achievements\PlayerAchievement;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\Player as PlayerUser;
 use App\Models\Auth\User;
-use App\Models\DataObjects\PlayerRank;
+use App\Models\DataObjects\Player\PlayerRank;
 use App\Models\Push\Notification;
 use App\Models\Push\Subscription;
 use Lsr\Core\App;

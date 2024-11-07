@@ -56,8 +56,8 @@ const navigationRoute = new NavigationRoute(new NetworkFirst({
 
 registerRoute(navigationRoute);
 
-const staticAssetsRoute = new Route(({request}) => {
-	return ['image', 'script', 'style'].includes(request.destination);
+const staticAssetsRoute = new Route(({request, sameOrigin}) => {
+	return sameOrigin && ['image', 'script', 'style'].includes(request.destination);
 }, new StaleWhileRevalidate({
 	cacheName: 'static-assets'
 }));

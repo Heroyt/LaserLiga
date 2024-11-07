@@ -1,8 +1,4 @@
-{parameters
-    App\GameModels\Game\Game $game,
-    App\GameModels\Game\Team $team,
-    int $maxShots
-}
+{templateType App\Templates\Games\GameTeamParameters}
 
 {block teamBody}
     {include teamHits, $team}

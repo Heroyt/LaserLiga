@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Admin;
 
+use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Evo5\Game;
@@ -13,29 +14,37 @@ use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Services\Player\PlayerUserService;
 use App\Services\PushService;
-use Lsr\Core\App;
+use Dibi\Exception;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
+use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Psr\Http\Message\ResponseInterface;
+use App\GameModels\Game\Lasermaxx\Team;
+use DateInterval;
+use DateTimeImmutable;
+use JsonException;
+use Throwable;
 
 class Games extends Controller
 {
 
 	public function __construct(
-		Latte                              $latte,
 		private readonly PlayerUserService $playerUserService,
 		private readonly PushService       $pushService,
 	) {
-		parent::__construct($latte);
+		parent::__construct();
 	}
 
-	public function sendGameNotification(string $code): never {
+	/**
+	 * @throws Throwable
+	 */
+	public function sendGameNotification(string $code): ResponseInterface {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			$this->respond(['error' => 'game not found'], 404);
+			return $this->respond(['error' => 'game not found'], 404);
 		}
 		/** @var \App\GameModels\Game\Player $player */
 		foreach ($game->getPlayers() as $player) {
@@ -43,17 +52,30 @@ class Games extends Controller
 				$this->pushService->sendNewGameNotification($player, $player->user);
 			}
 		}
-		$this->respond(['status' => 'ok']);
+		return $this->respond(['status' => 'ok']);
 	}
 
-	public function create(): void {
+	/**
+	 * @throws GameModeNotFoundException
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function create(): ResponseInterface {
 		$this->params['arenas'] = Arena::getAll();
 		$this->params['modes'] = GameModeFactory::getAll();
 
-		$this->view('pages/admin/games/create');
+		return $this->view('pages/admin/games/create');
 	}
 
-	public function createProcess(Request $request): never {
+	/**
+	 * @throws GameModeNotFoundException
+	 * @throws Throwable
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws Exception
+	 */
+	public function createProcess(Request $request): ResponseInterface {
 		$system = $request->getPost('system', 'evo5');
 		switch ($system) {
 			case 'evo5':
@@ -89,12 +111,12 @@ class Games extends Controller
 				);
 				break;
 			default:
-				$this->respond(['error' => 'Unknown game type'], 400);
+				return $this->respond(['error' => 'Unknown game type'], 400);
 		}
 		$game->arena = Arena::get((int)$request->getPost('arena'));
 		$game->mode = GameModeFactory::getById((int)$request->getPost('gameMode'));
 		$game->modeName = $game->mode->loadName ?? '';
-		$game->start = new \DateTimeImmutable($request->getPost('start'));
+		$game->start = new DateTimeImmutable($request->getPost('start'));
 		$game->code = $request->getPost('code');
 		$game->fileNumber = (int)$request->getPost('fileNumber');
 		$game->ammo = (int)$request->getPost('ammo');
@@ -106,11 +128,15 @@ class Games extends Controller
 			(int)$request->getPost('timing-end'),
 		);
 
-		$game->end = $game->start->add(new \DateInterval('PT' . $game->timing->gameLength . 'M' . ($game->timing->before + $game->timing->after) . 'S'));
+		$game->end = $game->start->add(
+			new DateInterval(
+				'PT' . $game->timing->gameLength . 'M' . ($game->timing->before + $game->timing->after) . 'S'
+			)
+		);
 
 		$teams = [];
 		foreach ($request->getPost('teams', []) as $id => $data) {
-			/** @var \App\GameModels\Game\Lasermaxx\Team $team */
+			/** @var Team $team */
 			$team = new $game->teamClass;
 			$game->addTeam($team);
 			$teams[$id] = $team;
@@ -207,7 +233,7 @@ class Games extends Controller
 		$game->calculateSkills();
 
 		if (!$game->save()) {
-			$this->respond(['error' => 'Failed to save the game'], 500);
+			return $this->respond(['error' => 'Failed to save the game'], 500);
 		}
 
 		foreach ($users as $user) {
@@ -216,7 +242,7 @@ class Games extends Controller
 			$this->pushService->sendNewGameNotification($user['player'], $user['user']);
 		}
 
-		App::redirect(['g', $game->code]);
+		return $this->app->redirect(['g', $game->code]);
 	}
 
 }

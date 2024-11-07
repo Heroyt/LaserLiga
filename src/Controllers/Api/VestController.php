@@ -5,25 +5,35 @@ namespace App\Controllers\Api;
 use App\Api\Response\ErrorDto;
 use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
+use App\Exceptions\AuthHeaderException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Enums\VestStatus;
 use App\GameModels\Vest;
 use App\Models\Arena;
 use Lsr\Core\Controllers\ApiController;
+use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 use OpenApi\Attributes as OA;
+use Psr\Http\Message\ResponseInterface;
 
 class VestController extends ApiController
 {
 
 	private Arena $arena;
 
+	/**
+	 * @throws AuthHeaderException
+	 * @throws ValidationException
+	 */
 	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->arena = Arena::getForApiKey(ApiToken::getBearerToken());
 	}
 
+	/**
+	 * @throws ValidationException
+	 */
 	#[OA\Post(
 		path       : '/api/vests',
 		operationId: 'vestSync',
@@ -94,7 +104,7 @@ class VestController extends ApiController
 		description: "Server error during save operation",
 		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
 	)]
-	public function syncVests(Request $request): never {
+	public function syncVests(Request $request): ResponseInterface {
 		$vests = Vest::getForArena($this->arena);
 
 		/** @var array<string, Vest> $oldVests */
@@ -108,10 +118,10 @@ class VestController extends ApiController
 
 		$vests = $request->getPost('vest', []);
 		if (!is_array($vests)) {
-			$this->respond(new ErrorDto('"vest" is not an array', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorDto('"vest" is not an array', ErrorType::VALIDATION), 400);
 		}
 		if (empty($vests)) {
-			$this->respond(new ErrorDto('"vest" array cannot be empty', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorDto('"vest" array cannot be empty', ErrorType::VALIDATION), 400);
 		}
 
 		$errors = [];
@@ -165,7 +175,7 @@ class VestController extends ApiController
 		}
 
 		if (count($errors) > 0) {
-			$this->respond(new ErrorDto('Validation error', ErrorType::VALIDATION, values: $errors), 400);
+			return $this->respond(new ErrorDto('Validation error', ErrorType::VALIDATION, values: $errors), 400);
 		}
 
 		// Save all new and updated vests
@@ -182,11 +192,14 @@ class VestController extends ApiController
 		}
 
 		if (count($errors) > 0) {
-			$this->respond(new ErrorDto('Save error', ErrorType::DATABASE, values: $errors), 500);
+			return $this->respond(new ErrorDto('Save error', ErrorType::DATABASE, values: $errors), 500);
 		}
-		$this->respond(['vests' => $newVests]);
+		return $this->respond(['vests' => $newVests]);
 	}
 
+	/**
+	 * @throws ValidationException
+	 */
 	#[OA\Get(
 		path       : '/api/vests',
 		operationId: 'getVests',
@@ -202,8 +215,8 @@ class VestController extends ApiController
 			items: new OA\Items(ref: '#/components/schemas/Vest')
 		)
 	)]
-	public function getVests(): never {
-		$this->respond(array_values(Vest::getForArena($this->arena)));
+	public function getVests(): ResponseInterface {
+		return $this->respond(array_values(Vest::getForArena($this->arena)));
 	}
 
 }

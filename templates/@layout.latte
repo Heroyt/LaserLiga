@@ -3,7 +3,8 @@
 {import 'loader.latte'}
 {import 'symbols.latte'}
 
-{varType \Lsr\Core\Controller $page}
+{varType Lsr\Core\Controllers\Controller $page}
+{var string $mode = $page->app->getRequest()->getCookieParams()['mode'] ?? 'light'}
 {varType Lsr\Interfaces\RequestInterface $request}
 {varType string[] $errors}
 {varType string[]|array[] $notices}
@@ -14,6 +15,7 @@
 {var Lsr\Core\Auth\Services\Auth $auth = \Lsr\Core\App::getService('auth')}
 
 {default string[] $addCss = []}
+{default string[] $addJs = []}
 
 {define containerClasses}
     py-5 mb-5 mb-lg-0
@@ -38,7 +40,7 @@
 {/define}
 
 <!DOCTYPE html>
-<html lang="{\Lsr\Core\App::getShortLanguageCode()}" data-bs-theme="{$_COOKIE['mode'] ?? 'light'}">
+<html lang="{$page->app->translations->getLangId()}" data-bs-theme="{$mode}">
 <head>
     <!-- Matomo Tag Manager -->
     <link rel="dns-prefetch" href="https://analytics.laserliga.cz">
@@ -68,11 +70,11 @@
     <title>{$page->getTitle()}</title>
     <meta name="description" content="{$page->getDescription()}">
 
-    <link rel="preload" href="{getUrl}dist/main.css?v={\Lsr\Core\App::getCacheVersion()}" as="style">
-    <link rel="stylesheet" href="{getUrl}dist/main.css?v={\Lsr\Core\App::getCacheVersion()}">
+    <link rel="preload" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}" as="style">
+    <link rel="stylesheet" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}">
     {foreach $addCss as $file}
-        <link rel="preload" as="style" href="{getUrl}dist/{$file}?v={\Lsr\Core\App::getCacheVersion()}">
-        <link rel="stylesheet" href="{getUrl}dist/{$file}?v={\Lsr\Core\App::getCacheVersion()}">
+        <link rel="preload" as="style" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
+        <link rel="stylesheet" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
     {/foreach}
 
     <!-- Non-critical assets -->
@@ -92,14 +94,14 @@
               rel="stylesheet">
     </noscript>
     <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-          href="{getUrl}dist/fontawesome.css?v={\Lsr\Core\App::getCacheVersion()}">
+          href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
     <noscript>
-        <link rel="stylesheet" href="{getUrl}dist/fontawesome.css?v={\Lsr\Core\App::getCacheVersion()}">
+        <link rel="stylesheet" href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
     </noscript>
     <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-          href="{getUrl}dist/bootstrap.css?v={\Lsr\Core\App::getCacheVersion()}">
+          href="{getUrl}dist/bootstrap.css?v={$page->app->getCacheVersion()}">
     <noscript>
-        <link rel="stylesheet" href="{getUrl}dist/bootstrap.css?v={\Lsr\Core\App::getCacheVersion()}">
+        <link rel="stylesheet" href="{getUrl}dist/bootstrap.css?v={$page->app->getCacheVersion()}">
     </noscript>
 
     {\Tracy\Debugger::renderLoader()|noescape}
@@ -132,6 +134,7 @@
         </script>
         <!-- End Matomo Code -->
     {/block}
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -193,13 +196,32 @@
 </div>
 
 <script>
-    const page = {\Lsr\Core\App::getRequest()};
+    const page = {$page->app->getPageInfo()};
     const usr = {$auth->getLoggedIn()?->id};
     const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
-    const assetVersion = {\Lsr\Core\App::getCacheVersion()};
+    const assetVersion = {$page->app->getCacheVersion()};
 </script>
 
-<script defer type="module" src="{getUrl}dist/main.js?{\Lsr\Core\App::getCacheVersion()}"></script>
+<script type="speculationrules">
+    {
+      "prerender": [
+        {
+          "where": {
+            "and": [
+              { "href_matches": "/*" },
+              { "not": { "href_matches": "/lang/*" } },
+              { "not": { "selector_matches": ".no-prerender" } },
+              { "not": { "selector_matches": "[rel~=nofollow]" } }
+            ]
+          }
+        }
+      ]
+    }
+</script>
+
+<script defer type="module" src="{getUrl}dist/main.js?{$page->app->getCacheVersion()}"></script>
+<script n:foreach="$addJs as $js" src="{getUrl}dist/{$js}?v={$page->app->getCacheVersion()}" type="module"
+                                  defer></script>
 {include svgSymbols}
 </body>
 </html>

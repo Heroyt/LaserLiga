@@ -1,9 +1,5 @@
+{templateType App\Templates\User\UserSettingsParameters}
 {layout '../../@layout.latte'}
-
-{varType App\Models\Auth\User $user}
-{varType App\Models\Arena[] $arenas}
-{varType App\Models\Achievements\Title[] $titles}
-{varType string[] $errors}
 
 {block content}
     <h1>{lang 'Nastavení hráče'} - {$user->name}</h1>
@@ -137,11 +133,11 @@
                        value="{$user->getConnectionByType(App\Models\Auth\Enums\ConnectionType::MY_LASERMAXX)?->identifier}">
                 <div class="form-text">{lang 'Zadejte URL vašeho profilu ve formátu https://my.lasermaxx.com/profile/0000000000.'}</div>
             </div>
-            <div class="form-group mb-3">
+            <div n:syntax="double" class="form-group mb-3">
                 <label for="laserforce" class="form-label">LaserForce</label>
-                <input class="form-control" type="text" pattern="\d\d-\d-\d\d\d" name="laserforce" id="laserforce"
-                       value="{$user->getConnectionByType(App\Models\Auth\Enums\ConnectionType::LASER_FORCE)?->identifier}">
-                <div class="form-text">{lang 'Zadejte Váš kód hráče ve formátu 00-0-000.'}</div>
+                <input class="form-control" type="text" pattern="\d{2,}-\d{1,}-\d{3,}" name="laserforce" id="laserforce"
+                       value="{{$user->getConnectionByType(App\Models\Auth\Enums\ConnectionType::LASER_FORCE)?->identifier}}">
+                <div class="form-text">{{lang 'Zadejte Váš kód hráče ve formátu 00-0-000.'}}</div>
             </div>
         </section>
 
@@ -169,8 +165,8 @@
         <div class="text-center mb-3">
             <button class="btn {if isset($_COOKIE['mode']) && $_COOKIE['mode'] === 'light'}btn-dark{else}btn-light{/if}"
                     type="button" id="modeSwitch">
-                <i class="fa-solid fa-moon"></i>
-                <i class="fa-solid fa-sun"></i>
+                {faSolid 'moon'}
+                {faSolid 'sun'}
             </button>
         </div>
         <script>
@@ -202,24 +198,27 @@
                 document.cookie = `mode=` + currentColorScheme;
             });
         </script>
-        {var string $selectedLang = explode('_',$_GET['lang'] ?? Lsr\Core\App::$language->id)[0]}
-        {var string $selectedCountry = Lsr\Core\App::getSupportedLanguages()[$selectedLang]}
+        {var string $selectedLang = $page->app->translations->getLangId()}
+        {var string $selectedCountry = $page->app->translations->getCountry()}
         <div class="text-center">
-            <button class="btn btn-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown"
+            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
                     aria-expanded="false">
                 <img src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]|escapeUrl}.png"
                      style="height: 2rem; width: 2rem;"
+                     data-lang="{$selectedLang}"
+                     data-country="{$selectedCountry}"
                      alt="{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]}">
             </button>
-            <ul class="dropdown-menu bg-white" style="min-width: 5rem;">
-                {foreach Lsr\Core\App::getSupportedLanguages() as $lang => $country}
+            <ul class="dropdown-menu bg-white" style="min-width: 5rem;left:auto;margin-left: 2.8rem;top:3rem;">
+                {foreach $page->app->translations->supportedLanguages as $lang => $country}
                     {continueIf $selectedLang === $lang}
                     <li>
-                        <a class="dropdown-item" href="{link ['lang', $lang, 'redirect' => $request->path]}">
+                        <a class="dropdown-item"
+                           href="{link ['lang', $lang, 'redirect' => $page->app->getRequest()->getPath()]}"
+                           data-set-lang="{$lang}">
                             <img class="mx-auto d-block"
                                  src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$country]|escapeUrl}.png"
                                  style="height: 2rem; width: 2rem;"
-                                 loading="lazy"
                                  alt="{\Lsr\Core\Constants::COUNTRIES[$country]}">
                         </a>
                     </li>

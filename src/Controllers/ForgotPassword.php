@@ -4,11 +4,11 @@ namespace App\Controllers;
 
 use App\Mails\Message;
 use App\Models\Auth\User;
+use App\Models\DataObjects\User\ForgotData;
 use App\Services\MailService;
 use DateTimeImmutable;
 use Dibi\DateTime;
 use Dibi\Exception;
-use Lsr\Core\App;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
@@ -16,6 +16,7 @@ use Lsr\Core\Templating\Latte;
 use Lsr\Logging\Logger;
 use Nette\Mail\SendException;
 use Nette\Utils\Validators;
+use Psr\Http\Message\ResponseInterface;
 
 class ForgotPassword extends Controller
 {
@@ -27,7 +28,7 @@ class ForgotPassword extends Controller
 		parent::__construct($latte);
 	}
 
-	public function forgot(Request $request) : void {
+	public function forgot(Request $request) : ResponseInterface {
 		$this->title = 'Zapomenuté heslo';
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'       => [],
@@ -85,10 +86,10 @@ class ForgotPassword extends Controller
 				$this->params['errors']['email'] = lang('E-mail není platný', context: 'errors');
 			}
 		}
-		$this->view('pages/login/forgot');
+		return $this->view('pages/login/forgot');
 	}
 
-	public function reset(Request $request) : void {
+	public function reset(Request $request) : ResponseInterface {
 		$this->title = 'Obnovit heslo';
 		$this->description = 'Formulář pro obnovení zapomenutého hesla.';
 		$this->params['breadcrumbs'] = [
@@ -101,8 +102,7 @@ class ForgotPassword extends Controller
 		$email = (string) $request->getGet('email', '');
 
 		if (empty($hash) || empty($email)) {
-			$this->resetInvalid('Požadavek neexistuje');
-			return;
+			return $this->resetInvalid('Požadavek neexistuje');
 		}
 
 		$this->params['hash'] = $hash;
@@ -110,25 +110,20 @@ class ForgotPassword extends Controller
 
 		// Validate hash and email
 		if (!User::existsByEmail($email)) {
-			$this->resetInvalid('Neplatný požadavek');
-			return;
+			return $this->resetInvalid('Neplatný požadavek');
 		}
-		$row = DB::select(User::TABLE, '[forgot_token], [forgot_timestamp]')
+		$row = DB::select(User::TABLE, '[forgot_token] as [token], [forgot_timestamp] as [timestamp]')
 						 ->where('[email] = %s', $email)
-						 ->fetch(false);
+						 ->fetchDto(ForgotData::class,false);
 		if (!isset($row)) {
-			$this->resetInvalid('Neplatný požadavek');
-			return;
+			return $this->resetInvalid('Neplatný požadavek');
 		}
-		/** @var DateTime|null $timestamp */
-		$timestamp = $row->forgot_timestamp;
+		$timestamp = $row->timestamp;
 		if (!isset($timestamp) || $timestamp < (new DateTimeImmutable('- 6 hours'))) {
-			$this->resetInvalid('Požadavek vypršel');
-			return;
+			return $this->resetInvalid('Požadavek vypršel');
 		}
-		if (!hash_equals($hash, hash_hmac('sha256', $email, $row->forgot_token))) {
-			$this->resetInvalid('Neplatný požadavek', 403);
-			return;
+		if ($row->token === null || !hash_equals($hash, hash_hmac('sha256', $email, $row->token))) {
+			return $this->resetInvalid('Neplatný požadavek', 403);
 		}
 
 		$password = (string) $request->getPost('password', '');
@@ -151,22 +146,22 @@ class ForgotPassword extends Controller
 					}
 					$logger->info('Changed password for user: '.$user->email);
 					$request->passNotices[] = ['type' => 'success', 'content' => lang('Heslo bylo úspěšně změněno')];
-					App::redirect('login', $request);
+					return $this->app->redirect('login', $request);
 				}
 			}
 			else {
 				$this->params['errors'][] = lang('Hesla nejsou stejná', context: 'errors');
 			}
 		}
-		$this->view('pages/login/reset');
+		return $this->view('pages/login/reset');
 	}
 
-	private function resetInvalid(string $message, int $code = 400) : void {
+	private function resetInvalid(string $message, int $code = 400) : ResponseInterface {
 		$this->title = 'Obnova hesla - Neplatný požadavek';
 		$this->description = 'Neplatný požadavek pro obnovu hesla.';
 
-		http_response_code($code);
 		$this->params['errors'][] = lang($message, context: 'errors');
-		$this->view('pages/login/resetInvalid');
+		return $this->view('pages/login/resetInvalid')
+			->withStatus($code);
 	}
 }

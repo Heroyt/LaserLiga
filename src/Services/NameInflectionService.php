@@ -97,7 +97,7 @@ class NameInflectionService
 		if (isset(self::$checkedLang)) {
 			return self::$checkedLang;
 		}
-		self::$checkedLang = in_array(App::getShortLanguageCode(), self::INFLECTION_LANGUAGES, true);
+		self::$checkedLang = in_array(App::getInstance()->getLanguage()->id, self::INFLECTION_LANGUAGES, true);
 		return self::$checkedLang;
 	}
 

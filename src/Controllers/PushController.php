@@ -12,36 +12,36 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
 use Nette\Utils\Validators;
+use Psr\Http\Message\ResponseInterface;
 
 class PushController extends Controller
 {
 
 	public function __construct(
-		Latte                        $latte,
 		private readonly Auth        $auth,
 		private readonly PushService $pushService,
 	) {
-		parent::__construct($latte);
+		parent::__construct();
 	}
 
-	public function isSubscribed(Request $request): never {
+	public function isSubscribed(Request $request): ResponseInterface {
 		$endpoint = (string)$request->getGet('endpoint', '');
 		if (empty($endpoint) || !Validators::isUri($endpoint)) {
-			$this->respond(['error' => 'Invalid endpoint'], 400);
+			return $this->respond(['error' => 'Invalid endpoint'], 400);
 		}
 		$subscription = Subscription::query()
 		                            ->where('endpoint = %s', $endpoint)
 		                            ->first();
-		$this->respond(['subscribed' => isset($subscription), 'id' => $subscription?->id]);
+		return $this->respond(['subscribed' => isset($subscription), 'id' => $subscription?->id]);
 	}
 
 	/**
 	 * @param Request $request
-	 * @return never
-	 * @throws JsonException
+	 *
+	 * @return ResponseInterface
 	 * @throws ValidationException
 	 */
-	public function subscribe(Request $request): never {
+	public function subscribe(Request $request): ResponseInterface {
 		$endpoint = (string)$request->getPost('endpoint', '');
 		/** @var array{p256dh?: string, auth?: string} $keys */
 		$keys = $request->getPost('keys', []);
@@ -49,13 +49,13 @@ class PushController extends Controller
 		$auth = $keys['auth'] ?? '';
 
 		if (empty($endpoint) || !Validators::isUri($endpoint)) {
-			$this->respond(['error' => 'Invalid endpoint'], 400);
+			return $this->respond(['error' => 'Invalid endpoint'], 400);
 		}
 		if (empty($p256dh)) {
-			$this->respond(['error' => 'Invalid p256dh'], 400);
+			return $this->respond(['error' => 'Invalid p256dh'], 400);
 		}
 		if (empty($auth)) {
-			$this->respond(['error' => 'Invalid auth'], 400);
+			return $this->respond(['error' => 'Invalid auth'], 400);
 		}
 
 		$subscription = new Subscription();
@@ -64,55 +64,55 @@ class PushController extends Controller
 		$subscription->p256dh = $p256dh;
 		$subscription->auth = $auth;
 		if (!$subscription->save()) {
-			$this->respond(['error' => 'Save failed'], 500);
+			return $this->respond(['error' => 'Save failed'], 500);
 		}
 
-		$this->respond(['status' => 'ok']);
+		return $this->respond(['status' => 'ok']);
 	}
 
-	public function updateUser(Request $request): never {
+	public function updateUser(Request $request): ResponseInterface {
 		$endpoint = (string)$request->getPost('endpoint', '');
 
 		if (empty($endpoint) || !Validators::isUri($endpoint)) {
-			$this->respond(['error' => 'Invalid endpoint'], 400);
+			return $this->respond(['error' => 'Invalid endpoint'], 400);
 		}
 
 		/** @var Subscription|null $subscription */
 		$subscription = Subscription::query()->where('[endpoint] = %s', $endpoint)->first();
 		if (!isset($subscription)) {
-			$this->respond(['error' => 'Subscription not found'], 404);
+			return $this->respond(['error' => 'Subscription not found'], 404);
 		}
 
 		$subscription->user = $this->auth->getLoggedIn();
 		if (!$subscription->save()) {
-			$this->respond(['error' => 'Save failed'], 500);
+			return $this->respond(['error' => 'Save failed'], 500);
 		}
 
-		$this->respond(['status' => 'ok']);
+		return $this->respond(['status' => 'ok']);
 	}
 
-	public function unsubscribe(Request $request): never {
+	public function unsubscribe(Request $request): ResponseInterface {
 		$endpoint = (string)$request->getPost('endpoint', '');
 		if (empty($endpoint) || !Validators::isUri($endpoint)) {
-			$this->respond(['error' => 'Invalid endpoint'], 400);
+			return $this->respond(['error' => 'Invalid endpoint'], 400);
 		}
 
 		$subscription = Subscription::query()->where('[endpoint] = %s', $endpoint)->first();
 		if (!isset($subscription)) {
-			$this->respond(['error' => 'Subscription not found'], 404);
+			return $this->respond(['error' => 'Subscription not found'], 404);
 		}
 
 		if (!$subscription->delete()) {
-			$this->respond(['error' => 'Delete failed'], 500);
+			return $this->respond(['error' => 'Delete failed'], 500);
 		}
 
-		$this->respond(['status' => 'ok']);
+		return $this->respond(['status' => 'ok']);
 	}
 
-	public function sendTest(): never {
+	public function sendTest(): ResponseInterface {
 		$user = $this->auth->getLoggedIn();
 		if (!isset($user)) {
-			$this->respond(['error' => 'Not logged in'], 401);
+			return $this->respond(['error' => 'Not logged in'], 401);
 		}
 
 		$notification = new Notification();
@@ -124,7 +124,7 @@ class PushController extends Controller
 
 		$notification->save();
 
-		$this->respond(['status' => 'ok']);
+		return $this->respond(['status' => 'ok']);
 	}
 
 }

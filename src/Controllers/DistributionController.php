@@ -2,25 +2,29 @@
 
 namespace App\Controllers;
 
+use App\Api\Response\ErrorDto;
+use App\Api\Response\ErrorType;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\Player;
 use App\Services\PlayerDistribution\DistributionParam;
 use App\Services\PlayerDistribution\PlayerDistributionService;
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
-use JsonException;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Lsr\Helpers\Tools\Strings;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 class DistributionController extends Controller
 {
 
-	public function __construct(Latte $latte, private readonly PlayerDistributionService $playerDistributionService) {
-		parent::__construct($latte);
+	public function __construct(
+		private readonly PlayerDistributionService $playerDistributionService
+	) {
+		parent::__construct();
 	}
 
 	/**
@@ -29,24 +33,24 @@ class DistributionController extends Controller
 	 * @param string  $param
 	 * @param Request $request
 	 *
-	 * @return never
+	 * @return ResponseInterface
 	 * @throws GameModeNotFoundException
-	 * @throws JsonException
 	 * @throws Throwable
 	 */
-	public function distribution(string $code, int $id, string $param, Request $request): never {
+	public function distribution(string $code, int $id, string $param, Request $request): ResponseInterface {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			$this->respond(['error' => lang('Hra neexistuje')], 404);
+			return $this->respond(new ErrorDto(lang('Hra neexistuje'), ErrorType::VALIDATION), 400);
 		}
+		/** @var Player|null $player */
 		$player = $game->getPlayers()->query()->filter('id', $id)->first();
 		if (!isset($player)) {
-			$this->respond(['error' => lang('Hráč neexistuje')], 404);
+			return $this->respond(new ErrorDto(lang('Hráč neexistuje'), ErrorType::VALIDATION), 400);
 		}
 
 		$enum = DistributionParam::tryFrom($param);
 		if (!isset($enum)) {
-			$this->respond(['error' => lang('Neznámý parametr')], 404);
+			return $this->respond(new ErrorDto(lang('Neznámý parametr'), ErrorType::VALIDATION), 400);
 		}
 
 		[$min, $max, $step] = match ($enum) {
@@ -54,7 +58,17 @@ class DistributionController extends Controller
 			DistributionParam::score                           => [-1000, 10000, 500],
 			DistributionParam::hits, DistributionParam::deaths => [0, 200, null],
 			DistributionParam::shots                           => [0, 2000, null],
+			DistributionParam::rank                            => [0, 1500, null],
+			DistributionParam::kd                              => [0, 10, null],
 			default                                            => [null, null, null]
+		};
+
+
+		$playerParam = Strings::toCamelCase($enum->getPlayersColumnName());
+		$value = match ($enum) {
+			DistributionParam::kd   => $player->getKd(),
+			DistributionParam::rank => $player->getSkill(),
+			default                 => $player->$playerParam ?? 0,
 		};
 
 		$query = $this->playerDistributionService->queryDistribution($enum, $min, $max, $step);
@@ -97,11 +111,8 @@ class DistributionController extends Controller
 				$query->date($game->start ?? new DateTimeImmutable());
 				break;
 		}
-
-		$playerParam = Strings::toCamelCase($param);
 		$distribution = $query->get();
-		$percentile = $query->getPercentile($player->$playerParam);
-		$value = $player->$playerParam;
+		$percentile = $query->getPercentile($value);
 
 		// Normalize values
 		if ($percentile === 100) {
@@ -111,6 +122,7 @@ class DistributionController extends Controller
 			$percentile = 1;
 		}
 
+		$valueReal = $value;
 		if ($value > $query->max) {
 			$value = $query->max;
 		}
@@ -118,7 +130,8 @@ class DistributionController extends Controller
 			$value = $query->min;
 		}
 
-		$this->respond(
+		// TODO: Replace with DTO
+		return $this->respond(
 			[
 				'player'       => $player,
 				'distribution' => $distribution,
@@ -126,6 +139,8 @@ class DistributionController extends Controller
 				'min'          => $query->min,
 				'max'          => $query->max,
 				'value'        => $value,
+				'valueReal'        => $valueReal,
+				'playerParam'  => $playerParam,
 			]
 		);
 	}

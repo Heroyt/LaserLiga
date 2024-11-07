@@ -1,4 +1,4 @@
-{varType Dibi\Row[] $players}
+{varType App\Models\DataObjects\Arena\LeaderboardRecord[] $players}
 {varType \DateTime|null $date}
 
 <h2 class="my-3 text-center">{lang 'Statistiky'}</h2>
@@ -27,14 +27,14 @@
 						<a href="{link ['user', ($player->id_arena ?? 0) . '-' . $player->code]}"
 						   class="btn btn-sm btn-primary ms-2" data-content-piece="Profil" data-toggle="tooltip"
 						   title="{lang 'Profil hráče'}">
-							<i class="fa-solid fa-user"></i>
+							{faSolid 'user'}
 						</a>
 					{/ifset}
 				</td>
 				<td class="text-end">
 					<a href="{link 'g', $player->game_code}">
 						{$player->skill|number:0,',' . '&nbsp;'|noescape}
-						<i class="fa-solid fa-medal"></i>
+						{faSolid 'medal'}
 					</a>
 				</td>
 			</tr>

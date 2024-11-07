@@ -1,0 +1,80 @@
+{parameters App\Models\DataObjects\MusicGroup $musicGroup}
+
+<div class="music-mode" data-value="{$musicGroup->getValue()}">
+    {if $musicGroup->getBackgroundImage() !== null}
+        {var string[] $paths = $musicGroup->getBackgroundImage()?->getOptimized()}
+        <picture>
+            <source n:ifset="$paths['300-webp']" srcset="{$paths['300-webp']}" type="image/webp">
+            <source n:if="!isset($paths['300-webp']) && isset($paths['webp'])" srcset="{$paths['webp']}" type="image/webp">
+            <img class="background" loading="lazy" src="{$paths['300'] ?? $paths['original']}" alt="{$musicGroup->name} - {_'Pozadí'}">
+        </picture>
+    {/if}
+
+    <div n:if="$musicGroup->getIcon() !== null" class="icon">
+            {var App\Models\DataObjects\Image $icon = $musicGroup->getIcon()}
+        {if $icon->getType() === 'svg'}
+                {file_get_contents($icon->getPath())|noescape}
+            {else}
+                {var string[] $paths = $icon->getOptimized()}
+                <picture>
+                    <source n:ifset="$paths['150-webp']" srcset="{$paths['150-webp']}" type="image/webp">
+                    <source n:if="!isset($paths['150-webp']) && isset($paths['webp'])" srcset="{$paths['webp']}" type="image/webp">
+                    <img loading="lazy" src="{$paths['150'] ?? $paths['original']}" alt="{$musicGroup->name} - {_'Ikona'}">
+                </picture>
+            {/if}
+    </div>
+    {if count($musicGroup->music) === 1}
+        <div class="music-mode-name-play">
+            <div class="name">
+                {_$musicGroup->music[0]->name, context: 'music'}
+            </div>
+            <div class="d-flex align-items-center music">
+                <div class="time-music font-monospace">
+                    0:00
+                </div>
+                <button type="button" class="btn btn-success play-music ms-2" data-content-piece="Play"
+                        data-content-target="{$musicGroup->music[0]->getMediaUrl()}"
+                        data-file="{$musicGroup->music[0]->getMediaUrl()}"
+                        data-toggle="tooltip"
+                        data-play="{lang 'Přehrát', context: 'actions'}"
+                        data-stop="{lang 'Zastavit', context: 'actions'}"
+                        title="{lang 'Přehrát', context: 'actions'}"
+                        aria-label="{lang 'Přehrát', context: 'actions'}">
+                    <div class="spinner-grow spinner-grow-sm" role="status"><span
+                                class="visually-hidden">Loading...</span></div>
+                    {faSolid 'play'}
+                    {faSolid 'stop'}
+                </button>
+            </div>
+        </div>
+    {else}
+        <div class="name">
+            {_$musicGroup->name, context: 'music.group'}
+        </div>
+        <div n:if="count($musicGroup->music) > 1" class="children">
+            <div n:foreach="$musicGroup->music as $musicMode" class="child" data-id="{$musicMode->id}">
+                <div class="name">
+                    {_$musicMode->name, context: 'music'}
+                </div>
+                <div class="d-flex align-items-center music">
+                    <div class="time-music font-monospace">
+                        0:00
+                    </div>
+                    <button type="button" class="btn btn-success play-music ms-2" data-content-piece="Play"
+                            data-content-target="{$musicMode->getMediaUrl()}"
+                            data-file="{$musicMode->getMediaUrl()}"
+                            data-toggle="tooltip"
+                            data-play="{lang 'Přehrát', context: 'actions'}"
+                            data-stop="{lang 'Zastavit', context: 'actions'}"
+                            title="{lang 'Přehrát', context: 'actions'}"
+                            aria-label="{lang 'Přehrát', context: 'actions'}">
+                        <div class="spinner-grow spinner-grow-sm" role="status"><span
+                                    class="visually-hidden">Loading...</span></div>
+                        {faSolid 'play'}
+                    {faSolid 'stop'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
+</div>

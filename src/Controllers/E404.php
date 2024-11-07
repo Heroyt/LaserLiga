@@ -13,6 +13,11 @@
 namespace App\Controllers;
 
 use Lsr\Core\Controllers\Controller;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
+use Lsr\Core\Requests\Request;
+use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 /**
  * @class   E404
@@ -36,8 +41,19 @@ class E404 extends Controller
 	 */
 	protected string $description = 'Page not found';
 
-	public function show() : void {
-		http_response_code(404);
-		$this->view('errors/E404');
+	public function show(Request $request, ?Throwable $e = null): ResponseInterface {
+		if (str_contains($request->getHeaderLine('Accept'), 'application/json')) {
+			return $this->respond(
+				new ErrorResponse(
+					           'Resource not found',
+					type: ErrorType::NOT_FOUND,
+					detail: $e?->getMessage(),
+					exception: $e,
+				),
+				404
+			);
+		}
+		$this->params['exception'] = $e;
+		return $this->view('errors/E404')->withStatus(404);
 	}
 }

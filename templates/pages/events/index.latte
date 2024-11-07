@@ -12,7 +12,7 @@
 
 {define content}
     <h1 class="text-center">
-        <i class="fa-solid fa-trophy fs-1"></i>
+        {faSolid 'trophy', 'fs-1'}
         <br>
         {lang 'Plánované akce laser game'}
     </h1>
@@ -21,11 +21,11 @@
     </p>
     <p class="text-center mb-4">
         <a href="{link 'league'}" class="btn btn-primary">
-            <i class="fa-solid fa-trophy"></i>
+            {faSolid 'trophy'}
             {lang 'Ligy / turnaje laser game'}
         </a>
         <a href="{link 'tournament'}" class="btn btn-secondary visually-hidden">
-            <i class="fa-solid fa-trophy"></i>
+            {faSolid 'trophy'}
             {lang 'Turnaje laser game'}
         </a>
     </p>
@@ -147,17 +147,17 @@
                             <div class="btn-group">
                                 <a n:ifset="$event->league" href="{$event->league->getUrl()}"
                                                             class="btn btn-primary">
-                                    <i class="fa-solid fa-trophy"></i>
+                                    {faSolid 'trophy'}
                                     {lang 'Liga'}
                                 </a>
                                 <a href="{link $link}" class="btn btn-secondary" itemprop="url">
-                                    <i class="fa-solid fa-circle-info"></i>
+                                    {faSolid 'circle-info'}
                                     {lang 'Informace'}
                                 </a>
                                 <a n:if="$event->isRegistrationActive() && ($event instanceof App\Models\Events\Event || !$event->isFull())"
                                         href="{if $event->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', $event->league->id, 'register'}{else}{link array_merge($link, ['register'])}{/if}"
                                         class="btn btn-primary">
-                                    <i class="fa-solid fa-user-plus"></i>
+                                    {faSolid 'user-plus'}
                                     {lang 'Registrace'}
                                 </a>
                             </div>

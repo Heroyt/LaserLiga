@@ -22,11 +22,12 @@
 			<td>{$user->id}</td>
 			<td>{$user->questionnaire->name}</td>
 			<td class="text-center">{array_filter($user->getAnswers())|length}</td>
-			<td class="text-center">{if $user->finished}<span class="text-success"><i
-							class="fa-solid fa-circle-check"></i></span>{else}<span class="text-danger"><i
-							class="fa-solid fa-circle-xmark"></i></span>{/if}</td>
-			<td class="text-center"><a href="{link ['questionnaire', 'results', $user->id]}" class="btn btn-info">Zobrazit
-					výsledky</a></td>
+			<td class="text-center">{if $user->finished}<span class="text-success">{faSolid'circle-check'}</span>{else}<span class="text-danger">{faSolid 'circle-xmark'}</span>{/if}</td>
+			<td class="text-center">
+                <a href="{link ['questionnaire', 'results', $user->id]}" class="btn btn-info">
+                    Zobrazit výsledky
+                </a>
+            </td>
 		</tr>
 		</tbody>
 	</table>

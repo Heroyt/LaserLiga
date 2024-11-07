@@ -2,6 +2,7 @@
 
 namespace App\Models\Tournament\League;
 
+use App\Models\Events\EventTeamBase;
 use App\Models\Tournament\GameTeam;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
@@ -46,7 +47,7 @@ class LeagueCategory extends Model
 	/**
 	 * @return LeagueTeam[]
 	 */
-	public function getTeams(): array {
+	public function getTeams(bool $excludeDisqualified = false): array {
 		if (empty($this->teams)) {
 			$this->teams = LeagueTeam::query()
 				->leftJoin(
@@ -63,6 +64,9 @@ class LeagueCategory extends Model
 			                         ->where('id_category = %i', $this->id)
 			                         ->orderBy('[points] DESC, [score] DESC')
 			                         ->get();
+		}
+		if ($excludeDisqualified) {
+			return array_filter($this->teams, static fn(EventTeamBase $team) => !$team->disqualified);
 		}
 		return $this->teams;
 	}

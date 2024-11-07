@@ -1,17 +1,16 @@
+{templateType App\Templates\Index\IndexParameters}
 {layout '../../@layout.latte'}
-
-{varType int $playerCount}
-{varType int $arenaCount}
-{varType int $gameCount}
-{varType int $tournamentCount}
 
 {block containerClasses}
 	pb-5 mb-5 mb-lg-0
 {/block}
 
-{block content}
+{block addHead}
+    <link rel="preload" fetchpriority="high" as="image" href="/assets/images/optimized/brana.webp" type="image/webp">
+{/block}
 
-	<section class="px-5 text-white-forced" id="main-banner">
+{block content}
+	<section class="px-5 text-white-forced" id="main-banner" style="background-image: image-set({getImageStyleSet(ROOT.'assets/images/brana.jpeg', false)|noescape});">
         <div class="container">
             <h1 class="text-start fw-bold">
                 Laser liga
@@ -20,7 +19,7 @@
             </h1>
             <p class="text-start">
                 <a href="{link 'login'}" class="btn btn-primary mt-2 btn-lg">
-                    <i class="fa-solid fa-right-to-bracket"></i>
+                    {faSolid 'right-to-bracket'}
                     {lang 'Přihlásit'}
                 </a>
                 <br>
@@ -67,7 +66,7 @@
             <h2 class="text-end">{lang 'Zapojené arény'}</h2>
             <p class="text-end">{lang 'Ačkoliv bychom chtěli, Laser ligu zatím nepodporují úplně všechny laser arény v česku. Snažíme se, ale naši komunitu hráčů laser game rozšířit.'}</p>
             <a href="{link 'arena'}" class="btn btn-secondary btn-lg mb-2">
-                <i class="fa-solid fa-location-dot"></i>
+                {faSolid 'location-dot'}
                 {lang 'Zobrazit'}
             </a>
             <p class="text-muted text-end">{sprintf(lang('Chybí tu Vaše aréna? Řekněte jí, ať nás kontaktuje na e-mail: %s'), '<a href="mailto:info@laserliga.cz">info@laserliga.cz</a>')|noescape}</p>
@@ -86,7 +85,7 @@
 		</h3>
         <p class="text-start">{lang 'Při registraci si vybereš domovskou arénu, přezdívku a dostaneš přiřazený tvůj unikátní kód.'}</p>
 		<a href="{link 'register'}" class="btn btn-primary">
-			<i class="fa-solid fa-right-to-bracket"></i>
+			{faSolid 'right-to-bracket'}
 			{lang 'Registrovat se'}
 		</a>
 		<h3 class="mt-4 text-start">
@@ -98,7 +97,7 @@
 		</h3>
         <p class="text-start">{lang 'Obsluze nahlásíš, že jsi registrovaný a ona si tě najde pomocí tvé přezdívky, nebo kódu.'}</p>
 		<a href="{link 'arena'}" class="btn btn-primary">
-			<i class="fa-solid fa-location-dot"></i>
+			{faSolid 'location-dot'}
 			{lang 'Podporované arény'}
 		</a>
 		<h3 class="mt-4 text-start">
@@ -109,7 +108,7 @@
             {lang 'Sbíráš statistiky'}</h3>
         <p class="text-start">{lang 'Hned po hře vidíš výsledky na svém profilu! Z her sbíráš body, které tě posouvají v žebříčku všech hráčů laser game.'}</p>
 		<a href="{link 'user', 'leaderboard'}" class="btn btn-primary">
-			<i class="fa-solid fa-ranking-star"></i>
+			{faSolid 'ranking-star'}
 			{lang 'Žebříček'}
 		</a>
 	</section>

@@ -2,13 +2,14 @@
 
 namespace App\Controllers\Api;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
+use App\Exceptions\AuthHeaderException;
 use App\Exceptions\GameModeNotFoundException;
 use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
@@ -17,6 +18,7 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Services\Achievements\AchievementChecker;
+use App\Services\Achievements\AchievementProvider;
 use App\Services\GameHighlight\GameHighlightService;
 use App\Services\Player\PlayerRankOrderService;
 use App\Services\Player\PlayerUserService;
@@ -32,13 +34,16 @@ use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
 use OpenApi\Attributes as OA;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
@@ -50,18 +55,19 @@ class Games extends ApiController
 	public Arena $arena;
 
 	public function __construct(
-		Latte                                   $latte,
 		protected readonly PlayerUserService    $playerUserService,
 		private readonly PushService            $pushService,
 		private readonly PlayerRankOrderService $rankOrderService,
-		private readonly RankCalculator     $rankCalculator,
-		private readonly AchievementChecker $achievementChecker,
+		private readonly RankCalculator         $rankCalculator,
+		private readonly AchievementProvider    $achievementProvider,
+		private readonly AchievementChecker     $achievementChecker,
 	) {
-		parent::__construct($latte);
+		parent::__construct();
 	}
 
 	/**
 	 * @throws ValidationException
+	 * @throws AuthHeaderException
 	 */
 	public function init(RequestInterface $request): void {
 		parent::init($request);
@@ -71,10 +77,6 @@ class Games extends ApiController
 	/**
 	 * Get list of all games
 	 *
-	 * @param Request $request
-	 *
-	 * @return void
-	 * @throws JsonException
 	 * @pre Must be authorized
 	 *
 	 */
@@ -128,31 +130,31 @@ class Games extends ApiController
 			content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')
 		)
 	]
-	public function listGames(Request $request): void {
+	public function listGames(Request $request): ResponseInterface {
 		$notFilters = ['date', 'system', 'sql', 'returnLink', 'returnCodes'];
 		try {
 			$date = null;
-			if (!empty($request->get['date'])) {
+			if (!empty($request->getGet('date'))) {
 				try {
-					$date = new DateTime($request->get['date']);
+					$date = new DateTime($request->getGet('date'));
 				} catch (Exception $e) {
-					$this->respond(
-						new ErrorDto('Invalid parameter: "date"', ErrorType::VALIDATION, exception: $e),
+					return $this->respond(
+						new ErrorResponse('Invalid parameter: "date"', ErrorType::VALIDATION, exception: $e),
 						400
 					);
 				}
 			}
 
-			if (!empty($request->get['system'])) {
-				$query = $this->arena->queryGamesSystem($request->get['system'], $date);
+			if (!empty($request->getGet('system'))) {
+				$query = $this->arena->queryGamesSystem($request->getGet('system'), $date);
 			}
 			else {
 				$query = $this->arena->queryGames($date);
 			}
 
 			// TODO: Filter parsing could be more universally implemented for all API Controllers
-			$availableFilters = GameFactory::getAvailableFilters($request->get['system'] ?? null);
-			foreach ($request->get as $field => $value) {
+			$availableFilters = GameFactory::getAvailableFilters($request->getGet('system'));
+			foreach ($request->getQueryParams() as $field => $value) {
 				$not = str_starts_with($value, 'not');
 				if ($not) {
 					$value = substr($value, 3);
@@ -183,12 +185,12 @@ class Games extends ApiController
 				// Check for BETWEEN operator
 				if (str_contains($value, '~')) {
 					if ($cmp !== '<>' && $cmp !== '=') {
-						$this->respond(
-							new ErrorDto(
+						return $this->respond(
+							new ErrorResponse(
 								        'Invalid filter',
 								        ErrorType::VALIDATION,
 								        'Field "' . $field . '" is formatted to use a `BETWEEN` operator and a `' . $cmp . '` operator.',
-								values: ['fields' => $request->get['field']],
+								values: ['fields' => $request->getGet('field')],
 							),
 							400
 						);
@@ -198,12 +200,12 @@ class Games extends ApiController
 					// Check values
 					$type = '';
 					if (count($values) !== 2) {
-						$this->respond(
-							new ErrorDto(
+						return $this->respond(
+							new ErrorResponse(
 								        'Invalid filter',
 								        ErrorType::VALIDATION,
 								        'Field "' . $field . '" must have exactly two values to use the `BETWEEN` operator.',
-								values: ['fields' => $request->get['field']],
+								values: ['fields' => $request->getGet('field')],
 							),
 							400
 						);
@@ -218,12 +220,12 @@ class Games extends ApiController
 								$type = 'date';
 								continue;
 							}
-							$this->respond(
-								new ErrorDto(
+							return $this->respond(
+								new ErrorResponse(
 									        'Invalid filter',
 									        ErrorType::VALIDATION,
 									        'Field "' . $field . '" must be a number or a date to use the BETWEEN operator.',
-									values: ['fields' => $request->get['field']],
+									values: ['fields' => $request->getGet('field')],
 								),
 								400
 							);
@@ -233,12 +235,12 @@ class Games extends ApiController
 							if ($type === 'int') {
 								continue;
 							}
-							$this->respond(
-								new ErrorDto(
+							return $this->respond(
+								new ErrorResponse(
 									        'Invalid filter',
 									        ErrorType::VALIDATION,
 									        'First value is a date, but the second is a number in field "' . $field . '" for the BETWEEN operator.',
-									values: ['fields' => $request->get['field']],
+									values: ['fields' => $request->getGet('field')],
 								),
 								400
 							);
@@ -247,22 +249,22 @@ class Games extends ApiController
 							if ($type === 'date') {
 								continue;
 							}
-							$this->respond(
-								new ErrorDto(
+							return $this->respond(
+								new ErrorResponse(
 									        'Invalid filter',
 									        ErrorType::VALIDATION,
 									        'First value is a number, but the second is a date in field "' . $field . '" for the BETWEEN operator.',
-									values: ['fields' => $request->get['field']],
+									values: ['fields' => $request->getGet('field')],
 								),
 								400
 							);
 						}
-						$this->respond(
-							new ErrorDto(
+						return $this->respond(
+							new ErrorResponse(
 								        'Invalid filter',
 								        ErrorType::VALIDATION,
 								        'Invalid type for BETWEEN operator for field "' . $field . '". The only accepted values are dates and numbers.',
-								values: ['fields' => $request->get['field']],
+								values: ['fields' => $request->getGet('field')],
 							),
 							400
 						);
@@ -295,12 +297,12 @@ class Games extends ApiController
 				}
 				else { // String
 					if ($cmp !== '=' && $cmp !== '<>') {
-						$this->respond(
-							new ErrorDto(
+						return $this->respond(
+							new ErrorResponse(
 								        'Invalid filter',
 								        ErrorType::VALIDATION,
 								        'Invalid comparator "' . $cmp . '" for string in field "' . $field . '".',
-								values: ['fields' => $request->get['field']],
+								values: ['fields' => $request->getGet('field')],
 							),
 							400
 						);
@@ -311,14 +313,14 @@ class Games extends ApiController
 
 			// Return a raw SQL
 			// TODO: Limit this to admin access
-			if (isset($request->get['sql'])) {
-				$this->respond((string)$query);
+			if ($request->getGet('sql') !== null) {
+				return $this->respond((string)$query);
 			}
 
 			$games = $query->fetchAll();
 		} catch (InvalidArgumentException $e) {
-			$this->respond(
-				new ErrorDto(
+			return $this->respond(
+				new ErrorResponse(
 					           'Invalid input',
 					           ErrorType::VALIDATION,
 					exception: $e
@@ -326,8 +328,8 @@ class Games extends ApiController
 				400
 			);
 		} catch (Throwable $e) {
-			$this->respond(
-				new ErrorDto(
+			return $this->respond(
+				new ErrorResponse(
 					           'Unexpected error',
 					           ErrorType::INTERNAL,
 					exception: $e
@@ -337,31 +339,28 @@ class Games extends ApiController
 		}
 
 		// Return only public links
-		if (isset($request->get['returnLink'])) {
+		if ($request->getGet('returnLink') !== null) {
 			$links = [];
 			$prefix = trailingSlashIt(App::getLink(['g']));
 			foreach ($games as $game) {
 				$links[] = $prefix . $game->code;
 			}
-			$this->respond($links);
+			return $this->respond($links);
 		}
 
 		// Return only game codes
-		if (isset($request->get['returnCodes'])) {
+		if ($request->getGet('returnCodes') !== null) {
 			$codes = [];
 			foreach ($games as $game) {
 				$codes[] = $game->code;
 			}
-			$this->respond($codes);
+			return $this->respond($codes);
 		}
 
-		$this->respond($games);
+		return $this->respond($games);
 	}
 
 	/**
-	 * @param string $code
-	 *
-	 * @return never
 	 * @throws JsonException
 	 * @throws Throwable
 	 * @pre Must be authorized
@@ -400,13 +399,13 @@ class Games extends ApiController
 			content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')
 		)
 	]
-	public function getGameUsers(string $code): never {
+	public function getGameUsers(string $code): ResponseInterface {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			$this->respond(new ErrorDto('Game not found'), 404);
+			return $this->respond(new ErrorResponse('Game not found'), 404);
 		}
 		if ($game->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('This games belongs to a different arena,'), 403);
+			return $this->respond(new ErrorResponse('This games belongs to a different arena,'), 403);
 		}
 		$users = [];
 		foreach ($game->getPlayers() as $player) {
@@ -414,49 +413,86 @@ class Games extends ApiController
 				$users[$player->vest] = $player->user;
 			}
 		}
-		$this->respond($users);
+		return $this->respond($users);
 	}
 
 	/**
 	 * Recalculates skills of the players for multiple games.
-	 *
-	 * @param Request $request The HTTP request object.
-	 *
-	 * @return never This method does not return any value.
 	 *
 	 * @throws JsonException If there is an error in JSON parsing.
 	 * @throws Throwable    If an error occurs during the operation.
 	 * @pre Must be authorized.
 	 */
 	#[
-		OA\Post(
+		OA\Get(
 			path       : "/api/games/skills",
 			operationId: "recalcMultipleGameSkills",
 			description: "This method recalculates skills of the players for multiple games.",
 			summary    : "Recalculate Multiple Game Skills",
-			requestBody: new OA\RequestBody(
-				description: "Specify games to recalculate the skills for in the request body",
-				required   : true,
-				content    : new OA\JsonContent(
-					             properties: [
-						                         new OA\Property(
-							                         property: 'games',
-							                         type    : 'array',
-							                         items   : new OA\Items(
-								                                   description: 'Game codes',
-								                                   type       : "string"
-							                                   )
-						                         ),
-						                         new OA\Property(
-							                         property   : 'rankonly',
-							                         description: 'If true, only recalculate rank change, but not the actual players\' skills.',
-							                         type       : 'boolean',
-						                         ),
-					                         ],
-					             type      : 'object'
-				             ),
-			),
 			tags       : ['Games'],
+		),
+		OA\Parameter(
+			name       : "codes",
+			description: "List of game codes to process",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'array', items: new OA\Items(type: 'string'))
+		),
+		OA\Parameter(
+			name       : "date",
+			description: "Filter games by date",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'string', format: 'date')
+		),
+		OA\Parameter(
+			name       : "user",
+			description: "Filter games by user Id",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'integer')
+		),
+		OA\Parameter(
+			name       : "limit",
+			description: "Limit number of processed games",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'integer')
+		),
+		OA\Parameter(
+			name       : "offset",
+			description: "Offset number of processed games",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'integer')
+		),
+		OA\Parameter(
+			name       : "rankable",
+			description: "Filter only rankable game modes",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'boolean')
+		),
+		OA\Parameter(
+			name       : "hasuser",
+			description: "Filter only games with registered users. Combine with 'since'.",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'boolean')
+		),
+		OA\Parameter(
+			name       : "since",
+			description: "Starting date. Combine with 'hasuser'.",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'string', format: 'date')
+		),
+		OA\Parameter(
+			name       : "rankonly",
+			description: "If true, only recalculate rank change, but not the actual players\' skills.",
+			in         : "path",
+			required   : false,
+			schema     : new OA\Schema(type: 'boolean')
 		),
 		OA\Response(
 			response   : 200,
@@ -484,8 +520,19 @@ class Games extends ApiController
 			content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')
 		)
 	]
-	public function recalcMultipleGameSkills(Request $request): never {
+	public function recalcMultipleGameSkills(Request $request): ResponseInterface {
 		$games = $this->recalcMultipleGameSkillsGetGames($request);
+		if ($games instanceof ErrorResponse) {
+			return $this->respond(
+				$games,
+				match($games->type) {
+					ErrorType::VALIDATION                    => 400,
+					ErrorType::DATABASE, ErrorType::INTERNAL => 500,
+					ErrorType::NOT_FOUND                     => 404,
+					ErrorType::ACCESS                        => 403,
+				}
+			);
+		}
 
 		$rankOnly = !empty($request->getGet('rankonly'));
 
@@ -505,8 +552,8 @@ class Games extends ApiController
 					continue;
 				}
 				if (!$game->save()) {
-					$this->respond(
-						new ErrorDto('Save failed', ErrorType::DATABASE, values: ['game' => $game->code]),
+					return $this->respond(
+						new ErrorResponse('Save failed', ErrorType::DATABASE, values: ['game' => $game->code]),
 						500
 					);
 				}
@@ -523,17 +570,17 @@ class Games extends ApiController
 		}
 		header('X-Peak-Memory: ' . memory_get_peak_usage());
 		header('X-Game-Count: ' . $gameCount);
-		$this->respond($playerSkills);
+		return $this->respond($playerSkills);
 	}
 
 	/**
 	 * @param Request $request
 	 *
-	 * @return iterable<Game>
+	 * @return iterable<Game>|ErrorResponse
 	 * @throws JsonException
 	 * @throws Throwable
 	 */
-	private function recalcMultipleGameSkillsGetGames(Request $request): iterable {
+	private function recalcMultipleGameSkillsGetGames(Request $request): iterable|ErrorResponse {
 		/** @var string|string[] $codes */
 		$codes = $request->getGet('codes', []);
 		if (!empty($codes)) {
@@ -550,7 +597,7 @@ class Games extends ApiController
 				$dateObject = new DateTimeImmutable($date);
 				return GameFactory::getByDate($dateObject, true);
 			} catch (Exception) {
-				$this->respond(['error' => 'Invalid date'], 400);
+				return new ErrorResponse('Invalid date', ErrorType::VALIDATION);
 			}
 		}
 
@@ -568,7 +615,7 @@ class Games extends ApiController
 		if ($user > 0) {
 			$player = LigaPlayer::get($user);
 			if (!isset($user)) {
-				$this->respond(['error' => 'User does not exist'], 404);
+				return new ErrorResponse('User does not exist', ErrorType::NOT_FOUND);
 			}
 			$query = $player->queryGames();
 			if (isset($modes)) {
@@ -604,7 +651,7 @@ class Games extends ApiController
 		$offset = (int)$request->getGet('offset', 0);
 		$limit = (int)$request->getGet('limit', 0);
 		if ($limit === 0) {
-			$this->respond(['error' => 'Limit cannot be empty'], 400);
+			return new ErrorResponse('Limit cannot be empty', ErrorType::VALIDATION);
 		}
 		$query = GameFactory::queryGames(fields: isset($modes) ? ['id_mode'] : [])->offset($offset)->limit($limit);
 		if (!empty($request->getGet('withUsers'))) {
@@ -617,9 +664,6 @@ class Games extends ApiController
 	}
 
 	/**
-	 * @param string $code
-	 *
-	 * @return never
 	 * @throws JsonException
 	 * @throws Throwable
 	 * @pre Must be authorized
@@ -682,25 +726,25 @@ class Games extends ApiController
 		description: "Server error during save operation",
 		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
 	)]
-	public function recalcGameSkill(string $code): never {
+	public function recalcGameSkill(string $code): ResponseInterface {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			$this->respond(
-				new ErrorDto('Game not found', ErrorType::NOT_FOUND),
+			return $this->respond(
+				new ErrorResponse('Game not found', ErrorType::NOT_FOUND),
 				404
 			);
 		}
 		if ($game->arena->id !== $this->arena->id) {
-			$this->respond(
-				new ErrorDto('This game belongs to a different arena.', ErrorType::ACCESS),
+			return $this->respond(
+				new ErrorResponse('This game belongs to a different arena.', ErrorType::ACCESS),
 				403
 			);
 		}
 		$game->calculateSkills();
 		$this->rankCalculator->recalculateRatingForGame($game);
 		if (!$game->save()) {
-			$this->respond(
-				new ErrorDto('Save failed', ErrorType::DATABASE),
+			return $this->respond(
+				new ErrorResponse('Save failed', ErrorType::DATABASE),
 				500
 			);
 		}
@@ -709,22 +753,19 @@ class Games extends ApiController
 		$sumUserSkill = 0;
 		foreach ($game->getPlayers()->getAll() as $player) {
 			$playerSkills[$player->vest] = [
-				'name' => $player->name,
+				'name'  => $player->name,
 				'skill' => $player->getSkill(),
-				'user' => $player->user?->stats->rank ?? $player->getSkill(),
+				'user'  => $player->user?->stats->rank ?? $player->getSkill(),
 			];
 			$sumSkill += $playerSkills[$player->vest]['skill'];
 			$sumUserSkill += $playerSkills[$player->vest]['user'];
 		}
 		$average = $sumSkill / count($playerSkills);
 		$averageUser = $sumUserSkill / count($playerSkills);
-		$this->respond(['players' => $playerSkills, 'average' => $average, 'averageUser' => $averageUser]);
+		return $this->respond(['players' => $playerSkills, 'average' => $average, 'averageUser' => $averageUser]);
 	}
 
 	/**
-	 * @param string $code
-	 *
-	 * @return never
 	 * @throws JsonException
 	 * @throws Throwable
 	 * @pre Must be authorized
@@ -763,17 +804,17 @@ class Games extends ApiController
 		description: "Server error during save operation",
 		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
 	)]
-	public function recalcGame(string $code): never {
+	public function recalcGame(string $code): ResponseInterface {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			$this->respond(
-				new ErrorDto('Game not found', ErrorType::NOT_FOUND),
+			return $this->respond(
+				new ErrorResponse('Game not found', ErrorType::NOT_FOUND),
 				404
 			);
 		}
 		if ($game->arena->id !== $this->arena->id) {
-			$this->respond(
-				new ErrorDto('This game belongs to a different arena.', ErrorType::ACCESS),
+			return $this->respond(
+				new ErrorResponse('This game belongs to a different arena.', ErrorType::ACCESS),
 				403
 			);
 		}
@@ -784,12 +825,12 @@ class Games extends ApiController
 		$game->calculateSkills();
 		$this->rankCalculator->recalculateRatingForGame($game);
 		if (!$game->save()) {
-			$this->respond(
-				new ErrorDto('Save failed', ErrorType::DATABASE),
+			return $this->respond(
+				new ErrorResponse('Save failed', ErrorType::DATABASE),
 				500
 			);
 		}
-		$this->respond($game);
+		return $this->respond($game);
 	}
 
 	/**
@@ -797,10 +838,12 @@ class Games extends ApiController
 	 *
 	 * @param Request $request
 	 *
-	 * @return void
-	 * @throws JsonException
+	 * @return ResponseInterface
+	 * @throws ModelNotFoundException
+	 * @throws Throwable
+	 * @throws ValidationException
+	 * @throws \Dibi\Exception
 	 * @pre Must be authorized
-	 *
 	 */
 	#[OA\Post(
 		path       : "/api/games",
@@ -851,16 +894,16 @@ class Games extends ApiController
 		description: "Server error during save operation",
 		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
 	)]
-	public function import(Request $request): void {
+	public function import(Request $request): ResponseInterface {
 		$logger = new Logger(LOG_DIR, 'api-import');
 		/** @var string $system */
-		$system = $request->post['system'] ?? '';
+		$system = $request->getPost('system', '');
 		$supported = GameFactory::getSupportedSystems();
 		/** @var class-string<Game> $gameClass */
 		$gameClass = '\App\GameModels\Game\\' . Strings::toPascalCase($system) . '\Game';
 		if (!class_exists($gameClass) || !in_array($system, $supported, true)) {
-			$this->respond(
-				new ErrorDto('Invalid game system', ErrorType::VALIDATION, values: [
+			return $this->respond(
+				new ErrorResponse('Invalid game system', ErrorType::VALIDATION, values: [
 					'class' => $gameClass,
 					'post'  => $_REQUEST,
 				]),
@@ -919,7 +962,7 @@ class Games extends ApiController
 		 *     }[],
 		 * }[] $games
 		 */
-		$games = $request->post['games'] ?? [];
+		$games = $request->getPost('games', []);
 		$logger->info('Importing ' . $system . ' system - ' . count($games) . ' games.');
 		/** @var array<int,array{user:LigaPlayer,games:Player[]}> $users */
 		$users = [];
@@ -963,8 +1006,8 @@ class Games extends ApiController
 					$game->group = null;
 				}
 			} catch (GameModeNotFoundException $e) {
-				$this->respond(
-					new ErrorDto('Invalid game mode', ErrorType::VALIDATION, exception: $e),
+				return $this->respond(
+					new ErrorResponse('Invalid game mode', ErrorType::VALIDATION, exception: $e),
 					400
 				);
 			}
@@ -976,7 +1019,7 @@ class Games extends ApiController
 				if (isset($player->user)) {
 					if (!isset($users[$player->user->id])) {
 						$users[$player->user->id] = [
-							'user' => $player->user,
+							'user'  => $player->user,
 							'games' => [],
 						];
 					}
@@ -987,8 +1030,8 @@ class Games extends ApiController
 			// Save game
 			try {
 				if ($game->save() === false) {
-					$this->respond(
-						new ErrorDto('Failed saving the game', ErrorType::DATABASE),
+					return $this->respond(
+						new ErrorResponse('Failed saving the game', ErrorType::DATABASE),
 						500
 					);
 				}
@@ -998,10 +1041,19 @@ class Games extends ApiController
 				}
 				$imported++;
 			} catch (ValidationException $e) {
-				$this->respond(
-					new ErrorDto('Invalid game data', ErrorType::VALIDATION, exception: $e),
+				return $this->respond(
+					new ErrorResponse('Invalid game data', ErrorType::VALIDATION, exception: $e),
 					400
 				);
+			}
+
+			$achievements = $this->achievementChecker->checkGame($game);
+			if (count($achievements) > 0) {
+				try {
+					$this->achievementProvider->saveAchievements($achievements);
+				} catch (\Dibi\Exception $e) {
+					$logger->warning('Failed to save achievements - ' . $e->getMessage());
+				}
 			}
 
 			$dbTime = microtime(true) - $start - $parseTime;
@@ -1010,6 +1062,7 @@ class Games extends ApiController
 						true
 					) - $start) . 's - parse: ' . $parseTime . 's, save: ' . $dbTime . 's'
 			);
+			$logger->debug('Achievements: ' . count($achievements));
 		}
 
 		// Update logged-in users if any
@@ -1022,7 +1075,7 @@ class Games extends ApiController
 			$this->playerUserService->updatePlayerStats($user->user);
 			foreach ($userData['games'] as $game) {
 				$this->pushService->sendNewGameNotification($game, $user);
-				$this->achievementChecker->checkPlayerGame($game->getGame(), $game);
+				//$this->achievementChecker->checkPlayerGame($game->getGame(), $game);
 			}
 		}
 		// Update today's ranks
@@ -1041,16 +1094,12 @@ class Games extends ApiController
 			$logger->debug($key . ': ' . Timer::get($key) . 's');
 		}
 
-		$this->respond(['success' => true, 'imported' => $imported]/*, 201*/);
+		return $this->respond(['success' => true, 'imported' => $imported]/*, 201*/);
 	}
 
 	/**
 	 * Get one game's data by its code
 	 *
-	 *
-	 * @param string $code
-	 *
-	 * @return never
 	 * @throws JsonException
 	 * @throws Throwable
 	 * @pre Must be authorized
@@ -1089,20 +1138,23 @@ class Games extends ApiController
 		description: "Game not found",
 		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse"),
 	)]
-	public function getGame(string $code): never {
+	public function getGame(string $code): ResponseInterface {
 		if (empty($code)) {
-			$this->respond(new ErrorDto('Invalid code', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Invalid code', ErrorType::VALIDATION), 400);
 		}
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			$this->respond(new ErrorDto('Game not found', ErrorType::NOT_FOUND), 404);
+			return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND), 404);
 		}
 		if ($game->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('This game belongs to a different arena.', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorResponse('This game belongs to a different arena.', ErrorType::ACCESS), 403);
 		}
-		$this->respond($game);
+		return $this->respond($game);
 	}
 
+	/**
+	 * @throws Exception
+	 */
 	#[OA\Get(
 		path       : "/api/games/stats",
 		operationId: "stats",
@@ -1147,17 +1199,21 @@ class Games extends ApiController
 			type      : "object"
 		)
 	)]
-	public function stats(Request $request): void {
-		$date = null;
-		$cache = !isset($request->get['noCache']);
-		if (isset($request->get['date'])) {
-			$date = new DateTime($request->get['date']);
+	public function stats(Request $request): ResponseInterface {
+		$cache = $request->getGet('noCache') === null;
+		$date = $request->getGet('date');
+		if (is_string($date)) {
+			$date = new DateTimeImmutable($date);
+		}
+		else {
+			$this->respond(new ErrorResponse('Invalid date', ErrorType::VALIDATION), 400);
 		}
 
-		$this->respond([
+		$system = $request->getGet('system');
+		return $this->respond([
 			               'games'   => (
-			               isset($request->get['system']) ?
-				               $this->arena->queryGamesSystem($request->get['system'], $date) :
+			               is_string($system) ?
+				               $this->arena->queryGamesSystem($system, $date) :
 				               $this->arena->queryGames($date)
 			               )->count(cache: $cache),
 			               'players' => $this->arena->queryPlayers($date, cache: $cache)->count(cache: $cache),
@@ -1165,6 +1221,10 @@ class Games extends ApiController
 		               ]);
 	}
 
+	/**
+	 * @throws Throwable
+	 * @throws ValidationException
+	 */
 	#[OA\Get(
 		path       : "/api/games/{code}/highlights",
 		operationId: "highlights",
@@ -1189,6 +1249,13 @@ class Games extends ApiController
 	#[OA\Parameter(
 		name       : "descriptions",
 		description: "Flag to return only highlight descriptions",
+		in         : "query",
+		required   : false,
+		schema     : new OA\Schema(type: "boolean"),
+	)]
+	#[OA\Parameter(
+		name       : "nocache",
+		description: "If present, the game is checked without again (if cached)",
 		in         : "query",
 		required   : false,
 		schema     : new OA\Schema(type: "boolean"),
@@ -1224,16 +1291,16 @@ class Games extends ApiController
 		description: "Game not found",
 		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse"),
 	)]
-	public function highlights(string $code): never {
+	public function highlights(string $code): ResponseInterface {
 		if (empty($code)) {
-			$this->respond(new ErrorDto('Invalid code', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Invalid code', ErrorType::VALIDATION), 400);
 		}
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			$this->respond(new ErrorDto('Game not found', ErrorType::NOT_FOUND), 404);
+			return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND), 404);
 		}
 		if ($game->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('This game belongs to a different arena.', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorResponse('This game belongs to a different arena.', ErrorType::ACCESS), 403);
 		}
 
 		/** @var GameHighlightService $highlightService */
@@ -1246,20 +1313,225 @@ class Games extends ApiController
 			}
 		}
 
-		$highlights = isset($user) ? $highlightService->getHighlightsForGameForUser(
-			$game,
-			$user
-		) : $highlightService->getHighlightsForGame($game);
+		$cache = !isset($_GET['nocache']);
+
+		$highlights = isset($user) ?
+			$highlightService->getHighlightsForGameForUser($game, $user, $cache) :
+			$highlightService->getHighlightsForGame($game, $cache);
 
 		if (isset($_GET['descriptions'])) {
 			$descriptions = [];
 			foreach ($highlights as $highlight) {
 				$descriptions[] = $highlightService->playerNamesToLinks($highlight->getDescription(), $game);
 			}
-			$this->respond($descriptions);
+			return $this->respond($descriptions);
 		}
 
-		$this->respond($highlights);
+		return $this->respond($highlights);
+	}
+
+	/**
+	 * @throws Throwable
+	 * @throws GameModeNotFoundException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws \Dibi\Exception
+	 */
+	#[OA\Post(
+		path       : "/api/games/{code}/group",
+		operationId: "setGroup",
+		description: "Sets group for a game and recalculates skills.",
+		summary    : "Sets game group.",
+		requestBody: new OA\RequestBody(
+			required: true,
+			content : new OA\JsonContent(
+				          required  : ["groupId"],
+				          properties: [
+					                      new OA\Property(property: "groupId", type: "int"),
+				                      ],
+				          type      : 'object',
+			          ),
+		),
+		tags       : ['Games']
+	)]
+	#[OA\Parameter(
+		name       : "code",
+		description: "Game code",
+		in         : "path",
+		required   : true,
+		schema     : new OA\Schema(type: "string"),
+	)]
+	#[OA\Response(
+		response   : 200,
+		description: "Success",
+		content    : new OA\JsonContent(
+			properties: [
+				       new OA\Property(
+						   property: 'success',
+					       type : "boolean",
+				       ),
+			       ],
+			type: 'object'
+		),
+	)]
+	#[OA\Response(
+		response   : 400,
+		description: "Invalid game code provided",
+		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse"),
+	)]
+	#[OA\Response(
+		response   : 404,
+		description: "Game or game group not found",
+		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse"),
+	)]
+	public function setGroup(string $code, Request $request): ResponseInterface {
+		if (empty($code)) {
+			return $this->respond(['error' => 'Invalid code'], 400);
+		}
+		try {
+			$game = GameFactory::getByCode($code);
+			if (!isset($game)) {
+				throw new ModelNotFoundException('Game not found');
+			}
+		} catch (Throwable $e) {
+			return $this->respond(['error' => 'Game not found', 'exception' => $e->getMessage()], 404);
+		}
+
+		$group = $request->getPost('groupId', 0);
+		if ($group > 0) {
+			try {
+				$game->group = GameGroup::get($group);
+			} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+				return $this->respond(
+					['error' => 'Game group not found', 'exception' => $e->getMessage(), 'trace' => $e->getTrace()],
+					404
+				);
+			}
+		}
+		else {
+			$game->group = null;
+		}
+
+		$game->recalculateScores();
+		$game->calculateSkills();
+		$this->rankCalculator->recalculateRatingForGame($game);
+
+		try {
+			$game->save();
+		} catch (ModelNotFoundException|ValidationException $e) {
+			return $this->respond(['error' => 'Save failed', 'exception' => $e->getMessage()], 500);
+		}
+
+		return $this->respond(['success' => true]);
+	}
+
+	/**
+	 * @throws GameModeNotFoundException
+	 * @throws Throwable
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @throws \Dibi\Exception
+	 */
+	#[OA\Post(
+		path       : "/api/games/{code}/mode",
+		operationId: "changeGameMode",
+		description: "Changes game mode and recalculates scores, skills.",
+		summary    : "Changes game mode.",
+		requestBody: new OA\RequestBody(
+			required: true,
+			content : new OA\JsonContent(
+				          required  : ["mode"],
+				          properties: [
+					                      new OA\Property(property: "mode", type: "int"),
+				                      ],
+				          type      : 'object',
+			          ),
+		),
+		tags       : ['Games']
+	)]
+	#[OA\Parameter(
+		name       : "code",
+		description: "Game code",
+		in         : "path",
+		required   : true,
+		schema     : new OA\Schema(type: "string"),
+	)]
+	#[OA\Response(
+		response   : 200,
+		description: "Success",
+		content    : new OA\JsonContent(
+			properties: [
+				            new OA\Property(
+					            property: 'status',
+					            type : "string",
+				            ),
+			            ],
+			type: 'object'
+		),
+	)]
+	#[OA\Response(
+		response   : 400,
+		description: "Invalid game code provided",
+		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse"),
+	)]
+	#[OA\Response(
+		response   : 404,
+		description: "Game or game mode not found",
+		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse"),
+	)]
+	public function changeGameMode(string $code, Request $request): ResponseInterface {
+		if (empty($code)) {
+			return $this->respond(['error' => 'Invalid code'], 400);
+		}
+
+		// Find game
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			return $this->respond(['error' => 'Game not found'], 404);
+		}
+
+		// Find game mode
+		$gameModeId = (int) $request->getPost('mode', 0);
+		if ($gameModeId < 1) {
+			return $this->respond(['error' => 'Invalid game mode ID'], 400);
+		}
+		$gameMode = GameModeFactory::getById($gameModeId, ['system' => $game::SYSTEM]);
+		if (!isset($gameMode)) {
+			return $this->respond(['error' => 'Game mode not found'], 404);
+		}
+
+		$previousType = $game->gameType;
+
+		// Set the new mode
+		$game->gameType = $gameMode->type;
+		$game->mode = $gameMode;
+
+		// Check mode type change
+		if ($previousType !== $game->getMode()) {
+			if ($previousType === GameModeType::SOLO) {
+				return $this->respond(['error' => 'Cannot change mode from solo to team'], 400);
+			}
+
+			// Assign all players to one team
+			$team = $game->getTeams()->first();
+			if (!isset($team)) {
+				return $this->respond(['error' => 'Error while getting a team from a game'], 500);
+			}
+			/** @var Player $player */
+			foreach ($game->getPlayers() as $player) {
+				$player->setTeam($team);
+			}
+		}
+
+		$game->recalculateScores();
+		$game->calculateSkills();
+		$this->rankCalculator->recalculateRatingForGame($game);
+
+		if (!$game->save()) {
+			return $this->respond(['error' => 'Error saving game'], 500);
+		}
+
+		return $this->respond(['status' => 'OK']);
 	}
 
 }

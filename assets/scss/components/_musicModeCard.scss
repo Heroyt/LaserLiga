@@ -1,0 +1,70 @@
+.music-groups-wrapper {
+  display: grid;
+  grid-gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.music-mode {
+	backdrop-filter: blur(10px);
+	background-color: rgba(255, 255, 255, 0.4);
+	border-radius: 1rem;
+	overflow: hidden;
+	padding: 1rem;
+	position: relative;
+
+	* {
+		z-index: 2;
+	}
+
+	.background {
+		filter: blur(5px) brightness(.6);
+		height: 100%;
+		left: 0;
+		object-fit: cover;
+		position: absolute;
+		top: 0;
+		width: 100%;
+		z-index: -1;
+	}
+
+	.name {
+		color: #fff;
+		font-size: 1.75rem;
+		font-weight: bold;
+	}
+
+	.icon {
+		margin-bottom: .5rem;
+
+		> *,
+    img {
+			height: 2.5rem;
+			width: auto;
+		}
+
+		svg {
+			path {
+				fill: #fff;
+			}
+
+			[stroke] {
+				stroke: #fff;
+			}
+		}
+	}
+
+	.children {
+		.child {
+			appearance: none;
+			background: none;
+			border: 0;
+			color: #fff;
+			display: block;
+      margin-top: .5rem;
+
+      .name {
+        font-size: 1.25rem;
+      }
+		}
+	}
+}

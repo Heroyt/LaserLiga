@@ -4,7 +4,7 @@ namespace App\Api\Response;
 
 use OpenApi\Attributes as OA;
 
-#[OA\Schema(schema: 'ErrorResponse', type: 'object')]
+#[OA\Schema(schema: 'ErrorDto', type: 'object')]
 readonly class ErrorDto implements \JsonSerializable
 {
 

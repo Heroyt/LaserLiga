@@ -87,18 +87,18 @@
                         <a n:ifset="$tournament->league"
                                 href="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}"
                                 class="btn btn-primary">
-                            <i class="fa-solid fa-trophy"></i>
+                            {faSolid 'trophy'}
                             {lang 'Liga'}
                         </a>
                         <a itemprop="url" href="{link 'tournament', $tournament->id}"
                            class="btn btn-secondary">
-                            <i class="fa-solid fa-circle-info"></i>
+                            {faSolid 'circle-info'}
                             {lang 'Informace'}
                         </a>
                         <a n:if="$tournament->isRegistrationActive() && !$tournament->isFull()"
                                 href="{link 'tournament', $tournament->id, 'register'}"
                                 class="btn btn-primary">
-                            <i class="fa-solid fa-user-plus"></i>
+                            {faSolid 'user-plus'}
                             {lang 'Registrace'}
                         </a>
 					</div>

@@ -9,31 +9,55 @@
  * @since     1.0
  */
 
-use App\Controllers\E404;
-use Lsr\Core\App;
-use Lsr\Core\Requests\Exceptions\RouteNotFoundException;
-use Lsr\Helpers\Tools\Timer;
-use Lsr\Interfaces\RequestInterface;
 
 /** Root directory */
+
+use App\Controllers\E404;
+use App\Exceptions\DispatchBreakException;
+use App\Services\FontAwesomeManager;
+use Lsr\Core\App;
+use Lsr\Core\Requests\Exceptions\RouteNotFoundException;
+use Lsr\Core\Requests\Request;
+use Lsr\Helpers\Tools\Timer;
+
 const ROOT = __DIR__ . '/';
 /** Visiting site normally */
 const INDEX = true;
 
+// For CLI use - init some important functions
+if (PHP_SAPI === 'cli') {
+	// Async signals is necessary for interrupt handling
+	pcntl_async_signals(true);
+	/** @var string $_ command used to run the script */
+	$_ = $_SERVER['_'] ?? '/usr/local/bin/php';
+	if ($_ === '/bin/sh') {
+		$_ = '/usr/local/bin/php';
+	}
+}
+
 require_once ROOT . "include/load.php";
+
+$app = App::getInstance();
 
 Timer::start('app');
 try {
-	header('Cache-Control: max-age=604800,public');
-	App::run();
+	$response = $app->run();
 } catch (RouteNotFoundException $e) {
+	bdump($e);
 	// Handle 404 Error
 	$controller = App::getContainer()->getByType(E404::class);
-	/** @var RequestInterface $request */
-	$request = App::getRequest();
+	/** @var Request $request */
+	$request = $app->getRequest();
 	$controller->init($request);
-	$controller->show();
+	$response = $controller->show($request);
+} catch (DispatchBreakException $e) {
+	$response = $e->getResponse();
 }
 Timer::stop('app');
 
-updateTranslations();
+$fontawesome = $app::getService('fontawesome');
+assert($fontawesome instanceof FontAwesomeManager, 'Invalid fontawesome manager instance from DI');
+$app->translations->updateTranslations();
+$fontawesome->saveIcons();
+
+App::sendResponse($response);

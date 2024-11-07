@@ -10,18 +10,21 @@ use RuntimeException;
 class Image
 {
 
+	public readonly string $image;
 	private string $name;
 	private string $path;
 	private ?string $type = null;
 
+	/** @var array{original?:string,webp?:string}|array<string,string> */
 	private array $optimized = [];
 
+	/** @var array<string,array{original?:string,webp?:string}> */
+	private array $customSizes = [];
+
 	public function __construct(
-		public readonly string $image
+		string $image
 	) {
-		if (!file_exists($image)) {
-			throw new RuntimeException('Image doesn\'t exist.');
-		}
+		$this->image = file_exists($image) ? $image : ROOT.'assets/images/questionmark.jpg';
 
 		$this->name = pathinfo($this->image, PATHINFO_FILENAME);
 		$this->path = pathinfo($this->image, PATHINFO_DIRNAME) . '/';
@@ -36,6 +39,63 @@ class Image
 		}
 		$index = (string)$size;
 		return $optimized[$index] ?? $optimized['webp'] ?? $optimized['original'];
+	}
+
+	/**
+	 * @return array{original:string,webp:string}
+	 * @throws FileException
+	 */
+	public function getResized(?int $width = null, ?int $height = null): array {
+		if ($width === null && $height === null) {
+			return [
+				'original' => $this->getUrl(),
+				'webp' => $this->getWebp(),
+			];
+		}
+
+		$key = ($width ?? 'auto').'x'.($height ?? 'auto');
+		if (isset($this->customSizes[$key])) {
+			return $this->customSizes[$key];
+		}
+
+		$this->customSizes[$key] = [];
+
+		// Try to find existing images
+		$optimizedPath = $this->path.'optimized/'.$this->name.'.'.$key.'.';
+		$originalFile = $optimizedPath.$this->getType();
+		$webpFile = $optimizedPath.'webp';
+
+		if (file_exists($originalFile)) {
+			$this->customSizes[$key]['original'] = $this->pathToUrl($originalFile);
+		}
+		if (file_exists($webpFile)) {
+			$this->customSizes[$key]['webp'] = $this->pathToUrl($webpFile);
+		}
+		if (isset($this->customSizes[$key]['original'], $this->customSizes[$key]['webp'])) {
+			return $this->customSizes[$key];
+		}
+
+		$imageService = App::getService('image');
+		assert($imageService instanceof ImageService, 'Invalid DI service');
+
+		$image = $imageService->loadFile($this->image);
+		$resizedOriginal = null;
+
+		if (!isset($this->customSizes[$key]['original'])) {
+			$resizedOriginal = $imageService->resize($image, $width, $height);
+			$imageService->save($resizedOriginal, $originalFile);
+			$this->customSizes[$key]['original'] = $this->pathToUrl($originalFile);
+		}
+
+		if (!isset($this->customSizes[$key]['webp'])) {
+			if (!isset($resizedOriginal)) {
+				$resizedOriginal = $imageService->resize($image, $width, $height);
+			}
+			bdump($imageService->save($resizedOriginal, $webpFile));
+			$this->customSizes[$key]['webp'] = $this->pathToUrl($webpFile);
+		}
+
+		return $this->customSizes[$key];
 	}
 
 	/**
@@ -71,8 +131,8 @@ class Image
 	private function pathToUrl(string $file): string {
 		$path = explode('/', str_replace(ROOT, '', $file));
 		$index = count($path) - 1;
-		$path[$index] = urlencode($path[$index]);
-		return App::getUrl() . implode('/', $path);
+		$path[$index] = rawurlencode($path[$index]);
+		return App::getInstance()->getBaseUrl() . implode('/', $path);
 	}
 
 	/**
@@ -81,6 +141,9 @@ class Image
 	 * @return void
 	 */
 	private function findOptimizedImages(array &$images): void {
+		if ($this->getType() === 'svg') {
+			return;
+		}
 		$webP = $this->getWebp();
 		if (isset($webP)) {
 			$images['webp'] = $webP;
@@ -101,12 +164,19 @@ class Image
 	}
 
 	public function getWebp(): ?string {
+		if ($this->getType() === 'svg') {
+			return null;
+		}
 		if ($this->getType() === 'webp') {
 			return $this->pathToUrl($this->image);
 		}
 		$webp = $this->path . 'optimized/' . $this->name . '.webp';
 		if (!file_exists($webp)) {
-			return null;
+			$this->optimize();
+			if (!file_exists($webp)) {
+				return null;
+			}
+			return $this->pathToUrl($webp);
 		}
 		return $this->pathToUrl($webp);
 	}
@@ -116,7 +186,13 @@ class Image
 	 * @throws FileException
 	 */
 	public function optimize(): void {
-		$imageService = App::getServiceByType(ImageService::class);
+		// Do not optimize SVG
+		if ($this->getType() === 'svg') {
+			return;
+		}
+
+		$imageService = App::getService('image');
+		assert($imageService instanceof ImageService, 'Invalid DI service');
 
 		$imageService->optimize($this->image);
 	}
@@ -125,8 +201,14 @@ class Image
 		return $this->image;
 	}
 
+	/**
+	 * Returns the image extension in lowercase
+	 * @return string
+	 */
 	public function getType(): string {
 		if (!isset($this->type)) {
+			// Default to using provided extension
+			$this->type ??= strtolower(pathinfo($this->image, PATHINFO_EXTENSION));
 			if (function_exists('exif_imagetype')) {
 				/** @var int|false $type */
 				$type = exif_imagetype($this->image);
@@ -136,14 +218,27 @@ class Image
 						IMAGETYPE_GIF  => 'gif',
 						IMAGETYPE_PNG  => 'png',
 						IMAGETYPE_WEBP => 'webp',
-						default        => null,
+						default        => $this->type,
 					};
 				}
 			}
-			// Default to using provided extension
-			$this->type ??= strtolower(pathinfo($this->name, PATHINFO_EXTENSION));
 		}
 		return $this->type;
 	}
 
+	public function getMimeType(): string {
+		if (function_exists('exif_imagetype') && function_exists('image_type_to_mime_type')) {
+			/** @var int|false $type */
+			$type = exif_imagetype($this->image);
+			if ($type !== false) {
+				return image_type_to_mime_type($type);
+			}
+		}
+		return match ($this->getType()) {
+			'png' => 'image/png',
+			'webp' => 'image/webp',
+			'svg' => 'image/svg+xml',
+			default => 'image/jpeg',
+		};
+	}
 }

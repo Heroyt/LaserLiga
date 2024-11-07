@@ -2,6 +2,7 @@
 
 {varType string[] $errors}
 {varType array $_POST}
+{varType string $turnstileKey}
 {varType App\Models\Arena[] $arenas}
 
 {define containerClasses}
@@ -43,7 +44,7 @@
                                    data-content-name="Tournament - register - Nickname"
                                    data-content-piece="info button"
                                    data-bs-content="{lang 'Dobrá přezdívka je klíčovou součástí každého hráče.<br>Pokud přezdívku ještě nemáte, je dobré myslet na následující body:<ol><li><strong>Unikátní</strong> - Přezdívka není křestní jméno. Je jen vaše. Snažte se vyvarovat běžným přezdívkám jako <i>Terminátor</i>, ale i jménům jako <i>Honza</i>.</li><li><strong>Dobře vyslovitelná</strong> - Náhodná směť čísel a písmen také není ideální.</li><li><strong>Osobní</strong> - Přezdívka se vám musí líbit. Přemýšlejte nad tím, že vás ostatní hráči budou přezdívkou oslovovat.</li></ol>'}">
-                                    <i class="fa-solid fa-question"></i>
+                                    {faSolid 'question'}
                                 </a>
                             </div>
                         </div>
@@ -99,6 +100,7 @@
                                 {/ifset}
                             </div>
                         </div>
+                        <div class="cf-turnstile mb-3" data-sitekey="{$turnstileKey}"></div>
                         <div class="mb-3">
                             <button type="submit"
                                     class="btn btn-primary w-100 btn-lg">{lang 'Odeslat', context: 'actions'}</button>

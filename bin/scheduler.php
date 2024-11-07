@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\App;
+use Lsr\Core\App;
 use Orisai\Scheduler\Scheduler;
 
 const ROOT = __DIR__ . '/../';

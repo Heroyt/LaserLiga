@@ -12,7 +12,7 @@ enum GameHighlightType: string
 	case OTHER        = 'other';
 	case ALONE_STATS  = 'alone';
 	case HITS         = 'hits';
-	case DEATHS = 'deaths';
+	case DEATHS       = 'deaths';
 	case USER_AVERAGE = 'user_average';
 
 }

@@ -4,33 +4,47 @@ namespace App\Controllers\Api;
 
 use App\Api\Response\ErrorDto;
 use App\Api\Response\ErrorType;
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\FileException;
+use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\Game;
 use App\GameModels\Game\Evo5\Player;
-use App\GameModels\Tools\Evo5\RegressionStatCalculator;
+use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
+use App\Models\DataObjects\Game\MinimalGameRow;
 use App\Services\Achievements\AchievementChecker;
 use App\Services\Achievements\AchievementProvider;
 use App\Services\GenderService;
 use App\Services\ImageService;
 use App\Services\NameInflectionService;
 use App\Services\SitemapGenerator;
+use Dibi\Exception;
+use Dibi\Result;
 use Lsr\Core\App;
 use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
 use OpenApi\Attributes as OA;
+use Psr\Http\Message\ResponseInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
+use Throwable;
 
 class DevController extends ApiController
 {
 
+	/**
+	 * @throws Throwable
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws Exception
+	 */
 	#[OA\Get(
 		path       : "/api/devtools/test/achievement",
 		operationId: "achievementCheckerTest",
@@ -97,7 +111,6 @@ class DevController extends ApiController
 					       items: new OA\Items(ref: '#/components/schemas/PlayerAchievement')
 				       ),
 				       new OA\Schema(
-					       schema              : 'UserAchievementsByDate',
 					       type                : 'object',
 					       example             : [
 						                             '2023-12-12' => [
@@ -117,7 +130,6 @@ class DevController extends ApiController
 					                             ),
 				       ),
 				       new OA\Schema(
-					       schema    : 'CheckedAchievementCounts',
 					       properties: [
 						                   new OA\Property('games', description: 'Checked game count', type: 'integer'),
 						                   new OA\Property(
@@ -141,22 +153,24 @@ class DevController extends ApiController
 		description: "Not Found - Game or Player not found",
 		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
 	)]
-	public function achievementCheckerTest(Request $request): never {
+	public function achievementCheckerTest(Request $request): ResponseInterface {
 		/** @var AchievementChecker $achievementChecker */
 		$achievementChecker = App::getServiceByType(AchievementChecker::class);
+		/** @var AchievementProvider $achievementProvider */
 		$achievementProvider = App::getServiceByType(AchievementProvider::class);
 
+		/** @var string $code */
 		$code = $request->getGet('code');
 		if (isset($code)) {
 			$game = GameFactory::getByCode($code);
 			if (!isset($game)) {
-				$this->respond(new ErrorDto('Game not found', ErrorType::NOT_FOUND), 404);
+				return $this->respond(new ErrorDto('Game not found', ErrorType::NOT_FOUND), 404);
 			}
 			$achievements = $achievementChecker->checkGame($game);
 			if (isset($_GET['save'])) {
 				$achievementProvider->saveAchievements($achievements);
 			}
-			$this->respond($achievements);
+			return $this->respond($achievements);
 		}
 
 		$user = $request->getGet('user');
@@ -169,7 +183,7 @@ class DevController extends ApiController
 			}
 
 			if (!isset($player)) {
-				$this->respond(new ErrorDto('Player not found', ErrorType::NOT_FOUND), 404);
+				return $this->respond(new ErrorDto('Player not found', ErrorType::NOT_FOUND), 404);
 			}
 
 			$achievements = [];
@@ -198,7 +212,7 @@ class DevController extends ApiController
 				}
 			}
 
-			$this->respond($achievements);
+			return $this->respond($achievements);
 		}
 
 		if (isset($_GET['all'])) {
@@ -221,7 +235,9 @@ class DevController extends ApiController
 			}
 			$countGames = 0;
 			$countAchievements = 0;
-			foreach ($query->execute() as $row) {
+			$result = $query->execute();
+			assert($result instanceof Result, 'Invalid query result');
+			while ($row = $result->fetch()) {
 				$game = GameFactory::getByCode($row->code);
 				if (!isset($game)) {
 					continue;
@@ -233,10 +249,10 @@ class DevController extends ApiController
 					$achievementProvider->saveAchievements($achievements);
 				}
 			}
-			$this->respond(['games' => $countGames, 'achievements' => $countAchievements]);
+			return $this->respond(['games' => $countGames, 'achievements' => $countAchievements]);
 		}
 
-		$this->respond(new ErrorDto('Nothing to process', ErrorType::VALIDATION), 400);
+		return $this->respond(new ErrorDto('Nothing to process', ErrorType::VALIDATION), 400);
 	}
 
 	#[OA\Get(
@@ -309,13 +325,15 @@ class DevController extends ApiController
 			                      ),
 		),
 	)]
-	public function inflectionTest(Request $request): never {
+	public function inflectionTest(Request $request): ResponseInterface {
 		$output = [];
+		/** @var string[]|string $names */
 		$names = $request->getGet('names', []);
 		if (!is_array($names) && !empty($names)) {
 			$names = [$names];
 		}
 		if (empty($names)) {
+			/** @var string[] $names */
 			$names = DB::select(Player::TABLE, '[name]')->orderBy('RAND()')->limit(10)->fetchPairs(cache: false);
 		}
 		foreach ($names as $name) {
@@ -330,7 +348,7 @@ class DevController extends ApiController
 				7        => NameInflectionService::instrumental($name),
 			];
 		}
-		$this->respond($output);
+		return $this->respond($output);
 	}
 
 	#[OA\Get(
@@ -351,15 +369,20 @@ class DevController extends ApiController
 			                      )
 		),
 	)]
-	public function genderTest(): never {
+	public function genderTest(): ResponseInterface {
 		$output = [];
+		/** @var string[] $names */
 		$names = DB::select(Player::TABLE, '[name]')->orderBy('RAND()')->limit(10)->fetchPairs(cache: false);
 		foreach ($names as $name) {
 			$output[$name] = GenderService::rankWord($name);
 		}
-		$this->respond($output);
+		return $this->respond($output);
 	}
 
+	/**
+	 * @throws ValidationException
+	 * @throws Throwable
+	 */
 	#[OA\Post(
 		path       : "/api/devtools/game/relativehits",
 		operationId: "relativeHits",
@@ -387,17 +410,11 @@ class DevController extends ApiController
 		response   : 200,
 		description: "Successful operation",
 		content    : new OA\JsonContent(
-			properties: [
-				            new OA\Property(
-					            property: "status",
-					            type    : "string",
-					            example : 'ok',
-				            ),
-			            ],
-			type      : "object",
+			ref : '#/components/schemas/SuccessResponse',
+			type: "object",
 		),
 	)]
-	public function relativeHits(Request $request): never {
+	public function relativeHits(Request $request): ResponseInterface {
 		$limit = (int)$request->getGet('limit', 50);
 		$offset = (int)$request->getGet('offset', 0);
 		$players = Player::query()->limit($limit)->offset($offset)->get();
@@ -406,9 +423,15 @@ class DevController extends ApiController
 			$player->getRelativeHits();
 			$player->save();
 		}
-		$this->respond(['status' => 'ok']);
+		return $this->respond(new SuccessResponse());
 	}
 
+	/**
+	 * @throws Throwable
+	 * @throws GameModeNotFoundException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 */
 	#[OA\Post(
 		path       : "/api/devtools/game/modes",
 		operationId: "assignGameModes",
@@ -420,26 +443,26 @@ class DevController extends ApiController
 		response   : 200,
 		description: "Successful operation",
 		content    : new OA\JsonContent(
-			properties: [
-				            new OA\Property(
-					            property: "status",
-					            type    : "string",
-					            example : 'ok',
-				            ),
-			            ],
-			type      : "object",
+			ref : '#/components/schemas/SuccessResponse',
+			type: "object",
 		),
 	)]
-	public function assignGameModes(): never {
-		$rows = GameFactory::queryGames(true, fields: ['id_mode'])->where('[id_mode] IS NULL')->fetchAll(cache: false);
+	public function assignGameModes(): ResponseInterface {
+		$rows = GameFactory::queryGames(true, fields: ['id_mode'])
+		                   ->where('[id_mode] IS NULL')
+		                   ->fetchAllDto(MinimalGameRow::class, cache: false);
 		foreach ($rows as $row) {
 			$game = GameFactory::getById($row->id_game, ['system' => $row->system]);
 			$game?->getMode();
 			$game?->save();
 		}
-		$this->respond(['status' => 'ok']);
+		return $this->respond(new SuccessResponse());
 	}
 
+	/**
+	 * @throws ValidationException
+	 * @throws GameModeNotFoundException
+	 */
 	#[OA\Post(
 		path       : "/api/devtools/regression",
 		operationId: "updateRegressionModels",
@@ -460,40 +483,13 @@ class DevController extends ApiController
 			type      : "object",
 		),
 	)]
-	public function updateRegressionModels(): void {
+	public function updateRegressionModels(): ResponseInterface {
 		$arenas = Arena::getAll();
 		$modes = GameModeFactory::getAll(['rankable' => false]);
-		foreach ($arenas as $arena) {
-			$calculator = new RegressionStatCalculator($arena);
 
-			$calculator->updateHitsModel(GameModeType::SOLO);
-			$calculator->updateDeathsModel(GameModeType::SOLO);
-			for ($teamCount = 2; $teamCount < 7; $teamCount++) {
-				$calculator->updateHitsModel(GameModeType::TEAM, teamCount: $teamCount);
-				$calculator->updateDeathsModel(GameModeType::TEAM, teamCount: $teamCount);
-				$calculator->updateHitsOwnModel(teamCount: $teamCount);
-				$calculator->updateDeathsOwnModel(teamCount: $teamCount);
-			}
-			foreach ($modes as $mode) {
-				try {
-					if ($mode->type === GameModeType::TEAM) {
-						for ($teamCount = 2; $teamCount < 7; $teamCount++) {
-							$calculator->updateHitsModel($mode->type, $mode, $teamCount);
-							$calculator->updateDeathsModel($mode->type, $mode, $teamCount);
-							$calculator->updateHitsOwnModel($mode, $teamCount);
-							$calculator->updateDeathsOwnModel($mode, $teamCount);
-						}
-					}
-					else {
-						$calculator->updateHitsModel($mode->type, $mode);
-						$calculator->updateDeathsModel($mode->type, $mode);
-					}
-				} catch (InsuficientRegressionDataException) {
-				}
-			}
-		}
+		RegressionStatCalculator::updateAll($arenas, $modes);
 
-		$this->respond(['status' => 'Updated all regression models']);
+		return $this->respond(['status' => 'Updated all regression models']);
 	}
 
 
@@ -525,17 +521,20 @@ class DevController extends ApiController
 			type      : "object"
 		),
 	)]
-	public function generateSitemap(): never {
+	public function generateSitemap(): ResponseInterface {
 		$content = SitemapGenerator::generate();
-		$this->respond(
+		return $this->respond(
 			[
-				'status'  => 'ok',
-				'sitemapUrl' => str_replace(ROOT, App::getUrl(), SitemapGenerator::SITEMAP_FILE),
-				'content' => $content,
+				'status'     => 'ok',
+				'sitemapUrl' => str_replace(ROOT, $this->app->getBaseUrl(), SitemapGenerator::SITEMAP_FILE),
+				'content'    => $content,
 			]
 		);
 	}
 
+	/**
+	 * @throws FileException
+	 */
 	#[OA\Post(
 		path       : "/api/devtools/images/optimize",
 		operationId: "generateOptimizedUploads",
@@ -551,7 +550,7 @@ class DevController extends ApiController
 			items: new OA\Items(type: "string"),
 		),
 	)]
-	public function generateOptimizedUploads(): never {
+	public function generateOptimizedUploads(): ResponseInterface {
 		$imageService = App::getServiceByType(ImageService::class);
 
 		$Directory = new RecursiveDirectoryIterator(UPLOAD_DIR);
@@ -571,7 +570,7 @@ class DevController extends ApiController
 			$files[] = $file;
 		}
 
-		$this->respond($files);
+		return $this->respond($files);
 	}
 
 }

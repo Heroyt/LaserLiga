@@ -10,6 +10,7 @@ export type GamePlayerDistributionResponse = {
     min: number,
     max: number,
     value: number,
+    valueReal: number,
 };
 
 export async function getGameHighlights(gameCode: string): Promise<GameHighlightResponse> {
@@ -25,5 +26,5 @@ export async function getGamePlayerResults(gameCode: string, playerId: number): 
 }
 
 export async function getGamePlayerDistribution(gameCode: string, playerId: number, distributionParameter: string, dates: string): Promise<GamePlayerDistributionResponse> {
-    return fetchGet(`/game/${gameCode}/player/${playerId}/distribution/${distributionParameter}?dates=${dates}`);
+    return fetchGet(`/game/${gameCode}/player/${playerId}/distribution/${distributionParameter}`, {dates});
 }

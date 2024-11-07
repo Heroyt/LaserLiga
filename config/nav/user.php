@@ -1,19 +1,18 @@
 <?php
 
 use App\Models\Auth\User;
+use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 
+$fontawesome = App::getService('fontawesome');
+assert($fontawesome instanceof FontAwesomeManager, 'Invalid service type from DI');
+
 $nav = [
-	[
-		'name' => lang('Žebříček'),
-		'route' => 'player-leaderboard',
-		'icon' => 'fa-solid fa-ranking-star',
-	],
 	[
 		'name' => lang('Moje hry'),
 		'route' => 'my-game-history',
-		'icon' => 'fa-solid fa-gun',
+		'icon' => $fontawesome->solid('gun'),
 	],
 ];
 
@@ -24,7 +23,7 @@ if (!empty($user->player?->getTournaments() ?? [])) {
 	$nav[] = [
 		'name' => lang('Moje turnaje'),
 		'route' => 'my-tournaments',
-		'icon' => 'fa-solid fa-trophy',
+		'icon' => $fontawesome->solid('trophy'),
 	];
 }
 

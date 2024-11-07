@@ -1,11 +1,4 @@
-{parameters
-    \App\Models\Auth\User|null $user,
-    App\GameModels\Game\Game $game,
-    App\GameModels\Game\Player $player,
-    App\GameModels\Game\Today $today,
-    int $maxShots,
-    App\Models\Achievements\PlayerAchievement[] $achievements = []
-}
+{templateType App\Templates\Games\GamePlayerParameters}
 
 {block playerBody}
     <div class="player-actions">
@@ -22,7 +15,7 @@
                 <a href="{link ['user', $player->user->getCode()]}" class="btn btn-primary"
                    data-toggle="tooltip" title="{lang 'Profil hráče'}"
                    data-content-piece="Profile">
-                    <i class="fa-solid fa-user"></i>
+                    {faSolid 'user'}
                     {lang 'Profil hráče'}
                 </a>
             </p>
@@ -51,7 +44,7 @@
     {var array $trophies = $player->getAllBestAt()}
     <div class="player-trophies text-center mb-3" data-content-piece="Trophies">
         <h4 class="caption">
-            <i class="fa-solid fa-trophy"></i>
+            {faSolid 'trophy'}
             {lang 'Získané trofeje', context: 'results.bests'} ({$trophies|length}):
         </h4>
         <div class="trophies">
@@ -67,11 +60,11 @@
         <button type="button" class="btn btn-info mt-2 shadow-sm" data-toggle="tooltip"
                 title="{lang 'Zobrazit dostupné trofeje', context: 'results.bests'}" data-bs-toggle="modal"
                 data-bs-target="#trophy-modal" data-track-content="" data-content-name="Results - Trophies">
-            <i class="fa-solid fa-info"></i> {lang 'Zobrazit všechny trofeje', context: 'results.bests'}
+            {faSolid 'info'} {lang 'Zobrazit všechny trofeje', context: 'results.bests'}
         </button>
         {if !empty($achievements)}
             <h4 class="caption mt-3">
-                <i class="fa-solid fa-trophy"></i>
+                {faSolid 'trophy'}
                 {lang 'Získaná ocenění', context: 'results.achievements'} ({$achievements|length}):
             </h4>
             <div class="achievements d-flex flex-wrap justify-content-center align-items-center">
@@ -94,7 +87,7 @@
             <div class="col-12 col-md-6">
                 <h5 class="border-bottom py-2 mt-3" {ifset $diff}style="line-height: 2.4;"{/ifset}>
                     {lang 'Skóre'}: {$player->score|number:0,',','&nbsp;'|noescape}
-                    <i class="fa-solid fa-star"></i>
+                    {faSolid 'star'}
                 </h5>
                 {var int $hitScore = ($game->getMode()->isSolo() || !isset($player->hitsOther) ? $player->hits : $player->hitsOther) * $game->scoring->hitOther}
                 {include playerScoreDetailPart 'Zásahy', $hitScore}
@@ -120,14 +113,13 @@
             <div class="col-12 col-md-6">
                 <h5 class="border-bottom py-2 mt-3">
                     {lang 'Herní úroveň'}: {$player->getSkill()|number:0,',','&nbsp;'|noescape}
-                    <i class="fa-solid fa-medal"></i>
+                    {faSolid 'medal'}
                     {ifset $diff}
                         <br>
                         <span class="fs-6">
 							({sprintf(lang('%s k herní úrovni hráče'), ($diff > 0 ? '+' : '') . number_format($diff,2,',',''))})
 							<button class="btn btn-secondary show-elo-info" data-id="{$player->id}"
-                                    data-code="{$game->code}" data-player="{$player->name}"><i
-                                        class="fa-solid fa-question"></i></button>
+                                    data-code="{$game->code}" data-player="{$player->name}">{faSolid 'question'}</button>
 						</span>
                     {/ifset}
                 </h5>
@@ -147,7 +139,7 @@
         {lang $label}:
         <span n:class="$score > 0 ? text-success, $score < 0 ? text-danger">
 			{if $score > 0}+{/if}{$score|number:0,',','&nbsp;'|noescape}
-			<i class="fa-solid fa-star"></i>
+			{faSolid 'star'}
 		</span>
     </p>
 {/define}
@@ -160,13 +152,12 @@
             {case 'kd'} {lang 'K:D'}:
             {case 'accuracy'} {lang 'Přesnost'}:
             {case 'bonuses'} {lang 'Bonusy'}:
-            {case 'rounding'} <i class="fa-solid fa-circle-question" data-toggle="tooltip"
-                                 title="{lang 'Zohlednění vašich protihráčů. Pokud hrajete proti slabším, vaše herní úroveň se sníží. Naopak, pokud hrajete proti silným hráčům, vaše herní úroveň se zvýší.'}"></i>
+            {case 'rounding'} {faSolid 'circle-question', '', ['data-toggle' => 'tooltip', 'title' => lang('Zohlednění vašich protihráčů. Pokud hrajete proti slabším, vaše herní úroveň se sníží. Naopak, pokud hrajete proti silným hráčům, vaše herní úroveň se zvýší.')]}
             {lang 'Srovnání s protihráči'}:
         {/switch}
         <span n:class="$skill > 0 ? text-success, $skill < 0 ? text-danger">
 			{if $skill > 0}+{/if}{round($skill)|number:0,',','&nbsp;'|noescape}
-			<i class="fa-solid fa-medal"></i>
+			{faSolid 'medal'}
 		</span>
     </p>
 {/define}
@@ -434,23 +425,24 @@
 {/define}
 
 {define playerToday, App\GameModels\Game\Player $player, App\GameModels\Game\Game $game, App\GameModels\Game\Today $today}
-    <div class="player-today mt-4" data-content-piece="Today">
+    <div class="player-today mt-4" data-content-piece="Today" id="player-{$player->id}-today">
         <h4 class="caption">
-            <i class="fa-solid fa-calendar"></i><br>
+            {faSolid 'calendar'}<br>
             {lang 'Dnešní pořadí podle', context: 'results.today'}:
         </h4>
         <p class="fs-sm">
-            <i class="fas fa-info-circle"></i><br>
+            {faSolid 'circle-info'}<br>
             {lang 'Klikněte níže na okénko pro zobrazení tabulky dnešního pořadí.', context: 'results.today'}
         </p>
         <div class="categories">
             {var string $order = $today->getPlayerOrder($player,'score')}
-            <div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+            <a role="button" href="#player-{$player->id}-today" data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
                  class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+               aria-label="{lang 'Zobrazit dnešní pořadí', context: 'results.today'} - {lang 'Skóre', context: 'results.today'}"
                  data-track-content="" data-content-name="Results - Leaderboard"
                  data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'score', 'highlight' => $player->id]}"
                  data-category="score" data-player="{$player->name}"
@@ -462,14 +454,15 @@
                 <div class="position">
                     {$order}.
                 </div>
-            </div>
+            </a>
             {do $order = $today->getPlayerOrder($player,'accuracy')}
-            <div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+            <a role="button" href="#player-{$player->id}-today" data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
                  class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+               aria-label="{lang 'Zobrazit dnešní pořadí', context: 'results.today'} - {lang 'Přesnosti', context: 'results.today'}"
                  data-track-content="" data-content-name="Results - Leaderboard"
                  data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'accuracy', 'highlight' => $player->id]}"
                  data-category="accuracy" data-player="{$player->name}"
@@ -481,14 +474,15 @@
                 <div class="position">
                     {$order}.
                 </div>
-            </div>
+            </a>
             {do $order = $today->getPlayerOrder($player,'hits')}
-            <div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+            <a role="button" href="#player-{$player->id}-today" data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
                  class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+               aria-label="{lang 'Zobrazit dnešní pořadí', context: 'results.today'} - {lang 'Zásahů', context: 'results.today'}"
                  data-track-content="" data-content-name="Results - Leaderboard"
                  data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'hits', 'highlight' => $player->id]}"
                  data-category="hits" data-player="{$player->name}"
@@ -500,14 +494,15 @@
                 <div class="position">
                     {$order}.
                 </div>
-            </div>
+            </a>
             {do $order = $today->getPlayerOrder($player,'deaths')}
-            <div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+            <a role="button" href="#player-{$player->id}-today" data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
                  class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+               aria-label="{lang 'Zobrazit dnešní pořadí', context: 'results.today'} - {lang 'Smrtí', context: 'results.today'}"
                  data-track-content="" data-content-name="Results - Leaderboard"
                  data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'deaths', 'highlight' => $player->id]}"
                  data-category="deaths" data-player="{$player->name}"
@@ -519,14 +514,15 @@
                 <div class="position">
                     {$order}.
                 </div>
-            </div>
+            </a>
             {do $order = $today->getPlayerOrder($player,'shots')}
-            <div data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
+            <a role="button" href="#player-{$player->id}-today" data-toggle="tooltip" title="{lang 'Zobrazit dnešní pořadí', context: 'results.today'}"
                  class="today-category btn btn-very-light shadow-sm m-2 show-leaderboard {switch $order}
 			{case 1} text-gold
 			{case 2} text-dark-silver
 			{case 3} text-bronze
 		   {/switch}"
+               aria-label="{lang 'Zobrazit dnešní pořadí', context: 'results.today'} - {lang 'Výstřelů', context: 'results.today'}"
                  data-track-content="" data-content-name="Results - Leaderboard"
                  data-content-target="{link ['players', 'leaderboard', $game::SYSTEM, $game->start->format('Y-m-d'), 'shots', 'highlight' => $player->id]}"
                  data-category="shots" data-player="{$player->name}"
@@ -538,20 +534,23 @@
                 <div class="position">
                     {$order}.
                 </div>
-            </div>
+            </a>
         </div>
 
         <h4 class="caption mt-4">
-            <i class="fa-solid fa-chart-simple"></i>
+            {faSolid 'chart-simple'}
             {lang 'Umístění v žebříčku'}
         </h4>
         <p class="fs-sm">
-            <i class="fas fa-info-circle"></i><br>
+            {faSolid 'circle-info'}<br>
             {lang 'Klikněte níže na okénko pro zobrazení grafu vašeho umístění.', context: 'results.today'}
         </p>
-        <div class="categories">
-            <div n:foreach="App\Services\PlayerDistribution\DistributionParam::cases() as $case" data-toggle="tooltip"
+        <div class="categories" id="player-{$player->id}-ranking">
+            <a n:foreach="App\Services\PlayerDistribution\DistributionParam::cases() as $case" data-toggle="tooltip"
+                                                                                               role="button"
+                                                                                               href="#player-{$player->id}-ranking"
                                                                                                  title="{lang 'Zobrazit umístění', context: 'results.today'}"
+                                                                                                 aria-label="{lang 'Umístění v žebříčku'} - {$case->readableName()}"
                                                                                                  class="today-category btn btn-very-light shadow-sm m-2 show-distribution"
                                                                                                  data-id="{$player->id}"
                                                                                                  data-name="{$player->name}"
@@ -561,7 +560,7 @@
                     {svgIcon $case->getIcon(), '2em'}<br>
                     {$case->readableName()}
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 {/define}

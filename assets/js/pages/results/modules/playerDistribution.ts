@@ -57,6 +57,11 @@ export default class DistributionModule implements DistributionModuleInterface {
                             display: false,
                             suggestedMin: 0,
                             suggestedMax: 100,
+                            grace: 0,
+                            offset: false,
+                            ticks: {
+                                includeBounds: false,
+                            }
                         }
                     },
                     plugins: {
@@ -126,8 +131,9 @@ export default class DistributionModule implements DistributionModuleInterface {
             this.chart.options.plugins.annotation.annotations.percentile.value = response.value;
             // @ts-ignore
             this.chart.options.plugins.annotation.annotations.percentile.endValue = response.value;
+            const percentileLabel = (response.percentile > 50 ? `${this.canvas.dataset.top} ${100 - response.percentile} %` : `${this.canvas.dataset.bottom} ${response.percentile} %`) + ` (${response.valueReal.toLocaleString()})`;
             // @ts-ignore
-            this.chart.options.plugins.annotation.annotations.percentile.label.content = response.percentile > 50 ? `${this.canvas.dataset.top} ${100 - response.data.percentile} %` : `${this.canvas.dataset.bottom} ${response.data.percentile} %`;
+            this.chart.options.plugins.annotation.annotations.percentile.label.content = percentileLabel;
 
             console.log(this.chart.options.plugins.annotation, this.chart.data);
             this.chart.scales.x1.configure();
@@ -137,6 +143,7 @@ export default class DistributionModule implements DistributionModuleInterface {
             }, 500);
             stopLoading(true);
         } catch (e) {
+            console.error(e);
             stopLoading(false);
         }
     }

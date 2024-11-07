@@ -2,10 +2,16 @@
 
 namespace App\Core\Middleware;
 
+use App\Exceptions\AuthHeaderException;
 use App\Models\Arena;
+use Lsr\Core\App;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Routing\Middleware;
-use Lsr\Interfaces\RequestInterface;
-use RuntimeException;
+use Lsr\Core\Routing\MiddlewareResponder;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Middleware for checking a valid API key
@@ -14,24 +20,26 @@ use RuntimeException;
  */
 class ApiToken implements Middleware
 {
+	use MiddlewareResponder;
 
 	private static string $bearerToken;
 
 	/**
 	 * @return string
+	 * @throws AuthHeaderException
 	 */
-	public static function getBearerToken() : string {
+	public static function getBearerToken(): string {
 		if (!isset(self::$bearerToken)) {
-			$headers = apache_request_headers();
-			$auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+			$request = App::getInstance()->getRequest();
+			$auth = $request->getHeader('authorization');
 			if (empty($auth)) {
-				throw new RuntimeException('Missing Authorization header.' . json_encode($headers));
+				throw new AuthHeaderException('Missing Authorization header.');
 			}
-			preg_match('/([a-zA-Z\d]+) (.*)/', $auth, $matches);
+			preg_match('/([a-zA-Z\d]+) (.*)/', $auth[0], $matches);
 			$authMethod = strtolower($matches[1] ?? '');
 			$authParams = trim($matches[2] ?? '');
 			if ($authMethod !== 'bearer') {
-				throw new RuntimeException('Unsupported authorization scheme.');
+				throw new AuthHeaderException('Unsupported authorization scheme.');
 			}
 			self::$bearerToken = $authParams;
 		}
@@ -42,35 +50,34 @@ class ApiToken implements Middleware
 	 * @inheritDoc
 	 * @throws \JsonException
 	 */
-	public function handle(RequestInterface $request) : bool {
-		$headers = apache_request_headers();
-		$auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
+		$auth = $request->getHeader('authorization');
 		if (empty($auth)) {
-			http_response_code(401);
-			header('Content-type: application/json');
-			echo json_encode(['error' => 'Missing Authorization header', 'headers' => $headers],
-			                 JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-			exit;
+			return $this->respond($request, new ErrorResponse('Missing Authorization header', ErrorType::ACCESS));
 		}
 
-		preg_match('/([a-zA-Z\d]+) (.*)/', $auth, $matches);
+		preg_match('/([a-zA-Z\d]+) (.*)/', $auth[0], $matches);
 		$authMethod = strtolower($matches[1] ?? '');
 		$authParams = trim($matches[2] ?? '');
 		if ($authMethod !== 'bearer') {
-			http_response_code(400);
-			header('Content-type: application/json');
-			echo json_encode(['error' => 'Unsupported authorization scheme.', 'supportedSchemes' => ['Bearer']], JSON_THROW_ON_ERROR);
-			exit;
+			return $this->respond(
+				$request,
+				new ErrorResponse(
+					        'Unsupported authorization scheme.',
+					        ErrorType::VALIDATION,
+					values: ['supportedSchemes' => ['Bearer']]
+				)
+			);
 		}
 
 		self::$bearerToken = $authParams;
 		if (Arena::checkApiKey($authParams) !== null) {
-			return true;
+			return $handler->handle($request);
 		}
 
-		http_response_code(401);
-		header('Content-type: application/json');
-		echo json_encode(['error' => 'Invalid token.'], JSON_THROW_ON_ERROR);
-		exit;
+		return $this->respond(
+			$request,
+			new ErrorResponse('Invalid token.', ErrorType::ACCESS),
+		);
 	}
 }

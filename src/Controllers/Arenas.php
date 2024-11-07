@@ -3,12 +3,17 @@
 namespace App\Controllers;
 
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
-use App\Models\Auth\LigaPlayer;
+use App\Models\DataObjects\Game\MinimalGameRow;
+use App\Models\DataObjects\MusicGroup;
 use App\Models\MusicMode;
+use App\Services\ArenaStatsAggregator;
+use App\Templates\Arena\ArenaGamesParameters;
+use App\Templates\Arena\ArenaListParameters;
+use App\Templates\Arena\ArenaParameters;
 use DateInterval;
-use DateTime;
 use DateTimeImmutable;
 use Dibi\Row;
 use Exception;
@@ -16,24 +21,34 @@ use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Requests\Request;
+use Psr\Http\Message\ResponseInterface;
 
 class Arenas extends Controller
 {
 
-	public function list() : void {
-		$this->params['breadcrumbs'] = [
+	public function __construct(
+		private readonly ArenaStatsAggregator $statsAggregator,
+	) {
+		parent::__construct();
+	}
+
+	public function list() : ResponseInterface {
+		$this->params = new ArenaListParameters($this->params);
+		$this->params->breadcrumbs = [
 			'Laser Liga'  => [],
 			lang('Arény') => ['arena'],
 		];
 		$this->title = 'Seznam arén';
 		$this->description = 'Seznam všech laser game arén, registrovaných v LaserLize.';
 
-		$this->params['arenas'] = Arena::getAllVisible();
-		$this->view('pages/arenas/index');
+		$this->params->arenas = Arena::getAllVisible();
+		return $this->view('pages/arenas/index');
 	}
 
-	public function show(Arena $arena, Request $request) : void {
-		$this->params['breadcrumbs'] = [
+	public function show(Arena $arena, Request $request) : ResponseInterface {
+		assert($arena->id !== null, 'Missing arena ID');
+		$this->params = new ArenaParameters($this->params);
+		$this->params->breadcrumbs = [
 			'Laser Liga'  => [],
 			lang('Arény') => ['arena'],
 			$arena->name  => ['arena', $arena->id],
@@ -43,73 +58,54 @@ class Arenas extends Controller
 		$this->description = 'Souhrnné statistiky a informace o aréně - %s';
 		$this->descriptionParams[] = $arena->name;
 
-		$tab = $request->path[4] ?? '';
+		$tab = $request->getPath()[3] ?? '';
 		switch ($tab) {
 			case 'stats':
-				$_GET['tab'] = 'stats';
+				$this->params->tab = 'stats';
 				break;
 			case 'music':
-				$_GET['tab'] = 'music';
+				$this->params->tab = 'music';
 				break;
 			case 'tournaments':
-				$_GET['tab'] = 'tournaments';
+				$this->params->tab = 'tournaments';
 				break;
 			case 'info':
-				$_GET['tab'] = 'info';
+				$this->params->tab = 'info';
 				break;
 			case 'games':
-				$_GET['tab'] = 'games';
+				$this->params->tab = 'games';
 				break;
 		}
 
-		$this->params['arena'] = $arena;
-		$queries = [];
-		$this->params['date'] = isset($_GET['date']) ? new DateTime($_GET['date']) : null;
-		$today = new DateTime($_GET['date'] ?? 'now');
-		foreach (GameFactory::getSupportedSystems() as $key => $system) {
-			/** @var int[] $gameIds */
-			$gameIds = $arena->getGameIds($today, $system);
-			$playerTable = $system.'_players';
-			$gameTable = $system.'_games';
-			$queries[] = DB::select(
-				[$playerTable, 'p'.$key],
-				'[p' . $key . '].[id_player],
-			[p' . $key . '].[id_user],
-			[g' . $key . '].[id_game],
-			[g' . $key . '].[start] as [date],
-			[g' . $key . '].[code] as [game_code],
-			[p'.$key.'].[name],
-			[p'.$key.'].[skill],
-			(('.DB::select([$playerTable, 'pp1'.$key], 'COUNT(*) as [count]')
-					->where('[pp1'.$key.'].%n IN %in', 'id_game', $gameIds)
-					->where('[pp1'.$key.'].%n > [p'.$key.'].%n', 'skill', 'skill').')+1) as [better],
-			(('.DB::select([$playerTable, 'pp2'.$key], 'COUNT(*) as [count]')
-					->where('[pp2'.$key.'].%n IN %in', 'id_game', $gameIds)
-					->where('[pp2'.$key.'].%n = [p'.$key.'].%n', 'skill', 'skill').')-1) as [same]',
-			)
-										 ->join($gameTable, 'g'.$key)->on('[p'.$key.'].[id_game] = [g'.$key.'].[id_game]')
-										 ->where('[g'.$key.'].%n IN %in', 'id_game', $gameIds);
+		$this->params->arena = $arena;
+		$date = $request->getGet('date');
+		if (!is_string($date)) {
+			$date = null;
 		}
-		$query = (new Fluent(
-			DB::getConnection()
-				->select('[p].*, [u].[id_arena], [u].[code]')
-				->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [p]')
-				->leftJoin(LigaPlayer::TABLE, 'u')->on('[p].[id_user] = [u].[id_user]')
-		))->cacheTags('players', 'arena-players', 'best-players', 'leaderboard', 'arena/'.$arena->id.'/leaderboard/'.$today->format('Y-m-d'), 'arena/'.$arena->id.'/games/'.$today->format('Y-m-d'));
-		$this->params['players'] = $query->orderBy('skill')->desc()->limit(20)->fetchAll();
-		$this->params['todayGames'] = $arena->queryGames($today)->cacheTags('games', 'games-'.$today->format('Y-m-d'), 'arena/'.$arena->id.'/games/'.$today->format('Y-m-d'))->count();
-		$this->params['todayPlayers'] = $this->params['todayGames'] === 0 ? 0 : $arena->queryPlayers($today)->cacheTags('players', 'games-'.$today->format('Y-m-d'), 'arena/'.$arena->id.'/games/'.$today->format('Y-m-d'))->count();
-		$this->params['music'] = MusicMode::getAll($arena);
+		$this->params->date = $date !== null ? new DateTimeImmutable($date) : null;
+		$today = new DateTimeImmutable($date ?? 'now');
+
+		$this->params->players = $this->statsAggregator->getArenaDayPlayerLeaderboard($arena, $today);
+		$this->params->todayGames = $this->statsAggregator->getArenaDateGameCount($arena, $today);
+		$this->params->todayPlayers = $this->params->todayGames === 0 ? 0 : $this->statsAggregator->getArenaDatePlayerCount($arena, $today);
+
+		$this->params->music = [];
+		foreach (MusicMode::getAll($arena) as $music) {
+			$group = $music->group ?? $music->name;
+			$this->params->music[$group] ??= new MusicGroup($group);
+			$this->params->music[$group]->music[] = $music;
+		}
 
 		$this->getArenaGames($arena, $request);
 
-		$this->view('pages/arenas/arena');
+		return $this->view('pages/arenas/arena');
 	}
 
-	public function games(Arena $arena, Request $request) : void {
-		$this->params['arena'] = $arena;
+	public function games(Arena $arena, Request $request) : ResponseInterface {
+		$this->params = new ArenaGamesParameters($this->params);
+		$this->params->arena = $arena;
 		$this->getArenaGames($arena, $request);
-		$this->view('partials/arena/games');
+		return $this->view('partials/arena/games');
 	}
 
 	private function getArenaGames(Arena $arena, Request $request) : void {
@@ -122,17 +118,16 @@ class Arenas extends Controller
 		$page = (int) $request->getGet('p', 1);
 		$limit = (int) $request->getGet('l', 15);
 		$total = $query->count();
-		$pages = ceil($total / $limit);
+		$pages = (int) ceil($total / $limit);
 		$query->limit($limit)->offset(($page - 1) * $limit);
 
 		// Order by
 		$allowedOrderFields = ['start', 'modeName', 'id_arena'];
 		$orderBy = $request->getGet('orderBy', 'start');
-		$query->orderBy(
-			is_string($orderBy) && in_array($orderBy, $allowedOrderFields, true) ?
-				$orderBy :
-				'start' // Default
-		);
+		if (!is_string($orderBy) || !in_array($orderBy, $allowedOrderFields, true)) {
+			$orderBy = 'start';
+		}
+		$query->orderBy($orderBy);
 		$desc = $request->getGet('dir', 'desc');
 		$desc = !is_string($desc) || strtolower($desc) === 'desc'; // Default true -> the latest game should be first
 		if ($desc) {
@@ -144,27 +139,31 @@ class Arenas extends Controller
 		$rows = $query->fetchAssoc('code');
 		$games = [];
 		foreach ($rows as $gameCode => $row) {
-			$games[$gameCode] = GameFactory::getByCode($gameCode);
+			/** @var Game $game */
+			$game = GameFactory::getByCode($gameCode);
+			$games[$gameCode] = $game;
 		}
 
 		// Available dates
-		$rowsDates = $arena->queryGames()->groupBy('DATE([start])')->fetchAll();
+		$rowsDates = $arena->queryGames()->groupBy('DATE([start])')->fetchAllDto(MinimalGameRow::class);
+		/** @var array<string,bool> $dates */
 		$dates = [];
 		foreach ($rowsDates as $row) {
 			$dates[$row->start->format('d.m.Y')] = true;
 		}
 
 		// Set params
-		$this->params['dates'] = $dates;
-		$this->params['games'] = $games;
-		$this->params['p'] = $page;
-		$this->params['pages'] = $pages;
-		$this->params['limit'] = $limit;
-		$this->params['total'] = $total;
-		$this->params['orderBy'] = $orderBy;
-		$this->params['desc'] = $desc;
-		$this->params['modeIds'] = $modeIds;
-		$this->params['date'] = $date;
+		assert($this->params instanceof ArenaParameters || $this->params instanceof ArenaGamesParameters, 'Invalid parameters');
+		$this->params->dates = $dates;
+		$this->params->games = $games;
+		$this->params->p = $page;
+		$this->params->pages = $pages;
+		$this->params->limit = $limit;
+		$this->params->total = $total;
+		$this->params->orderBy = $orderBy;
+		$this->params->desc = $desc;
+		$this->params->modeIds = $modeIds;
+		$this->params->date = $date;
 	}
 
 	/**
@@ -197,9 +196,14 @@ class Arenas extends Controller
 		return [$modeIds, $dateObj];
 	}
 
-	public function gameModesStats(Arena $arena) : never {
-		$gamesQuery = $arena->queryGames(isset($_GET['date']) ? new DateTime($_GET['date']) : null, extraFields: ['id_mode']);
-		$this->statFilter($gamesQuery);
+	public function gameModesStats(Arena $arena, Request $request) : ResponseInterface {
+		$date = $request->getGet('date');
+		if (!is_string($date)) {
+			$date = null;
+		}
+		$date = $date !== null ? new DateTimeImmutable($date) : null;
+		$gamesQuery = $arena->queryGames($date, extraFields: ['id_mode']);
+		$this->statFilter($gamesQuery, $request);
 		$query = new Fluent(
 			DB::getConnection()
 				->select('[a].[id_mode], COUNT([a].[id_mode]) as [count], [b].[name]')
@@ -208,19 +212,21 @@ class Arenas extends Controller
 				->on('[a].[id_mode] = [b].[id_mode]')
 				->groupBy('id_mode')
 		);
+		/** @var array<string, int> $data */
 		$data = $query->cacheTags('games', 'arena-stats')->fetchPairs('name', 'count');
 		$return = [];
 		foreach ($data as $name => $count) {
 			$return[lang($name, context: 'gameModes')] = $count;
 		}
-		$this->respond($return);
+		return $this->respond($return);
 	}
 
-	private function statFilter(Fluent $query) : void {
-		if (isset($_GET['week'])) {
+	private function statFilter(Fluent $query, Request $request) : void {
+		$week = $request->getGet('week');
+		if (is_string($week) || is_numeric($week)) {
 			try {
-				$date = new DateTimeImmutable($_GET['week']);
-			} catch (Exception $e) {
+				$date = new DateTimeImmutable($week);
+			} catch (Exception) {
 				$date = new DateTimeImmutable();
 			}
 			$day = (int) $date->format('N');
@@ -231,9 +237,10 @@ class Arenas extends Controller
 			} catch (Exception) {
 			}
 		}
-		if (isset($_GET['month'])) {
+		$month = $request->getGet('month');
+		if (is_string($month) || is_numeric($month)) {
 			try {
-				$date = new DateTimeImmutable($_GET['month']);
+				$date = new DateTimeImmutable($month);
 			} catch (Exception $e) {
 				bdump($e);
 				$date = new DateTimeImmutable();
@@ -250,10 +257,15 @@ class Arenas extends Controller
 		}
 	}
 
-	public function musicModesStats(Arena $arena) : never {
-		$gamesQuery = $arena->queryGames(isset($_GET['date']) ? new DateTime($_GET['date']) : null, extraFields: ['id_music'])
+	public function musicModesStats(Arena $arena, Request $request) : ResponseInterface {
+		$date = $request->getGet('date');
+		if (!is_string($date)) {
+			$date = null;
+		}
+		$date = $date !== null ? new DateTimeImmutable($date) : null;
+		$gamesQuery = $arena->queryGames($date, extraFields: ['id_music'])
 			->where('[id_music] IS NOT NULL');
-		$this->statFilter($gamesQuery);
+		$this->statFilter($gamesQuery, $request);
 		$query = new Fluent(
 			DB::getConnection()
 				->select('[a].[id_music], COUNT([a].[id_music]) as [count], [b].[name]')
@@ -262,8 +274,9 @@ class Arenas extends Controller
 				->on('[a].[id_music] = [b].[id_music]')
 				->groupBy('id_music')
 		);
+		/** @var array<string, int> $data */
 		$data = $query->cacheTags('games', 'arena-stats')->fetchPairs('name', 'count');
-		$this->respond($data);
+		return $this->respond($data);
 	}
 
 }

@@ -16,6 +16,7 @@ use App\Models\Tournament\Stats;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use App\Services\EventRegistrationService;
+use App\Services\Turnstile;
 use Exception;
 use Lsr\Core\App;
 use Lsr\Core\Controllers\Controller;
@@ -23,36 +24,38 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\AuthInterface;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Logger;
+use Psr\Http\Message\ResponseInterface;
 
 class TournamentController extends Controller
 {
+	use CaptchaValidation;
 
 	private Logger $logger;
 
 	/**
-	 * @param Latte                    $latte
 	 * @param AuthInterface<User>      $auth
 	 * @param EventRegistrationService $eventRegistrationService
+	 * @param Turnstile                $turnstile
 	 */
 	public function __construct(
-		Latte                                     $latte,
 		private readonly AuthInterface            $auth,
 		private readonly EventRegistrationService $eventRegistrationService,
+		private readonly Turnstile                $turnstile,
 	) {
-		parent::__construct($latte);
+		parent::__construct();
 	}
 
 	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->params['user'] = $this->auth->getLoggedIn();
+		$this->params['turnstileKey'] = $this->turnstile->getKey();
 	}
 
-	public function show(): void {
+	public function show(): ResponseInterface {
 		$this->title = 'Plánované turnaje';
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'    => [],
@@ -60,10 +63,10 @@ class TournamentController extends Controller
 		];
 		$this->description = 'Turnaje plánované v laser arénách, které budou probíhat v následujících měsících.';
 		$this->params['tournaments'] = Tournament::query()->where('DATE([start]) > CURDATE()')->orderBy('start')->get();
-		$this->view('pages/tournament/index');
+		return $this->view('pages/tournament/index');
 	}
 
-	public function detail(Tournament $tournament): void {
+	public function detail(Tournament $tournament): ResponseInterface {
 		$this->title = 'Turnaj %s %s - %s';
 		$this->titleParams[] = $tournament->arena->name;
 		$this->titleParams[] = $tournament->start->format('d.m.Y');
@@ -88,7 +91,7 @@ class TournamentController extends Controller
 		$this->params['results'] = $this->latteResults($tournament);
 
 		$this->params['stats'] = Stats::getForTournament($tournament, true);
-		$this->view('pages/tournament/detail');
+		return $this->view('pages/tournament/detail');
 	}
 
 	private function latteRules(Tournament $tournament): string {
@@ -107,14 +110,15 @@ class TournamentController extends Controller
 		return $this->latte->sandboxFromStringToString($tournament->resultsSummary, ['tournament' => $tournament]);
 	}
 
-	public function register(Tournament $tournament): void {
+	public function register(Tournament $tournament): ResponseInterface {
 		if ($tournament->league?->registrationType === RegistrationType::LEAGUE) {
-			App::redirect($tournament->league->getUrlPath('register'));
+			return $this->app->redirect($tournament->league->getUrlPath('register'));
 		}
 		$this->setRegisterTitleDescription($tournament);
 		if ($tournament->format === GameModeType::TEAM) {
-			$this->registerTeam($tournament);
+			return $this->registerTeam($tournament);
 		}
+		return $this->respond('');
 	}
 
 	private function setRegisterTitleDescription(Tournament $tournament): void {
@@ -137,16 +141,16 @@ class TournamentController extends Controller
 		$this->descriptionParams[] = $tournament->start->format('H:i');
 	}
 
-	private function registerTeam(Tournament $tournament): void {
+	private function registerTeam(Tournament $tournament): ResponseInterface {
 		$this->params['tournament'] = $tournament;
 		if (isset($this->params['user'])) {
 			$rank = $this->params['user']->player->stats->rank;
 			$_POST['players'] = [
 				0 => [
 					'nickname' => $this->params['user']->name,
-					'email' => $this->params['user']->email,
-					'user'  => $this->params['user']->player->getCode(),
-					'skill' => match (true) {
+					'email'    => $this->params['user']->email,
+					'user'     => $this->params['user']->player->getCode(),
+					'skill'    => match (true) {
 						$rank > 550 => PlayerSkill::PRO->value,
 						$rank > 400 => PlayerSkill::ADVANCED->value,
 						$rank > 200 => PlayerSkill::SOMEWHAT_ADVANCED->value,
@@ -155,28 +159,38 @@ class TournamentController extends Controller
 				],
 			];
 		}
-		$this->view('pages/tournament/registerTeam');
+		return $this->view('pages/tournament/registerTeam');
 	}
 
-	public function processRegister(Tournament $tournament, Request $request): void {
+	public function processRegister(Tournament $tournament, Request $request): ResponseInterface {
 		if ($tournament->format === GameModeType::TEAM) {
-			$this->processRegisterTeam($tournament, $request);
+			return $this->processRegisterTeam($tournament, $request);
 		}
-
+		return $this->respond('');
 	}
 
-	private function processRegisterTeam(Tournament $tournament, Request $request): void {
+	private function processRegisterTeam(Tournament $tournament, Request $request): ResponseInterface {
+		$this->validateCaptcha($request);
+		if (!empty($this->params['errors'])) {
+			$this->setRegisterTitleDescription($tournament);
+			$this->params['tournament'] = $tournament;
+			return $this->view('pages/tournament/registerTeam');
+		}
 		$previousTeam = null;
-		if (!empty($request->post['previousTeam'])) {
-			$previousTeam = Team::get((int)$request->post['previousTeam']);
+		/** @var numeric|null $prevTeamId */
+		$prevTeamId = $request->getPost('previousTeam');
+		if (!empty($prevTeamId)) {
+			$previousTeam = Team::get((int)$prevTeamId);
 		}
 		if (!isset($previousTeam)) {
 			$this->params['errors'] = $this->eventRegistrationService->validateRegistration($tournament, $request);
 		}
-		if (empty($_POST['gdpr'])) {
+		/** @var string|null $gdpr */
+		$gdpr = $request->getPost('gdpr');
+		if (empty($gdpr)) {
 			$this->params['errors']['gdpr'] = lang('Je potřeba souhlasit se zpracováním osobních údajů.');
 		}
-		if (isset($tournament->teamLimit) && count($tournament->getTeams()) >= $tournament->teamLimit) {
+		if (isset($tournament->teamLimit) && count($tournament->getTeams(true)) >= $tournament->teamLimit) {
 			$this->params['errors'][] = lang('Na turnaj se již nelze přihlásit. Turnaj je plný.');
 		}
 
@@ -252,7 +266,7 @@ class TournamentController extends Controller
 			if (!$this->eventRegistrationService->sendRegistrationEmail($team)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect(
+			return $this->app->redirect(
 				['tournament', 'registration', $tournament->id, $team->id, 'h' => $team->getHash()],
 				$request
 			);
@@ -260,7 +274,7 @@ class TournamentController extends Controller
 		DB::getConnection()->rollback();
 		$this->setRegisterTitleDescription($tournament);
 		$this->params['tournament'] = $tournament;
-		$this->view('pages/tournament/registerTeam');
+		return $this->view('pages/tournament/registerTeam');
 	}
 
 	private function processLogoUpload(): ?UploadedFile {
@@ -283,7 +297,7 @@ class TournamentController extends Controller
 		return $this->logger;
 	}
 
-	public function updateRegistration(Tournament $tournament, int $registration, Request $request): void {
+	public function updateRegistration(Tournament $tournament, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
 			$tournament->arena->name => ['arena', $tournament->arena->id],
@@ -307,16 +321,16 @@ class TournamentController extends Controller
 			);
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				App::redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', $tournament->id], $request);
 			}
 			if (!empty($request->params['hash'])) {
 				$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				App::redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', $tournament->id], $request);
 			}
-			$this->updateTeam($team, $request);
+			return $this->updateTeam($team, $request);
 		}
 	}
 
@@ -351,14 +365,14 @@ class TournamentController extends Controller
 		return false;
 	}
 
-	private function updateTeam(Team $team, Request $request): void {
+	private function updateTeam(Team $team, Request $request): ResponseInterface {
 		$this->params['team'] = $team;
 		$this->params['tournament'] = $team->tournament;
 
 		$this->params['values'] = [
-			'id'      => $team->id,
+			'id'        => $team->id,
 			'team-name' => $team->name,
-			'players' => [],
+			'players'   => [],
 		];
 		bdump($team->getPlayers());
 		foreach ($team->getPlayers() as $player) {
@@ -377,10 +391,10 @@ class TournamentController extends Controller
 			];
 		}
 
-		$this->view('pages/tournament/updateTeam');
+		return $this->view('pages/tournament/updateTeam');
 	}
 
-	public function processUpdateRegister(Tournament $tournament, int $registration, Request $request): void {
+	public function processUpdateRegister(Tournament $tournament, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
 			$tournament->arena->name => ['arena', $tournament->arena->id],
@@ -405,11 +419,11 @@ class TournamentController extends Controller
 			            ->first();
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				App::redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', $tournament->id], $request);
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				App::redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', $tournament->id], $request);
 			}
 			$this->params['errors'] = $this->eventRegistrationService->validateRegistration($tournament, $request);
 			if (empty($this->params['errors'])) {
@@ -464,14 +478,14 @@ class TournamentController extends Controller
 				if (!$this->eventRegistrationService->sendRegistrationEmail($team, true)) {
 					$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 				}
-				App::redirect($link, $request);
+				return $this->app->redirect($link, $request);
 			}
 			$this->params['team'] = $team;
 			$this->params['tournament'] = $team->tournament;
 			$this->params['values'] = $_POST;
 			DB::getConnection()->rollback();
-			$this->view('pages/tournament/updateTeam');
+			return $this->view('pages/tournament/updateTeam');
 		}
-
+		return $this->respond('');
 	}
 }

@@ -24,6 +24,7 @@ use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use OpenApi\Attributes as OA;
 use RuntimeException;
+use DateTimeInterface;
 
 #[PrimaryKey('id_arena')]
 #[OA\Schema]
@@ -39,9 +40,9 @@ class Arena extends Model
 	#[OA\Property(example: 'g')]
 	public string $gameCodePrefix = 'g';
 	#[OA\Property(example: 49.307678)]
-	public ?float $lat = null;
+	public ?float $lat            = null;
 	#[OA\Property(example: 14.147773)]
-	public ?float $lng = null;
+	public ?float $lng            = null;
 
 	#[Instantiate]
 	#[OA\Property]
@@ -52,6 +53,7 @@ class Arena extends Model
 	public ?string $contactEmail = null;
 	#[OA\Property(example: '+420 776 606 631')]
 	public ?string $contactPhone = null;
+	public ?string $reportEmails = null;
 
 	public ?User $user = null;
 
@@ -65,6 +67,8 @@ class Arena extends Model
 
 	/** @var Tournament[] */
 	private array $tournaments = [];
+	/** @var Tournament[] */
+	private array $plannedTournaments = [];
 
 	/**
 	 * @return Arena[]
@@ -82,7 +86,7 @@ class Arena extends Model
 	 * @return Arena|null
 	 * @throws ValidationException
 	 */
-	public static function getForApiKey(string $key) : ?Arena {
+	public static function getForApiKey(string $key): ?Arena {
 		$id = self::checkApiKey($key);
 		if (isset($id)) {
 			try {
@@ -100,7 +104,7 @@ class Arena extends Model
 	 *
 	 * @return int|null Arena's ID or null if the key does not exist or is invalid
 	 */
-	public static function checkApiKey(string $key) : ?int {
+	public static function checkApiKey(string $key): ?int {
 		return DB::select('api_keys', 'id_arena')->where('[key] = %s AND [valid] = 1', $key)->fetchSingle(cache: false);
 	}
 
@@ -112,7 +116,7 @@ class Arena extends Model
 	 * @return Arena|null
 	 * @throws ValidationException
 	 */
-	public static function parseRow(Row $row) : ?static {
+	public static function parseRow(Row $row): ?static {
 		if (isset($row->{self::getPrimaryKey()})) {
 			try {
 				return self::get($row->{self::getPrimaryKey()});
@@ -122,7 +126,7 @@ class Arena extends Model
 		return null;
 	}
 
-	public function createUser(string $email, string $password) : User {
+	public function createUser(string $email, string $password): User {
 		if (isset($this->user)) {
 			return $this->user;
 		}
@@ -144,7 +148,7 @@ class Arena extends Model
 	 * @return string Generated key
 	 * @throws Exception If the key cannot be saved into the DB
 	 */
-	public function generateApiKey(?string $name = null) : string {
+	public function generateApiKey(?string $name = null): string {
 		if (!isset($this->id)) {
 			throw new RuntimeException('Cannot generate API key for non-saved arena.');
 		}
@@ -170,7 +174,7 @@ class Arena extends Model
 	 *
 	 * @param array $data
 	 */
-	public function addQueryData(array &$data) : void {
+	public function addQueryData(array &$data): void {
 		$data[self::getPrimaryKey()] = $this->id;
 	}
 
@@ -181,12 +185,12 @@ class Arena extends Model
 	 *
 	 * @return string URL of the image
 	 */
-	public function getLogoUrl() : string {
+	public function getLogoUrl(): string {
 		$image = $this->getLogoFileName();
 		if (empty($image)) {
 			return '';
 		}
-		return str_replace(ROOT, App::getUrl(), $image);
+		return str_replace(ROOT, App::getInstance()->getBaseUrl(), $image);
 	}
 
 	/**
@@ -196,13 +200,13 @@ class Arena extends Model
 	 *
 	 * @return string Full path to image
 	 */
-	public function getLogoFileName() : string {
-		$imageBase = ASSETS_DIR.'arena-logo/arena-'.$this->id;
-		if (file_exists($imageBase.'.svg')) {
-			return $imageBase.'.svg';
+	public function getLogoFileName(): string {
+		$imageBase = ASSETS_DIR . 'arena-logo/arena-' . $this->id;
+		if (file_exists($imageBase . '.svg')) {
+			return $imageBase . '.svg';
 		}
-		if (file_exists($imageBase.'.png')) {
-			return $imageBase.'.png';
+		if (file_exists($imageBase . '.png')) {
+			return $imageBase . '.png';
 		}
 		if (file_exists($imageBase . '.jpg')) {
 			return $imageBase . '.jpg';
@@ -217,7 +221,7 @@ class Arena extends Model
 	 *
 	 * @return string HTML or empty string if no logo exists
 	 */
-	public function getLogoHtml() : string {
+	public function getLogoHtml(): string {
 		$image = $this->getLogoFileName();
 		if (empty($image)) {
 			return '';
@@ -226,10 +230,14 @@ class Arena extends Model
 		if ($type === 'svg') {
 			return file_get_contents($image);
 		}
-		return '<img src="'.str_replace(ROOT, App::getUrl(), $image).'" class="img-fluid arena-logo" alt="'.$this->name.' - Logo" id="arena-logo-'.$this->id.'" />';
+		return '<img src="' . str_replace(
+				ROOT,
+				App::getInstance()->getBaseUrl(),
+				$image
+			) . '" class="img-fluid arena-logo" alt="' . $this->name . ' - Logo" id="arena-logo-' . $this->id . '" />';
 	}
 
-	public function queryPlayers(?DateTime $date = null, ?string $system = null, bool $cache = true) : Fluent {
+	public function queryPlayers(?DateTimeInterface $date = null, ?string $system = null, bool $cache = true): Fluent {
 		/** @var int[][] $gameIds */
 		$gameIds = $this->getGameIds($date, $system, $cache);
 		if (empty($gameIds)) {
@@ -240,27 +248,16 @@ class Arena extends Model
 		return PlayerFactory::queryPlayers($gameIds);
 	}
 
-	public function queryTeams(?DateTime $date = null, ?string $system = null, bool $cache = true) : Fluent {
-		/** @var int[][] $gameIds */
-		$gameIds = $this->getGameIds($date, $system, $cache);
-		if (empty($gameIds)) {
-			foreach (GameFactory::getSupportedSystems() as $systemKey) {
-				$gameIds[$systemKey] = [-1];
-			}
-		}
-		return TeamFactory::queryTeams($gameIds);
-	}
-
 	/**
 	 * Get arena's game ids
 	 *
-	 * @param DateTime|null $date
+	 * @param DateTimeInterface|null $date
 	 * @param string|null   $system
 	 * @param bool          $cache
 	 *
 	 * @return array<string,int[]>|int[]
 	 */
-	public function getGameIds(?DateTime $date = null, ?string $system = null, bool $cache = true) : array {
+	public function getGameIds(?DateTimeInterface $date = null, ?string $system = null, bool $cache = true): array {
 		$dateKey = isset($date) ? $date->format('Y-m-d') : 'all';
 		if (isset($system, $this->gameIds[$dateKey][$system])) {
 			return $this->gameIds[$dateKey][$system];
@@ -291,44 +288,58 @@ class Arena extends Model
 	}
 
 	/**
-	 * @param DateTime|null $date
+	 * @param DateTimeInterface|null $date
 	 * @param string[]      $extraFields
 	 *
 	 * @return Fluent
 	 */
-	public function queryGames(?DateTime $date = null, array $extraFields = []) : Fluent {
-		return GameFactory::queryGames(true, $date, $extraFields)->where('[id_arena] = %i', $this->id)->cacheTags('arena/'.$this->id.'/games');
+	public function queryGames(?DateTimeInterface $date = null, array $extraFields = []): Fluent {
+		return GameFactory::queryGames(true, $date, $extraFields)
+		                  ->where('[id_arena] = %i', $this->id)
+		                  ->cacheTags('arena/' . $this->id . '/games');
+	}
+
+	public function queryTeams(?DateTimeInterface $date = null, ?string $system = null, bool $cache = true): Fluent {
+		/** @var int[][] $gameIds */
+		$gameIds = $this->getGameIds($date, $system, $cache);
+		if (empty($gameIds)) {
+			foreach (GameFactory::getSupportedSystems() as $systemKey) {
+				$gameIds[$systemKey] = [-1];
+			}
+		}
+		return TeamFactory::queryTeams($gameIds);
 	}
 
 	/**
 	 * @param string        $system
-	 * @param DateTime|null $date
+	 * @param DateTimeInterface|null $date
 	 * @param string[]      $extraFields
 	 *
 	 * @return Fluent
 	 */
-	public function queryGamesSystem(string $system, ?DateTime $date = null, array $extraFields = []) : Fluent {
+	public function queryGamesSystem(string $system, ?DateTimeInterface $date = null, array $extraFields = []): Fluent {
 		return GameFactory::queryGamesSystem($system, true, $date, $extraFields)->where('[id_arena] = %i', $this->id);
 	}
 
-	public function queryGamesCountPerDay(bool $excludeNotFinished = false) : Fluent {
+	public function queryGamesCountPerDay(bool $excludeNotFinished = false): Fluent {
 		$query = DB::getConnection()->select('[date], count(*) as [count]');
 		$queries = [];
 		foreach (GameFactory::getSupportedSystems() as $key => $system) {
-			$q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[code], DATE([g$key].[start]) as [date], [g$key].[id_arena]")
-						 ->where('[id_arena] = %i', $this->id);
+			$q = DB::select(["[{$system}_games]", "[g$key]"],
+			                "[g$key].[code], DATE([g$key].[start]) as [date], [g$key].[id_arena]")->where(
+					'[id_arena] = %i',
+					$this->id
+				);
 			if ($excludeNotFinished) {
 				$q->where("[g$key].[end] IS NOT NULL");
 			}
-			$queries[] = (string) $q;
+			$queries[] = (string)$q;
 		}
-		$query
-			->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
-			->groupBy('date');
+		$query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')->groupBy('date');
 		return (new Fluent($query))->cacheTags('games', 'games/counts');
 	}
 
-	public function getRegisteredPlayerCount() : int {
+	public function getRegisteredPlayerCount(): int {
 		return DB::select(LigaPlayer::TABLE, 'COUNT(*)')->where('[id_arena] = %i', $this->id)->fetchSingle(false);
 	}
 
@@ -336,23 +347,26 @@ class Arena extends Model
 	 * @return Tournament[]
 	 * @throws ValidationException
 	 */
-	public function getTournaments() : array {
+	public function getTournaments(): array {
 		if (empty($this->tournaments)) {
-			$this->tournaments = Tournament::query()->where('id_arena = %i AND active = 1', $this->id)->orderBy('start')->get();
+			$this->tournaments = Tournament::query()
+			                               ->where('id_arena = %i AND active = 1', $this->id)
+			                               ->orderBy('start')
+			                               ->get();
 		}
 		return $this->tournaments;
 	}
-
-	/** @var Tournament[] */
-	private array $plannedTournaments = [];
 
 	/**
 	 * @return Tournament[]
 	 * @throws ValidationException
 	 */
-	public function getPlannedTournaments() : array {
+	public function getPlannedTournaments(): array {
 		if (empty($this->plannedTournaments)) {
-			$this->plannedTournaments = Tournament::query()->where('id_arena = %i AND start > NOW() AND active = 1', $this->id)->orderBy('start')->get();
+			$this->plannedTournaments = Tournament::query()->where(
+				'id_arena = %i AND start > NOW() AND active = 1',
+				$this->id
+			)->orderBy('start')->get();
 		}
 		return $this->plannedTournaments;
 	}
@@ -361,7 +375,7 @@ class Arena extends Model
 	 * @return League[]
 	 * @throws ValidationException
 	 */
-	public function getLeagues() : array {
+	public function getLeagues(): array {
 		if (empty($this->leagues)) {
 			$this->leagues = League::query()->where('id_arena = %i', $this->id)->get();
 		}

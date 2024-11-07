@@ -1,54 +1,9 @@
 // Font Awesome
 // $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
-$fa-font-path: "/assets/fonts";
+$fa-font-path: '/assets/fonts';
 @import '~@fortawesome/fontawesome-free/scss/functions';
 @import '~@fortawesome/fontawesome-free/scss/variables';
-
-$icons: (
-        'angle-down': $fa-var-angle-down,
-        'angle-left': $fa-var-angle-left,
-        'angle-right': $fa-var-angle-right,
-        'angle-up': $fa-var-angle-up,
-        'ban': $fa-var-ban,
-        'calendar': $fa-var-calendar,
-        'cancel': $fa-var-cancel,
-        'check': $fa-var-check,
-        'circle-check': $fa-var-circle-check,
-        'circle-info': $fa-var-circle-info,
-        'circle-question': $fa-var-circle-question,
-        'circle-xmark': $fa-var-circle-xmark,
-        'discord': $fa-var-discord,
-        'download': $fa-var-download,
-        'edit': $fa-var-edit,
-        'eye': $fa-var-eye,
-        'filter': $fa-var-filter,
-        'gear': $fa-var-gear,
-        'gun': $fa-var-gun,
-        'info': $fa-var-info,
-        'list': $fa-var-list,
-        'location-dot': $fa-var-location-dot,
-        'magnifying-glass-plus': $fa-var-magnifying-glass-plus,
-        'medal': $fa-var-medal,
-        'pen-to-square': $fa-var-pen-to-square,
-        'play': $fa-var-play,
-        'plus': $fa-var-plus,
-        'question': $fa-var-question,
-        'ranking-star': $fa-var-ranking-star,
-        'right-from-bracket': $fa-var-right-from-bracket,
-        'right-to-bracket': $fa-var-right-to-bracket,
-        'share': $fa-var-share,
-        'star': $fa-var-star,
-        'stop': $fa-var-stop,
-        'tag': $fa-var-tag,
-        'trophy': $fa-var-trophy,
-        'user': $fa-var-user,
-        'user-clock': $fa-var-user-clock,
-        'user-plus': $fa-var-user-plus,
-        'xmark': $fa-var-xmark,
-        'moon': $fa-var-moon,
-        'sun': $fa-var-sun,
-);
-
+@import 'fontawesome-icons';
 @import '~@fortawesome/fontawesome-free/scss/mixins';
 @import '~@fortawesome/fontawesome-free/scss/regular';
 @import '~@fortawesome/fontawesome-free/scss/solid';
@@ -76,6 +31,6 @@ $icons: (
 
 @each $name, $icon in $icons {
   .#{$fa-css-prefix}-#{$name}::before {
-    content: unquote("\"#{ $icon }\"");
+    content: unquote('"#{ $icon }"');
   }
 }

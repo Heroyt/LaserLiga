@@ -7,6 +7,12 @@ use App\Controllers\DistributionController;
 use App\Controllers\EventController;
 use App\Controllers\ForgotPassword;
 use App\Controllers\Games;
+use App\Controllers\Games\GameController;
+use App\Controllers\Games\GameHighlightsController;
+use App\Controllers\Games\GamePlayerController;
+use App\Controllers\Games\GameTeamController;
+use App\Controllers\Games\GameTodayLeaderboardController;
+use App\Controllers\Games\GroupController;
 use App\Controllers\Index;
 use App\Controllers\Lang;
 use App\Controllers\LeagueController;
@@ -27,47 +33,42 @@ Route::get('', [Index::class, 'show'])->name('index');
 
 $gameGroup = Route::group('game');
 
-$gameGroup->get('', [Games::class, 'show'])->name('game-empty');    // This will result in HTTP 404 error
+$gameGroup->get('', [GameController::class, 'show'])->name('game-empty');    // This will result in HTTP 404 error
 
 $gameCodeGroup = $gameGroup->group('{code}');
 
-$gameCodeGroup->get('', [Games::class, 'show'])->name('game')
-              ->get('{user}', [Games::class, 'show'])->name('user-game')
-              ->get('thumb', [Games::class, 'thumb'])
-              ->get('highlights', [Games::class, 'highlights']);
+$gameCodeGroup->get('', [GameController::class, 'show'])->name('game')
+              ->get('{user}', [GameController::class, 'show'])->name('user-game')
+              ->get('thumb', [GameController::class, 'thumb'])
+              ->get('highlights', [GameHighlightsController::class, 'show']);
 
-$gameCodeGroup->group('player')->get('{id}', [Games::class, 'playerResults'])->get(
-	'{id}/distribution/{param}',
-	[
-		DistributionController::class,
-		'distribution',
-	]
-)->get('{id}/elo', [Games::class, 'eloInfo']);
+$gameCodeGroup->group('player')
+	->group('{id}')
+	->get('', [GamePlayerController::class, 'show'])
+	->get('distribution/{param}', [DistributionController::class, 'distribution',])
+	->get('elo', [Games\GamePlayerEloController::class, 'show']);
 
-$gameCodeGroup->group('team')->get('{id}', [Games::class, 'teamResults']);
+$gameCodeGroup->group('team')
+	->get('{id}', [GameTeamController::class, 'show']);
 
-$gameGroup->group('group')->group('{groupid}')->get('', [Games::class, 'group'])->name('group-results')->get(
-	'thumb',
-	[
-		Games::class,
-		'thumbGroup',
-	]
-);
+$gameGroupGroup = $gameGroup->group('group');
+$gameGroupIdGroup = $gameGroupGroup->group('{groupid}');
+$gameGroupIdGroup->get('', [GroupController::class, 'group'])->name('group-results');
+$gameGroupIdGroup->get('thumb', [GroupController::class, 'thumbGroup']);
 
 // Alias to 'game' group
 Route::group('g')
-     ->get('', [Games::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
-     ->get('abcdefghij', [Dashboard::class, 'bp'])->get('{code}', [Games::class, 'show'])->name('game-alias')->get(
-	'{code}/thumb',
-	[Games::class, 'thumb']
-);
+     ->get('', [GameController::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
+     ->get('abcdefghij', [Dashboard::class, 'bp'])
+     ->get('{code}', [GameController::class, 'show'])->name('game-alias')
+     ->get('{code}/thumb', [GameController::class, 'thumb']);
 
 Route::group('players')
      ->get('find', [Players::class, 'find'])
-     ->get('leaderboard', [Games::class, 'todayLeaderboard'])
-     ->get('leaderboard/{system}', [Games::class, 'todayLeaderboard'])
-     ->get('leaderboard/{system}/{date}', [Games::class, 'todayLeaderboard'])
-     ->get('leaderboard/{system}/{date}/{property}', [Games::class, 'todayLeaderboard'])
+     ->get('leaderboard', [GameTodayLeaderboardController::class, 'show'])
+     ->get('leaderboard/{system}', [GameTodayLeaderboardController::class, 'show'])
+     ->get('leaderboard/{system}/{date}', [GameTodayLeaderboardController::class, 'show'])
+     ->get('leaderboard/{system}/{date}/{property}', [GameTodayLeaderboardController::class, 'show'])
      ->name('today-leaderboard');
 
 Route::get('lang/{lang}', [Lang::class, 'setLang']);
@@ -109,10 +110,7 @@ Route::group('arena')
      ->get('', [Arenas::class, 'list'])
      ->name('arenas-list')
      ->group('{id}')
-     ->get(
-	     '',
-	     [Arenas::class, 'show']
-     )
+     ->get('', [Arenas::class, 'show'])
      ->name('arenas-detail')
      ->group('tab')
 	->get('stats', [Arenas::class, 'show'])->name('arena-detail-stats')

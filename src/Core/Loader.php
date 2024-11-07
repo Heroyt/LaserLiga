@@ -16,6 +16,7 @@
 namespace App\Core;
 
 use App\Models\Auth\User;
+use Dibi\DriverException;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\App;
@@ -23,10 +24,13 @@ use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Session;
+use Lsr\Helpers\Tools\Timer;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Security\Passwords;
 use ReflectionException;
 use RuntimeException;
+use Tracy\Debugger;
 
 /**
  * @class   Loader
@@ -59,11 +63,21 @@ class Loader
 	 */
 	public static function init() : void {
 		// Initialize app
+		Timer::start('core.init.app');
 		App::prettyUrl();
-		App::init();
+		App::setupDi();
+		Timer::stop('core.init.app');
+
+		// Start session
+		$session = App::getService('session');
+		assert($session instanceof Session, 'Invalid service from DI');
+		Debugger::setSessionStorage($session);
+		Debugger::enable(PRODUCTION ? Debugger::Production : Debugger::Development, LOG_DIR);
 
 		// Setup database connection
+		Timer::start('core.init.db');
 		self::initDB();
+		Timer::stop('core.init.db');
 
 
 		if (isset($_COOKIE['rememberme'])) {
@@ -95,12 +109,24 @@ class Loader
 	 * @since   1.0
 	 * @version 1.0
 	 */
-	public static function initDB() : void {
+	public static function initDB(): void {
+		if (isset($_ENV['noDb'])) {
+			return;
+		}
 		try {
 			DB::init();
-		} catch (Exception $e) {
-			App::getLogger()->error('Cannot connect to the database!'.$e->getMessage());
-			throw new RuntimeException('Cannot connect to the database!', $e->getCode(), $e);
+		} catch (Exception | DriverException $e) {
+			App::getInstance()->getLogger()->error(
+				'Cannot connect to the database! (' . $e->getCode() . ') ' . $e->getMessage()
+			);
+			throw new RuntimeException(
+				'Cannot connect to the database!' . PHP_EOL .
+				$e->getMessage() . PHP_EOL .
+				$e->getTraceAsString() . PHP_EOL .
+				json_encode(App::getInstance()->config->getConfig(), JSON_THROW_ON_ERROR),
+				$e->getCode(),
+				$e
+			);
 		}
 	}
 

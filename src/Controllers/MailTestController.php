@@ -7,18 +7,18 @@ use App\Services\MailService;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Templating\Latte;
+use Psr\Http\Message\ResponseInterface;
 
 class MailTestController extends Controller
 {
 
 	public function __construct(
-		Latte                        $latte,
 		private readonly MailService $mailService
 	) {
-		parent::__construct($latte);
+		parent::__construct();
 	}
 
-	public function sendTestMail(Request $request) : never {
+	public function sendTestMail(Request $request) : ResponseInterface {
 		$message = new Message('mails/test/testMail');
 
 		$message->setFrom('app@laserliga.cz', 'LaserLiga');
@@ -26,12 +26,12 @@ class MailTestController extends Controller
 		$message->setSubject('Test');
 
 		$this->mailService->send($message);
-		$this->respond(['status' => 'OK']);
+		return $this->respond(['status' => 'OK']);
 	}
 
-	public function showTestMail() : void {
+	public function showTestMail() : ResponseInterface {
 		$this->params['subject'] = 'TEST';
-		$this->view('mails/test/testMail');
+		return $this->view('mails/test/testMail');
 	}
 
 }

@@ -1,15 +1,11 @@
+{templateType App\Templates\User\UserTournamentParameters}
 {layout '../../@layout.latte'}
-
-{varType App\Models\Auth\User|null $user}
-{varType App\Models\Auth\LigaPlayer $currPlayer}
-{varType App\Models\Tournament\Tournament[] $tournaments}
-{varType App\Models\Tournament\Player[] $players}
 
 {define content}
 
 	<p class="text-start">
         <a href="{link 'user', $currPlayer->getCode()}" class="btn btn-secondary">
-            <i class="fa-solid fa-angle-left"></i> {lang 'Zpět'}
+            {faSolid 'angle-left'} {lang 'Zpět'}
 		</a>
 	</p>
 
@@ -22,14 +18,14 @@
 					{lang 'Liga'}: {$tournament->league->name}
 
                     <a href="{link 'league', $tournament->league->id}" class="btn btn-secondary">
-						<i class="fa-solid fa-eye"></i>
+						{faSolid 'eye'}
 					</a>
 				</p>
 			{/ifset}
 			<h3 class="card-title">
 				{$tournament->name}
                 <a href="{link 'tournament', $tournament->id}" class="btn btn-secondary">
-					<i class="fa-solid fa-eye"></i>
+					{faSolid 'eye'}
 				</a>
 			</h3>
 			<p>{$tournament->start->format('d.m.Y')}</p>
@@ -68,7 +64,7 @@
 					<div class="d-flex flex-wrap justify-content-evenly" style="gap: 1rem;">
 						<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 							 data-toggle="tooltip" title="{lang 'Herní úroveň'}">
-							<div class="fs-1"><i class="fa-solid fa-medal"></i></div>
+							<div class="fs-1">{faSolid 'medal'}</div>
 							<div>
 								( {$player->getGameSkillPosition()}. )
 								{$player->getGameSkill()|number:2,',','&nbsp;'|noescape}
@@ -76,7 +72,7 @@
 						</div>
 						<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 							 data-toggle="tooltip" title="{lang 'Skóre'}">
-							<div class="fs-1"><i class="fa-solid fa-star"></i></div>
+							<div class="fs-1">{faSolid 'star'}</div>
 							<div>
 								( {$player->getScorePosition()}. )
 								{$player->getScore()|number:0,',','&nbsp;'|noescape}

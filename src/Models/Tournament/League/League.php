@@ -7,6 +7,7 @@ use App\Models\Events\Event;
 use App\Models\Events\EventPopup;
 use App\Models\Events\EventRegistrationInterface;
 use App\Models\Events\EventRegistrationTrait;
+use App\Models\Events\EventTeamBase;
 use App\Models\Tournament\RegistrationType;
 use App\Models\Tournament\Tournament;
 use Lsr\Core\App;
@@ -67,7 +68,7 @@ class League extends Model implements EventRegistrationInterface
 		if (!isset($this->image)) {
 			return null;
 		}
-		return App::getUrl() . $this->image;
+		return App::getInstance()->getBaseUrl() . $this->image;
 	}
 
 	public function getUrl(string|int ...$append): string {
@@ -77,10 +78,10 @@ class League extends Model implements EventRegistrationInterface
 	/**
 	 * @param string|int ...$append
 	 *
-	 * @return array<string|int>
+	 * @return array<string>
 	 */
 	public function getUrlPath(string|int ...$append): array {
-		return array_merge(!empty($this->slug) ? ['liga', $this->slug] : ['league', $this->id], $append);
+		return array_merge(!empty($this->slug) ? ['liga', $this->slug] : ['league', (string) $this->id], $append);
 	}
 
 	/**
@@ -144,8 +145,11 @@ class League extends Model implements EventRegistrationInterface
 	 * @return LeagueTeam[]
 	 * @throws ValidationException
 	 */
-	public function getTeams(): array {
+	public function getTeams(bool $excludeDisqualified = false): array {
 		$this->teams ??= LeagueTeam::query()->where('id_league = %i', $this->id)->get();
+		if ($excludeDisqualified) {
+			return array_filter($this->teams, static fn(EventTeamBase $team) => !$team->disqualified);
+		}
 		return $this->teams;
 	}
 

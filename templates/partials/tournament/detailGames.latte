@@ -20,7 +20,7 @@
                         {/if}
                     </div>
                     <div n:if="$played" class="game-team-score fw-light">
-                        {($team->score ?? 0)|number:0, ',', '&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-star"></i>
+                        {($team->score ?? 0)|number:0, ',', '&nbsp;'|noescape}&nbsp;{faSolid 'star'}
                     </div>
                 </div>
             </div>
@@ -67,14 +67,17 @@
             </td>
             <td>
                 {if $played}
-                    {$scores|implode:'&nbsp;<i class="fa-solid fa-star"></i>&nbsp;:&nbsp;'|noescape}&nbsp;<i
-                        class="fa-solid fa-star"></i>
+                    {capture $star}
+                        {faSolid 'star'}
+                    {/capture}
+                    {$scores|implode:'&nbsp;'.$star.'&nbsp;:&nbsp;'|noescape}&nbsp;
+                    {faSolid 'star'}
                 {/if}
             </td>
             <td>
                 {if $played}
                     <a href="{link 'g', $gameTournament->code}" class="btn btn-info">
-                        <i class="fa-solid fa-eye"></i>
+                        {faSolid 'eye'}
                     </a>
                 {/if}
             </td>

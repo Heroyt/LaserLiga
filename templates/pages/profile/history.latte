@@ -1,19 +1,5 @@
+{templateType App\Templates\User\UserHistoryParameters}
 {layout '../../@layout.latte'}
-
-{varType App\Models\Auth\User $user}
-{varType App\GameModels\Game\Game[] $games}
-{varType int $p}
-{varType int $pages}
-{varType int $limit}
-{varType int $total}
-{varType string $orderBy}
-{varType bool $desc}
-{varType int[] $modeIds}
-{varType \DateTimeImmutable|null $date}
-{varType string[] $dates}
-{varType bool $currentUser}
-
-{varType array[] $allFields}
 
 {default array $fields = [
 'start' => ['name' => lang('Datum'), 'sortable' => true],
@@ -26,13 +12,13 @@
 {block content}
 	<p class="text-start">
         <a href="{link ['user', $user->player->getCode()]}" class="btn btn-secondary">
-			<i class="fa-solid fa-angle-left"></i> {lang 'Profil hráče'}
+			{faSolid 'angle-left'} {lang 'Profil hráče'}
 		</a>
 	</p>
     <h2 class="text-center">{sprintf(lang('Historie her hráče %s'), $user->name)}</h2>
     <p n:if="$currentUser" class="text-center">
 		<a href="{link 'user', 'findgames'}" class="btn btn-primary">
-			<i class="fa-solid fa-magnifying-glass-plus"></i>
+			{faSolid 'magnifying-glass-plus'}
 			{lang 'Najít další hry'}
 		</a>
 	</p>

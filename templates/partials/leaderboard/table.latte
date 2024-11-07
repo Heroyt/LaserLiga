@@ -1,13 +1,4 @@
-{varType App\Models\Auth\User|null $user}
-{varType App\Models\Auth\Player[] $players}
-{varType App\Models\Auth\LigaPlayer|null $searchedPlayer}
-{varType int $p}
-{varType int $pages}
-{varType int $limit}
-{varType int $total}
-{varType string $orderBy}
-{varType bool $desc}
-{varType int $userOrder}
+{templateType App\Templates\Player\LeaderboardParameters}
 
 {import '../dataTable.latte'}
 
@@ -70,7 +61,7 @@
             <input type="search" class="form-control" placeholder="{lang 'Jméno nebo kód hráče'}" name="search"
                    id="player-search" value="{$_GET['search'] ?? ''}">
             <button class="btn btn-primary" id="search-button" aria-label="{lang 'Hledat'}">
-                <i class="fa-solid fa-magnifying-glass"></i>
+                {faSolid 'magnifying-glass'}
             </button>
         </div>
     </div>
@@ -109,16 +100,16 @@
                                                 data-code="{$player->getCode()}">
                 <td>
                     {ifset $ranks[$player->id]}
-                        <span {ifset $ranks[$player->id]['difference']}data-toggle="tooltip"
-                              title="{if $ranks[$player->id]['difference'] < 0}+{elseif $ranks[$player->id]['difference'] === 0}+-{/if}{(-$ranks[$player->id]['difference'])}"{/ifset}>
-								{$ranks[$player->id]['rank']|replace:'. - ','-'}
-                            {ifset $ranks[$player->id]['difference']}
-                                {if $ranks[$player->id]['difference'] < 0}
-                                    <i class="fa-solid fa-angle-up text-success"></i>
-								{elseif $ranks[$player->id]['difference'] > 0}
-									<i class="fa-solid fa-angle-down text-danger"></i>
+                        <span {ifset $ranks[$player->id]->difference}data-toggle="tooltip"
+                              title="{if $ranks[$player->id]->difference < 0}+{elseif $ranks[$player->id]->difference === 0}+-{/if}{(-$ranks[$player->id]->difference)}"{/ifset}>
+								{$ranks[$player->id]->rank|replace:'. - ','-'}
+                            {ifset $ranks[$player->id]->difference}
+                                {if $ranks[$player->id]->difference < 0}
+                                    {faSolid 'angle-up', 'text-success'}
+								{elseif $ranks[$player->id]->difference > 0}
+									{faSolid 'angle-down', 'text-danger'}
 								{else}
-									<i class="fa-solid fa-minus text-secondary"></i>
+									{faSolid 'minus', 'text-secondary'}
                                 {/if}
                             {/ifset}
 							</span>
@@ -152,7 +143,7 @@
                     {case 'games_played'}
                     {$player->stats->gamesPlayed}
                     {case 'rank'}
-                    {$player->stats->rank}&nbsp;<i class="fa-solid fa-medal"></i>
+                    {$player->stats->rank}&nbsp;{faSolid 'medal'}
                     {case 'average_accuracy'}
                     {$player->stats->averageAccuracy|number:2,',',''}&nbsp;%
                     {case 'average_shots'}
@@ -166,7 +157,7 @@
                     {case 'max_score'}
                     {$player->stats->maxScore|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'star', '', '1rem'}
                     {case 'max_skill'}
-                    {$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp;<i class="fa-solid fa-medal"></i>
+                    {$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp;{faSolid 'medal'}
                         {case 'shots'}
                         {$player->stats->shots|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1rem'}
                         {case 'total_minutes'}
@@ -184,7 +175,7 @@
                 {*<td>
                     <a href="{link ['user', $player->getCode()]}" class="btn btn-primary" data-toggle="tooltip"
                        title="{lang 'Profil'}">
-                        <i class="fa-solid fa-user"></i>
+                        {faSolid 'user'}
                     </a>
                 </td>*}
             </tr>
@@ -202,13 +193,13 @@
                 <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionAsc"
                        value="asc" autocomplete="off" n:attr="checked: !$desc">
                 <label class="btn btn-outline-secondary" for="mobileOrderDirectionAsc">
-                    <i class="fa-solid fa-angle-up"></i> <span class="visually-hidden">{lang 'Řadit vzestupně'}</span>
+                    {faSolid 'angle-up'} <span class="visually-hidden">{lang 'Řadit vzestupně'}</span>
                 </label>
 
                 <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionDesc"
                        value="desc" autocomplete="off" n:attr="checked: $desc">
                 <label class="btn btn-outline-secondary" for="mobileOrderDirectionDesc">
-                    <i class="fa-solid fa-angle-down"></i> <span class="visually-hidden">{lang 'Řadit sestupně'}</span>
+                    {faSolid 'angle-down'} <span class="visually-hidden">{lang 'Řadit sestupně'}</span>
                 </label>
             </div>
             <div n:foreach="$players as $player" class="card w-100 my-2 linkable" data-code="{$player->getCode()}"
@@ -219,16 +210,16 @@
                     </a>
                     <div class="rank">
                         {ifset $ranks[$player->id]}
-                            <span {ifset $ranks[$player->id]['difference']}data-toggle="tooltip"
-                                  title="{if $ranks[$player->id]['difference'] < 0}+{elseif $ranks[$player->id]['difference'] === 0}+-{/if}{(-$ranks[$player->id]['difference'])}"{/ifset}>
-								{$ranks[$player->id]['rank']|replace:'. - ','-'}
-                                {ifset $ranks[$player->id]['difference']}
-                                    {if $ranks[$player->id]['difference'] < 0}
-                                        <i class="fa-solid fa-angle-up text-success"></i>
-								{elseif $ranks[$player->id]['difference'] > 0}
-									<i class="fa-solid fa-angle-down text-danger"></i>
+                            <span {ifset $ranks[$player->id]->difference}data-toggle="tooltip"
+                                  title="{if $ranks[$player->id]->difference < 0}+{elseif $ranks[$player->id]->difference === 0}+-{/if}{(-$ranks[$player->id]->difference)}"{/ifset}>
+								{$ranks[$player->id]->rank|replace:'. - ','-'}
+                                {ifset $ranks[$player->id]->difference}
+                                    {if $ranks[$player->id]->difference < 0}
+                                        {faSolid 'angle-up', 'text-success'}
+								{elseif $ranks[$player->id]->difference > 0}
+									{faSolid 'angle-down', 'text-danger'}
 								{else}
-									<i class="fa-solid fa-minus text-secondary"></i>
+									{faSolid 'minus', 'text-secondary'}
                                     {/if}
                                 {/ifset}
 							</span>
@@ -257,7 +248,7 @@
                                     {case 'games_played'}
                                     {$player->stats->gamesPlayed}&nbsp;{lang 'her'}
                                     {case 'rank'}
-                                    {$player->stats->rank}&nbsp;<i class="fa-solid fa-medal"></i>
+                                    {$player->stats->rank}&nbsp;{faSolid 'medal'}
                                 {case 'average_accuracy'}
                                 {$player->stats->averageAccuracy|number:2,',',''}&nbsp;%
                                 {case 'average_shots'}
@@ -265,15 +256,13 @@
                                 {case 'average_shots_per_minute'}
                                 {$player->stats->averageShotsPerMinute|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1rem'}
                                 {case 'average_position'}
-                                {$player->stats->averagePosition|number:2,',',''}&nbsp;<i
-                                        class="fa-solid fa-ranking-star"></i>
+                                {$player->stats->averagePosition|number:2,',',''}&nbsp;{faSolid 'ranking-star'}
                                 {case 'max_accuracy'}
                                 {$player->stats->maxAccuracy}&nbsp;%
                                 {case 'max_score'}
                                 {$player->stats->maxScore|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'star', '', '1rem'}
                                 {case 'max_skill'}
-                                {$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp; <i
-                                        class="fa-solid fa-medal"></i>
+                                {$player->stats->maxSkill|number:0,',','&nbsp;'|noescape}&nbsp; {faSolid 'medal'}
                                     {case 'shots'}
                                     {$player->stats->shots|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1rem'}
                                     {case 'total_minutes'}

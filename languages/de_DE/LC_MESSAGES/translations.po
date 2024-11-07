@@ -3176,3 +3176,537 @@ msgstr ""
 
 msgid "February"
 msgstr ""
+
+msgctxt "pageTitles"
+msgid "Portál pro hráče laser game"
+msgstr ""
+
+msgctxt "pageDescription"
+msgid "Portál pro hráče laser game. Výsledky ze hry, turnaje, statistiky..."
+msgstr ""
+
+msgid "Arény"
+msgstr ""
+
+msgid "Close navigation"
+msgstr ""
+
+msgid "Plánované akce"
+msgstr ""
+
+msgid "Portál pro hráče laser game."
+msgstr ""
+
+msgid "Registrovat"
+msgstr ""
+
+msgid "Registrovaných hráčů"
+msgstr ""
+
+msgid "Zapojených arén"
+msgstr ""
+
+msgid "Odehraných her"
+msgstr ""
+
+msgid "Organizovaných turnajů"
+msgstr ""
+
+msgid "Obrázek ze hry laser game. Hráč skrčený za překážkou a nad ním laser jiného hráče, který po něm střílel."
+msgstr ""
+
+msgid "Co je to Laser liga?"
+msgstr ""
+
+msgid "Laser liga je portál pro hráče laser game. Sjednocuje výsledky a poskytuje statistiky z několika arén po celém česku."
+msgstr ""
+
+msgid "Hráči soupeří o pozice v globálním žebříčku. Laser liga zároveň umožňuje arénám pořádat turnaje na kterých hráči poměřují své dovednosti s laserem."
+msgstr ""
+
+msgid "Tak na co čekáš?"
+msgstr ""
+
+msgid "Zaregistruj se a hraj!"
+msgstr ""
+
+msgid "Obrázek ze hry laser game. Dva hráči ve vestách, které svítí modře."
+msgstr ""
+
+msgid "Zapojené arény"
+msgstr ""
+
+msgid "Ačkoliv bychom chtěli, Laser ligu zatím nepodporují úplně všechny laser arény v česku. Snažíme se, ale naši komunitu hráčů laser game rozšířit."
+msgstr ""
+
+msgid "Zobrazit"
+msgstr ""
+
+msgid "Chybí tu Vaše aréna? Řekněte jí, ať nás kontaktuje na e-mail: %s"
+msgstr ""
+
+msgid "Jak to funguje?"
+msgstr ""
+
+msgid "Registruješ se"
+msgstr ""
+
+msgid "Při registraci si vybereš domovskou arénu, přezdívku a dostaneš přiřazený tvůj unikátní kód."
+msgstr ""
+
+msgid "Registrovat se"
+msgstr ""
+
+msgid "Hraješ ve tvé laser aréně"
+msgstr ""
+
+msgid "Obsluze nahlásíš, že jsi registrovaný a ona si tě najde pomocí tvé přezdívky, nebo kódu."
+msgstr ""
+
+msgid "Podporované arény"
+msgstr ""
+
+msgid "Sbíráš statistiky"
+msgstr ""
+
+msgid "Hned po hře vidíš výsledky na svém profilu! Z her sbíráš body, které tě posouvají v žebříčku všech hráčů laser game."
+msgstr ""
+
+msgid "Kontakt"
+msgstr ""
+
+msgctxt "pageDescription"
+msgid "Page not found"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Seznam arén"
+msgstr ""
+
+msgctxt "pageDescription"
+msgid "Seznam všech laser game arén, registrovaných v LaserLize."
+msgstr ""
+
+msgid "Seznam laser arén"
+msgstr ""
+
+msgid "Laser arény zapojené v laser lize. Ve všech těchto arénách sbíráte výsledky do svého profilu."
+msgstr ""
+
+msgid "Registrováno hráčů"
+msgstr ""
+
+msgid "Dnes odehráno her"
+msgstr ""
+
+msgid "Dnes odehráno hráčů"
+msgstr ""
+
+msgid "Přihlášení"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Přihlášení"
+msgstr ""
+
+msgctxt "pageDescription"
+msgid "Přihlášení do systému Laser ligy."
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Nástěnka hráče - %s"
+msgstr ""
+
+msgctxt "pageDescription"
+msgid "Profil a statistiky všech laser game her hráče %s"
+msgstr ""
+
+msgid "Profil hráče %s na portálu Laser liga"
+msgstr ""
+
+msgid "Moje turnaje"
+msgstr ""
+
+msgid "Uživatel"
+msgstr ""
+
+msgid "Herní kód hráče"
+msgstr ""
+
+msgid "Tvůj kód %s je unikátní identifikátor, pod kterým tě aréna vždy při zadávání hry najde."
+msgstr ""
+
+msgid "Mistr sniper"
+msgstr ""
+
+msgid "Upravit"
+msgstr ""
+
+msgid "%s začal svou cestu laser game hráče svou první hrou %s."
+msgstr ""
+
+msgid "Od té doby má za sebou neuvěřitelných %d her!"
+msgstr ""
+
+msgid "Sdílet"
+msgstr ""
+
+msgid "Turnaje"
+msgstr ""
+
+msgid "Další Laser game účty"
+msgstr ""
+
+msgid "Základní statistiky"
+msgstr ""
+
+msgid "Pozice v žebříčku"
+msgstr ""
+
+msgid "Herní úroveň se zvyšuje a klesá s každou odehranou klasickou hrou. Při výpočtu se přihlíží k úrovni protihráčů - pokud hrajete schválně se slabšími spoluhráči, herní úroveň roste pomalu."
+msgstr ""
+
+msgid "Zobrazit statistiky domovské arény"
+msgstr ""
+
+msgid "Trofeje"
+msgstr ""
+
+msgid "Ocenění"
+msgstr ""
+
+msgid "Souhrnné statistiky"
+msgstr ""
+
+msgid "Poměr zabití a smrtí. Např. hodnota 2 znamená, že máš 2x tolik zásahů než smrtí."
+msgstr ""
+
+msgid "Za celou dobu"
+msgstr ""
+
+msgid "Vše"
+msgstr ""
+
+msgid "Vývoj pozice v žebříčku"
+msgstr ""
+
+msgid "Souhrn herních schopností"
+msgstr ""
+
+msgid "Data v tomto grafu jsou uváděna v rozmezí 0-100%."
+msgstr ""
+
+msgid "Umístění na grafu je relativní vůči ostatním hráčům a vyjadřuje váš percentil (kolik % hráčů je lepší, nebo horší, než váš průměr)."
+msgstr ""
+
+msgid "Výstřely za minutu"
+msgstr ""
+
+msgid "%s trendy zobrazují posun za poslední hry a měsíc."
+msgstr ""
+
+msgid "Za posledních 30 dní si se v žebříčku posunul/a nahoru. Jen tak dál!"
+msgstr ""
+
+msgid "Za posledních 30 dní tě v žebříčku někdo přeskočil. Co takhle si jít zahrát?"
+msgstr ""
+
+msgid "Za posledních 30 dní si se v žebříčku vůbec neposunul/a. Co takhle si jít zahrát a změnit to?"
+msgstr ""
+
+msgid "Trofeje, které %s získal ve svých hrách. Trofeje jsou speciální ohodnocení, které vyjadřují úspěchy, kterých %s během hry dosáhl."
+msgstr ""
+
+msgid "Všechny módy"
+msgstr ""
+
+msgid "Jen klasické módy"
+msgstr ""
+
+msgid "Ocenění jsou úspěchy získané během celé %s laser-hráčské kariéry. Odemčením většiny ocenění získá hráč nový titul na profil."
+msgstr ""
+
+msgid "Ocenění, která odemykají titul jsou označená:"
+msgstr ""
+
+msgid "Získáno"
+msgstr ""
+
+msgid "Ocenění získáno"
+msgstr ""
+
+msgid "Ocenění získalo %s hráčů"
+msgstr ""
+
+msgid "Zbývající ocenění"
+msgstr ""
+
+msgid "Najít další hry"
+msgstr ""
+
+msgid "Sdílet profil hráče"
+msgstr ""
+
+msgid "Statistiky hráče"
+msgstr ""
+
+msgid "Kliknutím na tlačítko níže můžete stáhnout obrázek profilu, nebo profil sdílet."
+msgstr ""
+
+msgid "Stáhnout obrázek"
+msgstr ""
+
+msgid "Nápověda?"
+msgstr ""
+
+msgid "Jak dostanu své hry do Laser ligy?"
+msgstr ""
+
+msgid "Nové hry"
+msgstr ""
+
+msgid "Pokud jdu hrát v podporované aréně a mám registrovaný účet v Laser lize, můžu obsluze nahlásit své jméno (%s) nebo hráčský kód (%s). Obsluha si mě najde v systému a jakmile skončí hra, mám výsledky uložené na svém účtu."
+msgstr ""
+
+msgid "Staré hry"
+msgstr ""
+
+msgid "Mé staré hry si můžu také přiřadit na svůj účet v Laser lize."
+msgstr ""
+
+msgid "Potřebuji ale 2 věci:"
+msgstr ""
+
+msgid "Být přihlášený v aplikaci Laser liga"
+msgstr ""
+
+msgid "Najít své online výsledky"
+msgstr ""
+
+msgid "Výsledky můžete mít naskenované přes QR kód na tištěných výsledcích, nebo můžete své výsledky najít na podle data na <a href=\"%s\">stránce arény</a> v záložce \"Všechny hry.\""
+msgstr ""
+
+msgid "Pokud otevřu výsledky ve kterých je hráč s mým jménem, zobrazí se vedle jména hráče tlačítko přiřadit. Po kliknutí na tlačítko se mi hra přiřadí do profilu."
+msgstr ""
+
+msgid "Percentil"
+msgstr ""
+
+msgid "Nejlepší %d %%"
+msgid_plural "Nejlepších %d %%"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d výstřel za minutu"
+msgid_plural "%d výstřelů za minutu"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Nejhorší %d %%"
+msgid_plural "Nejhorších %d %%"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%.2f zásah za minutu"
+msgid_plural "%.2f zásahů za minutu"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%.2f smrt za minutu"
+msgid_plural "%.2f smrtí za minutu"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%.2f zásahů na jednu smrt"
+msgstr ""
+
+msgid "Výsledky laser game v %s z dne %s v herním módu %s."
+msgstr ""
+
+msgid "Hry se účastnilo %d tým: %s"
+msgid_plural "Hry se účastnilo %d týmů: %s"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Vyhrál tým: %s."
+msgstr ""
+
+msgid "%d. se umístil %s s celkovým skóre %s."
+msgstr ""
+
+msgid "%d. se umístila %s s celkovým skóre %s."
+msgstr ""
+
+msgid "%d. se umístilo %s s celkovým skóre %s."
+msgstr ""
+
+msgid "Výsledky ze hry - %s"
+msgstr ""
+
+msgctxt "pageTitles"
+msgid "Výsledky laser game - %s %s (%s)"
+msgstr ""
+
+msgctxt "pageDescription"
+msgid "Výsledky ze hry laser game z data %s z arény %s v herním módu %s."
+msgstr ""
+
+msgid "Výsledky laser game"
+msgstr ""
+
+msgid "Informace o hře"
+msgstr ""
+
+msgid "Zobrazit stránku arény"
+msgstr ""
+
+msgctxt "results.info"
+msgid "Hudební mód"
+msgstr ""
+
+msgctxt "musicModes"
+msgid "K-POP"
+msgstr ""
+
+msgid "Analýza hry - zajímavosti"
+msgstr ""
+
+msgid "Žádné zajímavosti"
+msgstr ""
+
+msgid "více"
+msgstr ""
+
+msgid "méně"
+msgstr ""
+
+msgid "Výsledky ze hry - %s %s"
+msgstr ""
+
+msgctxt "results.group"
+msgid "Předchozí hra hráče %s"
+msgstr ""
+
+msgid "Týmy"
+msgstr ""
+
+msgid "Výsledky týmů"
+msgstr ""
+
+msgid "Výsledky hráčů"
+msgstr ""
+
+msgid "Trofej"
+msgstr ""
+
+msgid "Nesmrtelný"
+msgstr ""
+
+msgid "Nepřemožitelný střelec"
+msgstr ""
+
+msgid "Nekompromisní vraždící stroj"
+msgstr ""
+
+msgid "Hráč"
+msgstr ""
+
+msgid "Netrefitelný"
+msgstr ""
+
+msgid "Brambora"
+msgstr ""
+
+msgid "Stříbro"
+msgstr ""
+
+msgctxt "results.hits"
+msgid "Zasáhla si hráče"
+msgstr ""
+
+msgctxt "results.hits"
+msgid "Zasáhlo si hráče"
+msgstr ""
+
+msgid "Vysvětlení hodnocení"
+msgstr ""
+
+msgctxt "results"
+msgid "Umístění"
+msgstr ""
+
+msgid "Počet hráčů, který je lepší/horší než vy. Např. pokud jste v %s 10%%, znamená to, že 90%% hráčů mělo nižší hodnotu, než vy. %s 10 %% znamená, že 90 %% hráčů mělo vyšší hodnotu, než vy."
+msgstr ""
+
+msgctxt "distribution"
+msgid "Nejlepší"
+msgstr ""
+
+msgctxt "distribution"
+msgid "Nejhorší"
+msgstr ""
+
+msgid "Od počátku věků"
+msgstr ""
+
+msgid "Tento rok"
+msgstr ""
+
+msgid "Tento měsíc"
+msgstr ""
+
+msgid "Tento týden"
+msgstr ""
+
+msgid "Tento den"
+msgstr ""
+
+msgid "Počet"
+msgstr ""
+
+msgid "Rozpad skóre a herní úrovně"
+msgstr ""
+
+msgid "Bonusy"
+msgstr ""
+
+msgid "Umístění"
+msgstr ""
+
+msgid "Zásahy spoluhráčů"
+msgstr ""
+
+msgid "Zohlednění vašich protihráčů. Pokud hrajete proti slabším, vaše herní úroveň se sníží. Naopak, pokud hrajete proti silným hráčům, vaše herní úroveň se zvýší."
+msgstr ""
+
+msgid "Srovnání s protihráči"
+msgstr ""
+
+msgid "Zásahy protihráčů"
+msgstr ""
+
+msgid "Smrti od protihráčů"
+msgstr ""
+
+msgid "Smrti od spoluhráčů"
+msgstr ""
+
+msgid "Čas mrtvý"
+msgstr ""
+
+msgid "Umístění v žebříčku"
+msgstr ""
+
+msgctxt "results.today"
+msgid "Klikněte níže na okénko pro zobrazení grafu vašeho umístění."
+msgstr ""
+
+msgctxt "results.today"
+msgid "Zobrazit umístění"
+msgstr ""
+
+msgid "Výstřely"
+msgstr ""
+
+msgid "Zásahy:Smrti"
+msgstr ""

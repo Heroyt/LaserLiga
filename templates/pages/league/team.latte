@@ -9,7 +9,7 @@
 
 	<p class="text-start">
         <a href="{link 'league', $currTeam->league->id}" class="btn btn-secondary">
-            <i class="fa-solid fa-angle-left"></i> {lang 'Zpět'}
+            {faSolid 'angle-left'} {lang 'Zpět'}
 		</a>
 	</p>
 
@@ -60,7 +60,7 @@
 						<h4 class="card-subtitle">
 							{$team->tournament->name}
 							<a href="{link 'tournament', $team->tournament->id}" class="btn btn-info">
-								<i class="fa-solid fa-eye"></i>
+								{faSolid 'eye'}
 							</a>
 						</h4>
 						<p class="mb-0">{$team->tournament->start->format('d.m.Y')}</p>
@@ -88,14 +88,14 @@
 							<div class="d-flex flex-wrap justify-content-evenly" style="gap: 1rem;">
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 									 data-toggle="tooltip" title="{lang 'Průměrná herní úroveň'}">
-									<div class="fs-1"><i class="fa-solid fa-medal"></i></div>
+									<div class="fs-1">{faSolid 'medal'}</div>
 									<div>
 										{$team->getSkill()|number:2,',','&nbsp;'|noescape}
 									</div>
 								</div>
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 									 data-toggle="tooltip" title="{lang 'Celkem skóre'}">
-									<div class="fs-1"><i class="fa-solid fa-star"></i></div>
+									<div class="fs-1">{faSolid 'star'}</div>
 									<div>
 										{$team->getScore()|number:0,',','&nbsp;'|noescape}
 									</div>
@@ -161,8 +161,7 @@
                                     {/if}
                                 </div>
                                 <div n:if="$played" class="game-team-score fw-light">
-                                    {($team->score ?? 0)|number:0, ',', '&nbsp;'|noescape}&nbsp;<i
-                                            class="fa-solid fa-star"></i>
+                                    {($team->score ?? 0)|number:0, ',', '&nbsp;'|noescape}&nbsp;{faSolid 'star'}
                                 </div>
                             </div>
                         </div>
@@ -191,14 +190,17 @@
 						</td>
 						<td>
 							{ifset $gameTournament->code}
-								{$scores|implode:' <i class="fa-solid fa-star"></i>&nbsp;:&nbsp;'|noescape}
-								<i class="fa-solid fa-star"></i>
+                                {capture $star}
+                                    {faSolid 'star'}
+                                {/capture}
+								{$scores|implode:' '.$star.'&nbsp;:&nbsp;'|noescape}
+								{faSolid 'star'}
 							{/ifset}
 						</td>
 						<td>
 							{ifset $gameTournament->code}
 								<a href="{link 'g', $gameTournament->code}" class="btn btn-info">
-									<i class="fa-solid fa-eye"></i>
+									{faSolid 'eye'}
 								</a>
 							{/ifset}
 						</td>
@@ -214,13 +216,13 @@
 {define playerStats, App\Models\Tournament\Player $player, App\Models\Tournament\Team $team}
 	<h5 class="mt-4">
 		<span class="fs-2 mb-1 d-block">
-			<i class="fa-solid fa-user"></i>
+			{faSolid 'user'}
 		</span>
 		{$player->nickname}
 	</h5>
 	<p n:ifset="$player->user">
 		<a href="{link 'user', $player->user->getCode()}" class="btn btn-primary">
-			<i class="fa-solid fa-user"></i>
+			{faSolid 'user'}
 			{lang 'Profil'}
 		</a>
 	</p>
@@ -228,11 +230,11 @@
 		<p>
 			<button type="button" class="btn btn-info collapsed" data-bs-toggle="collapse"
 					data-bs-target="#player-{$player->id}-stats">
-				<i class="fa-solid fa-chart-simple"></i>
+				{faSolid 'chart-simple'}
 				{lang 'Statistiky'}
 				<span class="collapse-indicator">
-									<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-									<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+									{faSolid 'angle-down', 'collapse-indicator-collapsed'}
+									{faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
 								</span>
 			</button>
 		</p>
@@ -247,7 +249,7 @@
 				</div>
 				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 					 data-toggle="tooltip" title="{lang 'Průměrná herní úroveň'}">
-					<div class="fs-1"><i class="fa-solid fa-medal"></i></div>
+					<div class="fs-1">{faSolid 'medal'}</div>
 					<div>
 						( {$player->getGameSkillPosition()}. )
 						{$player->getGameSkill()|number:2,',','&nbsp;'|noescape}
@@ -255,7 +257,7 @@
 				</div>
 				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 					 data-toggle="tooltip" title="{lang 'Celkové skóre'}">
-					<div class="fs-1"><i class="fa-solid fa-star"></i></div>
+					<div class="fs-1">{faSolid 'star'}</div>
 					<div>
 						( {$player->getScorePosition()}. )
 						{$player->getScore()|number:0,',','&nbsp;'|noescape}

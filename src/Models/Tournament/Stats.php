@@ -8,6 +8,7 @@ use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueCategory;
 use App\Models\Tournament\Player as TournamentPlayer;
 use App\Models\Tournament\Team as TournamentTeam;
+use Lsr\Core\App;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -103,7 +104,7 @@ class Stats extends Model
 
 	public function getFieldIcon(): string {
 		return match ($this->field) {
-			'skill'    => '<i class="fa-solid fa-medal"></i>',
+			'skill'    => '<i class="'.App::getService('fontawesome')->solid('medal').'"></i>', // @phpstan-ignore-line
 			'accuracy' => '%',
 			default    => '',
 		};

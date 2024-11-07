@@ -1,11 +1,10 @@
+{templateType App\Templates\Player\ProfileParameters}
 {contentType 'image/svg+xml'}
-{varType App\Models\Auth\User $user}
 {var int $padding = 50}
 {var int $playerMargin = 20}
 {var int $headerHeight = 120}
 {var int $contentWidth = 1200 - ($padding * 2)}
 {var int $contentHeight = 600 - ($padding * 2) - $headerHeight - $playerMargin}
-{varType App\Models\DataObjects\PlayerRank $rankOrder}
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600"

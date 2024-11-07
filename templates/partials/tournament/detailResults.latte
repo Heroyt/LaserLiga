@@ -46,7 +46,7 @@
             <td class="text-center">{$team->points}</td>
             <td class="text-center">{$team->getScore()|number:0,',','&nbsp;'|noescape}</td>
             <td class="text-center">{$team->getSkill()|number:2,',','&nbsp;'|noescape}
-                <i class="fa-solid fa-medal"></i>
+                {faSolid 'medal'}
             </td>
         </tr>
         </tbody>
@@ -76,7 +76,7 @@
                     {$stat->type === App\Models\Tournament\StatType::SOLO ? $model->nickname : $model->name}
                     {if $stat->type === App\Models\Tournament\StatType::SOLO && isset($model->user)}
                         <a href="{link 'user', $model->user->getCode()}" class="btn btn-primary ms-2 btn-sm">
-                            <i class="fa-solid fa-user"></i>
+                            {faSolid 'user'}
                         </a>
                     {/if}
                 </td>

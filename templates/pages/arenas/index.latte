@@ -1,26 +1,27 @@
+{templateType App\Templates\Arena\ArenaListParameters}
 {layout '../../@layout.latte'}
-
-{varType App\Models\Arena[] $arenas}
 
 {block content}
     <h1 class="text-center">{lang 'Seznam laser arén'}</h1>
     <p class="text-center">{lang 'Laser arény zapojené v laser lize. Ve všech těchto arénách sbíráte výsledky do svého profilu.'}</p>
 	<div class="d-flex flex-wrap g-3 align-items-center justify-content-evenly">
-		{var \DateTime $today = new \DateTime}
+		{var \DateTime $today = new \DateTimeImmutable}
         <a n:foreach="$arenas as $arena" class="card bg-background-1 text-center p-2 m-3"
                                          href="{link ['arena', $arena->id]}">
 			{$arena->getLogoHtml()|noescape}
             <h2 class="visually-hidden">{$arena->name}</h2>
 			<div class="card-body text-text">
 				<p class="text-decoration-none">
-					<strong>{lang 'Registrováno hráčů'}:</strong> {$arena->getRegisteredPlayerCount()}
+					<strong>{lang 'Registrováno hráčů'}:</strong>
+                    {$arena->getRegisteredPlayerCount()}
 				</p>
 				<p class="text-decoration-none">
-					<strong>{lang 'Dnes odehráno her'}:</strong> {$arena->queryGames($today)->count(cache: false)}
+					<strong>{lang 'Dnes odehráno her'}:</strong>
+                    {$arena->queryGames($today)->count(cache: false)}
 				</p>
 				<p class="text-decoration-none">
-					<strong>{lang 'Dnes odehráno hráčů'}
-						:</strong> {$arena->queryPlayers($today, cache: false)->count(cache: false)}
+					<strong>{lang 'Dnes odehráno hráčů'}:</strong>
+                    {$arena->queryPlayers($today, cache: false)->count(cache: false)}
 				</p>
 			</div>
 		</a>

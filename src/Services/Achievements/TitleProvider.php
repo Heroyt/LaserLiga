@@ -34,7 +34,7 @@ class TitleProvider
 			if (!isset($achievement->achievement->title)) {
 				continue;
 			}
-			$ids[] = $achievement->achievement->title?->id;
+			$ids[] = $achievement->achievement->title->id;
 		}
 		return DB::select(['titles', 't'], 't.id_title, t.name, t.description, t.rarity, t.unlocked, a.real_rarity')
 		         ->leftJoin('vAchievements', 'a')

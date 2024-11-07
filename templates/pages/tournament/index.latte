@@ -12,7 +12,7 @@
 
 {define content}
     <h1 class="text-center">
-        <i class="fa-solid fa-trophy fs-1"></i>
+        {faSolid 'trophy', 'fs-1'}
         <br>
         {lang 'Plánované turnaje laser game'}
     </h1>
@@ -21,7 +21,7 @@
     </p>
     <p class="text-center mb-4">
         <a href="{link 'league'}" class="btn btn-primary">
-            <i class="fa-solid fa-trophy"></i>
+            {faSolid 'trophy'}
             {lang 'Ligy laser game'}
         </a>
     </p>
@@ -126,17 +126,17 @@
                                 <a n:ifset="$tournament->league"
                                         href="{$tournament->league->getUrl()}"
                                                                  class="btn btn-primary">
-                                    <i class="fa-solid fa-trophy"></i>
+                                    {faSolid 'trophy'}
                                     {lang 'Liga'}
                                 </a>
                                 <a href="{link 'tournament', $tournament->id}" class="btn btn-secondary" itemprop="url">
-                                    <i class="fa-solid fa-circle-info"></i>
+                                    {faSolid 'circle-info'}
                                     {lang 'Informace'}
                                 </a>
                                 <a n:if="$tournament->isRegistrationActive() && !$tournament->isFull()"
                                         href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{$tournament->league->getUrl('register')}{else}{link 'tournament', $tournament->id, 'register'}{/if}"
                                         class="btn btn-primary">
-                                    <i class="fa-solid fa-user-plus"></i>
+                                    {faSolid 'user-plus'}
                                     {lang 'Registrace'}
                                 </a>
                             </div>

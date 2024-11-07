@@ -21,7 +21,7 @@
             <p>
                 <strong>{lang 'Průměrná herní úroveň registrovaných hráčů'}:</strong>
                 {round($team->getAveragePlayerRank())}
-                <i class="fa-solid fa-medal"></i>
+                {faSolid 'medal'}
             </p>
 
             <div class="d-flex justify-content-center align-items-center flex-wrap">
@@ -40,14 +40,14 @@
                 {ifset $team->leagueTeam}
                     <a itemprop="url" href="{link 'league', 'team', $team->leagueTeam->id}"
                        class="btn btn-primary">
-                        <i class="fa-solid fa-eye"></i>
+                        {faSolid 'eye'}
                         {lang 'Statistiky'}
                     </a>
                 {/ifset}
                 {if isset($user) && $team->validateAccess($user)}
                     <a href="{if $event->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $event->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $event->id, $team->id}{/if}"
                        class="btn btn-secondary">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                        {faSolid 'pen-to-square'}
                         {lang 'Upravit přihlášku'}
                     </a>
                 {/if}

@@ -7,7 +7,6 @@ use App\Models\Questionnaire\User;
 use App\Services\QuestionnaireHelper;
 use Dibi\Exception;
 use JsonException;
-use Lsr\Core\App;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -15,31 +14,30 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Psr\Http\Message\ResponseInterface;
 
 class Questionnaire extends Controller
 {
 
 	/**
-	 * @return void
+	 * @return ResponseInterface
 	 * @throws TemplateDoesNotExistException
 	 * @throws ValidationException
 	 */
-	public function resultsList() : void {
+	public function resultsList() : ResponseInterface {
 		$this->params['users'] = User::query()->where('id_questionnaire IS NOT NULL')->get();
-		$this->view('pages/questionnaire/index');
+		return $this->view('pages/questionnaire/index');
 	}
 
 	/**
 	 * @param Request $request
 	 *
-	 * @return void
-	 * @throws DirectoryCreationException
+	 * @return ResponseInterface
 	 * @throws ModelNotFoundException
 	 * @throws TemplateDoesNotExistException
 	 * @throws ValidationException
-	 * @throws JsonException
 	 */
-	public function resultsStats(Request $request) : void {
+	public function resultsStats(Request $request) : ResponseInterface {
 		// Long questionnaire
 		$questionnaire = \App\Models\Questionnaire\Questionnaire::get(2);
 		$this->params['questions'] = $questionnaire->getQuestions();
@@ -120,38 +118,36 @@ class Questionnaire extends Controller
 			}
 		}
 
-		$this->view('pages/questionnaire/stats');
+		return $this->view('pages/questionnaire/stats');
 	}
 
 	/**
 	 * @param Request $request
 	 *
-	 * @return void
-	 * @throws ValidationException
+	 * @return ResponseInterface
 	 * @throws ModelNotFoundException
 	 * @throws TemplateDoesNotExistException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
-	public function resultsUser(Request $request) : void {
+	public function resultsUser(Request $request) : ResponseInterface {
 		$id = (int) ($request->params['id'] ?? 0);
 		if ($id < 1) {
-			App::redirect('questionnaire-results');
+			return $this->app->redirect('questionnaire-results');
 		}
 		$user = User::get($id);
 		$this->params['user'] = $user;
 		$this->params['questions'] = $user->questionnaire->getQuestions();
-		$this->view('pages/questionnaire/user');
+		return $this->view('pages/questionnaire/user');
 	}
 
 	/**
 	 * @param Request $request
 	 *
-	 * @return void
-	 * @throws JsonException
+	 * @return ResponseInterface
 	 * @throws TemplateDoesNotExistException
 	 * @throws ValidationException
 	 */
-	public function done(Request $request) : void {
+	public function done(Request $request) : ResponseInterface {
 		$user = QuestionnaireHelper::getQuestionnaireUser();
 		foreach ($request->post['questionnaire'] ?? [] as $id => $values) {
 			$test = DB::select(Answer::TABLE, Answer::getPrimaryKey())->where('id_question = %i AND id_user = %i', $id, $user->id)->fetchSingle();
@@ -168,7 +164,7 @@ class Questionnaire extends Controller
 					DB::insert(Answer::TABLE, $data);
 				}
 			} catch (Exception $e) {
-				$this->respond(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
+				return $this->respond(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
 			}
 		}
 		$user->finished = true;
@@ -176,7 +172,7 @@ class Questionnaire extends Controller
 		$count = count($user->questionnaire->getQuestions());
 		$this->params['counter'] = $count;
 		$this->params['total'] = $count;
-		$this->respond([
+		return $this->respond([
 										 'success' => true,
 										 'total'   => $count,
 										 'step'    => $count + 1,
@@ -187,10 +183,9 @@ class Questionnaire extends Controller
 	/**
 	 * @param Request $request
 	 *
-	 * @return void
-	 * @throws JsonException
+	 * @return ResponseInterface
 	 */
-	public function save(Request $request) : void {
+	public function save(Request $request) : ResponseInterface {
 		$user = QuestionnaireHelper::getQuestionnaireUser();
 		foreach ($request->post['questionnaire'] ?? [] as $id => $values) {
 			$test = DB::select(Answer::TABLE, Answer::getPrimaryKey())->where('id_question = %i AND id_user = %i', $id, $user->id)->fetchSingle();
@@ -207,10 +202,10 @@ class Questionnaire extends Controller
 					DB::insert(Answer::TABLE, $data);
 				}
 			} catch (Exception $e) {
-				$this->respond(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
+				return $this->respond(['error' => 'Failed saving answer to DB', 'exception' => $e->getMessage(), 'trace' => $e->getTrace(), 'sql' => $e->getSql()], 500);
 			}
 		}
-		$this->respond(['success' => true]);
+		return $this->respond(['success' => true]);
 	}
 
 	/**
@@ -218,22 +213,21 @@ class Questionnaire extends Controller
 	 *
 	 * @param Request $request Allows passing "key" parameter to set which question to get
 	 *
-	 * @return void
-	 * @throws ValidationException
-	 * @throws JsonException
+	 * @return ResponseInterface
 	 * @throws TemplateDoesNotExistException
+	 * @throws ValidationException
 	 */
-	public function getQuestion(Request $request) : void {
+	public function getQuestion(Request $request) : ResponseInterface {
 		$key = (int) ($request->params['key'] ?? 0);
 		$this->params['user'] = QuestionnaireHelper::getQuestionnaireUser();
 		if (!isset($this->params['user']->questionnaire)) {
-			$this->respond(['error' => lang('User has no questionnaire set.', context: 'questionnaire.errors')], 400);
+			return $this->respond(['error' => lang('User has no questionnaire set.', context: 'questionnaire.errors')], 400);
 		}
 		$questions = array_values($this->params['user']->questionnaire->getQuestions());
 		bdump($key);
 		bdump($questions);
 		if (empty($questions)) {
-			$this->respond(['error' => lang('Questionnaire is empty.', context: 'questionnaire.errors')], 404);
+			return $this->respond(['error' => lang('Questionnaire is empty.', context: 'questionnaire.errors')], 404);
 		}
 		$this->params['total'] = count($questions);
 		// Get first unfilled question (or the last)
@@ -249,7 +243,7 @@ class Questionnaire extends Controller
 		$this->params['counter'] = $key;
 		$this->params['question'] = $questions[$key];
 		bdump($questions);
-		$this->respond([
+		return $this->respond([
 										 'step'  => $key + 1,
 										 'total' => $this->params['total'],
 										 'html'  => $this->latte->viewToString('questionnaire/questions/question', $this->params),
@@ -261,47 +255,38 @@ class Questionnaire extends Controller
 	 *
 	 * @param Request $request
 	 *
-	 * @return void
+	 * @return ResponseInterface
 	 * @throws ValidationException
-	 * @throws JsonException
 	 */
-	public function selectQuestionnaire(Request $request) : void {
+	public function selectQuestionnaire(Request $request) : ResponseInterface {
 		if (!isset($request->params['id'])) {
-			$this->respond(['error' => 'Missing parameter ID'], 400);
+			return $this->respond(['error' => 'Missing parameter ID'], 400);
 		}
 		$id = (int) $request->params['id'];
 		try {
 			$questionnaire = \App\Models\Questionnaire\Questionnaire::get($id);
 		} catch (ModelNotFoundException|DirectoryCreationException $e) {
-			$this->respond(['error' => 'Questionnaire not found', 'exception' => $e->getMessage()], 404);
+			return $this->respond(['error' => 'Questionnaire not found', 'exception' => $e->getMessage()], 404);
 		}
 		$user = QuestionnaireHelper::getQuestionnaireUser();
 		$user->questionnaire = $questionnaire;
 		try {
 			if ($user->save()) {
-				$this->respond(['success' => true]);
+				return $this->respond(['success' => true]);
 			}
 		} catch (ValidationException $e) {
 		}
-		$this->respond(['error' => 'Failed to save user'], 500);
+		return $this->respond(['error' => 'Failed to save user'], 500);
 	}
 
-	/**
-	 * @return void
-	 * @throws JsonException
-	 */
-	public function showLater() : void {
+	public function showLater() : ResponseInterface {
 		QuestionnaireHelper::showQuestionnaireLater();
-		$this->respond(['success' => true]);
+		return $this->respond(['success' => true]);
 	}
 
-	/**
-	 * @return void
-	 * @throws JsonException
-	 */
-	public function dontShowAgain() : void {
+	public function dontShowAgain() : ResponseInterface {
 		QuestionnaireHelper::dontShowQuestionnaire();
-		$this->respond(['success' => true]);
+		return $this->respond(['success' => true]);
 	}
 
 }

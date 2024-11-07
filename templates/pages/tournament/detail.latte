@@ -28,11 +28,11 @@
         <a n:ifset="$tournament->league"
                 href="{link isset($tournament->league->slug) ? ['liga', $tournament->league->slug] : ['league', $tournament->league->id]}"
                 class="btn btn-secondary">
-			<i class="fa-solid fa-angle-left"></i>
+			{faSolid 'angle-left'}
 			{lang 'Zpět na ligu'}
 		</a>
         <a href="{link 'arena', $tournament->arena->id}" class="btn btn-secondary">
-			<i class="fa-solid fa-angle-left"></i>
+			{faSolid 'angle-left'}
 			{lang 'Zpět na arénu'}
 		</a>
 	</p>
@@ -59,7 +59,7 @@
 			{else}
                 <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', $tournament->league->id, 'register'}{else}{link 'tournament', $tournament->id, 'register'}{/if}"
 				   class="btn btn-lg btn-primary">
-					<i class="fa-solid fa-user-plus"></i>
+					{faSolid 'user-plus'}
 					{lang 'Registrace'}
 				</a>
 			{/if}
@@ -73,7 +73,7 @@
         <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
                 data-title="{sprintf(lang('Laser game turnaj: %s'), (isset($tournament->league) ? $tournament->league->name.' ' : '').$tournament->name)}"
                 data-url="{link 'tournament', $tournament->id}">
-            <i class="fa-solid fa-share"></i>
+            {faSolid 'share'}
             {lang 'Sdílet'}
         </button>
     </div>

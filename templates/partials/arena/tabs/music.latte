@@ -1,28 +1,12 @@
-{varType App\Models\MusicMode[] $music}
+{varType App\Models\DataObjects\MusicGroup[] $music}
 
 <h2 class="my-3">{lang 'Hudební módy'}:</h2>
 <p class="text-muted">{lang 'Seznam a ukázky hudebních módů nabízených do hry.'}
     <br>{lang 'Hudební mód dokáže úplně změnit zážitek z laser game. Vybírejte proto tak, aby vás co nejvíce nabudil a vy si svou hru co nejvíce užili.'}
 </p>
-<ul class="list-group" id="musicModes"
-	data-track-content=""
-	data-content-name="Arena - Music modes">
-	<li n:foreach="$music as $mode" class="list-group-item music" data-id="{$mode->id}">
-		<div class="w-100 d-flex justify-content-between align-items-center">
-			<h3 class="fs-6 m-0 d-inline fw-bold">{$mode->name}</h3>
-			<div class="d-flex align-items-center">
-				<div class="time-music font-monospace">
-					0:00
-				</div>
-				<button type="button" class="btn btn-success play-music ms-2" data-content-piece="Play"
-						data-content-target="{$mode->getMediaUrl()}"
-						data-file="{$mode->getMediaUrl()}"
-						data-toggle="tooltip" data-play="{lang 'Přehrát', context: 'actions'}"
-						data-stop="{lang 'Zastavit', context: 'actions'}"
-						title="{lang 'Přehrát', context: 'actions'}">
-					<i class="fa-solid fa-play"></i>
-				</button>
-			</div>
-		</div>
-	</li>
-</ul>
+
+<div class="music-groups-wrapper" data-count="{count($music)}" id="musicModes" data-track-content="" data-content-name="Arena - Music modes">
+    {foreach $music as $musicGroup}
+        {include '../../../components/music/musicModeCard.latte', $musicGroup}
+    {/foreach}
+</div>

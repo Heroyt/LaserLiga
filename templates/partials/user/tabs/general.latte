@@ -40,7 +40,7 @@
         </div>
         <div class="stat" data-toggle="tooltip"
 			 title="{lang 'Poměr zabití a smrtí. Např. hodnota 2 znamená, že máš 2x tolik zásahů než smrtí.'}">
-            <h4 class="stat-title">{lang 'K:D'} <i class="fa-solid fa-circle-question"></i></h4>
+            <h4 class="stat-title">{lang 'K:D'} {faSolid 'circle-question'}</h4>
             <div class="stat-value">
 				{$user->player?->stats->kd|number:2,',',''}
 			</div>
@@ -92,14 +92,14 @@
         <div class="stat">
             <h4 class="stat-title">{lang 'Nejlepší skóre'}</h4>
             <div class="stat-value">
-				{$user->player?->stats->maxScore|number:0,',','&nbsp;'|noescape} <i
-						class="fa-solid fa-star"></i>
+				{$user->player?->stats->maxScore|number:0,',','&nbsp;'|noescape}
+                {faSolid 'star'}
 			</div>
 		</div>
         <div class="stat">
             <h4 class="stat-title">{lang 'Nejlepší hodnocení hráče ve hře'}</h4>
             <div class="stat-value">
-                {$user->player?->stats->maxSkill|number:0,',','&nbsp;'|noescape} <i class="fa-solid fa-medal"></i>
+                {$user->player?->stats->maxSkill|number:0,',','&nbsp;'|noescape} {faSolid 'medal'}
 			</div>
 		</div>
 	</div>

@@ -5652,3 +5652,49 @@ msgstr ""
 
 msgid "Marco polo"
 msgstr ""
+
+msgid "Další Laser game účty"
+msgstr ""
+
+msgid "Data v tomto grafu jsou uváděna v rozmezí 0-100%."
+msgstr ""
+
+msgid "Umístění na grafu je relativní vůči ostatním hráčům a vyjadřuje váš percentil (kolik % hráčů je lepší, nebo horší, než váš průměr)."
+msgstr ""
+
+msgid "Percentil"
+msgstr ""
+
+msgid "Nejlepší %d %%"
+msgid_plural "Nejlepších %d %%"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d výstřel za minutu"
+msgid_plural "%d výstřelů za minutu"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Nejhorší %d %%"
+msgid_plural "Nejhorších %d %%"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%.2f zásah za minutu"
+msgid_plural "%.2f zásahů za minutu"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%.2f smrt za minutu"
+msgid_plural "%.2f smrtí za minutu"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%.2f zásahů na jednu smrt"
+msgstr ""
+
+msgid "Čas mrtvý"
+msgstr ""
+
+msgid "Zásahy:Smrti"
+msgstr ""

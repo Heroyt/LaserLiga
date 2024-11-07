@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file    load.php
  * @brief   Main bootstrap
@@ -26,6 +27,7 @@ use Lsr\Helpers\Tracy\TranslationTracyPanel;
 use Nette\Bridges\DITracy\ContainerPanel;
 use Nette\Bridges\HttpTracy\SessionPanel;
 use Tracy\Debugger;
+use Tracy\NativeSession;
 
 if (!defined('ROOT')) {
 	define("ROOT", dirname(__DIR__) . '/');
@@ -44,11 +46,12 @@ Timer::start('core.init');
 if (!is_dir(LOG_DIR) && !mkdir(LOG_DIR) && (!file_exists(LOG_DIR) || !is_dir(LOG_DIR))) {
 	throw new RuntimeException(sprintf('Directory "%s" was not created', LOG_DIR));
 }
+if (!is_dir(UPLOAD_DIR) && !mkdir(UPLOAD_DIR) && (!file_exists(UPLOAD_DIR) || !is_dir(UPLOAD_DIR))) {
+	throw new RuntimeException(sprintf('Directory "%s" was not created', UPLOAD_DIR));
+}
 
 // Enable tracy
-Debugger::enable(PRODUCTION ? Debugger::PRODUCTION : Debugger::DEVELOPMENT, LOG_DIR);
 Debugger::$editor = 'phpstorm://open?file=%file&line=%line';
-
 Debugger::$dumpTheme = 'dark';
 
 // Register custom tracy panels
@@ -61,41 +64,23 @@ Debugger::getBar()
 
 Loader::init();
 
-define('CHECK_TRANSLATIONS', (bool)(App::getConfig()['General']['TRANSLATIONS'] ?? false));
-define('TRANSLATIONS_COMMENTS', (bool)(App::getConfig()['General']['TRANSLATIONS_COMMENTS'] ?? false));
+define('CHECK_TRANSLATIONS', (bool) (App::getInstance()->config->getConfig()['General']['TRANSLATIONS'] ?? false));
+define(
+	'TRANSLATIONS_COMMENTS',
+	(bool) (App::getInstance()->config->getConfig()['General']['TRANSLATIONS_COMMENTS'] ?? false)
+);
 
-if (defined('INDEX')) {
+if (defined('INDEX') && PHP_SAPI !== 'cli') {
 	// Register library tracy panels
 	if (!isset($_ENV['noDb'])) {
 		(new Panel())->register(DB::getConnection());
 	}
-	Debugger::getBar()
-	        ->addPanel(new ContainerPanel(App::getContainer()))
-	        ->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line
-	        ->addPanel(new SessionPanel());
-}
-
-BlueScreenPanel::initialize();
-
-// Translations update
-$translationChange = false;
-if (!PRODUCTION) {
-	Timer::start('core.init.translations');
-	$poLoader = new PoLoader();
-	/** @var Translations[] $translations */
-	$translations = [];
-
-	$languages = App::getSupportedLanguages();
-	foreach ($languages as $lang => $country) {
-		$concatLang = $lang . '_' . $country;
-		$path = LANGUAGE_DIR . '/' . $concatLang;
-		if (!is_dir($path)) {
-			continue;
-		}
-		$file = $path . '/LC_MESSAGES/' . LANGUAGE_FILE_NAME . '.po';
-		$translations[$concatLang] = $poLoader->loadFile($file);
+	if (!PRODUCTION) {
+		Debugger::getBar()
+		        ->addPanel(new ContainerPanel(App::getContainer()))
+		        ->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line
+		        ->addPanel(new SessionPanel());
 	}
-	Timer::stop('core.init.translations');
 }
 
 Timer::stop('core.init');

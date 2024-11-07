@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\DataObjects\Image;
 use Lsr\Core\App;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -16,12 +17,13 @@ use OpenApi\Attributes as OA;
 class MusicMode extends Model
 {
 
-	public const TABLE = 'music';
+	public const string TABLE = 'music';
 
 	#[Required]
 	#[StringLength(1, 20)]
 	#[OA\Property]
 	public string $name;
+	public ?string $group = null;
 	#[OA\Property]
 	public int    $order        = 0;
 	#[OA\Property]
@@ -33,6 +35,12 @@ class MusicMode extends Model
 	public int    $idLocal;
 	#[OA\Property]
 	public int    $previewStart = 0;
+
+	public ?string $backgroundImage = null;
+	public ?string $icon = null;
+
+	private ?Image $backgroundImageObject = null;
+	private ?Image $iconObject = null;
 
 	/**
 	 * @param Arena|null $arena Filter music for arena
@@ -49,7 +57,20 @@ class MusicMode extends Model
 	}
 
 	public function getMediaUrl() : string {
-		return str_replace(ROOT, App::getUrl(), $this->fileName);
+		return str_replace(ROOT, App::getInstance()->getBaseUrl(), $this->fileName);
 	}
 
+	public function getBackgroundImage(): ?Image {
+		if (!isset($this->backgroundImageObject) && isset($this->backgroundImage)) {
+			$this->backgroundImageObject = new Image($this->backgroundImage);
+		}
+		return $this->backgroundImageObject;
+	}
+
+	public function getIcon(): ?Image {
+		if (!isset($this->iconObject) && isset($this->icon)) {
+			$this->iconObject = new Image($this->icon);
+		}
+		return $this->iconObject;
+	}
 }

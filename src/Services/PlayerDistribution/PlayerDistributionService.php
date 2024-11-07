@@ -28,7 +28,14 @@ class PlayerDistributionService
 		return new PlayerDistributionQuery($param, $min, $max, $step);
 	}
 
-	public function getPercentile(DistributionParam $param, int $value, bool $rankableOnly = true): int {
+	/**
+	 * @param DistributionParam $param
+	 * @param int|float         $value
+	 * @param bool              $rankableOnly
+	 *
+	 * @return int<1,99>
+	 */
+	public function getPercentile(DistributionParam $param, int|float $value, bool $rankableOnly = true): int {
 		$query = $this->queryDistribution($param);
 		if ($rankableOnly) {
 			$query->onlyRankable();

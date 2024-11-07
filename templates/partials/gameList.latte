@@ -47,8 +47,8 @@
                             data-bs-toggle="collapse" data-bs-target="#fields-filters">
                         {lang 'Upravit zobrazené sloupce'}
                         <div class="collapse-indicator ms-3">
-                            <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                            <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                            {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                            {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                         </div>
                     </button>
                     <div class="collapse p-2" id="fields-filters">
@@ -86,8 +86,8 @@
                             data-bs-toggle="collapse" data-bs-target="#modes-filters">
                         {lang 'Herní módy'}
                         <div class="collapse-indicator ms-3">
-                            <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                            <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                            {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                            {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                         </div>
                     </button>
                     {var App\GameModels\Game\GameModes\AbstractMode[] $allModes = \App\GameModels\Factory\GameModeFactory::getAll()}
@@ -143,14 +143,14 @@
                                data-events="{json_encode($dates)}">
                         <button type="button" class="btn btn-danger" data-toggle="clear" data-target="#date"
                                 aria-label="{lang 'Smazat filtr'}">
-                            <i class="fa-solid fa-ban"></i>
+                            {faSolid 'ban'}
                         </button>
                     </div>
                 </div>
             {/block}
             {block submitFilter}
                 <div class="col-12 col-lg-2 text-center my-3">
-                    <button class="btn btn-primary" type="submit"><i class="fa-solid fa-filter"></i> {lang 'Filtrovat'}
+                    <button class="btn btn-primary" type="submit">{faSolid 'filter'} {lang 'Filtrovat'}
                     </button>
                 </div>
             {/block}
@@ -171,7 +171,7 @@
                 </thead>
                 <tbody>
                 {foreach $games as $game}
-                    {var string[] $link = isset($user->player) ? ['game', $game->code, $user->player->getCode()] : ['game', $game->code]}
+                    {var string[] $link = isset($user?->player) ? ['game', $game->code, $user->player->getCode()] : ['game', $game->code]}
                     <tr data-code="{$game->code}" data-href="{link $link}">
                         {var App\GameModels\Game\Player $userPlayer = null}
                         {foreach $game->getPlayers() as $player}
@@ -202,7 +202,7 @@
 				</span>
                         </td>
                         <td n:ifset="$fields['score']">
-                            {$userPlayer->score} <i class="fa-solid fa-star"></i>
+                            {$userPlayer->score} {faSolid 'star'}
                         </td>
                         <td n:ifset="$fields['accuracy']">
                             {$userPlayer->accuracy}&nbsp;%
@@ -220,13 +220,13 @@
                             {($userPlayer->deaths === 0 ? 0 : $userPlayer->hits / $userPlayer->deaths)|number:2,',',''}
                         </td>
                         <td n:ifset="$fields['skill']">
-                            {$userPlayer->skill} <i class="fa-solid fa-medal"></i>
+                            {$userPlayer->skill} {faSolid 'medal'}
                         </td>
                         <td>
                         <span class="btn-group">
                             <a href="{link $link}" class="btn btn-secondary" data-toggle="tooltip"
                                title="{lang 'Výsledky'}">
-                                <i class="fa-solid fa-eye"></i>
+                                {faSolid 'eye'}
                             </a>
                             {block additionalActions}{/block}
                         </span>
@@ -247,13 +247,13 @@
                     <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionAsc"
                            value="asc" autocomplete="off" n:attr="checked: !$desc">
                     <label class="btn btn-outline-secondary" for="mobileOrderDirectionAsc">
-                        <i class="fa-solid fa-angle-up"></i>
+                        {faSolid 'angle-up'}
                     </label>
 
                     <input type="radio" class="btn-check" name="mobileOrderDirection" id="mobileOrderDirectionDesc"
                            value="desc" autocomplete="off" n:attr="checked: $desc">
                     <label class="btn btn-outline-secondary" for="mobileOrderDirectionDesc">
-                        <i class="fa-solid fa-angle-down"></i>
+                        {faSolid 'angle-down'}
                     </label>
                 </div>
                 <div n:foreach="$games as $game"
@@ -275,11 +275,11 @@
 
                         <div class="date-mode">
                             <div class="date">
-                                <i class="me-1 fa-solid fa-calendar-days"></i>
+                                {faSolid 'calendar-days', 'me-1'}
                                 {$game->start->format('d.m.Y H:i')}
                             </div>
                             <div n:if="$game->getMode() !== null" class="mode">
-                                <i class="me-1 fa-solid fa-gun"></i>
+                                {faSolid 'gun', 'me-1'}
                                 {lang $game->getMode()->name, context: 'gameModes'}
                             </div>
                         </div>
@@ -301,7 +301,7 @@
 
                         <div class="stats">
                             <div n:ifset="$fields['score']" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
-                                {$userPlayer->score} <i class="fa-solid fa-star"></i>
+                                {$userPlayer->score} {faSolid 'star'}
                             </div>
                             <div n:ifset="$fields['accuracy']" class="accuracy" data-toggle="tooltip"
                                                                title="{lang 'Přesnost'}">
@@ -324,7 +324,7 @@
                             </div>
                             <div n:ifset="$fields['skill']" class="skill" data-toggle="tooltip"
                                                             title="{lang 'Herní úroveň'}">
-                                {$userPlayer->skill} <i class="fa-solid fa-medal"></i>
+                                {$userPlayer->skill} {faSolid 'medal'}
                             </div>
                         </div>
                     </div>

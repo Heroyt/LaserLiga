@@ -1,16 +1,4 @@
-{varType App\Models\Auth\User $user}
-{varType App\GameModels\Game\Game[] $games}
-{varType int $p}
-{varType int $pages}
-{varType int $limit}
-{varType int $total}
-{varType string $orderBy}
-{varType bool $desc}
-{varType int[] $modeIds}
-{varType \DateTimeImmutable|null $date}
-{varType string[] $dates}
-{varType array[] $allFields}
-{default bool $currentUser = false}
+{templateType App\Templates\User\UserHistoryParameters}
 
 {default array $fields = [
 'start' => ['name' => lang('Datum'), 'sortable' => true],
@@ -46,7 +34,7 @@ fields: $fields
                                     data-code="{$game->code}" data-user="{$user->id}"
                                     data-confirm="{lang 'Opravdu chcete hru odstranit z profilu?'}"
                                     title="{lang 'To nejsem já'}" type="button">
-            <i class="fa-solid fa-cancel"></i>
+            {faSolid 'cancel'}
         </button>
     {/block}
 {/embed}

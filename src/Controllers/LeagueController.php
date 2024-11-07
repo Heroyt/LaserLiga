@@ -21,7 +21,10 @@ use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\RegistrationType;
 use App\Models\Tournament\Stats;
 use App\Services\EventRegistrationService;
+use App\Services\Turnstile;
 use Dibi\DriverException;
+use Exception;
+use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
@@ -29,47 +32,63 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
+use Psr\Http\Message\ResponseInterface;
 
 class LeagueController extends Controller
 {
+	use CaptchaValidation;
 
 	private Logger $logger;
 
 	/**
-	 * @param Latte                    $latte
 	 * @param Auth<User>               $auth
 	 * @param EventRegistrationService $eventRegistrationService
+	 * @param Turnstile                $turnstile
 	 */
-	public function __construct(Latte $latte, private readonly Auth $auth, private readonly EventRegistrationService $eventRegistrationService) {
-		parent::__construct($latte);
+	public function __construct(
+		private readonly Auth                     $auth,
+		private readonly EventRegistrationService $eventRegistrationService,
+		private readonly Turnstile                $turnstile,
+	) {
+		parent::__construct();
 	}
 
 	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->params['user'] = $this->auth->getLoggedIn();
+		$this->params['turnstileKey'] = $this->turnstile->getKey();
 	}
 
-	public function detailSlug(string $slug, Request $request): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function detailSlug(string $slug, Request $request): ResponseInterface {
 		$league = League::getBySlug($slug);
 		if (!isset($league)) {
 			$request->addPassError(lang('Liga neexistuje'));
-			App::redirect(['liga'], $request);
+			return $this->app->redirect(['liga'], $request);
 		}
-		$this->detail($league);
+		return $this->detail($league);
 	}
 
-	public function detail(League $league): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function detail(League $league): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'         => [],
 			$league->arena->name => ['arena', $league->arena->id],
 			lang('Turnaje')      => App::getLink(['arena', $league->arena->id]) . '#tournaments-tab',
-			$league->name => isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id],
+			$league->name        => isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id],
 		];
 		$this->title = 'Liga %s';
 		$this->titleParams[] = $league->name;
@@ -79,10 +98,15 @@ class LeagueController extends Controller
 		$this->params['league'] = $league;
 		$this->params['stats'] = Stats::getForLeague($league, true);
 
-		$this->view('/pages/league/detail');
+		return $this->view('/pages/league/detail');
 	}
 
-	public function show(): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function show(): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'            => [],
 			lang('Ligy laser game') => ['league'],
@@ -91,15 +115,19 @@ class LeagueController extends Controller
 		$this->description = 'Organizované laser game ligy - skupiny turnajů, které na sebe navazují.';
 		$this->params['leagues'] = League::getAll();
 
-		$this->view('pages/league/index');
+		return $this->view('pages/league/index');
 	}
 
-	public function teamDetail(LeagueTeam $team): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function teamDetail(LeagueTeam $team): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'               => [],
 			$team->league->arena->name => ['arena', $team->league->arena->id],
 			lang('Turnaje')            => App::getLink(['arena', $team->league->arena->id]) . '#tournaments-tab',
-			$team->league->name => isset($league->slug) ? ['liga', $team->league->slug] : [
+			$team->league->name        => isset($league->slug) ? ['liga', $team->league->slug] : [
 				'league',
 				$team->league->id,
 			],
@@ -111,22 +139,30 @@ class LeagueController extends Controller
 		$this->descriptionParams[] = $team->name;
 		$this->descriptionParams[] = $team->league->name;
 		$this->params['currTeam'] = $team;
-		$this->view('pages/league/team');
+		return $this->view('pages/league/team');
 	}
 
-	public function registerSubstituteSlug(string $slug, Request $request): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function registerSubstituteSlug(string $slug, Request $request): ResponseInterface {
 		$league = League::getBySlug($slug);
 		if (!isset($league)) {
 			$request->addPassError(lang('Liga neexistuje'));
-			App::redirect(['liga'], $request);
+			return $this->app->redirect(['liga'], $request);
 		}
-		$this->registerSubstitute($league, $request);
+		return $this->registerSubstitute($league, $request);
 	}
 
-	public function registerSubstitute(League $league, Request $request): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function registerSubstitute(League $league, Request $request): ResponseInterface {
 		if (!$league->substituteRegistration) {
 			$request->addPassError(lang('Přihlašování náhradníků není povoleno'));
-			App::redirect($league->getUrlPath(), $request);
+			return $this->app->redirect($league->getUrlPath(), $request);
 		}
 		$this->setRegisterSubstituteTitleDescription($league);
 		$this->params['league'] = $league;
@@ -146,20 +182,66 @@ class LeagueController extends Controller
 				],
 			];
 		}
-		$this->view('pages/league/registerSubstitute');
+		return $this->view('pages/league/registerSubstitute');
 	}
 
-	public function processSubstituteSlug(string $slug, Request $request) {
+	private function setRegisterSubstituteTitleDescription(League $league): void {
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'                  => [],
+			lang('Ligy laser game')       => ['league'],
+			$league->name                 => $league->getUrlPath(),
+			lang('Registrace náhradníka') => $league->getUrlPath('substitute'),
+		];
+		$this->title = '%s - Registrace na ligu';
+		$this->titleParams[] = $league->name;
+		$this->description = 'Registrace na ligu %s v %s.';
+		$this->descriptionParams[] = $league->name;
+		$this->descriptionParams[] = $league->arena->name;
+	}
+
+	/**
+	 * @throws DriverException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function processSubstituteSlug(string $slug, Request $request): ResponseInterface {
 		$league = League::getBySlug($slug);
 		if (!isset($league)) {
 			$request->addPassError(lang('Liga neexistuje'));
-			App::redirect(['liga'], $request);
+			return $this->app->redirect(['liga'], $request);
 		}
-		$this->processSubstitute($league, $request);
+		return $this->processSubstitute($league, $request);
 	}
 
-	public function processSubstitute(League $league, Request $request): void {
-		/** @var array{registered?:string,sub?:string,captain?:string,name?:string,surname?:string,nickname?:string,user?:string,email?:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:string,skill?:string}[] $players */
+	/**
+	 * @throws DriverException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function processSubstitute(League $league, Request $request): ResponseInterface {
+		$this->validateCaptcha($request);
+		if (!empty($this->params['errors'])) {
+			$this->setRegisterSubstituteTitleDescription($league);
+			$this->params['league'] = $league;
+			return $this->view('pages/league/registerSubstitute');
+		}
+		/**
+		 * @var array{
+		 *     registered:string,
+		 *     sub:string,
+		 *     captain:string,
+		 *     name:string,
+		 *     surname:string,
+		 *     nickname:string,
+		 *     user:string,
+		 *     email:string,
+		 *     phone:string,
+		 *     parentEmail:string,
+		 *     parentPhone:string,
+		 *     birthYear:string,
+		 *     skill:string
+		 * }[] $players
+		 */
 		$players = $request->getPost('players', []);
 		if (count($players) !== 1) {
 			$this->params['errors'][] = lang('Vyplňte informace o hráči.');
@@ -206,7 +288,7 @@ class LeagueController extends Controller
 
 			try {
 				$substitute = $this->eventRegistrationService->registerSubstitute($league, $player);
-			} catch (ModelSaveFailedException|ModelNotFoundException|ValidationException $e) {
+			} catch (ModelSaveFailedException|ValidationException $e) {
 				$this->getLogger()->exception($e);
 				$this->params['errors'][] = lang('Nepodařilo se uložit náhradníka. Zkuste to znovu', context: 'errors');
 			}
@@ -218,7 +300,7 @@ class LeagueController extends Controller
 			if (!$this->eventRegistrationService->sendSubstituteEmail($substitute)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect(
+			return $this->app->redirect(
 				$league->getUrlPath(),
 				$request
 			);
@@ -227,22 +309,35 @@ class LeagueController extends Controller
 		DB::getConnection()->rollback();
 		$this->setRegisterSubstituteTitleDescription($league);
 		$this->params['league'] = $league;
-		$this->view('pages/league/registerSubstitute');
+		return $this->view('pages/league/registerSubstitute');
 	}
 
-	public function registerSlug(string $slug, Request $request): void {
+	private function getLogger(): Logger {
+		$this->logger ??= new Logger(LOG_DIR . 'leagues', 'controller');
+		return $this->logger;
+	}
+
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function registerSlug(string $slug, Request $request): ResponseInterface {
 		$league = League::getBySlug($slug);
 		if (!isset($league)) {
 			$request->addPassError(lang('Liga neexistuje'));
-			App::redirect(['liga'], $request);
+			return $this->app->redirect(['liga'], $request);
 		}
-		$this->register($league, $request);
+		return $this->register($league, $request);
 	}
 
-	public function register(League $league, Request $request): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function register(League $league, Request $request): ResponseInterface {
 		if ($league->registrationType === RegistrationType::TOURNAMENT) {
 			$request->addPassError(lang('Na ligu se nelze přihlásit.'));
-			App::redirect($league->getUrlPath(), $request);
+			return $this->app->redirect($league->getUrlPath(), $request);
 		}
 		$this->setRegisterTitleDescription($league);
 		$this->params['league'] = $league;
@@ -262,7 +357,7 @@ class LeagueController extends Controller
 				],
 			];
 		}
-		$this->view('pages/league/registerTeam');
+		return $this->view('pages/league/registerTeam');
 	}
 
 	private function setRegisterTitleDescription(League $league): void {
@@ -279,64 +374,78 @@ class LeagueController extends Controller
 		$this->descriptionParams[] = $league->arena->name;
 	}
 
-	public function processRegisterSlug(string $slug, Request $request): void {
+	/**
+	 * @throws DriverException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws TemplateDoesNotExistException
+	 */
+	public function processRegisterSlug(string $slug, Request $request): ResponseInterface {
 		$league = League::getBySlug($slug);
 		if (!isset($league)) {
 			$request->addPassError(lang('Liga neexistuje'));
-			App::redirect(['liga'], $request);
+			return $this->app->redirect(['liga'], $request);
 		}
-		$this->processRegister($league, $request);
+		return $this->processRegister($league, $request);
 	}
 
 	/**
-	 * @param League  $league
-	 * @param Request $request
-	 *
-	 * @return void
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 * @throws DriverException
 	 * @throws TemplateDoesNotExistException
 	 * @throws DirectoryCreationException
+	 * @throws JsonException
 	 */
-	public function processRegister(League $league, Request $request): void {
-		$previousTeam = null;
-		if (!empty($request->post['previousTeam'])) {
-			$previousTeam = LeagueTeam::get((int)$request->post['previousTeam']);
+	public function processRegister(League $league, Request $request): ResponseInterface {
+		$this->validateCaptcha($request);
+		if (!empty($this->params['errors'])) {
+			$this->setRegisterTitleDescription($league);
+			$this->params['league'] = $league;
+			return $this->view('pages/league/registerTeam');
 		}
 
+		$previousTeam = null;
+		/** @var numeric|null $prevTeamId */
+		$prevTeamId = $request->getPost('previousTeam');
+		if (!empty($prevTeamId)) {
+			$previousTeam = LeagueTeam::get((int)$prevTeamId);
+		}
+
+		/** @var numeric|null $categoryId */
+		$categoryId = $request->getPost('category');
 		if (!isset($previousTeam)) {
 			$this->params['errors'] = $this->eventRegistrationService->validateRegistration($league, $request);
 		}
-		else if (empty($request->post['category'])) {
+		else if (empty($categoryId)) {
 			$this->params['errors']['category'] = lang('Vyberte kategorii');
 		}
-		else if (!LeagueCategory::exists((int)$request->post['category'])) {
+		else if (!LeagueCategory::exists((int)$categoryId) || !isset($league->getCategories()[(int) $categoryId])) {
 			$this->params['errors']['category'] = lang('Kategorie neexistuje');
 		}
 
-		if (empty($_POST['gdpr'])) {
+		/** @var string|null $gdpr */
+		$gdpr = $request->getPost('gdpr');
+		if (empty($gdpr)) {
 			$this->params['errors']['gdpr'] = lang('Je potřeba souhlasit se zpracováním osobních údajů.');
 		}
 
 		$category = null;
-		if (empty($this->params['errors']['category']) && !empty($request->post['category']) && count(
-				$league->getCategories()
-			) > 0) {
-			$category = LeagueCategory::get((int)$request->post['category']);
+		if (empty($this->params['errors']['category']) && !empty($categoryId) && count($league->getCategories()) > 0) {
+			$category = $league->getCategories()[(int)$categoryId];
 		}
 
-		if (isset($league->teamLimit) && count(
-				isset($category) ? $category->getTeams() : $league->getTeams()
-			) >= $league->teamLimit) {
+		if (isset($league->teamLimit) && count(!empty($categoryId) ? ($league->getCategories()[(int)$categoryId]->getTeams(true)) : $league->getTeams(true)) >= $league->teamLimit) {
 			$this->params['errors'][] = lang(
-				'Na ligu se již nelze přihlásit. ' . (isset($category) ? 'Kategorie je plná.' : 'Liga je plná.')
+				'Na ligu se již nelze přihlásit. ' . (!empty($categoryId) ? 'Kategorie je plná.' : 'Liga je plná.')
 			);
 		}
 
 		if (empty($this->params['errors'])) {
 			DB::getConnection()->begin();
-			$data = new TeamRegistrationDTO((string)($previousTeam?->name ?? $request->getPost('team-name')));
+			$data = new TeamRegistrationDTO(
+				(string)($previousTeam?->name ?? $request->getPost('team-name')) // @phpstan-ignore-line
+			);
 			$data->image = $this->processLogoUpload();
 			if (isset($previousTeam)) {
 				$data->image = isset($previousTeam->image) ? new Image($previousTeam->image) : null;
@@ -429,8 +538,10 @@ class LeagueController extends Controller
 				}
 
 				// Register connected events
-				if (!empty($request->post['event'])) {
-					foreach ($request->post['event'] as $eventId => $dates) {
+				/** @var array<numeric,numeric|numeric[]> $eventIds */
+				$eventIds = $request->getPost('event', []);
+				if (!empty($eventIds)) {
+					foreach ($eventIds as $eventId => $dates) {
 						$event = Event::get((int)$eventId);
 						/** @var EventTeam $eventTeam */
 						$eventTeam = $this->eventRegistrationService->registerTeam($event, $data);
@@ -471,16 +582,15 @@ class LeagueController extends Controller
 			if (!$this->eventRegistrationService->sendRegistrationEmail($team)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect(
-				['league', 'registration', $league->id, $team->id, 'h' => $team->getHash()],
+			return $this->app->redirect(
+				['league', 'registration', (string) $league->id, (string) $team->id, 'h' => $team->getHash()],
 				$request
 			);
 		}
 		DB::getConnection()->rollback();
 		$this->setRegisterTitleDescription($league);
 		$this->params['league'] = $league;
-		$this->view('pages/league/registerTeam');
-
+		return $this->view('pages/league/registerTeam');
 	}
 
 	private function processLogoUpload(): ?UploadedFile {
@@ -498,12 +608,12 @@ class LeagueController extends Controller
 		return $image;
 	}
 
-	private function getLogger(): Logger {
-		$this->logger ??= new Logger(LOG_DIR . 'leagues', 'controller');
-		return $this->logger;
-	}
-
-	public function updateRegistration(League $league, int $registration, Request $request): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function updateRegistration(League $league, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'              => [],
 			lang('Ligy laser game')   => ['league'],
@@ -524,17 +634,18 @@ class LeagueController extends Controller
 			                  ->first();
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				App::redirect($league->getUrlPath(), $request);
+				return $this->app->redirect($league->getUrlPath(), $request);
 			}
 			if (!empty($request->params['hash'])) {
 				$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				App::redirect($league->getUrlPath(), $request);
+				return $this->app->redirect($league->getUrlPath(), $request);
 			}
-			$this->updateTeam($team, $request);
+			return $this->updateTeam($team);
 		}
+		return $this->respond('', 501);
 	}
 
 	private function validateRegistrationAccess(LeagueTeam|Player $registration): bool {
@@ -563,12 +674,17 @@ class LeagueController extends Controller
 			if ($registration->validateHash($_REQUEST['h'] ?? '')) {
 				return true;
 			}
-		} catch (\Exception) {
+		} catch (Exception) {
 		}
 		return false;
 	}
 
-	private function updateTeam(LeagueTeam $team, Request $request): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	private function updateTeam(LeagueTeam $team): ResponseInterface {
 		$this->params['team'] = $team;
 		$this->params['league'] = $team->league;
 
@@ -604,10 +720,17 @@ class LeagueController extends Controller
 			$this->params['values']['players'][] = $playerData;
 		}
 
-		$this->view('pages/league/updateTeam');
+		return $this->view('pages/league/updateTeam');
 	}
 
-	public function processUpdateRegister(League $league, int $registration, Request $request): void {
+	/**
+	 * @throws DriverException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 */
+	public function processUpdateRegister(League $league, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'              => [],
 			lang('Ligy laser game')   => ['league'],
@@ -622,29 +745,36 @@ class LeagueController extends Controller
 		$this->title = '%s - Úprava registrace na ligu';
 		$this->titleParams[] = $league->name;
 		if ($league->format === GameModeType::TEAM) {
+			$this->validateCaptcha($request);
+			if (!empty($this->params['errors'])) {
+				$request->addPassError($this->params['errors'][0]);
+				return $this->app->redirect($league->getUrlPath(), $request);
+			}
 			/** @var LeagueTeam|null $team */
 			$team = LeagueTeam::query()
 			                  ->where('id_league = %i AND id_team = %i', $league->id, $registration)
 			                  ->first();
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				App::redirect($league->getUrlPath(), $request);
+				return $this->app->redirect($league->getUrlPath(), $request);
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				App::redirect($league->getUrlPath(), $request);
+				return $this->app->redirect($league->getUrlPath(), $request);
 			}
 			$this->params['errors'] = $this->eventRegistrationService->validateRegistration($league, $request);
 			if (empty($this->params['errors'])) {
 				$category = $team->category;
-				if (empty($this->params['errors']['category']) && !empty($request->post['category']) && count(
-						$league->getCategories()
-					) > 0) {
-					$category = LeagueCategory::get((int)$request->post['category']);
+				/** @var numeric|null $categoryId */
+				$categoryId = $request->getPost('category');
+				if (empty($this->params['errors']['category']) && !empty($categoryId) && count($league->getCategories()) > 0) {
+					$category = LeagueCategory::get((int)$categoryId);
 				}
 
 				DB::getConnection()->begin();
-				$data = new TeamRegistrationDTO($request->getPost('team-name'));
+				$data = new TeamRegistrationDTO(
+					(string)$request->getPost('team-name') // @phpstan-ignore-line
+				);
 				$data->image = $this->processLogoUpload() ?? $team->getImageObj();
 
 				/** @var array{id?:numeric-string,registered?:string,captain?:string,sub?:string,name:string,surname:string,nickname:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:numeric-string,user?:string,email:string,skill:string}[] $players */
@@ -783,28 +913,14 @@ class LeagueController extends Controller
 				if (!$this->eventRegistrationService->sendRegistrationEmail($team, true)) {
 					$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 				}
-				App::redirect($link, $request);
+				return $this->app->redirect($link, $request);
 			}
 			$this->params['team'] = $team;
 			$this->params['league'] = $league;
 			$this->params['values'] = $_POST;
 			DB::getConnection()->rollback();
-			$this->view('pages/league/updateTeam');
+			return $this->view('pages/league/updateTeam');
 		}
-
-	}
-
-	private function setRegisterSubstituteTitleDescription(League $league): void {
-		$this->params['breadcrumbs'] = [
-			'Laser Liga'                  => [],
-			lang('Ligy laser game')       => ['league'],
-			$league->name                 => $league->getUrlPath(),
-			lang('Registrace náhradníka') => $league->getUrlPath('substitute'),
-		];
-		$this->title = '%s - Registrace na ligu';
-		$this->titleParams[] = $league->name;
-		$this->description = 'Registrace na ligu %s v %s.';
-		$this->descriptionParams[] = $league->name;
-		$this->descriptionParams[] = $league->arena->name;
+		return $this->respond('', 501);
 	}
 }

@@ -85,6 +85,6 @@ abstract class EventPlayerBase extends Model
 		if (empty($this->image)) {
 			return null;
 		}
-		return App::getUrl() . $this->image;
+		return App::getInstance()->getBaseUrl() . $this->image;
 	}
 }

@@ -1,0 +1,38 @@
+.play-music {
+  .fa-play {
+    display: inline-block;
+  }
+  .fa-stop {
+    display: none;
+  }
+  .spinner-grow,
+  .spinner {
+    display: none;
+  }
+
+  &.playing {
+    .fa-play {
+      display: none;
+    }
+    .fa-stop {
+      display: inline-block;
+    }
+    .spinner-grow,
+    .spinner {
+      display: none;
+    }
+  }
+
+  &.loading {
+    .fa-play {
+      display: none;
+    }
+    .fa-stop {
+      display: none;
+    }
+    .spinner-grow,
+    .spinner {
+      display: inline-block;
+    }
+  }
+}

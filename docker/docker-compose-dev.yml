@@ -1,4 +1,3 @@
-version: "3"
 services:
   liga-db:
     restart: always
@@ -16,7 +15,7 @@ services:
       - backend
   liga-redis:
     restart: always
-    image: redis/redis-stack-server:latest
+    image: eqalpha/keydb:latest
     ports:
       - "6378:6379"
     networks:

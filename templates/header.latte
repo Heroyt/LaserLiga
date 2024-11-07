@@ -1,5 +1,5 @@
-{varType array $_GET}
 {varType array $_COOKIE}
+{varType Lsr\Core\Controllers\Controller $page}
 {varType \Lsr\Core\Requests\Request $request}
 
 {define header}
@@ -40,27 +40,42 @@
                 </ul>
             </div>
             <div class="btn-group ms-auto">
-                {var string $selectedLang = explode('_',$_GET['lang'] ?? Lsr\Core\App::$language->id)[0]}
-                {var string $selectedCountry = Lsr\Core\App::getSupportedLanguages()[$selectedLang]}
-                <button class="btn btn-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                {var string $selectedLang = $page->app->translations->getLangId()}
+                {var string $selectedCountry = $page->app->translations->getCountry()}
+                <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
                         aria-expanded="false">
-                    <img srcset="{getImageSrcSet(ROOT.'assets/flags/'.\Lsr\Core\Constants::COUNTRIES[$selectedCountry].'.png')}"
-                         src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]|escapeUrl}.png"
-                         style="height: 2rem; width: 2rem;"
-                         loading="lazy"
-                         alt="{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]}">
+                    {img
+                        'assets/flags/'.\Lsr\Core\Constants::COUNTRIES[$selectedCountry].'.png',
+                        null,
+                        null,
+                        [],
+                        [
+                            'style' => 'height: 2rem; width: 2rem;',
+                            'data-lang' => $selectedLang,
+                            'data-country' => $selectedCountry,
+                            'alt' => \Lsr\Core\Constants::COUNTRIES[$selectedCountry],
+                        ]}
                 </button>
-                <ul class="dropdown-menu bg-white" style="min-width: 5rem;">
-                    {foreach Lsr\Core\App::getSupportedLanguages() as $lang => $country}
+                <ul class="dropdown-menu bg-white" style="min-width: 5rem;left:auto;margin-left: 0;top:3rem;">
+                    {foreach $page->app->translations->supportedLanguages as $lang => $country}
                         {continueIf $selectedLang === $lang}
                         <li>
-                            <a class="dropdown-item" rel="nofollow"
-                               href="{link ['lang', $lang, 'redirect' => $request->path]}">
-                                <img class="mx-auto d-block"
-                                     src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$country]|escapeUrl}.png"
-                                     style="height: 2rem; width: 2rem;"
-                                     loading="lazy"
-                                     alt="{\Lsr\Core\Constants::COUNTRIES[$country]}">
+                            <a class="dropdown-item"
+                               href="{link ['lang', $lang, 'redirect' => $page->app->getRequest()->getPath()]}"
+                               data-set-lang="{$lang}">
+                                {img
+                                    'assets/flags/'.\Lsr\Core\Constants::COUNTRIES[$country].'.png',
+                                    null,
+                                    null,
+                                    [],
+                                    [
+                                        'class' => 'mx-auto d-block',
+                                        'loading' => 'lazy',
+                                        'style' => 'height: 2rem; width: 2rem;',
+                                        'data-lang' => $lang,
+                                        'data-country' => $country,
+                                        'alt' => \Lsr\Core\Constants::COUNTRIES[$country],
+                                    ]}
                             </a>
                         </li>
                     {/foreach}
@@ -70,7 +85,7 @@
                 {if \Lsr\Core\App::getService('auth')->loggedIn()}
                     <button class="btn btn-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown"
                             aria-label="{lang 'Uživatel'}" aria-expanded="false">
-                        <i class="fa-solid fa-user"></i>
+                        {faSolid 'user'}
                     </button>
                     <ul class="dropdown-menu bg-white" style="min-width: 3rem;right:0;left:auto;">
                         <li>
@@ -91,7 +106,7 @@
                     </ul>
                 {else}
                     <a href="{link ['login']}" class="btn btn-light btn-lg">
-                        <i class="fa-solid fa-right-to-bracket"></i>
+                        {faSolid 'right-to-bracket'}
                         {lang 'Přihlásit'}
                     </a>
                 {/if}

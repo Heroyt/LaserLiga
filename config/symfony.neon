@@ -1,0 +1,31 @@
+includes:
+	- symfony.php
+parameters:
+	symfony:
+		normalizer:
+			context:
+		serializer:
+			json:
+				context:
+services:
+	symfony.lock.store: Symfony\Component\Lock\Store\RedisStore(@redis)
+	symfony.lock.factory: Symfony\Component\Lock\LockFactory(@symfony.lock.store)
+
+	symfony.info.reflectionextractor: Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor
+
+	symfony.denormalizer.array: Symfony\Component\Serializer\Normalizer\ArrayDenormalizer
+
+	symfony.normalizer.enum: Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer
+	symfony.normalizer.json: Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer(defaultContext: %symfony.normalizer.context%)
+	symfony.normalizer.object: Symfony\Component\Serializer\Normalizer\ObjectNormalizer(propertyTypeExtractor: @symfony.info.reflectionextractor,defaultContext: %symfony.normalizer.context%)
+
+	symfony.encoder.json: Symfony\Component\Serializer\Encoder\JsonEncoder(defaultContext: %symfony.serializer.json.context%)
+	symfony.encoder.xml: Symfony\Component\Serializer\Encoder\XmlEncoder
+	symfony.encoder.csv: Symfony\Component\Serializer\Encoder\CsvEncoder
+
+	symfony.serializer: Symfony\Component\Serializer\Serializer(
+		[@symfony.normalizer.dibiRow, @symfony.denormalizer.array, @symfony.normalizer.datetime, @symfony.normalizer.enum, @symfony.normalizer.json, @symfony.normalizer.object],
+		[@symfony.encoder.json, @symfony.encoder.xml, @symfony.encoder.csv]
+	)
+
+	mapper: Lsr\Core\Mapper(@symfony.serializer)

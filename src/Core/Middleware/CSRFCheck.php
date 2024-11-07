@@ -4,30 +4,33 @@
 namespace App\Core\Middleware;
 
 
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Routing\Middleware;
-use Lsr\Interfaces\RequestInterface;
+use Lsr\Core\Routing\MiddlewareResponder;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 
 class CSRFCheck implements Middleware
 {
+	use MiddlewareResponder;
 
 	public function __construct(
 		public readonly string $name = '',
 	) {
 	}
 
-	/**
-	 * @param RequestInterface $request
-	 *
-	 * @return bool
-	 */
-	public function handle(RequestInterface $request) : bool {
-		$csrfName = empty($this->name) ? implode('/', $request->getPath()) : $this->name;
+	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
+		$csrfName = empty($this->name) ? $request->getUri()->getPath() : $this->name;
 		if (!formValid($csrfName)) {
-			$error = lang('Požadavek vypršel, zkuste to znovu.', context: 'errors');
-			$request->addError($error);
-			return false;
+			return $this->respond(
+				$request,
+				new ErrorResponse('Request expired', ErrorType::ACCESS, 'Try reloading the page.'),
+			);
 		}
-		return true;
+
+		return $handler->handle($request);
 	}
 
 }

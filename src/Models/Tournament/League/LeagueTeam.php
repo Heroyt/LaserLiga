@@ -19,9 +19,9 @@ use Nette\Utils\Strings;
 #[PrimaryKey('id_team')]
 class LeagueTeam extends EventTeamBase
 {
-	public const PLAYER_CLASS = Player::class;
-	public const TOKEN_KEY    = 'league-team';
-	public const TABLE        = 'league_teams';
+	public const string PLAYER_CLASS = Player::class;
+	public const string TOKEN_KEY = 'league-team';
+	public const string TABLE     = 'league_teams';
 
 	public int $points = 0;
 

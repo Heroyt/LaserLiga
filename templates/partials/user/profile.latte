@@ -1,8 +1,5 @@
+{templateType App\Templates\Player\ProfileParameters}
 {default bool $loggedIn = false}
-{varType App\Models\Auth\User|null $loggedInUser}
-{varType App\Models\Auth\User $user}
-{varType Dibi\Row[] $lastGames}
-{varType App\Models\DataObjects\PlayerRank $rankOrder}
 
 {var bool $showCompare = isset($loggedInUser) && $loggedInUser->id !== $user->id}
 {var bool $currentUser = isset($loggedInUser) && $loggedInUser->id === $user->id}
@@ -22,8 +19,7 @@
             {$user->player->getCode()}
             <button n:if="$currentUser" class="btn p-0 position-absolute ms-3" type="button" data-toggle="tooltip"
                                         title="{sprintf(lang('Tvůj kód %s je unikátní identifikátor, pod kterým tě aréna vždy při zadávání hry najde.'), $user->player->getCode())}">
-                <i class="fa-solid fa-circle-question fs-4"
-                   style="line-height: 2.5rem;vertical-align: middle;"></i>
+                {faSolid 'circle-question', 'fs-4', ['style' => 'line-height: 2.5rem;vertical-align: middle;']}
             </button>
         </h2>
         {include '../title.latte', $user->player->getTitle(), false, $currentUser}
@@ -87,16 +83,16 @@
         <p class="mt-3 text-center">
             <button n:if="$currentUser" type="button" class="btn btn-secondary" data-bs-toggle="modal"
                                         data-bs-target="#user-help-modal">
-                <i class="fa-solid fa-circle-question"></i> {lang 'Nápověda'}
+                {faSolid 'circle-question'} {lang 'Nápověda'}
             </button>
             <button type="button" class="btn btn-success my-3" data-bs-toggle="modal" data-bs-target="#shareModal">
-                <i class="fa-solid fa-share"></i>
+                {faSolid 'share'}
                 {lang 'Sdílet'}
             </button>
             {var App\Models\Tournament\Tournament[] $tournaments = $user->player?->getTournaments() ?? []}
             {if !empty($tournaments)}
                 <a href="{link 'user', $user->player->getCode(), 'tournaments'}" class="btn btn-info">
-                    <i class="fa-solid fa-trophy"></i>
+                    {faSolid 'trophy'}
                     {lang 'Turnaje'} ({$tournaments|length})
                 </a>
             {/if}
@@ -104,10 +100,13 @@
         {var App\Models\Auth\UserConnection[] $connections = $user->getPublicConnections()}
         <div n:if="count($connections) > 0" class="my-3 text-center">
             <h3 class="fs-5">{lang 'Další Laser game účty'}</h3>
-            <a n:foreach="$connections as $connection" href="{$connection->getUrl()}" target="_blank" rel="nofollow"
-                                                       class="btn btn-{$connection->type->getColor()}">
-                {svgIcon $connection->type->getIcon(), 'auto', '1em'} {$connection->type->getName()}
-            </a>
+            {foreach $connections as $connection}
+                {continueIf empty($connection->identifier)}
+                <a href="{$connection->getUrl()}" target="_blank" rel="nofollow"
+                   class="btn btn-{$connection->type->getColor()}">
+                    {svgIcon $connection->type->getIcon(), 'auto', '1em'} {$connection->type->getName()}
+                </a>
+            {/foreach}
         </div>
 
         <h2 class="visually-hidden">{lang 'Základní statistiky'}</h2>
@@ -118,9 +117,9 @@
             </div>
             <div class="stat" data-toggle="tooltip"
                  title="{lang 'Herní úroveň se zvyšuje a klesá s každou odehranou klasickou hrou. Při výpočtu se přihlíží k úrovni protihráčů - pokud hrajete schválně se slabšími spoluhráči, herní úroveň roste pomalu.'}">
-                <h3 class="stat-title">{lang 'Úroveň'} <i class="fa-solid fa-circle-question"></i></h3>
+                <h3 class="stat-title">{lang 'Úroveň'} {faSolid 'circle-question'}</h3>
                 <div class="stat-value">
-                    {$user->player?->stats->rank ?? 100} <i class="fa-solid fa-medal"></i>
+                    {$user->player?->stats->rank ?? 100} {faSolid 'medal'}
                 </div>
             </div>
             <div class="stat">
@@ -217,7 +216,7 @@
         <h2 class="mb-3 text-center">{lang 'Poslední hry'}:</h2>
         <p n:if="$currentUser" class="text-center">
             <a href="{link 'user', 'findgames'}" class="btn btn-primary">
-                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                {faSolid 'magnifying-glass-plus'}
                 {lang 'Najít další hry'}
             </a>
         </p>
@@ -231,7 +230,7 @@
                           class="datetime">{$game->start->format('j. n. Y H:i')}</time>
                     <span class="arena">{ifset $game->id_arena}{\App\Models\Arena::get($game->id_arena)->getLogoHtml()|noescape}{/ifset}</span>
                     <span class="gamemode">{lang $game->modeName, context: 'gameModes'}</span>
-                    <span class="skill">{$game->skill}&nbsp;<i class="fa-solid fa-medal"></i></span>
+                    <span class="skill">{$game->skill}&nbsp;{faSolid 'medal'}</span>
                 </a>
             </div>
             <p class="text-center">
@@ -256,13 +255,13 @@
                 </div>
                 <div class="modal-footer">
                     <a href="{link 'user', $user->player->getCode(), 'img'}" download class="btn btn-primary">
-                        <i class="fa-solid fa-download"></i>
+                        {faSolid 'download'}
                         {lang 'Stáhnout obrázek'}
                     </a>
                     <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
                             data-title="{sprintf(lang('Profil hráče %s na portálu Laser liga'), $user->name)}"
                             data-url="{link 'user', $user->player->getCode()}">
-                        <i class="fa-solid fa-share"></i>
+                        {faSolid 'share'}
                         {lang 'Sdílet'}
                     </button>
                 </div>

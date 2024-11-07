@@ -14,7 +14,7 @@ enum DistributionParam: string
 	case hits     = 'hits';
 	case deaths   = 'deaths';
 	case shots    = 'shots';
-	case rank = 'rank';
+	case rank = 'skill';
 	case kd   = 'kd';
 
 	public function readableName(): string {
@@ -38,6 +38,20 @@ enum DistributionParam: string
 			self::shots    => 'bullets',
 			self::rank => 'medal',
 			self::kd   => 'kill',
+		};
+	}
+
+	public function getGameColumnName() : string {
+		return match ($this) {
+			self::rank => 'skill',
+			default => $this->value,
+		};
+	}
+
+	public function getPlayersColumnName() : string {
+		return match ($this) {
+			self::rank => 'rank',
+			default => $this->value,
 		};
 	}
 

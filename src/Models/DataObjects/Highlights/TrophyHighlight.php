@@ -30,6 +30,12 @@ class TrophyHighlight extends GameHighlight
 		parent::__construct(GameHighlightType::TROPHY, $value, $rarityScore);
 	}
 
+	public function jsonSerialize(): array {
+		$data = parent::jsonSerialize();
+		$data['player'] = ['vest' => $this->player->vest, 'name' => $this->player->name];
+		return $data;
+	}
+
 	/**
 	 * @return string
 	 * @throws ModelNotFoundException

@@ -42,8 +42,8 @@
         <label for="previousTeam">{lang 'Registrovat předchozí tým'}:</label>
         <select class="form-select" name="previousTeam" id="previousTeam">
             <option value="">{lang 'Nový tým'}</option>
-            <option n:foreach="$players as $player" value="{$player->team->id}">
-                {$player->team->name}
+            <option n:foreach="$players as $player" value="{$player->team?->id}">
+                {$player->team?->name}
                 - {$event instanceof App\Models\Tournament\League\League ? $player->league->name : $player->tournament->name}
             </option>
         </select>

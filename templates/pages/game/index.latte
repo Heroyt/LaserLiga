@@ -81,7 +81,7 @@
                     <h5 class="modal-title">{lang 'Dnešní pořadí podle', context: 'results.today'}:</h5>
                     <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
                             aria-label="{lang 'Close', context: 'actions'}">
-                        <i class="fa-solid fa-xmark"></i>
+                        {faSolid 'xmark'}
                     </button>
                 </div>
                 <div class="modal-body">
@@ -97,7 +97,7 @@
                     <h5 class="modal-title">{lang 'Vysvětlení hodnocení'}:</h5>
                     <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
                             aria-label="{lang 'Close', context: 'actions'}">
-                        <i class="fa-solid fa-xmark"></i>
+                        {faSolid 'xmark'}
                     </button>
                 </div>
                 <div class="modal-body">
@@ -113,7 +113,7 @@
                     <h5 class="modal-title">{lang 'Dostupné trofeje', context: 'results.bests'}:</h5>
                     <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
                             aria-label="{lang 'Close', context: 'actions'}">
-                        <i class="fa-solid fa-xmark"></i>
+                        {faSolid 'xmark'}
                     </button>
                 </div>
                 <div class="modal-body">
@@ -143,7 +143,7 @@
                     <h5 class="modal-title">{lang 'Písecký pohár 2023!'}</h5>
                     <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
                             aria-label="{lang 'Close', context: 'actions'}">
-                        <i class="fa-solid fa-xmark"></i>
+                        {faSolid 'xmark'}
                     </button>
                 </div>
                 <div class="modal-body text-center">
@@ -231,16 +231,18 @@
                 </div>
             </div>
             <div class="scoring p-0">
-                <div class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+                <a class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed text-decoration-none"
                      data-bs-toggle="collapse"
                      data-bs-target="#scoring-body"
+                     href="#scoring-body"
+                     tabindex="0" role="button" aria-expanded="false" aria-controls="scoring-body"
                      data-track-content="" data-content-name="Results - Legenda">
-                    <h3 class="m-0 fs-5"><i class="fas fa-star"></i> {lang 'Bodování', context: 'results'}</h3>
+                    <h3 class="m-0 fs-5">{faSolid 'star'} {lang 'Bodování', context: 'results'}</h3>
                     <div class="collapse-indicator">
-                        <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                        <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                        {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                        {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                     </div>
-                </div>
+                </a>
                 <div class="bg-background-1 collapse shadow rounded-bottom-10 text-center"
                      id="scoring-body">
                     <div class="d-flex flex-wrap justify-content-evenly">
@@ -318,16 +320,18 @@
                 </div>
             </div>
             <div class="icon-legend p-0">
-                <div class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+                <a class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed text-decoration-none"
                      data-bs-toggle="collapse"
+                     href="#legend"
                      data-bs-target="#legend"
+                     tabindex="0" role="button" aria-expanded="false" aria-controls="legend"
                      data-track-content="" data-content-name="Results - Legenda">
-                    <h3 class="m-0 fs-5"><i class="fas fa-info-circle"></i> {lang 'Legenda'}</h3>
+                    <h3 class="m-0 fs-5">{faSolid 'circle-info'} {lang 'Legenda'}</h3>
                     <div class="collapse-indicator">
-                        <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                        <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                        {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                        {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                     </div>
-                </div>
+                </a>
                 <div class="card-body bg-background-1 collapse shadow rounded-bottom-10 text-center"
                      id="legend">
                     <div class="d-flex flex-wrap justify-content-evenly align-items-center">
@@ -335,7 +339,7 @@
                             {svgIcon 'star', '', '1em'} - {lang 'Skóre', context: 'results'}
                         </div>
                         <div class="legend m-3">
-                            <i class="fa-solid fa-medal"></i> - {lang 'Herní úroveň'}
+                            {faSolid 'medal'} - {lang 'Herní úroveň'}
                         </div>
                         <div class="legend m-3">
                             {svgIcon 'bullets', '', '1em'} - {lang 'Výstřely', context: 'results'}
@@ -370,16 +374,18 @@
                 </div>
             </div>
             <section class="results-highlights p-0">
-                <div class="rounded-10 text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
+                <a class="rounded-10 text-decoration-none text-bg-primary d-flex justify-content-between cursor-pointer align-items-center p-3 mt-4 collapsed"
                      data-bs-toggle="collapse"
                      data-bs-target="#highlights-body"
+                     href="#highlights-body"
+                     tabindex="0" role="button" aria-expanded="false" aria-controls="highlights-body"
                      data-track-content="" data-content-name="Results - Analýza hry">
-                    <h3 class="m-0 fs-5"><i class="fa-solid fa-lightbulb"></i> {lang 'Analýza hry - zajímavosti'}</h3>
+                    <h3 class="m-0 fs-5">{faSolid 'lightbulb'} {lang 'Analýza hry - zajímavosti'}</h3>
                     <div class="collapse-indicator">
-                        <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                        <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                        {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                        {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                     </div>
-                </div>
+                </a>
                 <div class="bg-background-1 collapse shadow rounded-bottom-10 text-center"
                      id="highlights-body">
                     <div class="empty text-center">
@@ -406,7 +412,7 @@
             <button type="button" class="btn-lg btn btn-success d-none my-3" data-trigger="share"
                     data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->getMode()?->name, context: 'gameModes'), $game->arena?->name)}"
                     data-url="{link 'g', $game->code}">
-                <i class="fa-solid fa-share"></i>
+                {faSolid 'share'}
                 {lang 'Sdílet'}
             </button>
         </div>
@@ -420,7 +426,7 @@
                                             title="{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
                                             data-content-name="Results - Previous game"
                                             data-content-piece="Button">
-                <i class="fa-solid fa-angle-left"></i>
+                {faSolid 'angle-left'}
                 <span class="visually-hidden">
 					{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}
 					</span>
@@ -437,7 +443,7 @@
                     <span class="visually-hidden">
 					{sprintf(lang('Následující hra hráče %s', context: 'results.group'), $activeUser->nickname)}
 					</span>
-                <i class="fa-solid fa-angle-right"></i>
+                {faSolid 'angle-right'}
             </a>
         </div>
         <div n:if="$game->getGroup() !== null || $game->getTournamentGame() !== null" class="col-12 mt-3 text-center">
@@ -449,7 +455,7 @@
                                             title="{lang 'Předchozí hra', context: 'results.group'}"
                                             data-content-name="Results - Previous game"
                                             data-content-piece="Button">
-                    <i class="fa-solid fa-angle-left"></i>
+                    {faSolid 'angle-left'}
                     <span class="visually-hidden">
 					{lang 'Předchozí hra', context: 'results.group'}
 					</span>
@@ -458,14 +464,14 @@
                                           class="btn btn-secondary"
                                           data-track-content="" data-content-name="Results - Group"
                                           data-content-piece="Button">
-                    <i class="fa-solid fa-list"></i>
+                    {faSolid 'list'}
                     {lang 'Skupina'}
                 </a>
                 <a n:if="$game->getTournamentGame() !== null"
                         href="{link ['tournament', $game->getTournamentGame()->tournament->id]}#results-tab"
                         class="btn btn-secondary"
                         data-track-content="" data-content-name="Results - Tournament" data-content-piece="Button">
-                    <i class="fa-solid fa-trophy"></i>
+                    {faSolid 'trophy'}
                     {lang 'Turnaj'}
                 </a>
                 <a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-primary"
@@ -477,7 +483,7 @@
 					<span class="visually-hidden">
 					{lang 'Následující hra', context: 'results.group'}
 					</span>
-                    <i class="fa-solid fa-angle-right"></i>
+                    {faSolid 'angle-right'}
                 </a>
             </div>
         </div>
@@ -503,10 +509,13 @@
         <h2 class="visually-hidden">{lang 'Výsledky hráčů'}</h2>
         {foreach $game->getPlayersSorted() as $key => $player}
             <div class="results-player rounded-10 my-2 bg-background-1 flex-fill shadow">
-                <div class="player-head collapsed bg-team-{$player->getTeamColor()} p-2" data-bs-toggle="collapse"
+                <a class="player-head collapsed bg-team-{$player->getTeamColor()} p-2 text-decoration-none" data-bs-toggle="collapse"
                      id="player-{$player->name|replace:' ','_'}"
+                     tabindex="0" role="button" aria-expanded="false" aria-controls="player-body-{$key}"
                      data-track-content="" data-content-name="Results - player" data-content-target="{$player->name}"
-                     data-bs-target="#player-body-{$key}">
+                     data-bs-target="#player-body-{$key}"
+                     href="#player-body-{$key}"
+                >
                     <div class="position">
                         {$iterator->counter}.
                     </div>
@@ -537,10 +546,10 @@
                     {include playerScore}
 
                     <div class="collapse-indicator">
-                        <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                        <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                        {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                        {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                     </div>
-                </div>
+                </a>
                 <div class="player-body rounded-bottom-10 collapse bg-background-1 p-3" id="player-body-{$key}"
                      data-id="{$player->id}">
                     <div class="spinner-border text-center" role="status" style="width:3rem;height:3rem;">
@@ -556,12 +565,12 @@
     {varType App\GameModels\Game\Player $player}
     <div class="score-skill d-flex flex-wrap justify-content-end">
         <div n:if="$game->getMode()?->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
-            <i class="fa-solid fa-star"></i>
+            {faSolid 'star'}
             <span class="visually-hidden">{lang 'Skóre'}:</span>
             <b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
         </div>
         <div class="skill text-end ps-1" style="max-width:4.5rem;" data-toggle="tooltip" title="{lang 'Herní úroveň'}">
-            <i class="fa-solid fa-medal"></i>
+            {faSolid 'medal'}
             <span class="visually-hidden">{lang 'Herní úroveň'}:</span>
             {$player->getSkill()|number:0,',','&nbsp;'|noescape}
         </div>
@@ -579,7 +588,7 @@
                  style="--size:{100*($team->score > 0 ? $team->score : 0) / ($totalScore > 0 ? $totalScore : 1)|noescape}%;">
                 {if is_null($win) || $win->id === $team->id}{svgIcon 'crown', '2rem'}{/if}
                 <div class="name">{$team->name}</div>
-                <div class="score"><i class="fa-solid fa-star"></i> {$team->score|number:0,',','&nbsp;'|noescape}</div>
+                <div class="score">{faSolid 'star'} {$team->score|number:0,',','&nbsp;'|noescape}</div>
                 <div class="team-stats" data-id="{$team->id}">
                     <div class="spinner-border text-center" role="status" style="width:3rem;height:3rem;">
                         <span class="visually-hidden">Loading...</span>

@@ -460,8 +460,8 @@ class ResultsParser extends AbstractResultsParser
 				// - [27] ???
 				// - [29] ???
 				case 'PACKY':
-					if ($argsCount !== 29) {
-						throw new ResultsParseException('Invalid argument count in PACKY');
+					if ($argsCount < 28) {
+						throw new ResultsParseException('Invalid argument count in PACKY (count: '.$argsCount.', line: '.$key.')');
 					}
 					/** @var Player|null $player */
 					$player = $game->getPlayers()->get((int)$args[0]);

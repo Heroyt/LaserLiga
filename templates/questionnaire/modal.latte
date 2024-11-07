@@ -5,7 +5,7 @@
 			<div class="modal-header">
 				<h5 class="modal-title" id="questionnaire-modal-title">{lang 'Dotazník', context: 'questionnaire'}</h5>
 				<button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal" aria-label="Close">
-					<i class="fa-solid fa-xmark"></i>
+					{faSolid 'xmark'}
 				</button>
 			</div>
 			<div class="modal-body">
@@ -22,7 +22,7 @@
 						<p>
 							<button type="button" data-href="{link ['questionnaire', 'select', $questionnaire->id]}"
 									class="btn btn-primary btn-lg startQuestionnaire">
-								<i class="fa-solid fa-play"></i>
+								{faSolid 'play'}
 								{lang 'Začít', context: 'actions'}
 							</button>
 						</p>
@@ -36,15 +36,15 @@
 			<div class="modal-footer text-center">
 				<div class="btn-group mx-auto">
 					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-						<i class="fa-solid fa-xmark"></i><br>
+						{faSolid 'xmark'}<br>
 						{lang 'Zavřít', context: 'actions'}
 					</button>
 					<button type="button" class="btn btn-warning" id="show-later" data-bs-dismiss="modal">
-						<i class="fa-solid fa-clock"></i><br>
+						{faSolid 'clock'}<br>
 						{lang 'Zobrazit později', context: 'action'}
 					</button>
 					<button type="button" class="btn btn-danger" id="dont-show-again" data-bs-dismiss="modal">
-						<i class="fa-solid fa-circle-xmark"></i><br>
+						{faSolid 'circle-xmark'}<br>
 						{lang 'Nezobrazovat', context: 'action'}
 					</button>
 				</div>
@@ -65,7 +65,7 @@
 					{lang 'Last saved:'} <span class="last-save" data-target="#questionnaire-form">{lang 'never'}</span>
 				</div>
 				<button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal" aria-label="Close">
-					<i class="fa-solid fa-xmark"></i>
+					{faSolid 'xmark'}
 				</button>
 			</div>
 			<form class="modal-body autosave" id="questionnaire-form" action="{link ['questionnaire', 'save']}"
@@ -79,20 +79,20 @@
 			<div class="modal-footer text-center">
 				<div class="btn-group mx-auto">
 					<button type="button" class="btn btn-info previous">
-						<i class="fa-solid fa-angle-left"></i>
+						{faSolid 'angle-left'}
 						{lang 'Předchozí', context: 'actions'}
 					</button>
 					<button type="button" class="btn btn-primary next">
 						{lang 'Další', context: 'action'}
-						<i class="fa-solid fa-angle-right"></i>
+						{faSolid 'angle-right'}
 					</button>
 					<button type="button" class="btn btn-success done d-none">
 						{lang 'Dokončit', context: 'action'}
-						<i class="fa-solid fa-check"></i>
+						{faSolid 'check'}
 					</button>
 					<button type="button" class="btn btn-secondary close d-none" data-bs-dismiss="modal">
 						{lang 'Zavřít', context: 'action'}
-						<i class="fa-solid fa-xmark"></i>
+						{faSolid 'xmark'}
 					</button>
 				</div>
 			</div>

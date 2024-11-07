@@ -1,8 +1,5 @@
+{templateType App\Templates\User\UserFindGamesParameters}
 {layout '../../@layout.latte'}
-
-{varType App\Models\Auth\User $loggedInUser}
-{varType App\Models\PossibleMatch[] $possibleMatches}
-{varType App\GameModels\Game\Game[] $games}
 
 {block addHead}
 	{\App\Tools\Color::getGamesColor($games)|noescape}
@@ -11,7 +8,7 @@
 {block content}
 	<p class="text-start">
         <a href="{link ['user', $loggedInUser->player->getCode()]}" class="btn btn-secondary">
-			<i class="fa-solid fa-angle-left"></i> {lang 'Profil hráče'}
+			{faSolid 'angle-left'} {lang 'Profil hráče'}
 		</a>
 	</p>
     <h2 class="text-center">{lang 'Najít mé hry'} ({count($possibleMatches)})</h2>
@@ -70,16 +67,16 @@
 					<button class="setMe btn btn-success" data-id="{$playerMatch->id}" data-system="{$game::SYSTEM}"
 							title="{lang 'Přivlastnit'}"
 							data-toggle="tooltip">
-						<i class="fa-solid fa-check"></i>
+						{faSolid 'check'}
 					</button>
 					<button class="setNotMe btn btn-danger" data-id="{$playerMatch->id}" data-system="{$game::SYSTEM}"
 							title="{lang 'To nejsem já'}"
 							data-toggle="tooltip">
-						<i class="fa-solid fa-xmark"></i>
+						{faSolid 'xmark'}
 					</button>
 					<a href="{link ['game', $game->code]}" class="btn btn-primary" data-toggle="tooltip"
 					   title="{lang 'Výsledky'}">
-						<i class="fa-solid fa-eye"></i>
+						{faSolid 'eye'}
 					</a>
 						</span>
 					</td>

@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 use App\Api\Response\ErrorDto;
 use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
+use App\Exceptions\AuthHeaderException;
 use App\Models\Arena;
 use App\Models\GameGroup;
 use App\Models\Tournament\Game;
@@ -15,10 +16,13 @@ use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use DateTimeImmutable;
 use Lsr\Core\Controllers\ApiController;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 use OpenApi\Attributes as OA;
+use Psr\Http\Message\ResponseInterface;
+use Exception;
 
 class TournamentsController extends ApiController
 {
@@ -27,12 +31,16 @@ class TournamentsController extends ApiController
 
 	/**
 	 * @throws ValidationException
+	 * @throws AuthHeaderException
 	 */
 	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->arena = Arena::getForApiKey(ApiToken::getBearerToken());
 	}
 
+	/**
+	 * @throws ValidationException
+	 */
 	#[OA\Get(
 		path       : "/api/tournaments",
 		operationId: "getAllTournaments",
@@ -48,8 +56,8 @@ class TournamentsController extends ApiController
 			items: new OA\Items(ref: "#/components/schemas/Tournament"),
 		),
 	)]
-	public function getAll(): never {
-		$this->respond(
+	public function getAll(): ResponseInterface {
+		return $this->respond(
 			Tournament::query()->where('id_arena = %i', $this->arena->id)->get()
 		);
 	}
@@ -80,14 +88,18 @@ class TournamentsController extends ApiController
 		description: "Access denied",
 		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
 	)]
-	public function get(Tournament $tournament): never {
+	public function get(Tournament $tournament): ResponseInterface {
 		if ($tournament->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
 		}
 
-		$this->respond($tournament);
+		return $this->respond($tournament);
 	}
 
+	/**
+	 * @throws ValidationException
+	 * @throws Exception
+	 */
 	#[OA\Get(
 		path       : "/api/tournaments/{id}/teams",
 		operationId: "getTournamentTeams",
@@ -208,9 +220,9 @@ class TournamentsController extends ApiController
 		description: "Access denied",
 		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
 	)]
-	public function getTournamentTeams(Tournament $tournament, Request $request): never {
+	public function getTournamentTeams(Tournament $tournament, Request $request): ResponseInterface {
 		if ($tournament->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
 		}
 
 		$withPlayers = !empty($request->getGet('withPlayers'));
@@ -219,10 +231,10 @@ class TournamentsController extends ApiController
 		$teamsData = [];
 		foreach ($teams as $team) {
 			$teamData = [
-				'id'    => $team->id,
-				'name'  => $team->name,
-				'image' => $team->getImageUrl(),
-				'hash'  => $team->getHash(),
+				'id'        => $team->id,
+				'name'      => $team->name,
+				'image'     => $team->getImageUrl(),
+				'hash'      => $team->getHash(),
 				'createdAt' => $team->createdAt,
 				'updatedAt' => $team->updatedAt,
 			];
@@ -254,9 +266,14 @@ class TournamentsController extends ApiController
 
 			$teamsData[] = $teamData;
 		}
-		$this->respond($teamsData);
+		return $this->respond($teamsData);
 	}
 
+	/**
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws Exception
+	 */
 	#[OA\Post(
 		path       : "/api/tournaments",
 		operationId: "syncTournament",
@@ -451,9 +468,9 @@ class TournamentsController extends ApiController
 		description: "Access denied",
 		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
 	)]
-	public function syncGames(Tournament $tournament, Request $request): never {
+	public function syncGames(Tournament $tournament, Request $request): ResponseInterface {
 		if ($tournament->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
 		}
 
 		$ids = ['groups' => [], 'games' => [], 'progressions' => []];
@@ -559,7 +576,7 @@ class TournamentsController extends ApiController
 			$tournament->league->countPoints();
 		}
 
-		$this->respond($ids);
+		return $this->respond($ids);
 	}
 
 }

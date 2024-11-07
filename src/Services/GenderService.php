@@ -8,7 +8,7 @@ use Lsr\Helpers\Tools\Strings;
 class GenderService
 {
 
-	private const SCORED_WORDS = [
+	private const array SCORED_WORDS = [
 		'pan'   => 5,
 		'boy'   => 5,
 		'guy'   => 5,
@@ -84,8 +84,10 @@ class GenderService
 	 * @return string[]
 	 */
 	private static function getSuffixes(): array {
+		$contents = file_get_contents(ROOT . 'include/data/man_vs_woman_suffixes.txt');
+		assert($contents !== false, 'Cannot read file');
 		self::$suffixes ??= unserialize(
-			file_get_contents(ROOT . 'include/data/man_vs_woman_suffixes.txt'),
+			$contents,
 			['allowed_classes' => false]
 		);
 		return self::$suffixes;

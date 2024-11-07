@@ -74,7 +74,7 @@ export default function initArena() {
             let audio: HTMLAudioElement;
             const tooltip = Tooltip.getInstance(playBtn);
             playBtn.addEventListener('click', () => {
-                playBtn.innerHTML = `<div class="spinner-grow spinner-grow-sm" role="status"><span class="visually-hidden">Loading...</span></div>`;
+                playBtn.classList.add('loading');
                 console.log(media);
                 if (!audio) {
                     audio = new Audio(media);
@@ -83,14 +83,7 @@ export default function initArena() {
                 }
 
                 if (!audio.paused) {
-                    playBtn.classList.add('btn-success');
-                    playBtn.classList.remove('btn-danger');
-                    playBtn.innerHTML = `<i class="fa-solid fa-play"></i>`;
-                    tooltip.setContent({
-                        '.tooltip-inner': playLabel,
-                    });
-                    // Stop
-                    audio.pause();
+                    pause();
                     return;
                 }
 
@@ -99,7 +92,19 @@ export default function initArena() {
                 } else {
                     audio.addEventListener('canplaythrough', triggerPlay);
                 }
+
+                audio.addEventListener('ended', pause);
             });
+
+            function pause() {
+                playBtn.classList.add('btn-success');
+                playBtn.classList.remove('btn-danger', 'loading', 'playing');
+                tooltip.setContent({
+                    '.tooltip-inner': playLabel,
+                });
+                // Stop
+                audio.pause();
+            }
 
             function triggerPlay() {
                 const timeWrap = elem.querySelector('.time-music') as HTMLDivElement;
@@ -107,9 +112,8 @@ export default function initArena() {
                     audio.addEventListener('timeupdate', () => {
                         timeWrap.innerText = `${Math.floor(audio.currentTime / 60)}:${Math.floor(audio.currentTime % 60).toString().padStart(2, '0')}`;
                     });
-                    playBtn.classList.remove('btn-success');
-                    playBtn.classList.add('btn-danger');
-                    playBtn.innerHTML = `<i class="fa-solid fa-stop"></i>`;
+                    playBtn.classList.remove('btn-success', 'loading');
+                    playBtn.classList.add('btn-danger', 'playing');
                     tooltip.setContent({
                         '.tooltip-inner': stopLabel,
                     });

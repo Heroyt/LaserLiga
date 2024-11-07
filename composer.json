@@ -15,7 +15,7 @@
 		"docs": "doxygen",
 		"build-production": "composer update --no-dev && composer dump-autoload --no-dev && npm install && npm run build && npm prune --production",
     "build": "composer update && composer dump-autoload && npm install && npm run build",
-    "swagger": "./vendor/bin/openapi src -o openApi/swagger.yaml"
+    "swagger": "./vendor/bin/openapi vendor/lsr/request/src/Dto src -o openApi/swagger.yaml"
 	},
 	"require": {
     "tracy/tracy": ">2.10",
@@ -24,7 +24,7 @@
     "nette/utils": ">4.0",
 		"nette/security": ">3.1",
 		"ext-zip": "*",
-    "php": "^8.2",
+    "php": "^8.3",
 		"nette/http": ">3.1",
 		"ext-gettext": "*",
 		"nette/di": ">3.0",
@@ -41,15 +41,16 @@
 		"nette/mail": "^4.0",
 		"ext-curl": "*",
 		"ext-openssl": "*",
-    "minishlink/web-push": "^8.0",
+    "minishlink/web-push": "^9.0",
     "ext-imagick": "*",
     "ext-gd": "*",
     "zircote/swagger-php": "^4.8",
     "orisai/scheduler": "^2",
     "orisai/nette-scheduler": "^1.1",
-    "symfony/lock": "^6",
+    "symfony/lock": "^7",
     "orisai/nette-console": "^1.4",
-    "ext-redis": "*"
+    "ext-redis": "*",
+    "ext-igbinary": "*"
   },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

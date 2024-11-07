@@ -2,9 +2,8 @@
 
 namespace App\Controllers\Api;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
+use App\Exceptions\AuthHeaderException;
 use App\Exceptions\ResultsParseException;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
@@ -17,29 +16,48 @@ use App\Tools\ResultParsing\ResultsParser;
 use DateTimeImmutable;
 use Exception;
 use Lsr\Core\Controllers\ApiController;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Lsr\Interfaces\RequestInterface;
 use OpenApi\Attributes as OA;
+use Psr\Http\Message\ResponseInterface;
+use Throwable;
 
 class Import extends ApiController
 {
 
 	public Arena $arena;
 
-	public function __construct(Latte $latte, private readonly ResultsParser $parser, protected readonly PlayerUserService $playerUserService, private readonly PushService $pushService, private readonly PlayerRankOrderService $rankOrderService, private readonly AchievementChecker $achievementChecker,) {
-		parent::__construct($latte);
+	public function __construct(
+		private readonly ResultsParser          $parser,
+		protected readonly PlayerUserService    $playerUserService,
+		private readonly PushService            $pushService,
+		private readonly PlayerRankOrderService $rankOrderService,
+		private readonly AchievementChecker     $achievementChecker,
+	) {
+		parent::__construct();
 	}
 
 	/**
 	 * @throws ValidationException
+	 * @throws AuthHeaderException
 	 */
 	public function init(RequestInterface $request): void {
 		parent::init($request);
-		$this->arena = Arena::getForApiKey(ApiToken::getBearerToken());
+		/** @var Arena $arena */
+		$arena = Arena::getForApiKey(ApiToken::getBearerToken());
+		$this->arena = $arena;
 	}
 
+	/**
+	 * @throws Throwable
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @throws \Dibi\Exception
+	 */
 	#[
 		OA\Post(
 			path       : '/api/import',
@@ -83,7 +101,7 @@ class Import extends ApiController
 			description: 'Game group ID',
 			in         : 'query',
 			required   : false,
-			schema     : new OA\Schema(type: 'int'),
+			schema     : new OA\Schema(type: 'integer'),
 		),
 		OA\Response(
 			response   : 201,
@@ -96,14 +114,15 @@ class Import extends ApiController
 			content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')
 		)
 	]
-	public function parse(Request $request): never {
-		$content = $request->body;
+	public function parse(Request $request): ResponseInterface {
+		$request->getBody()->rewind();
+		$content = $request->getBody()->getContents();
 
 		try {
 			$game = $this->parser->setContents($content)->parse();
 		} catch (ResultsParseException $e) {
-			$this->respond(
-				new ErrorDto('Result parsing error', ErrorType::INTERNAL, exception: $e),
+			return $this->respond(
+				new ErrorResponse('Result parsing error', ErrorType::INTERNAL, exception: $e),
 				500
 			);
 		}
@@ -140,8 +159,8 @@ class Import extends ApiController
 			try {
 				$game->calculateSkills();
 				if ($game->save() === false) {
-					$this->respond(
-						new ErrorDto('Failed saving the game', ErrorType::DATABASE),
+					return $this->respond(
+						new ErrorResponse('Failed saving the game', ErrorType::DATABASE),
 						500
 					);
 				}
@@ -165,21 +184,21 @@ class Import extends ApiController
 						$ranksNow = $this->rankOrderService->getDateRanks($now);
 						$this->pushService->sendRankChangeNotifications($ranksBefore, $ranksNow);
 					} catch (Exception $e) {
-						$this->respond(
-							new ErrorDto('Error occured', ErrorType::INTERNAL, exception: $e),
+						return $this->respond(
+							new ErrorResponse('Error occured', ErrorType::INTERNAL, exception: $e),
 							500
 						);
 					}
 				}
 			} catch (ValidationException $e) {
-				$this->respond(
-					new ErrorDto('Validation error', ErrorType::VALIDATION, exception: $e),
+				return $this->respond(
+					new ErrorResponse('Validation error', ErrorType::VALIDATION, exception: $e),
 					500
 				);
 			}
 		}
 
-		$this->respond($game, 201);
+		return $this->respond($game, 201);
 	}
 
 }

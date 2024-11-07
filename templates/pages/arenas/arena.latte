@@ -1,20 +1,5 @@
+{templateType App\Templates\Arena\ArenaParameters}
 {layout '../../@layout.latte'}
-
-{varType App\Models\Arena $arena}
-{varType Dibi\Row[] $players}
-{varType int $todayGames}
-{varType int $todayPlayers}
-{varType App\Models\MusicMode[] $music}
-{varType \DateTime|null $date}
-{varType App\GameModels\Game\Game[] $games}
-{varType int $p}
-{varType int $pages}
-{varType int $limit}
-{varType int $total}
-{varType string $orderBy}
-{varType bool $desc}
-{varType int[] $modeIds}
-{varType string[] $dates}
 
 {define addHead}
     {\App\Tools\Color::getGamesColor($games)|noescape}
@@ -116,7 +101,7 @@
     ],
     id: 'arena-tabs',
     classes: 'mt-4',
-    activeTab: $_GET['tab'] ?? '',
+    activeTab: $tab,
     }
 
 	{/embed}

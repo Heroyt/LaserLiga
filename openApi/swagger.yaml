@@ -4,7 +4,8 @@ info:
   description: 'All API methods on the Laser liga portal.'
   version: '1.0'
 servers:
-  - url: 'https://laserliga.cz'
+  -
+    url: 'https://laserliga.cz'
 paths:
   /api/devtools/test/achievement:
     get:
@@ -14,43 +15,50 @@ paths:
       description: 'This method tests the Achievement Checker system.'
       operationId: achievementCheckerTest
       parameters:
-        - name: code
+        -
+          name: code
           in: query
           description: 'Game code'
           required: false
           schema:
             type: string
-        - name: user
+        -
+          name: user
           in: query
           description: "User's id or code"
           required: false
           schema:
             type: string
-        - name: all
+        -
+          name: all
           in: query
           description: 'Flag to process all games'
           required: false
           schema:
             type: boolean
-        - name: save
+        -
+          name: save
           in: query
           description: 'Flag to save achievements'
           required: false
           schema:
             type: boolean
-        - name: offset
+        -
+          name: offset
           in: query
           description: 'Offset for games query'
           required: false
           schema:
             type: integer
-        - name: limit
+        -
+          name: limit
           in: query
           description: 'Limit for the games query'
           required: false
           schema:
             type: integer
-        - name: classicOnly
+        -
+          name: classicOnly
           in: query
           description: 'Flag to process only classic game modes'
           required: false
@@ -64,8 +72,8 @@ paths:
               schema:
                 oneOf:
                   - { type: array, items: { $ref: '#/components/schemas/PlayerAchievement' } }
-                  - { schema: UserAchievementsByDate, type: object, example: { '2023-12-12': { g65633f08d266f: [ [ 'PlayerAchievement object' ] ] } }, additionalProperties: { type: object, additionalProperties: { type: array, items: { $ref: '#/components/schemas/PlayerAchievement' } } } }
-                  - { schema: CheckedAchievementCounts, properties: { games: { description: 'Checked game count', type: integer }, achievements: { description: 'Found achievement count', type: integer } }, type: object }
+                  - { type: object, example: { '2023-12-12': { g65633f08d266f: [['PlayerAchievement object']] } }, additionalProperties: { type: object, additionalProperties: { type: array, items: { $ref: '#/components/schemas/PlayerAchievement' } } } }
+                  - { properties: { games: { description: 'Checked game count', type: integer }, achievements: { description: 'Found achievement count', type: integer } }, type: object }
         '400':
           description: 'Bad Request - Nothing to process'
           content:
@@ -86,7 +94,8 @@ paths:
       description: 'This method tests the name inflection service.'
       operationId: inflectionTest
       parameters:
-        - name: 'names[]'
+        -
+          name: 'names[]'
           in: query
           description: 'Names to inflect'
           required: false
@@ -168,14 +177,16 @@ paths:
       description: 'This method updates the relative hits for a selection of players.'
       operationId: relativeHits
       parameters:
-        - name: limit
+        -
+          name: limit
           in: query
           description: 'Maximum number of players to update'
           required: false
           schema:
             type: integer
           example: 50
-        - name: offset
+        -
+          name: offset
           in: query
           description: 'Number of players to skip before updating'
           required: false
@@ -188,9 +199,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  status: { type: string, example: ok }
-                type: object
+                $ref: '#/components/schemas/SuccessResponse'
   /api/devtools/game/modes:
     post:
       tags:
@@ -204,9 +213,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  status: { type: string, example: ok }
-                type: object
+                $ref: '#/components/schemas/SuccessResponse'
   /api/devtools/regression:
     post:
       tags:
@@ -264,26 +271,30 @@ paths:
       summary: 'Get list of all games'
       operationId: listGames
       parameters:
-        - name: date
+        -
+          name: date
           in: query
           description: 'Filter games by date'
           required: false
           schema:
             type: string
             format: date
-        - name: system
+        -
+          name: system
           in: query
           description: 'Filter games by system'
           required: false
           schema:
             type: string
-        - name: returnLink
+        -
+          name: returnLink
           in: query
           description: 'If specified, only game links will be returned'
           required: false
           schema:
             type: boolean
-        - name: returnCodes
+        -
+          name: returnCodes
           in: query
           description: 'If specified, only game codes will be returned'
           required: false
@@ -368,7 +379,8 @@ paths:
       description: 'This method returns a list of registered users for a given game code'
       operationId: getGameUsers
       parameters:
-        - name: code
+        -
+          name: code
           in: path
           description: 'Game code'
           required: true
@@ -396,26 +408,80 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/games/skills:
-    post:
+    get:
       tags:
         - Games
       summary: 'Recalculate Multiple Game Skills'
       description: 'This method recalculates skills of the players for multiple games.'
       operationId: recalcMultipleGameSkills
-      requestBody:
-        description: 'Specify games to recalculate the skills for in the request body'
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:
-                games:
-                  type: array
-                  items: { description: 'Game codes', type: string }
-                rankonly:
-                  description: "If true, only recalculate rank change, but not the actual players' skills."
-                  type: boolean
-              type: object
+      parameters:
+        -
+          name: codes
+          in: path
+          description: 'List of game codes to process'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        -
+          name: date
+          in: path
+          description: 'Filter games by date'
+          required: false
+          schema:
+            type: string
+            format: date
+        -
+          name: user
+          in: path
+          description: 'Filter games by user Id'
+          required: false
+          schema:
+            type: integer
+        -
+          name: limit
+          in: path
+          description: 'Limit number of processed games'
+          required: false
+          schema:
+            type: integer
+        -
+          name: offset
+          in: path
+          description: 'Offset number of processed games'
+          required: false
+          schema:
+            type: integer
+        -
+          name: rankable
+          in: path
+          description: 'Filter only rankable game modes'
+          required: false
+          schema:
+            type: boolean
+        -
+          name: hasuser
+          in: path
+          description: "Filter only games with registered users. Combine with 'since'."
+          required: false
+          schema:
+            type: boolean
+        -
+          name: since
+          in: path
+          description: "Starting date. Combine with 'hasuser'."
+          required: false
+          schema:
+            type: string
+            format: date
+        -
+          name: rankonly
+          in: path
+          description: 'If true, only recalculate rank change, but not the actual players\'' skills.'
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: 'Player skills after recalculation'
@@ -440,7 +506,8 @@ paths:
       description: 'This method recalculates skills of a player for a single game.'
       operationId: recalcGameSkill
       parameters:
-        - name: code
+        -
+          name: code
           in: path
           description: 'Game code'
           required: true
@@ -483,7 +550,8 @@ paths:
       description: 'This method recalculates all scores accuracy and skills of the players for a single game.'
       operationId: recalcGame
       parameters:
-        - name: code
+        -
+          name: code
           in: path
           description: 'Game code'
           required: true
@@ -522,7 +590,8 @@ paths:
       description: 'This method returns details about a specific game based on its code.'
       operationId: getGame
       parameters:
-        - name: code
+        -
+          name: code
           in: path
           description: 'Game code'
           required: true
@@ -561,14 +630,16 @@ paths:
       description: 'This method returns statistical information for games.'
       operationId: stats
       parameters:
-        - name: date
+        -
+          name: date
           in: query
           description: 'Filter stats by this date'
           required: false
           schema:
             type: string
           example: '2023-04-01'
-        - name: system
+        -
+          name: system
           in: query
           description: 'Filter stats by this game system'
           required: false
@@ -594,21 +665,31 @@ paths:
       description: 'This method returns highlight information for a specific game.'
       operationId: highlights
       parameters:
-        - name: code
+        -
+          name: code
           in: path
           description: 'Game code'
           required: true
           schema:
             type: string
-        - name: user
+        -
+          name: user
           in: query
           description: 'User ID to filter highlights'
           required: false
           schema:
             type: integer
-        - name: descriptions
+        -
+          name: descriptions
           in: query
           description: 'Flag to return only highlight descriptions'
+          required: false
+          schema:
+            type: boolean
+        -
+          name: nocache
+          in: query
+          description: 'If present, the game is checked without again (if cached)'
           required: false
           schema:
             type: boolean
@@ -639,6 +720,100 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  '/api/games/{code}/group':
+    post:
+      tags:
+        - Games
+      summary: 'Sets game group.'
+      description: 'Sets group for a game and recalculates skills.'
+      operationId: setGroup
+      parameters:
+        -
+          name: code
+          in: path
+          description: 'Game code'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - groupId
+              properties:
+                groupId:
+                  type: integer
+              type: object
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  success: { type: boolean }
+                type: object
+        '400':
+          description: 'Invalid game code provided'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Game or game group not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/games/{code}/mode':
+    post:
+      tags:
+        - Games
+      summary: 'Changes game mode.'
+      description: 'Changes game mode and recalculates scores, skills.'
+      operationId: changeGameMode
+      parameters:
+        -
+          name: code
+          in: path
+          description: 'Game code'
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - mode
+              properties:
+                mode:
+                  type: integer
+              type: object
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                properties:
+                  status: { type: string }
+                type: object
+        '400':
+          description: 'Invalid game code provided'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 'Game or game mode not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/import:
     post:
       tags:
@@ -648,7 +823,8 @@ paths:
       description: 'Import results from a game file.'
       operationId: importGameFile
       parameters:
-        - name: players
+        -
+          name: players
           in: query
           description: 'Player meta information'
           required: false
@@ -660,17 +836,18 @@ paths:
                   name: { description: 'Full UTF-8 name of a player', type: string }
                   user: { description: "User's unique code", type: string }
                 type: object
-        - name: group
+        -
+          name: group
           in: query
           description: 'Game group ID'
           required: false
           schema:
-            type: int
+            type: integer
       requestBody:
         description: "Game file's content."
         required: true
         content:
-          text/plain: { }
+          text/plain: {  }
       responses:
         '201':
           description: 'Game imported'
@@ -708,7 +885,8 @@ paths:
       description: 'This method returns a league based on the provided ID.'
       operationId: getLeague
       parameters:
-        - name: id
+        -
+          name: id
           in: path
           description: 'League ID'
           required: true
@@ -735,7 +913,8 @@ paths:
       description: 'This method returns all the tournaments of a league based on the provided ID.'
       operationId: getLeagueTournaments
       parameters:
-        - name: id
+        -
+          name: id
           in: path
           description: 'League ID'
           required: true
@@ -764,7 +943,8 @@ paths:
       description: 'This method recounts the points for each team in a league based on the provided league ID and returns the recalculated values.'
       operationId: recountLeaguePoints
       parameters:
-        - name: id
+        -
+          name: id
           in: path
           description: 'League ID'
           required: true
@@ -794,7 +974,8 @@ paths:
       description: 'This method fixes league players data based on the provided league ID and returns the result of the operation.'
       operationId: fixLeaguePlayers
       parameters:
-        - name: id
+        -
+          name: id
           in: path
           description: 'League ID'
           required: true
@@ -826,30 +1007,48 @@ paths:
       description: 'This method returns users based on the provided search parameters.'
       operationId: find
       parameters:
-        - name: search
+        -
+          name: search
           in: query
           description: 'Search parameter (name, code, email)'
           required: false
           schema:
             type: string
-        - name: arena
+        -
+          name: arena
           in: query
           description: 'Home arena filter'
           required: false
           schema:
-            type: integer
-        - name: connectionType
+            oneOf:
+              -
+                type: integer
+              -
+                enum:
+                  - self
+        -
+          name: connectionType
           in: query
           description: 'Connected account type filter'
           required: false
           schema:
             type: string
-        - name: identifier
+        -
+          name: identifier
           in: query
           description: 'Connected account identifier'
           required: false
           schema:
             type: string
+        -
+          name: codes
+          in: query
+          description: 'List of user codes'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: 'List of players'
@@ -867,7 +1066,8 @@ paths:
       description: 'This method returns a user based on the provided code.'
       operationId: player
       parameters:
-        - name: code
+        -
+          name: code
           in: path
           description: 'User code'
           required: true
@@ -901,7 +1101,8 @@ paths:
       description: 'This method returns the title of a user based on the provided code.'
       operationId: playerTitle
       parameters:
-        - name: code
+        -
+          name: code
           in: path
           description: 'User code'
           required: true
@@ -921,6 +1122,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: 'Bad request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  '/api/players/old/{code}':
+    get:
+      tags:
+        - Players
+      summary: 'Find Users by old code'
+      description: 'Finds players whose code has changed.'
+      operationId: findByOldCode
+      parameters:
+        -
+          name: code
+          in: path
+          description: 'User code'
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+-[A-Z\d]{5}$'
+      responses:
+        '200':
+          description: 'List of players'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LigaPlayer'
         '400':
           description: 'Bad request'
           content:
@@ -999,7 +1231,8 @@ paths:
       description: 'This method returns a tournament based on the provided ID.'
       operationId: getTournament
       parameters:
-        - name: id
+        -
+          name: id
           in: path
           description: 'Tournament ID'
           required: true
@@ -1026,13 +1259,15 @@ paths:
       description: 'This method returns all teams within a tournament by the provided tournament ID.'
       operationId: getTournamentTeams
       parameters:
-        - name: id
+        -
+          name: id
           in: path
           description: 'Tournament ID'
           required: true
           schema:
             type: integer
-        - name: withPlayers
+        -
+          name: withPlayers
           in: query
           description: 'Include players in each team'
           required: false
@@ -1086,7 +1321,7 @@ paths:
               properties:
                 vest:
                   type: array
-                  items: { required: [ vestNum, system, status ], properties: { vestNum: { type: string, example: '1' }, system: { type: string, example: evo5 }, status: { $ref: '#/components/schemas/VestStatus' }, info: { type: string, example: 'Zbraň vynechává', nullable: true } }, type: object }
+                  items: { required: [vestNum, system, status], properties: { vestNum: { type: string, example: '1' }, system: { type: string, example: evo5 }, status: { $ref: '#/components/schemas/VestStatus' }, info: { type: string, example: 'Zbraň vynechává', nullable: true } }, type: object }
               type: object
       responses:
         '200':
@@ -1120,7 +1355,8 @@ paths:
       description: 'This method updates the stats for the specified user.'
       operationId: updateStats
       parameters:
-        - name: id
+        -
+          name: id
           in: path
           description: 'User ID'
           required: true
@@ -1142,7 +1378,8 @@ paths:
       description: 'This method updates the stats for all users.'
       operationId: updateAllUsersStats
       parameters:
-        - name: from
+        -
+          name: from
           in: query
           description: 'User id to start processing from'
           required: false
@@ -1167,14 +1404,16 @@ paths:
       description: 'This method calculates daily user ranks for a specific date or a range starting from a date.'
       operationId: calculateDayRanks
       parameters:
-        - name: date
+        -
+          name: date
           in: query
           description: 'Specific date to calculate ranks for'
           required: false
           schema:
             type: string
             format: date
-        - name: from
+        -
+          name: from
           in: query
           description: 'Start date for a range to calculate ranks for'
           required: false
@@ -1198,7 +1437,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
-    ErrorResponse:
+    ErrorDto:
       properties:
         title:
           type: string
@@ -1222,10 +1461,11 @@ components:
               items:
                 type: object
               example:
-                - file: index.php
+                -
+                  file: index.php
                   line: 1
                   function: abc
-                  args: [ 'Argument value' ]
+                  args: ['Argument value']
           type: object
           nullable: true
         values:
@@ -1247,9 +1487,12 @@ components:
       type: array
       items:
         oneOf:
-          - $ref: '#/components/schemas/Game'
-          - type: string
-          - type: string
+          -
+            $ref: '#/components/schemas/Game'
+          -
+            type: string
+          -
+            type: string
     GameModeType:
       description: 'Types of game modes'
       type: string
@@ -1267,8 +1510,10 @@ components:
       description: 'LaserMaxx Evo5 game model'
       type: object
       allOf:
-        - $ref: '#/components/schemas/Game'
-        - properties:
+        -
+          $ref: '#/components/schemas/Game'
+        -
+          properties:
             scoring:
               $ref: '#/components/schemas/ScoringEvo5'
           type: object
@@ -1301,8 +1546,10 @@ components:
       description: 'LaserMaxx Evo6 game model'
       type: object
       allOf:
-        - $ref: '#/components/schemas/Game'
-        - properties:
+        -
+          $ref: '#/components/schemas/Game'
+        -
+          properties:
             scoring:
               $ref: '#/components/schemas/ScoringEvo6'
           type: object
@@ -1355,23 +1602,27 @@ components:
         timing:
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/Timing'
+            -
+              $ref: '#/components/schemas/Timing'
         code:
           type: string
         mode:
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/AbstractMode'
+            -
+              $ref: '#/components/schemas/AbstractMode'
         gameType:
           $ref: '#/components/schemas/GameModeType'
         arena:
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/Arena'
+            -
+              $ref: '#/components/schemas/Arena'
         music:
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/MusicMode'
+            -
+              $ref: '#/components/schemas/MusicMode'
         group:
           nullable: true
       type: object
@@ -1528,7 +1779,8 @@ components:
         title:
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/Title'
+            -
+              $ref: '#/components/schemas/Title'
         group:
           type: boolean
       type: object
@@ -1640,13 +1892,16 @@ components:
       description: 'Same as the regular player, but with the addition of the arena and user parameters'
       type: object
       allOf:
-        - $ref: '#/components/schemas/LigaPlayerBase'
-        - properties:
-            user: { }
+        -
+          $ref: '#/components/schemas/LigaPlayerBase'
+        -
+          properties:
+            user: {  }
             arena:
               nullable: true
               oneOf:
-                - $ref: '#/components/schemas/Arena'
+                -
+                  $ref: '#/components/schemas/Arena'
           type: object
     LigaPlayerBase:
       properties:
@@ -1671,7 +1926,17 @@ components:
         title:
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/Title'
+            -
+              $ref: '#/components/schemas/Title'
+      type: object
+    GameHighlightDto:
+      properties:
+        rarity:
+          type: integer
+        description:
+          type: string
+        html:
+          type: string
       type: object
     GameHighlight:
       properties:
@@ -1693,6 +1958,37 @@ components:
         - hits
         - deaths
         - user_average
+    PlayerRadarData:
+      properties:
+        rank:
+          $ref: '#/components/schemas/PlayerRadarValue'
+        shotsPerMinute:
+          $ref: '#/components/schemas/PlayerRadarValue'
+        accuracy:
+          $ref: '#/components/schemas/PlayerRadarValue'
+        hits:
+          $ref: '#/components/schemas/PlayerRadarValue'
+        deaths:
+          $ref: '#/components/schemas/PlayerRadarValue'
+        kd:
+          $ref: '#/components/schemas/PlayerRadarValue'
+      type: object
+    PlayerRadarValue:
+      properties:
+        value:
+          description: 'Percentile from 1 to 99'
+          type: integer
+          maximum: 99
+          minimum: 1
+        label:
+          description: 'Label for the radar property'
+          type: string
+          example: '10 výstřelů za minutu'
+        percentileLabel:
+          description: 'Percentile label to display (formatted value)'
+          type: string
+          example: 'Percentil: Nejlepších 10%'
+      type: object
     PlayerRank:
       properties:
         userId:
@@ -1773,7 +2069,8 @@ components:
         arena:
           nullable: true
           oneOf:
-            - $ref: '#/components/schemas/Arena'
+            -
+              $ref: '#/components/schemas/Arena'
         idLocal:
           type: integer
         previewStart:
@@ -1949,9 +2246,89 @@ components:
           items:
             type: integer
       type: object
+    ErrorResponse:
+      properties:
+        title:
+          type: string
+          example: 'Error title'
+        type:
+          type: Lsr\Core\Requests\Enums\ErrorType
+        detail:
+          type: string
+          example: 'Error description'
+          nullable: true
+        exception:
+          properties:
+            message:
+              type: string
+              example: 'Some exception description'
+            code:
+              type: integer
+              example: 123
+            trace:
+              type: array
+              items:
+                type: object
+              example:
+                -
+                  file: index.php
+                  line: 1
+                  function: abc
+                  args: ['Argument value']
+          type: object
+          nullable: true
+        values:
+          type: object
+          example:
+            key1: value1
+            key2: value2
+          nullable: true
+      type: object
+    SuccessResponse:
+      properties:
+        message:
+          type: string
+          example: Message
+        detail:
+          type: string
+          example: Description
+          nullable: true
+        values:
+          type: object
+          example:
+            key1: value1
+            key2: value2
+          nullable: true
+      type: object
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
 security:
-  - bearerAuth: [ ]
+  -
+    bearerAuth: []
+tags:
+  -
+    name: Devtools
+    description: Devtools
+  -
+    name: Games
+    description: Games
+  -
+    name: Import
+    description: Import
+  -
+    name: Leagues
+    description: Leagues
+  -
+    name: Players
+    description: Players
+  -
+    name: Tournaments
+    description: Tournaments
+  -
+    name: Vests
+    description: Vests
+  -
+    name: Users
+    description: Users

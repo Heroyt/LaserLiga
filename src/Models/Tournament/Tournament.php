@@ -5,6 +5,7 @@ namespace App\Models\Tournament;
 use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Events\EventBase;
 use App\Models\Events\EventRegistrationInterface;
+use App\Models\Events\EventTeamBase;
 use App\Models\GameGroup;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueCategory;
@@ -134,12 +135,15 @@ class Tournament extends EventBase implements EventRegistrationInterface
 	 * @return Team[]
 	 * @throws ValidationException
 	 */
-	public function getTeams(): array {
+	public function getTeams(bool $excludeDisqualified = false): array {
 		if ($this->format === GameModeType::SOLO) {
 			return [];
 		}
 		if (empty($this->teams)) {
 			$this->teams = Team::query()->where('id_tournament = %i', $this->id)->get();
+		}
+		if ($excludeDisqualified) {
+			return array_filter($this->teams, static fn(EventTeamBase $team) => !$team->disqualified);
 		}
 		return $this->teams;
 	}

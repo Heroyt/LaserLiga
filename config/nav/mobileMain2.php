@@ -1,21 +1,25 @@
 <?php
 
+use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 
 /** @var Auth $auth */
 $auth = App::getServiceByType(Auth::class);
 
+$fontawesome = App::getService('fontawesome');
+assert($fontawesome instanceof FontAwesomeManager, 'Invalid service type from DI');
+
 if ($auth->loggedIn()) {
 	return [
 		[
 			'name' => lang('Moje hry'),
-			'icon' => 'fa-solid fa-gun',
+			'icon' => $fontawesome->solid('gun'),
 			'route' => 'my-game-history',
 		],
 		[
 			'name' => lang('Profil'),
-			'icon' => 'fa-solid fa-user',
+			'icon' => $fontawesome->solid('user'),
 			'route' => 'dashboard',
 		],
 	];
@@ -24,7 +28,7 @@ if ($auth->loggedIn()) {
 return [
 	[
 		'name' => lang('Přihlásit'),
-		'icon' => 'fa-solid fa-right-to-bracket',
+		'icon' => $fontawesome->solid('right-to-bracket'),
 		'route' => 'login',
 	],
 ];

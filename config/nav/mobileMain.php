@@ -1,15 +1,19 @@
 <?php
 
+use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 
 /** @var Auth $auth */
 $auth = App::getServiceByType(Auth::class);
 
+$fontawesome = App::getService('fontawesome');
+assert($fontawesome instanceof FontAwesomeManager, 'Invalid service type from DI');
+
 $nav = [
 	[
 		'name' => lang('Arény'),
-		'icon' => 'fa-solid fa-location-dot',
+		'icon' => $fontawesome->solid('location-dot'),
 		'route' => 'arenas-list',
 		'path' => ['arena'],
 	],
@@ -18,7 +22,7 @@ $nav = [
 if ($auth->loggedIn()) {
 	$nav[] = [
 		'name' => lang('Žebříček'),
-		'icon' => 'fa-solid fa-ranking-star',
+		'icon' => $fontawesome->solid('ranking-star'),
 		'route' => 'player-leaderboard',
 	];
 }

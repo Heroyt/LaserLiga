@@ -27,7 +27,7 @@ class User extends \Lsr\Core\Auth\Models\User
 	#[OneToOne]
 	public ?LigaPlayer $player = null;
 
-	public ?\DateTimeInterface $createdAt = null;
+	public \DateTimeInterface $createdAt;
 
 	/** @var int[] */
 	private array $managedArenaIds;
@@ -66,6 +66,11 @@ class User extends \Lsr\Core\Auth\Models\User
 				return;
 			}
 		}
+	}
+
+	public function insert(): bool {
+		$this->createdAt ??= new \DateTimeImmutable();
+		return parent::insert();
 	}
 
 	public function save(): bool {

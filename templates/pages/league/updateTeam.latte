@@ -5,11 +5,12 @@
 {varType array $values}
 {varType array $errors}
 {varType string[] $_REQUEST}
+{varType string $turnstileKey}
 
 {define content}
     <p class="text-start">
         <a href="{$league->getUrl()}" class="btn btn-secondary">
-            <i class="fa-solid fa-angle-left"></i>
+            {faSolid 'angle-left'}
             {lang 'Zpět'}
         </a>
     </p>
@@ -54,6 +55,7 @@
                 {/if}
             {/block}
         {/embed}
+        <div class="cf-turnstile mb-3" data-sitekey="{$turnstileKey}"></div>
         <p class="text-center">
             <button type="submit" class="btn btn-lg btn-primary">{lang 'Odeslat'}</button>
         </p>

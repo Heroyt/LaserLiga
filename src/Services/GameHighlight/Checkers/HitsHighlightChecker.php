@@ -162,55 +162,93 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 	}
 
 	public function checkPlayer(Player $player, HighlightCollection $highlights): void {
-		if ($player->getGame()->getMode()?->isSolo()) {
-			return;
-		}
 		$name1 = $player->name;
 		$gender1 = GenderService::rankWord($name1);
 
-		if ($player->hitsOwn > $player->hitsOther) {
-			$highlights->add(
-				new GameHighlight(
-					GameHighlightType::HITS,
-					sprintf(
-						lang(
-							match ($gender1) {
-								Gender::MALE   => '%s zasáhl více spoluhráčů, než protihráčů',
-								Gender::FEMALE => '%s zasáhla více spoluhráčů, než protihráčů',
-								Gender::OTHER  => '%s zasáhlo více spoluhráčů, než protihráčů',
-							},
-							context: 'results.highlights'
+		if ($player->getGame()->getMode()?->isTeam()) {
+			if ($player->hitsOwn > $player->hitsOther) {
+				$highlights->add(
+					new GameHighlight(
+						GameHighlightType::HITS,
+						sprintf(
+							lang(
+								match ($gender1) {
+									Gender::MALE   => '%s zasáhl více spoluhráčů, než protihráčů',
+									Gender::FEMALE => '%s zasáhla více spoluhráčů, než protihráčů',
+									Gender::OTHER  => '%s zasáhlo více spoluhráčů, než protihráčů',
+								},
+								context: 'results.highlights'
+							),
+							'@' . $name1 . '@'
 						),
-						'@' . $name1 . '@'
-					),
-					GameHighlight::VERY_HIGH_RARITY + 20
-				)
-			);
+						GameHighlight::VERY_HIGH_RARITY + 20
+					)
+				);
+			}
+
+			if ($player->getFavouriteTarget()?->getTeam()?->color === $player->getTeam()?->color) {
+				$name2 = $player->getFavouriteTarget()->name ?? '';
+				$gender2 = GenderService::rankWord($name2);
+				$name2Verb = match ($gender2) {
+					Gender::OTHER, Gender::MALE => 'svého spoluhráče',
+					Gender::FEMALE              => 'svou spoluhráčku',
+				};
+				$highlights->add(
+					new GameHighlight(
+						GameHighlightType::HITS,
+						sprintf(
+							lang(
+								match ($gender1) {
+									Gender::MALE   => '%s zasáhl ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+									Gender::FEMALE => '%s zasáhla ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+									Gender::OTHER  => '%s zasáhlo ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+								},
+								context: 'results.highlights'
+							),
+							'@' . $name1 . '@',
+							'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>'
+						),
+						GameHighlight::VERY_HIGH_RARITY + 20
+					)
+				);
+			}
 		}
 
-		if ($player->getFavouriteTarget()?->getTeam()?->color === $player->getTeam()?->color) {
-			$name2 = $player->getFavouriteTarget()?->name ?? '';
-			$gender2 = GenderService::rankWord($name2);
-			$name2Verb = match ($gender2) {
-				Gender::OTHER, Gender::MALE => 'svého spoluhráče',
-				Gender::FEMALE              => 'svou spoluhráčku',
-			};
+		// Check if player hit some other players the same number of times
+		/** @var string[][] $hitCounts */
+		$hitCounts = [];
+		foreach ($player->getHitsPlayers() as $hit) {
+			if ($hit->count === 0) {
+				continue;
+			}
+			$hitCounts[$hit->count] ??= [];
+			$hitCounts[$hit->count][] = '@' . $hit->playerTarget->name . '@<' . NameInflectionService::accusative($hit->playerTarget->name) . '>';
+		}
+		foreach ($hitCounts as $count => $hits) {
+			$hitCounts = count($hits);
+			if ($hitCounts < 2) {
+				continue;
+			}
+
+			$lastName = array_pop($hits);
 			$highlights->add(
 				new GameHighlight(
 					GameHighlightType::HITS,
 					sprintf(
 						lang(
 							match ($gender1) {
-								Gender::MALE   => '%s zasáhl ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-								Gender::FEMALE => '%s zasáhla ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-								Gender::OTHER  => '%s zasáhlo ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+								Gender::MALE   => '%s zasáhl hráče %s a %s stejněkrát (%d)',
+								Gender::FEMALE => '%s zasáhla hráče %s a %s stejněkrát (%d)',
+								Gender::OTHER  => '%s zasáhlo hráče %s a %s stejněkrát (%d)',
 							},
 							context: 'results.highlights'
 						),
 						'@' . $name1 . '@',
-						'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>'
+						implode(', ', $hits),
+						$lastName,
+						$count
 					),
-					GameHighlight::VERY_HIGH_RARITY + 20
+					GameHighlight::MEDIUM_RARITY + (10 * $hitCounts) + (2 * $count)
 				)
 			);
 		}

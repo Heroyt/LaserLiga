@@ -60,7 +60,7 @@ export default function initAchievementTab(achievementsTabBtn: HTMLAnchorElement
                     }))}</p>`;
                     if (achievement.claimed && achievement.dateTime && achievement.code) {
                         claimed++;
-                        const date = new Date(achievement.dateTime.date);
+                        const date = new Date(typeof achievement.dateTime === 'string' ? achievement.dateTime : achievement.dateTime.date);
                         achievementEl.innerHTML += `<div class="claim-info">${claimLabel}: <a href="/g/${achievement.code}" class="btn btn-secondary">${date.toLocaleDateString()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}</a></div>`;
                     }
 

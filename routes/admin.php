@@ -27,12 +27,13 @@ $arenasAdminGroup->group('{id}')
                  ->post('apikey', [Arenas::class, 'generateApiKey']);
 
 $adminGroup->group('games')
+           ->middlewareAll($gamesMiddleware)
            ->get('notification/{code}', [Games::class, 'sendGameNotification'])
            ->get('create', [Games::class, 'create'])->name('admin-create-game')
            ->post('create', [Games::class, 'createProcess']);
 
 $adminGroup->group('tournament')
-	->middlewareAll($tournamentMiddleware)
+           ->middlewareAll($tournamentMiddleware)
            ->get('stats/tournament/{id}', [TournamentStats::class, 'tournamentStats'])
            ->get('stats/league/{id}', [TournamentStats::class, 'leagueStats'])
            ->get('stats/league/{leagueId}/{categoryId}', [TournamentStats::class, 'leagueStats']);

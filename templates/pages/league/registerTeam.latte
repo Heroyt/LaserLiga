@@ -4,6 +4,7 @@
 {varType array $_POST}
 {varType string[] $errors}
 {varType App\Models\Auth\User|null $user}
+{varType string $turnstileKey}
 
 {var int $categoryCount = count($league->getCategories())}
 
@@ -22,7 +23,7 @@
 {define content}
     <p class="text-start">
         <a href="{$league->getUrl()}" class="btn btn-info">
-            <i class="fa-solid fa-angle-left"></i>
+            {faSolid 'angle-left'}
             {lang 'Zpět'}
         </a>
     </p>
@@ -36,12 +37,21 @@
             <label for="team-category" class="form-label required">
                 {lang 'Kategorie'}:
             </label>
-            <select name="category" id="team-category" class="form-select mb-3">
+            <select name="category" id="team-category" n:class="'form-select', 'mb-3', isset($errors['category']) ? is-invalid">
                 <option n:foreach="$league->getCategories() as $category" n:attr="selected: ((int)($_POST['category'] ?? '')) === $category->id"
                         value="{$category->id}">
                     {$category->name}
                 </option>
             </select>
+            <div n:ifset="$errors['category']" id="category-feedback" class="invalid-feedback">
+                {if is_array($errors['category'])}
+                    <ul>
+                        <li n:foreach="$errors['category'] as $error">{$error}</li>
+                    </ul>
+                {else}
+                    {$errors['category']}
+                {/if}
+            </div>
         {/if}
         {foreach $league->getEvents() as $connectedEvent}
             {varType App\Models\Events\Event $connectedEvent}
@@ -117,6 +127,7 @@
                 </div>
             </div>
         </div>
+        <div class="cf-turnstile mb-3" data-sitekey="{$turnstileKey}"></div>
         <p class="text-center">
             <button type="submit" class="btn btn-lg btn-primary">{lang 'Odeslat'}</button>
         </p>

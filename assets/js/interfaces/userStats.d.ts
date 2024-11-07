@@ -22,7 +22,7 @@ export interface AchievementClaimDto {
     icon: string;
     claimed: boolean;
     code: string | null;
-    dateTime: { date: string, timezone_type: number, timezone: string } | null;
+    dateTime: { date: string, timezone_type: number, timezone: string } | string | null;
     totalCount: number;
 }
 

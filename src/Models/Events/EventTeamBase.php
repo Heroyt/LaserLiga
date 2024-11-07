@@ -29,6 +29,8 @@ abstract class EventTeamBase extends Model
 	public DateTimeInterface  $createdAt;
 	public ?DateTimeInterface $updatedAt = null;
 
+	public bool $disqualified = false;
+
 	/** @var P[] */
 	protected array $players = [];
 

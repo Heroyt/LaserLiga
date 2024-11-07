@@ -5,11 +5,11 @@ namespace App\Controllers\Api;
 use App\Api\Response\ErrorDto;
 use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
+use App\Exceptions\AuthHeaderException;
 use App\Models\Arena;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\Player;
 use Dibi\DriverException;
-use JsonException;
 use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -18,6 +18,7 @@ use Lsr\Helpers\Tools\Strings;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use OpenApi\Attributes as OA;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 class LeaguesController extends ApiController
@@ -27,6 +28,7 @@ class LeaguesController extends ApiController
 
 	/**
 	 * @throws ValidationException
+	 * @throws AuthHeaderException
 	 */
 	public function init(RequestInterface $request): void {
 		parent::init($request);
@@ -38,16 +40,14 @@ class LeaguesController extends ApiController
 	 *
 	 * The response includes the list of all leagues for the current arena.
 	 *
-	 * @return never
 	 * @throws ValidationException
-	 * @throws JsonException
 	 */
 	#[OA\Get(path: "/api/leagues", operationId: "getAllLeagues", description: "This method returns all the leagues for the current arena.", summary: "Get All Leagues", tags: ['Leagues'],)]
 	#[OA\Response(response: 200, description: "List of all leagues", content: new OA\JsonContent(
 		type: "array", items: new OA\Items(ref: "#/components/schemas/League"),
 	),)]
-	public function getAll(): never {
-		$this->respond(
+	public function getAll(): ResponseInterface {
+		return $this->respond(
 			League::query()->where('id_arena = %i', $this->arena->id)->get()
 		);
 	}
@@ -58,9 +58,6 @@ class LeaguesController extends ApiController
 	 * The response includes all details for that league.
 	 *
 	 * @param League $league The League object to fetch.
-	 *
-	 * @return never
-	 * @throws JsonException
 	 */
 	#[OA\Get(path: "/api/leagues/{id}", operationId: "getLeague", description: "This method returns a league based on the provided ID.", summary: "Get League by ID", tags: ['Leagues'],)]
 	#[OA\Parameter(name: "id", description: "League ID", in: "path", required: true, schema: new OA\Schema(
@@ -72,12 +69,12 @@ class LeaguesController extends ApiController
 	#[OA\Response(response: 403, description: "Access denied", content: new OA\JsonContent(
 		ref: '#/components/schemas/ErrorResponse'
 	),)]
-	public function get(League $league): never {
+	public function get(League $league): ResponseInterface {
 		if ($league->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
 		}
 
-		$this->respond($league);
+		return $this->respond($league);
 	}
 
 	/**
@@ -87,8 +84,6 @@ class LeaguesController extends ApiController
 	 *
 	 * @param League $league The League object to fetch.
 	 *
-	 * @return never
-	 * @throws JsonException
 	 */
 	#[OA\Get(path: "/api/leagues/{id}/tournaments", operationId: "getLeagueTournaments", description: "This method returns all the tournaments of a league based on the provided ID.", summary: "Get Tournaments of a League by ID", tags: ['Leagues'],)]
 	#[OA\Parameter(name: "id", description: "League ID", in: "path", required: true, schema: new OA\Schema(
@@ -100,12 +95,12 @@ class LeaguesController extends ApiController
 	#[OA\Response(response: 403, description: "Access denied", content: new OA\JsonContent(
 		ref: '#/components/schemas/ErrorResponse'
 	),)]
-	public function getTournaments(League $league): never {
+	public function getTournaments(League $league): ResponseInterface {
 		if ($league->arena->id !== $this->arena->id) {
-			$this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
 		}
 
-		$this->respond($league->getTournaments());
+		return $this->respond($league->getTournaments());
 	}
 
 	/**
@@ -117,9 +112,7 @@ class LeaguesController extends ApiController
 	 *
 	 * @param League $league The league object
 	 *
-	 * @return never
 	 * @throws ValidationException
-	 * @throws JsonException
 	 * @throws ModelNotFoundException
 	 * @throws DirectoryCreationException
 	 */
@@ -164,7 +157,7 @@ class LeaguesController extends ApiController
 	#[OA\Response(response: 403, description: "Access denied", content: new OA\JsonContent(
 		ref: '#/components/schemas/ErrorResponse'
 	),)]
-	public function recountPoints(League $league): never {
+	public function recountPoints(League $league): ResponseInterface {
 		$league->countPoints();
 
 		$response = [];
@@ -180,7 +173,7 @@ class LeaguesController extends ApiController
 			}
 		}
 
-		$this->respond($response);
+		return $this->respond($response);
 	}
 
 	/**
@@ -190,9 +183,7 @@ class LeaguesController extends ApiController
 	 *
 	 * @param League $league The League object to fix players for.
 	 *
-	 * @return never
 	 * @throws DriverException
-	 * @throws JsonException
 	 */
 	#[OA\Post(path: "/api/leagues/{id}/fixplayers", operationId: "fixLeaguePlayers", description: "This method fixes league players data based on the provided league ID and returns the result of the operation.", summary: "Fix Players of a League by ID", tags: ['Leagues'],)]
 	#[OA\Parameter(name: "id", description: "League ID", in: "path", required: true, schema: new OA\Schema(
@@ -246,7 +237,7 @@ class LeaguesController extends ApiController
 	#[OA\Response(response: 500, description: "Database error", content: new OA\JsonContent(
 		ref: '#/components/schemas/ErrorResponse'
 	),)]
-	public function fixLeaguePlayers(League $league): never {
+	public function fixLeaguePlayers(League $league): ResponseInterface {
 		try {
 			DB::getConnection()->begin();
 			$categories = $league->getCategories();
@@ -294,7 +285,7 @@ class LeaguesController extends ApiController
 
 							$player->leaguePlayer = $playerMap[$leagueTeam->id][$key];
 							if (!$player->save()) {
-								$this->respond(
+								return $this->respond(
 									new ErrorDto(
 										        'Cannot save player',
 										        ErrorType::DATABASE,
@@ -317,7 +308,7 @@ class LeaguesController extends ApiController
 							$foundMapPlayerCount++;
 							$player->leaguePlayer = $playerMap[$leagueTeam->id][$key];
 							if (!$player->save()) {
-								$this->respond(
+								return $this->respond(
 									new ErrorDto(
 										        'Cannot save player',
 										        ErrorType::DATABASE,
@@ -353,7 +344,7 @@ class LeaguesController extends ApiController
 							$playerMap[$leagueTeam->id][$key] = $foundPlayer;
 							$player->leaguePlayer = $foundPlayer;
 							if (!$player->save()) {
-								$this->respond(
+								return $this->respond(
 									new ErrorDto(
 										        'Cannot save player',
 										        ErrorType::DATABASE,
@@ -385,7 +376,7 @@ class LeaguesController extends ApiController
 						$player->leaguePlayer->save();
 						$playerMap[$leagueTeam->id][$key] = $player->leaguePlayer;
 						if (!$player->save()) {
-							$this->respond(
+							return $this->respond(
 								new ErrorDto(
 									        'Cannot save player',
 									        ErrorType::DATABASE,
@@ -401,9 +392,9 @@ class LeaguesController extends ApiController
 			DB::getConnection()->commit();
 		} catch (Throwable $e) {
 			DB::getConnection()->rollback();
-			$this->respond(new ErrorDto('Database error', ErrorType::DATABASE, exception: $e), 500);
+			return $this->respond(new ErrorDto('Database error', ErrorType::DATABASE, exception: $e), 500);
 		}
-		$this->respond(
+		return $this->respond(
 			[
 				'status'  => 'ok',
 				'players' => $playerCount,

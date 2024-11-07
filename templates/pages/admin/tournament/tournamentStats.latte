@@ -13,8 +13,8 @@
                     {lang $stat->name}
                     ({$stat->aggregate->label()})<br>
                     <span class="collapse-indicator">
-						<i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-						<i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+						{faSolid 'angle-down', 'collapse-indicator-collapsed'}
+						{faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
 					</span>
                 </h4>
             </div>
@@ -36,7 +36,7 @@
                             {$stat->type === App\Models\Tournament\StatType::SOLO ? $model->nickname : $model->name}
                             {if $stat->type === App\Models\Tournament\StatType::SOLO && isset($model->user)}
                                 <a href="{link 'user', $model->user->getCode()}" class="btn btn-primary ms-2 btn-sm">
-                                    <i class="fa-solid fa-user"></i>
+                                    {faSolid 'user'}
                                 </a>
                             {/if}
                         </td>

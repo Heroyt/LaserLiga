@@ -1,5 +1,7 @@
 includes:
+	- console.neon
 	- local.neon
+	- symfony.neon
 parameters:
 	auth:
 		userClass: 'App\Models\Auth\User'
@@ -8,10 +10,13 @@ parameters:
 			- %constants.appDir%routes
 		controllers:
 			- %constants.appDir%src/Controllers
+	templating:
+		tmpPath: '%constants.tempDir%latte'
 extensions:
 	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
-	orisai.console: OriNette\Console\DI\ConsoleExtension
 	orisai.scheduler: OriNette\Scheduler\DI\SchedulerExtension
+	decorator: Nette\DI\Extensions\DecoratorExtension
+	inject: Nette\DI\Extensions\InjectExtension
 orisai.scheduler:
 	console:
 		script: '%constants.appDir%bin/console'
@@ -20,7 +25,33 @@ orisai.scheduler:
 		logArchive:
 			expression: 0 6 * * *
 			callback: [@cron.logArchive, 'run']
+		arenaReport:
+			expression: 0 23 * * *
+			callback: [@cron.arenaReport, 'run']
+		regressionUpdate:
+			expression: 0 3 * * *
+			callback: [@cron.regressionUpdate, 'run']
 services:
+	# Core
+	app: Lsr\Core\App
+	translations:
+		create: Lsr\Core\Translations
+		arguments:
+			config: @config
+			defaultLang: 'cs_CZ'
+			supportedLanguages:
+				- 'cs_CZ'
+				- 'en_US'
+				- 'de_DE'
+				- 'fr_FR'
+				- 'sk_SK'
+			textDomains:
+				- 'results'
+				- 'tips'
+				- 'cli'
+				- 'highlights'
+				- 'tournament'
+
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
 
@@ -29,7 +60,9 @@ services:
 		setup:
 			- connect(%redis.host%)
 
-	regression.evo5: App\GameModels\Tools\Evo5\RegressionStatCalculator
+	turnstile: App\Services\Turnstile(secret: %turnstile.secret%, key: %turnstile.key%, enabled: %turnstile.enabled%)
+
+	regression.evo5: App\GameModels\Tools\Lasermaxx\RegressionStatCalculator
 
 	caching.journal: Lsr\Core\Caching\RedisJournal(@redis)
 	cache.storage: Lsr\Core\Caching\RedisStorage(@redis, '', @caching.journal)
@@ -77,13 +110,26 @@ services:
 	achievementProvider: App\Services\Achievements\AchievementProvider
 	titleProvider: App\Services\Achievements\TitleProvider
 	eventRegistration: App\Services\EventRegistrationService
+	arenaStats: App\Services\ArenaStatsAggregator
 
 	cron.logArchive: App\Cron\LogArchiveJob
+	cron.arenaReport: App\Cron\ArenaReportJob
+	cron.regressionUpdate: App\Cron\RegressionUpdateJob
 
 	result.parser: App\Tools\ResultParsing\ResultsParser
 	result.parser.evo5: App\Tools\ResultParsing\Evo5\ResultsParser
 	result.parser.evo6: App\Tools\ResultParsing\Evo6\ResultsParser
 
+	thumbnails: App\Services\Thumbnails\ThumbnailGenerator
+	fontawesome: App\Services\FontAwesomeManager
+
+	templating.latte.lac:
+		create: App\Latte\LacExtension
+		tags:
+			- templating
+	templating.latte.engine:
+		setup:
+			- addExtension(@templating.latte.lac)
 search:
 	achievementCheckers:
 		in: %constants.appDir%/src/Services/Achievements/Checkers
@@ -91,3 +137,7 @@ search:
 			- App\Services\Achievements\CheckerInterface
 		tags:
 			- achievementChecker
+
+decorator:
+	Lsr\Core\Controllers\Controller:
+		inject: true

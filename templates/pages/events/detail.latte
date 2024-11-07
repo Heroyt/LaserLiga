@@ -23,11 +23,11 @@
     {include meta}
     <p class="text-start">
         <a n:ifset="$event->league" href="{$event->league->getUrl()}" class="btn btn-secondary">
-            <i class="fa-solid fa-angle-left"></i>
+            {faSolid 'angle-left'}
             {lang 'Zpět na ligu'}
         </a>
         <a href="{link 'events'}" class="btn btn-secondary">
-            <i class="fa-solid fa-angle-left"></i>
+            {faSolid 'angle-left'}
             {lang 'Zpět na plánované akce'}
         </a>
     </p>
@@ -49,7 +49,7 @@
         {if $event->isRegistrationActive()}
             <a href="{link 'events', $event->id, 'register'}"
                class="btn btn-lg btn-primary">
-                <i class="fa-solid fa-user-plus"></i>
+                {faSolid 'user-plus'}
                 {lang 'Registrace'}
             </a>
         {/if}
@@ -58,7 +58,7 @@
         <button type="button" class="btn btn-success d-none my-3" data-trigger="share"
                 data-title="{sprintf(lang('Laser game akce: %s'), (isset($event->league) ? $event->league->name.' ' : '').$event->name)}"
                 data-url="{link 'events', $event->id}">
-            <i class="fa-solid fa-share"></i>
+            {faSolid 'share'}
             {lang 'Sdílet'}
         </button>
     </div>

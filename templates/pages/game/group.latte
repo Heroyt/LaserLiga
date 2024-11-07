@@ -40,7 +40,7 @@
             <button type="button" class="btn-lg btn btn-success d-none my-3" data-trigger="share"
                     data-title="{sprintf(lang('Skupina - %s'), $group->name)}"
                     data-url="{link 'game', 'group', $groupCode}">
-                <i class="fa-solid fa-share"></i>
+                {faSolid 'share'}
                 {lang 'Sdílet'}
             </button>
         </div>
@@ -51,8 +51,8 @@
              data-bs-toggle="collapse" data-bs-target="#filters">
             <h4>{lang 'Filtry'}</h4>
             <div class="collapse-indicator">
-                <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
             </div>
         </div>
         <form class="collapse p-3 card-body bg-background-1" action="{link ['game', 'group', $groupCode]}" id="filters"
@@ -71,11 +71,11 @@
             <p class="text-center mt-3">
 			<span class="btn-group">
 				<button type="submit" class="btn btn-success">
-                    <i class="fa-solid fa-filter"></i>
+                    {faSolid 'filter'}
                     {lang 'Filtrovat', context: 'actions'}
                 </button>
 				<button type="reset" class="btn btn-danger">
-                    <i class="fa-solid fa-cancel"></i>
+                    {faSolid 'cancel'}
                     {lang 'Smazat', context: 'actions'}
                 </button>
 			</span>
@@ -120,18 +120,18 @@
 
                 <div class="score" data-toggle="tooltip" title="{lang 'Průměrné ohodnocení hráče'}"
                      data-skills="{json_encode($player->skills)}">
-                    <i class="fa-solid fa-medal"></i>
+                    {faSolid 'medal'}
                     {if empty($modes)}
                         {$player->getSkill()|number:0,',','&nbsp;'|noescape}
                     {else}
                         {$player->getModesSkill($modes)|number:0,',','&nbsp;'|noescape}
                     {/if}
-                    <i class="fa-solid fa-circle-info ms-2 me-1 cursor-info"></i>
+                    {faSolid 'circle-info', ['ms-2', 'me-1', 'cursor-info']}
                 </div>
 
                 <div class="collapse-indicator">
-                    <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                    <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                    {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                    {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                 </div>
             </div>
             <div class="player-body rounded-bottom-10 collapse bg-background-1 p-3"
@@ -219,7 +219,7 @@
                             {else}
                                 {$player->getModesAverageScore($modes)|number:2,',','&nbsp;'|noescape}
                             {/if}
-                            <i class="fa-solid fa-star"></i>
+                            {faSolid 'star'}
                         </div>
                     </div>
                     <div class="stat">
@@ -230,7 +230,7 @@
                             {else}
                                 {$player->getModesSumScore($modes)|number:0,',','&nbsp;'|noescape}
                             {/if}
-                            <i class="fa-solid fa-star"></i>
+                            {faSolid 'star'}
                         </div>
                     </div>
                 </div>
@@ -389,15 +389,13 @@
                                          data-toggle="tooltip"
                                          title="{$hit->countEnemy} {lang('zásah proti sobě', 'zásahů proti sobě', $hit->countEnemy)} v {$hit->gamesEnemy} {lang('hře', 'hrách', $hit->gamesEnemy)}">
                                         {$hit->countEnemy} / {$hit->gamesEnemy} {svgIcon 'kill', '', '1.25em'}
-                                        <i class="fa-solid fa-circle-question position-absolute"
-                                           style="right: 1rem; top: 1.25rem;"></i>
+                                        {faSolid 'circle-question', 'position-absolute', ['style' => 'right: 1rem; top: 1.25rem;']}
                                     </div>
                                     <div class="my-2 p-3 rounded bg-background-2 position-relative"
                                          data-toggle="tooltip"
                                          title="{$hit->countTeammate} {lang('zásah spolu', 'zásahů spolu', $hit->countTeammate)} v {$hit->gamesTeammate} {lang('hře', 'hrách', $hit->gamesTeammate)}">
                                         {$hit->countTeammate} / {$hit->gamesTeammate} {svgIcon 'dead', '', '1.25em'}
-                                        <i class="fa-solid fa-circle-question position-absolute"
-                                           style="right: 1rem; top: 1.25rem;"></i>
+                                        {faSolid 'circle-question', 'position-absolute', ['style' => 'right: 1rem; top: 1.25rem;']}
                                     </div>
                                 </div>
                             </div>
@@ -420,15 +418,13 @@
                                          data-toggle="tooltip"
                                          title="{$hit->countEnemy} {lang('smrt proti sobě', 'smrtí proti sobě', $hit->countEnemy)} v {$hit->gamesEnemy} {lang('hře', 'hrách', $hit->gamesEnemy)}">
                                         {$hit->countEnemy} / {$hit->gamesEnemy} {svgIcon 'skull', '', '1.25em'}
-                                        <i class="fa-solid fa-circle-question position-absolute"
-                                           style="right: 1rem; top: 1.25rem;"></i>
+                                        {faSolid 'circle-question', 'position-absolute', ['style' => 'right: 1rem; top: 1.25rem;']}
                                     </div>
                                     <div class="my-2 p-3 rounded bg-background-2 position-relative"
                                          data-toggle="tooltip"
                                          title="{$hit->countTeammate} {lang('smrt spolu', 'smrtí spolu', $hit->countTeammate)} v {$hit->gamesTeammate} {lang('hře', 'hrách', $hit->gamesTeammate)}">
                                         {$hit->countTeammate} / {$hit->gamesTeammate} {svgIcon 'dead', '', '1.25em'}
-                                        <i class="fa-solid fa-circle-question position-absolute"
-                                           style="right: 1rem; top: 1.25rem;"></i>
+                                        {faSolid 'circle-question', 'position-absolute', ['style' => 'right: 1rem; top: 1.25rem;']}
                                     </div>
                                 </div>
                             </div>
@@ -459,14 +455,14 @@
                         {$team->wins|number:0,',','&nbsp;'|noescape} /
                         {$team->draws|number:0,',','&nbsp;'|noescape} /
                         {$team->losses|number:0,',','&nbsp;'|noescape}
-                        <i class="fa-solid fa-circle-info ms-2 me-1 cursor-info"></i>
+                        {faSolid 'circle-info', ['ms-2', 'me-1', 'cursor-info']}
                     </div>
 
                     <div class="score" data-toggle="tooltip" title="{lang 'Průměrné ohodnocení týmu'}"
                          data-skills="{json_encode($team->skills)}">
-                        <i class="fa-solid fa-medal"></i>
+                        {faSolid 'medal'}
                         {$team->getSkill()|number:0,',','&nbsp;'|noescape}
-                        <i class="fa-solid fa-circle-info ms-2 me-1 cursor-info"></i>
+                        {faSolid 'circle-info', ['ms-2', 'me-1', 'cursor-info']}
                     </div>
 
                     <div class="team-players">
@@ -477,8 +473,8 @@
                     </div>
 
                     <div class="collapse-indicator">
-                        <i class="fa-solid fa-angle-down collapse-indicator-collapsed"></i>
-                        <i class="fa-solid fa-angle-up collapse-indicator-not-collapsed"></i>
+                        {faSolid 'angle-down', 'collapse-indicator-collapsed'}
+                        {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
                     </div>
                 </div>
                 <div class="team-body rounded-bottom-10 collapse bg-background-1 p-3"
@@ -541,14 +537,14 @@
                             <h5 class="stat-title">{lang 'Průměrné skóre'}</h5>
                             <div class="stat-value">
                                 {$team->getScoreAvg()|number:2,',','&nbsp;'|noescape}
-                                <i class="fa-solid fa-star"></i>
+                                {faSolid 'star'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkové skóre'}</h5>
                             <div class="stat-value">
                                 {$team->getScoreSum()|number:0,',','&nbsp;'|noescape}
-                                <i class="fa-solid fa-star"></i>
+                                {faSolid 'star'}
                             </div>
                         </div>
                     </div>
@@ -663,8 +659,7 @@
                                              title="{$team->hitTeams[$team2->key] ?? 0} {lang('zásah', 'zásahů', $team->hitTeams[$team2->key] ?? 0)} a {$team->deathTeams[$team2->key] ?? 0} {lang('smrt', 'smrtí', $team->deathTeams[$team2->key] ?? 0)}">
                                             {$team->hitTeams[$team2->key] ?? 0} {svgIcon 'kill', '', '1.25em'}
                                             / {$team->deathTeams[$team2->key] ?? 0} {svgIcon 'skull', '', '1.25em'}
-                                            <i class="fa-solid fa-circle-question position-absolute"
-                                               style="right: 1rem; top: 1.25rem;"></i>
+                                            {faSolid 'circle-question', 'position-absolute', ['style' => 'right: 1rem; top: 1.25rem;']}
                                         </div>
                                         <div class="my-2 p-3 rounded bg-background-2 position-relative"
                                              data-toggle="tooltip"
@@ -672,8 +667,7 @@
                                             {$team->winsTeams[$team2->key] ?? 0} {svgIcon 'crown', '', '1.25em'}
                                             / {$team->drawsTeams[$team2->key] ?? 0}
                                             / {$team->lossesTeams[$team2->key] ?? 0} {svgIcon 'skull', '', '1.25em'}
-                                            <i class="fa-solid fa-circle-question position-absolute"
-                                               style="right: 1rem; top: 1.25rem;"></i>
+                                            {faSolid 'circle-question', 'position-absolute', ['style' => 'right: 1rem; top: 1.25rem;']}
                                         </div>
                                     </div>
                                 </div>

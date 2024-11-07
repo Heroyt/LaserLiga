@@ -9,6 +9,7 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\Models\Auth\User;
+use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Models\PossibleMatch;
 use Dibi\Exception;
 use Lsr\Core\Caching\Cache;
@@ -159,7 +160,7 @@ readonly class PlayerUserService
 				'id_user'  => $player->user->id,
 				'name'     => $name,
 				'game'     => $player->getGame()->code,
-				'rankable' => $player->getGame()->getMode()?->rankable ?? true,
+				'rankable' => ($player->getGame()->getMode()->rankable ?? true ? 1 : 0),
 				'datetime' => $player->getGame()->start,
 			];
 		}
@@ -224,14 +225,20 @@ readonly class PlayerUserService
 	 * @throws ValidationException
 	 */
 	public function scanPossibleMatches(User $user): array {
-		$possibleMatchesQuery = PlayerFactory::queryPlayersWithGames()->where('[id_user] IS NULL')->where(
-			'[code] NOT IN %sql',
-			DB::select(PossibleMatch::TABLE, 'code')->where('[id_user] = %i', $user->id)->fluent
-		)->where('[name] LIKE %s', $user->name);
+		$possibleMatchesQuery = PlayerFactory::queryPlayersWithGames()
+		                                     ->where('[id_user] IS NULL')
+		                                     ->where(
+			                                     '[code] NOT IN %sql',
+			                                     DB::select(PossibleMatch::TABLE, 'code')->where(
+				                                     '[id_user] = %i',
+				                                     $user->id
+			                                     )->fluent
+		                                     )
+		                                     ->where('[name] LIKE %s', $user->name);
 		if (isset($user->player->arena)) {
 			$possibleMatchesQuery->where('[id_arena] = %i', $user->player->arena->id);
 		}
-		$possibleMatches = $possibleMatchesQuery->fetchAll(cache: false);
+		$possibleMatches = $possibleMatchesQuery->fetchAllDto(PlayerGamesGame::class, cache: false);
 
 		foreach ($possibleMatches as $possibleMatch) {
 			$match = new PossibleMatch();

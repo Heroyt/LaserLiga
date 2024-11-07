@@ -33,6 +33,9 @@ class AchievementProvider
 	) {
 	}
 
+	/**
+	 * @return PlayerAchievement[]
+	 */
 	public function getForGamePlayer(\App\GameModels\Game\Player $player): array {
 		if (!isset($player->user)) {
 			return [];

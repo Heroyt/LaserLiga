@@ -5,8 +5,10 @@
 
 {block content}
 	<p class="text-start">
-		<a href="{link ['admin', 'arenas']}" class="btn btn-warning"><i
-                    class="fa-solid fa-angle-left"></i> {lang 'Zpět'}</a>
+		<a href="{link ['admin', 'arenas']}" class="btn btn-warning">
+            {faSolid 'angle-left'}
+            {lang 'Zpět'}
+        </a>
 	</p>
     <form action="{link ['admin', 'arenas', $arena->id]}" method="post" enctype="multipart/form-data" id="arena-form"
           data-arena="{$arena->id}">
@@ -40,7 +42,7 @@
 		</div>
 
 		<h3>{lang 'API klíče'}</h3>
-		<button type="button" class="btn btn-success" id="addApiKey"><i class="fa-solid fa-plus"></i></button>
+		<button type="button" class="btn btn-success" id="addApiKey">{faSolid 'plus'}</button>
 		<div id="api-keys">
 			<div n:foreach="$apiKeys as $id => $apiKey" class="input-group mb-2" data-id="{$id}">
 				<input type="text" readonly="readonly"
@@ -48,14 +50,14 @@
 					   value="{$apiKey->key}">
 				<button type="button" data-action="copy-to-clipboard" data-target="#key-{$id}"
 						class="btn btn-secondary">
-					<i class="fa-solid fa-clipboard"></i>
+					{faSolid 'clipboard'}
 				</button>
 				<div class="form-floating">
 					<input type="text" name="key[{$id}][name]" class="form-control" id="key-{$id}-name"
 						   placeholder="{lang 'Název'}" required value="{$apiKey->name}">
 					<label for="key-{$id}-name">{lang 'Název'}</label>
 				</div>
-				<button type="button" class="delete btn btn-danger"><i class="fa-solid fa-trash"></i></button>
+				<button type="button" class="delete btn btn-danger">{faSolid 'trash'}</button>
 			</div>
 		</div>
 

@@ -17,39 +17,51 @@ use App\Models\Events\EventTeam;
 use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\Tournament;
 use App\Services\EventRegistrationService;
+use App\Services\Turnstile;
+use Dibi\DriverException;
 use Exception;
-use Lsr\Core\App;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
+use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\AuthInterface;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Logger;
+use Psr\Http\Message\ResponseInterface;
+use JsonException;
 
 class EventController extends Controller
 {
+	use CaptchaValidation;
 
 	private Logger $logger;
 
 	/**
-	 * @param Latte                    $latte
-	 * @param AuthInterface<User>      $auth
-	 * @param EventRegistrationService $eventRegistrationService
+	 * @param AuthInterface<User> $auth
 	 */
-	public function __construct(Latte $latte, private readonly AuthInterface $auth, private readonly EventRegistrationService $eventRegistrationService,) {
-		parent::__construct($latte);
+	public function __construct(
+		private readonly AuthInterface            $auth,
+		private readonly EventRegistrationService $eventRegistrationService,
+		private readonly Turnstile                $turnstile,
+	) {
+		parent::__construct();
 	}
 
 	public function init(RequestInterface $request): void {
 		parent::init($request);
 		$this->params['user'] = $this->auth->getLoggedIn();
+		$this->params['turnstileKey'] = $this->turnstile->getKey();
 	}
 
-	public function show(): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function show(): ResponseInterface {
 		$this->title = 'Plánované akce';
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'           => [],
@@ -116,10 +128,15 @@ class EventController extends Controller
 		});
 
 		$this->params['events'] = $events;
-		$this->view('pages/events/index');
+		return $this->view('pages/events/index');
 	}
 
-	public function detail(Event $event): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function detail(Event $event): ResponseInterface {
 		$this->title = 'Akce %s - %s';
 		$this->titleParams[] = $event->arena->name;
 		$this->titleParams[] = $event->name;
@@ -140,7 +157,7 @@ class EventController extends Controller
 		$this->params['rules'] = $this->latteRules($event);
 		$this->params['results'] = $this->latteResults($event);
 
-		$this->view('pages/events/detail');
+		return $this->view('pages/events/detail');
 	}
 
 	private function latteRules(Event $event): string {
@@ -159,15 +176,17 @@ class EventController extends Controller
 		return $this->latte->sandboxFromStringToString($event->resultsSummary, ['tournament' => $event]);
 	}
 
-	public function register(Event $event): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function register(Event $event): ResponseInterface {
 		$this->setRegisterTitleDescription($event);
-		if ($event->format === GameModeType::TEAM) {
-			$this->registerTeam($event);
-			return;
-		}
-		if ($event->format === GameModeType::SOLO) {
-			$this->registerSolo($event);
-		}
+		return match($event->format) {
+			GameModeType::TEAM => $this->registerTeam($event),
+			GameModeType::SOLO => $this->registerSolo($event),
+
+		};
 	}
 
 	private function setRegisterTitleDescription(Event $event): void {
@@ -184,7 +203,11 @@ class EventController extends Controller
 		$this->descriptionParams[] = $event->arena->name;
 	}
 
-	private function registerTeam(Event $event): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	private function registerTeam(Event $event): ResponseInterface {
 		$this->params['event'] = $event;
 		if (isset($this->params['user'])) {
 			$rank = $this->params['user']->player->stats->rank;
@@ -202,10 +225,14 @@ class EventController extends Controller
 				],
 			];
 		}
-		$this->view('pages/events/registerTeam');
+		return $this->view('pages/events/registerTeam');
 	}
 
-	private function registerSolo(Event $event): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	private function registerSolo(Event $event): ResponseInterface {
 		$this->params['event'] = $event;
 		if (isset($this->params['user'])) {
 			$rank = $this->params['user']->player->stats->rank;
@@ -223,39 +250,60 @@ class EventController extends Controller
 				],
 			];
 		}
-		$this->view('pages/events/registerSolo');
+		return $this->view('pages/events/registerSolo');
 	}
 
-	public function processRegister(Event $event, Request $request): void {
-		if ($event->format === GameModeType::TEAM) {
-			$this->processRegisterTeam($event, $request);
-			return;
-		}
-		if ($event->format === GameModeType::SOLO) {
-			$this->processRegisterSolo($event, $request);
-		}
+	/**
+	 * @throws DriverException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function processRegister(Event $event, Request $request): ResponseInterface {
+		return match ($event->format){
+			GameModeType::TEAM => $this->processRegisterTeam($event, $request),
+			GameModeType::SOLO=> $this->processRegisterSolo($event, $request),
+		};
 	}
 
-	private function processRegisterTeam(Event $event, Request $request): void {
+	/**
+	 * @throws DriverException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws Exception
+	 */
+	private function processRegisterTeam(Event $event, Request $request): ResponseInterface {
+		$this->validateCaptcha($request);
+		if (!empty($this->params['errors'])) {
+			$this->setRegisterTitleDescription($event);
+			$this->params['event'] = $event;
+			return $this->view('pages/events/registerTeam');
+		}
 		$previousTeam = null;
-		if (!empty($request->post['previousTeam'])) {
-			$previousTeam = EventTeam::get((int)$request->post['previousTeam']);
+		/** @var numeric|null $prevTeamId */
+		$prevTeamId = $request->getPost('previousTeam');
+		if (!empty($prevTeamId)) {
+			$previousTeam = EventTeam::get((int)$prevTeamId);
 		}
 		if (!isset($previousTeam)) {
 			$this->params['errors'] = $this->eventRegistrationService->validateRegistration($event, $request);
 		}
-		if (empty($_POST['gdpr'])) {
+		/** @var string|null $gdpr */
+		$gdpr = $request->getPost('gdpr');
+		if (empty($gdpr)) {
 			$this->params['errors']['gdpr'] = lang('Je potřeba souhlasit se zpracováním osobních údajů.');
 		}
 
 		if (empty($this->params['errors'])) {
 			DB::getConnection()->begin();
-			$data = new TeamRegistrationDTO($previousTeam?->name ?? $request->getPost('team-name'));
+			$data = new TeamRegistrationDTO(
+				$previousTeam?->name ?? ((string) $request->getPost('team-name', '')) // @phpstan-ignore-line
+			);
 			$data->image = $this->processLogoUpload();
 			if (isset($previousTeam)) {
-				if ($previousTeam->tournament->league?->id === $event->league?->id) {
-					$data->leagueTeam = $previousTeam->leagueTeam?->id;
-				}
 				$data->image = isset($previousTeam->image) ? new Image($previousTeam->image) : null;
 				foreach ($previousTeam->getPlayers() as $previousPlayer) {
 					$player = new PlayerRegistrationDTO(
@@ -280,7 +328,7 @@ class EventController extends Controller
 				}
 			}
 			else {
-				/** @var array{id?:numeric-string,registered?:string,captain?:string,sub?:string,name:string,surname:string,nickname:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:numeric-string,user?:string,email:string,skill:string}[] $players */
+				/** @var array{id:numeric-string,registered:string,captain:string,sub:string,name:string,surname:string,nickname:string,phone:string,parentEmail:string,parentPhone:string,birthYear:numeric-string,user:string,email:string,skill:string}[] $players */
 				$players = $request->getPost('players', []);
 				foreach ($players as $playerData) {
 					$user = null;
@@ -308,7 +356,7 @@ class EventController extends Controller
 
 			try {
 				/** @var EventTeam $team */
-				$team = $this->eventRegistrationService->registerTeam($event, $data);
+				$team = $this->eventRegistrationService->registerTeam($event, $data); // @phpstan-ignore-line
 			} catch (ModelSaveFailedException|ModelNotFoundException|ValidationException $e) {
 				$this->getLogger()->exception($e);
 				$this->params['errors'][] = lang('Nepodařilo se uložit tým. Zkuste to znovu', context: 'errors');
@@ -321,7 +369,7 @@ class EventController extends Controller
 			if (!$this->eventRegistrationService->sendRegistrationEmail($team)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect(
+			return $this->app->redirect(
 				['events', 'registration', $event->id, $team->id, 'h' => $team->getHash()],
 				$request
 			);
@@ -329,7 +377,7 @@ class EventController extends Controller
 		DB::getConnection()->rollback();
 		$this->setRegisterTitleDescription($event);
 		$this->params['event'] = $event;
-		$this->view('pages/events/registerTeam');
+		return $this->view('pages/events/registerTeam');
 	}
 
 	private function processLogoUpload(): ?UploadedFile {
@@ -352,8 +400,22 @@ class EventController extends Controller
 		return $this->logger;
 	}
 
-	public function processRegisterSolo(Event $event, Request $request): void {
-		/** @var array{registered?:string,sub?:string,captain?:string,name?:string,surname?:string,nickname?:string,user?:string,email?:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:string,skill?:string}[] $players */
+	/**
+	 * @throws DriverException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws Exception
+	 */
+	public function processRegisterSolo(Event $event, Request $request): ResponseInterface {
+		$this->validateCaptcha($request);
+		if (!empty($this->params['errors'])) {
+			$this->setRegisterTitleDescription($event);
+			$this->params['event'] = $event;
+			return $this->view('pages/events/registerSolo');
+		}
+		/** @var array{registered:string,sub:string,captain:string,name:string,surname:string,nickname:string,user:string,email:string,phone:string,parentEmail:string,parentPhone:string,birthYear:string,skill:string}[] $players */
 		$players = $request->getPost('players', []);
 		if (count($players) !== 1) {
 			$this->params['errors'][] = lang('Vyplňte informace o hráči.');
@@ -437,7 +499,7 @@ class EventController extends Controller
 			if (!$this->eventRegistrationService->sendPlayerRegistrationEmail($registeredPlayer)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect(
+			return $this->app->redirect(
 				['events', 'registration', $event->id, $registeredPlayer->id, $registeredPlayer->getHash()],
 				$request
 			);
@@ -446,10 +508,15 @@ class EventController extends Controller
 		DB::getConnection()->rollback();
 		$this->setRegisterTitleDescription($event);
 		$this->params['event'] = $event;
-		$this->view('pages/events/registerSolo');
+		return $this->view('pages/events/registerSolo');
 	}
 
-	public function updateRegistration(Event $event, int $registration, Request $request): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function updateRegistration(Event $event, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'              => [],
 			lang('Plánované akce')    => ['events'],
@@ -458,48 +525,55 @@ class EventController extends Controller
 		];
 		$this->title = '%s - Úprava registrace na akci';
 		$this->titleParams[] = $event->name;
-		switch ($event->format) {
-			case GameModeType::TEAM:
-				/** @var EventTeam|null $team */ $team = EventTeam::query()->where(
-				'id_event = %i AND id_team = %i',
-				$event->id,
-				$registration
-			)->first();
-				if (!isset($team)) {
-					$request->addPassError(lang('Registrace neexistuje'));
-					App::redirect(['events', $event->id], $request);
-				}
-				if (!empty($request->params['hash'])) {
-					$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
-				}
-				if (!$this->validateRegistrationAccess($team)) {
-					$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-					App::redirect(['events', $event->id], $request);
-				}
-				$this->updateTeam($team, $request);
-				break;
-			case GameModeType::SOLO:
-				/** @var EventPlayer|null $player */ $player = EventPlayer::query()->where(
-				'id_event = %i AND id_player = %i',
-				$event->id,
-				$registration
-			)->first();
-				if (!isset($player)) {
-					$request->addPassError(lang('Registrace neexistuje'));
-					App::redirect(['events', $event->id], $request);
-				}
-				if (!empty($request->params['hash'])) {
-					$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
-				}
-				if (!$this->validateRegistrationAccess($player)) {
-					$request->addPassError(lang('K tomuto hráči nemáte přístup'));
-					App::redirect(['events', $event->id], $request);
-				}
-				$this->updatePlayer($player, $request);
-				break;
+		if ($event->format === GameModeType::TEAM) {
+			/** @var EventTeam|null $team */
+			$team = EventTeam::query()
+			                 ->where(
+				                 'id_event = %i AND id_team = %i',
+				                 $event->id,
+				                 $registration
+			                 )
+			                 ->first();
+			if (!isset($team)) {
+				$request->addPassError(lang('Registrace neexistuje'));
+				return $this->app->redirect(['events', $event->id], $request);
+			}
+			if (!empty($request->params['hash'])) {
+				$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
+			}
+			if (!$this->validateRegistrationAccess($team)) {
+				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
+				return $this->app->redirect(['events', $event->id], $request);
+			}
+			return $this->updateTeam($team);
 		}
+
+		// SOLO
+		/** @var EventPlayer|null $player */
+		$player = EventPlayer::query()
+	                     ->where(
+			                     'id_event = %i AND id_player = %i',
+			                     $event->id,
+			                     $registration
+		                     )
+	                     ->first();
+		if (!isset($player)) {
+			$request->addPassError(lang('Registrace neexistuje'));
+			return $this->app->redirect(['events', $event->id], $request);
+		}
+		if (!empty($request->params['hash'])) {
+			$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
+		}
+		if (!$this->validateRegistrationAccess($player)) {
+			$request->addPassError(lang('K tomuto hráči nemáte přístup'));
+			return $this->app->redirect(['events', $event->id], $request);
+		}
+		return $this->updatePlayer($player);
 	}
 
+	/**
+	 * @throws ValidationException
+	 */
 	private function validateRegistrationAccess(EventTeam|EventPlayer $registration): bool {
 		if (isset($this->params['user'])) {
 			/** @var User $user */
@@ -531,7 +605,12 @@ class EventController extends Controller
 		return false;
 	}
 
-	private function updateTeam(EventTeam $team, Request $request): void {
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	private function updateTeam(EventTeam $team): ResponseInterface {
 		$this->params['team'] = $team;
 		$this->params['event'] = $team->event;
 
@@ -557,10 +636,14 @@ class EventController extends Controller
 			];
 		}
 
-		$this->view('pages/events/updateTeam');
+		return $this->view('pages/events/updateTeam');
 	}
 
-	private function updatePlayer(EventPlayer $player, Request $request): void {
+	/**
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	private function updatePlayer(EventPlayer $player): ResponseInterface {
 		$this->params['player'] = $player;
 		$this->params['event'] = $player->event;
 
@@ -587,10 +670,17 @@ class EventController extends Controller
 			$this->params['values']['dates'][] = $date->id;
 		}
 
-		$this->view('pages/events/updatePlayer');
+		return $this->view('pages/events/updatePlayer');
 	}
 
-	public function processUpdateRegister(Event $event, int $registration, Request $request): void {
+	/**
+	 * @throws DriverException
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 * @throws ModelNotFoundException
+	 */
+	public function processUpdateRegister(Event $event, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'              => [],
 			lang('Plánované akce')    => ['events'],
@@ -599,26 +689,28 @@ class EventController extends Controller
 		];
 		$this->title = '%s - Úprava registrace na akci';
 		$this->titleParams[] = $event->name;
-		switch ($event->format) {
-			case GameModeType::TEAM:
-				$this->processUpdateRegisterTeam($event, $registration, $request);
-				break;
-			case GameModeType::SOLO:
-				$this->processUpdateRegisterSolo($event, $registration, $request);
-				break;
-		}
+		return match ($event->format) {
+			GameModeType::TEAM => $this->processUpdateRegisterTeam($event, $registration, $request),
+			GameModeType::SOLO => $this->processUpdateRegisterSolo($event, $registration, $request),
+		};
 	}
 
-	private function processUpdateRegisterTeam(Event $event, int $registration, Request $request): void {
+	/**
+	 * @throws DriverException
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	private function processUpdateRegisterTeam(Event $event, int $registration, Request $request): ResponseInterface {
 		/** @var EventTeam|null $team */
 		$team = EventTeam::query()->where('id_event = %i AND id_team = %i', $event->id, $registration)->first();
 		if (!isset($team)) {
 			$request->addPassError(lang('Registrace neexistuje'));
-			App::redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', $event->id], $request);
 		}
 		if (!$this->validateRegistrationAccess($team)) {
 			$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-			App::redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', $event->id], $request);
 		}
 		$this->params['errors'] = $this->eventRegistrationService->validateRegistration($event, $request);
 		if (empty($this->params['errors'])) {
@@ -673,27 +765,34 @@ class EventController extends Controller
 			if (!$this->eventRegistrationService->sendRegistrationEmail($team, true)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect($link, $request);
+			return $this->app->redirect($link, $request);
 		}
 		$this->params['team'] = $team;
 		$this->params['event'] = $team->event;
 		$this->params['values'] = $_POST;
 		DB::getConnection()->rollback();
-		$this->view('pages/events/updateTeam');
+		return $this->view('pages/events/updateTeam');
 	}
 
-	private function processUpdateRegisterSolo(Event $event, int $registration, Request $request): void {
+	/**
+	 * @throws DriverException
+	 * @throws ModelNotFoundException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 * @throws Exception
+	 */
+	private function processUpdateRegisterSolo(Event $event, int $registration, Request $request): ResponseInterface {
 		/** @var EventPlayer|null $eventPlayer */
 		$eventPlayer = EventPlayer::query()
 		                          ->where('id_event = %i AND id_player = %i', $event->id, $registration)
 		                          ->first();
 		if (!isset($eventPlayer)) {
 			$request->addPassError(lang('Registrace neexistuje'));
-			App::redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', $event->id], $request);
 		}
 		if (!$this->validateRegistrationAccess($eventPlayer)) {
 			$request->addPassError(lang('K tomuto hráči nemáte přístup'));
-			App::redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', $event->id], $request);
 		}
 
 		$dates = $request->getPost('dates', []);
@@ -707,7 +806,7 @@ class EventController extends Controller
 			);
 		}
 
-		/** @var array{registered?:string,sub?:string,captain?:string,name?:string,surname?:string,nickname?:string,user?:string,email?:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:string,skill?:string}[] $players */
+		/** @var array{registered:string,sub:string,captain:string,name:string,surname:string,nickname:string,user:string,email:string,phone:string,parentEmail:string,parentPhone:string,birthYear:string,skill:string}[] $players */
 		$players = $request->getPost('players', []);
 		if (count($players) !== 1) {
 			$this->params['errors'][] = lang('Vyplňte informace o hráči.');
@@ -771,13 +870,12 @@ class EventController extends Controller
 			if (!$this->eventRegistrationService->sendPlayerRegistrationEmail($eventPlayer, true)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
-			App::redirect($link, $request);
+			return $this->app->redirect($link, $request);
 		}
 		$this->params['player'] = $eventPlayer;
 		$this->params['event'] = $eventPlayer->event;
 		$this->params['values'] = $_POST;
 		DB::getConnection()->rollback();
-		$this->view('pages/events/updatePlayer');
+		return $this->view('pages/events/updatePlayer');
 	}
-
 }

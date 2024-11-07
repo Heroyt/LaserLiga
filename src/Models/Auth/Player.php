@@ -9,7 +9,7 @@ use App\GameModels\Game\Game;
 use App\Helpers\Gender;
 use App\Models\Achievements\Title;
 use App\Models\Arena;
-use App\Models\DataObjects\PlayerStats;
+use App\Models\DataObjects\Player\PlayerStats;
 use App\Services\Achievements\TitleProvider;
 use App\Services\Avatar\AvatarService;
 use App\Services\Avatar\AvatarType;

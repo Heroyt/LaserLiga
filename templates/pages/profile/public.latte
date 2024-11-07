@@ -1,10 +1,5 @@
+{templateType App\Templates\Player\ProfileParameters}
 {layout '../../@layout.latte'}
-
-{varType Lsr\Core\Controller $page}
-{varType App\Models\Auth\User|null $loggedInUser}
-{varType App\Models\Auth\User $user}
-{varType Dibi\Row[] $lastGames}
-{varType App\Models\DataObjects\PlayerRank $rankOrder}
 
 {define addHead}
     <meta property="og:title" content="{sprintf(lang('Profil hráče %s na portálu Laser liga'), $user->name)}"/>
