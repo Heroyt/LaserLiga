@@ -147,8 +147,11 @@ class Import extends ApiController
 
 		/** @var numeric|null $groupId */
 		$groupId = $request->getGet('group');
-		if (!empty($groupId) && ($group = GameGroup::get((int) $groupId)) !== null) {
-			$game->group = $group;
+		if (!empty($groupId)) {
+			try {
+				$group = GameGroup::get((int)$groupId);
+				$game->group = $group;
+			} catch (ModelNotFoundException) {}
 		}
 
 		$users = [];

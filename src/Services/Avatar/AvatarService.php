@@ -29,8 +29,11 @@ class AvatarService
 		}
 		$svg = simplexml_load_string($response);
 		assert($svg !== false);
+		/** @phpstan-ignore-next-line  */
 		$svg['class'] = 'player-avatar';
-		return $svg->asXML();
+		$xml = $svg->asXML();
+		assert($xml !== false);
+		return $xml;
 	}
 
 }

@@ -9,13 +9,13 @@ class PlayerRankDiffResult
 {
 
 
-	public float $result;
-	public float $expectedResult;
-	public float $marginOfVictory;
+	public float $result = 0.0;
+	public float $expectedResult = 0.0;
+	public float $marginOfVictory = 0.0;
 
-	public float $diff;
+	public float $diff = 0.0;
 
-	public float $ratingDiff;
+	public float $ratingDiff = 0.0;
 
 	public function __construct(
 		public PlayerType $type,

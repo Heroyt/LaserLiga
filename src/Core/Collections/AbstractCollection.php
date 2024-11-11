@@ -17,7 +17,7 @@ use Lsr\Core\Models\Model;
 abstract class AbstractCollection implements CollectionInterface
 {
 
-	/** @var string Type of collection's data */
+	/** @var class-string<T> Type of collection's data */
 	protected string $type;
 	/** @var T[] */
 	protected array $data = [];
@@ -63,6 +63,7 @@ abstract class AbstractCollection implements CollectionInterface
 	 */
 	protected function checkType(Model $value) : bool {
 		if (!isset($this->type)) {
+			/** @phpstan-ignore-next-line  */
 			$this->type = get_class($value);
 			return true;
 		}

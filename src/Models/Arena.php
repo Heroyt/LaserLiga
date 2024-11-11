@@ -29,9 +29,8 @@ use RuntimeException;
 class Arena extends Model
 {
 
-	public const TABLE = 'arenas';
+	public const string TABLE = 'arenas';
 
-	private const ARENA_USER_TYPE_ID = 3;
 
 	#[OA\Property(example: 'Laser arena Písek')]
 	public string $name;

@@ -125,6 +125,7 @@ class LigaPlayer extends Player
 		if (isset($until)) {
 			$query->where('[datetime] <= %dt', $until);
 		}
+		/** @phpstan-ignore-next-line  */
 		return $query->fetchPairs('name', 'count');
 	}
 

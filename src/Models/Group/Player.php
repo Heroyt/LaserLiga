@@ -36,11 +36,17 @@ class Player
 	) {
 	}
 
+	/**
+	 * @return PlayerHit[]
+	 */
 	public function getHitPlayersSorted(): array {
 		uasort($this->hitPlayers, static fn($hit1, $hit2) => $hit2->countEnemy - $hit1->countEnemy);
 		return $this->hitPlayers;
 	}
 
+	/**
+	 * @return PlayerHit[]
+	 */
 	public function getDeathPlayersSorted(): array {
 		uasort($this->deathPlayers, static fn($hit1, $hit2) => $hit2->countEnemy - $hit1->countEnemy);
 		return $this->deathPlayers;
@@ -102,11 +108,11 @@ class Player
 
 	/**
 	 * @param string $name
-	 * @param array  $arguments
+	 * @param array<int,mixed>  $arguments
 	 *
 	 * @return mixed
 	 */
-	public function __call($name, $arguments) : mixed {
+	public function __call(string $name, array $arguments) : mixed {
 		return $this->player->$name(...$arguments);
 	}
 

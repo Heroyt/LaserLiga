@@ -40,7 +40,7 @@ class HighlightCollection implements Countable, Iterator, JsonSerializable
 		$key = array_search($highlight, $this->data[$highlight->rarityScore], true);
 		if ($key !== false) {
 			unset($this->data[$highlight->rarityScore][$key]);
-			$this->count--;
+			$this->count = max(0, $this->count - 1);
 		}
 		return $this;
 	}

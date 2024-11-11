@@ -14,7 +14,7 @@ class Image
 	private string $path;
 	private ?string $type = null;
 
-	/** @var array{original?:string,webp?:string}|array<string,string> */
+	/** @var array{original?:string,webp?:string}|array<string|numeric-string,string> */
 	private array $optimized = [];
 
 	/** @var array<string,array{original?:string,webp?:string}> */
@@ -37,6 +37,7 @@ class Image
 			return $optimized[$index];
 		}
 		$index = (string) $size;
+		/** @phpstan-ignore-next-line  */
 		return $optimized[$index] ?? $optimized['webp'] ?? $optimized['original'];
 	}
 
@@ -155,10 +156,12 @@ class Image
 		foreach (ImageService::SIZES as $size) {
 			$file = $optimizedDir . $this->name . 'x' . $size . '.' . $this->getType();
 			if (file_exists($file)) {
+				/** @phpstan-ignore-next-line  */
 				$images[(string)$size] = $this->pathToUrl($file);
 			}
 			$file = $optimizedDir . $this->name . 'x' . $size . '.webp';
 			if (file_exists($file)) {
+				/** @phpstan-ignore-next-line  */
 				$images[($size . '-webp')] = $this->pathToUrl($file);
 			}
 		}

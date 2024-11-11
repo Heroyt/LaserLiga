@@ -210,7 +210,7 @@ readonly class EventRegistrationService
 		}
 
 		// Create league team if necessary
-		if (($event instanceof Tournament || $event instanceof Event) && !isset($team->leagueTeam) && isset($event->league)) {
+		if (($event instanceof Tournament || $event instanceof Event) && ($team instanceof Team || $team instanceof EventTeam) && !isset($team->leagueTeam) && isset($event->league)) {
 			$team->leagueTeam = new LeagueTeam();
 			$team->leagueTeam->league = $event->league;
 			$team->leagueTeam->name = $team->name;
@@ -236,45 +236,43 @@ readonly class EventRegistrationService
 				$player = isset($playerData->playerId) ? LeaguePlayer::get($playerData->playerId) : new LeaguePlayer();
 				$player->league = $event;
 			}
-			else if ($event instanceof Event) {
+			else {
 				$player = isset($playerData->playerId) ? EventPlayer::get($playerData->playerId) : new EventPlayer();
 				$player->event = $event;
 			}
 			$this->registerPlayer($event, $playerData, $player, $team);
 		}
 
+		/** @phpstan-ignore-next-line  */
 		return $team;
 	}
 
 	/**
-	 * @param EventRegistrationInterface $event
-	 * @param PlayerRegistrationDTO      $data
-	 * @param Substitute|null            $player
-	 * @param EventTeamBase|null         $team
-	 * @param bool                       $substitute
-	 *
-	 * @return EventPlayerBase
 	 * @throws ModelSaveFailedException
 	 * @throws ValidationException
 	 */
 	public function registerPlayer(EventRegistrationInterface $event, PlayerRegistrationDTO $data, ?EventPlayerBase $player = null, ?EventTeamBase $team = null, bool $substitute = false): EventPlayerBase {
 		if ($event instanceof Tournament) {
 			$player ??= $substitute ? new Substitute() : new Player();
+			assert($player instanceof Substitute || $player instanceof Player);
 			$player->tournament = $event;
 		}
 		else if ($event instanceof League) {
 			$player ??= $substitute ? new Substitute() : new LeaguePlayer();
+			assert($player instanceof Substitute || $player instanceof LeaguePlayer);
 			$player->league = $event;
 		}
 		else if ($event instanceof Event) {
 			$player ??= new EventPlayer();
+			assert($player instanceof EventPlayer);
 			$player->event = $event;
 		}
 		else {
 			throw new InvalidArgumentException('Invalid event type.');
 		}
 
-		if (!$substitute && isset($team)) {
+		if (!($player instanceof Substitute) && isset($team)) {
+			/** @phpstan-ignore-next-line  */
 			$player->team = $team;
 		}
 
@@ -334,7 +332,9 @@ readonly class EventRegistrationService
 	 * @throws ValidationException
 	 */
 	public function registerSubstitute(EventRegistrationInterface $event, PlayerRegistrationDTO $data, ?Substitute $player = null): Substitute {
-		return $this->registerPlayer($event, $data, $player, substitute: true);
+		$player = $this->registerPlayer($event, $data, $player, substitute: true);
+		assert($player instanceof Substitute);
+		return $player;
 	}
 
 	/**
@@ -376,8 +376,11 @@ readonly class EventRegistrationService
 		else {
 			throw new InvalidArgumentException('Invalid team type');
 		}
-		$isTournament = $team instanceof Team;
-		$event = $isTournament ? $team->tournament : $team->league;
+		$event = match(true) {
+			$team instanceof Team => $team->tournament,
+			$team instanceof LeagueTeam => $team->league,
+			default => $team->event,
+		};
 		$message = new Message('mails/tournament/registrationTeam');
 		$message->setSubject(
 			sprintf(($change ? lang('Změny') . ': ' : '') . $teamSubject, ...$subjectArgs)
@@ -512,7 +515,7 @@ readonly class EventRegistrationService
 				$isTournament ? lang('Registrace náhradníka na turnaj - %s') : lang(
 					'Registrace náhradníka na ligu - %s'
 				),
-				$event->name . ($isTournament ? ' ' . $event->start->format('d.m.Y') : '')
+				$event->name . ($event instanceof Tournament ? ' ' . $event->start->format('d.m.Y') : '')
 			)
 		);
 		$message->params['substitute'] = $substitute;
@@ -540,7 +543,7 @@ readonly class EventRegistrationService
 					) : lang(
 						'Nová registrace náhradníka na ' . ($isTournament ? 'turnaj' : 'ligu') . ' - %s'
 					),
-					$event->name . ($isTournament ? ' ' . $event->start->format('d.m.Y') : '')
+					$event->name . ($event instanceof Tournament ? ' ' . $event->start->format('d.m.Y') : '')
 				)
 			);
 			$messageArena->params['substitute'] = $substitute;

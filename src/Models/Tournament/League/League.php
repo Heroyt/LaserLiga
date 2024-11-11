@@ -28,17 +28,17 @@ class League extends Model implements EventRegistrationInterface
 	public const TABLE = 'leagues';
 
 	#[OA\Property]
-	public string  $name;
+	public string     $name;
 	#[OA\Property]
-	public ?string $slug  = null;
+	public ?string    $slug             = null;
 	#[OA\Property]
-	public ?string $shortDescription = null;
+	public ?string    $shortDescription = null;
 	#[OA\Property]
-	public ?string $description      = null;
+	public ?string    $description      = null;
 	#[OA\Property]
-	public ?string $price = null;
+	public ?string    $price            = null;
 	#[OA\Property]
-	public ?string $image            = null;
+	public ?string    $image            = null;
 	#[OA\Property, Instantiate]
 	public EventPopup $popup;
 
@@ -81,9 +81,11 @@ class League extends Model implements EventRegistrationInterface
 	 * @return list<string>
 	 */
 	public function getUrlPath(string|int ...$append): array {
-		return array_merge(
-			!empty($this->slug) ? ['liga', (string) $this->slug] : ['league', (string) $this->id],
-			array_map(static fn($val) => (string) $val, $append)
+		return array_values(
+			array_merge(
+				!empty($this->slug) ? ['liga', (string)$this->slug] : ['league', (string)$this->id],
+				array_map(static fn($val) => (string)$val, $append)
+			)
 		);
 	}
 
@@ -117,8 +119,8 @@ class League extends Model implements EventRegistrationInterface
 				if (!isset($team->leagueTeam)) {
 					continue;
 				}
-				$pointsAll[(int) $team->leagueTeam->id] ??= 0; // Initialize empty values for teams
-				$pointsAll[(int) $team->leagueTeam->id] += $key + match ($teamCount - $key) {
+				$pointsAll[(int)$team->leagueTeam->id] ??= 0; // Initialize empty values for teams
+				$pointsAll[(int)$team->leagueTeam->id] += $key + match ($teamCount - $key) {
 						1       => 7, // Will get 4 points more than the second place (4 + 2 extra from second + 1 extra from third)
 						2       => 4, // Will get 3 points more than the third place (3 + 1 extra from third)
 						3       => 2, // Will get 2 points more than the fourth place

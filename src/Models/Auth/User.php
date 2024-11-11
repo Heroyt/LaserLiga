@@ -33,6 +33,7 @@ class User extends \Lsr\Core\Auth\Models\User
 	private array $managedArenaIds;
 
 	public static function getByCode(string $code): ?static {
+		/** @phpstan-ignore-next-line  */
 		return LigaPlayer::getByCode($code)?->user;
 	}
 

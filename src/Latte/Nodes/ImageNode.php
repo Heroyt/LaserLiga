@@ -140,6 +140,7 @@ class ImageNode extends StatementNode
 	public function print(PrintContext $context): string {
 		if (isset($this->image) && !($this->height instanceof Node) && !($this->width instanceof Node)) {
 			$urls = $this->image->getResized($this->width, $this->height);
+			assert(isset($urls['webp'], $urls['original']));
 			return $context->format(
 				<<<XXX
 					$ʟ_tmp = %node;
