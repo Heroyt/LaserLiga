@@ -11,7 +11,7 @@ use Lsr\Core\Models\Model;
 class Answer extends Model
 {
 
-	public const TABLE = 'question_answer';
+	public const string TABLE = 'question_answer';
 
 	#[ManyToOne]
 	public Question $question;
@@ -23,7 +23,7 @@ class Answer extends Model
 	 *
 	 * If the question is multiple choice question, the value will be parsed from JSON to an array of all answers.
 	 *
-	 * @return string|array
+	 * @return string|string[]
 	 * @throws JsonException
 	 */
 	public function getValue() : string|array {

@@ -8,7 +8,9 @@ use Lsr\Core\DB;
 class Info
 {
 
-	public const TABLE = 'page_info';
+	public const string TABLE = 'page_info';
+
+	/** @var array<string,mixed> */
 	private static array $info = [];
 
 	/**

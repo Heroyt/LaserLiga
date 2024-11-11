@@ -106,7 +106,6 @@ class FontAwesomeManager
 
         $contents = file_get_contents($this->file);
         $collection = $this->serializer->deserialize($contents, FontAwesomeCollection::class, 'json');
-        assert($collection instanceof FontAwesomeCollection, 'Deserialization failed');
         $this->collection = $collection;
         return $this->collection;
     }

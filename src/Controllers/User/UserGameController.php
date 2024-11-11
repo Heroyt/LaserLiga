@@ -2,8 +2,6 @@
 
 namespace App\Controllers\User;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Player;
@@ -18,7 +16,9 @@ use DateTimeImmutable;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Dto\SuccessResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -44,15 +44,16 @@ class UserGameController extends AbstractUserController
 
 	public function unsetMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
+			return $this->respond(new ErrorResponse('User is not logged in', ErrorType::ACCESS), 401);
 		}
+		/** @var string $code */
 		$code = $request->getPost('code', '');
 		try {
 			$game = GameFactory::getByCode($code);
 		} catch (\Throwable) {
 		}
 		if (!isset($game)) {
-			return $this->respond(new ErrorDto('Game not found', ErrorType::NOT_FOUND), 404);
+			return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		$player = null;
@@ -71,46 +72,47 @@ class UserGameController extends AbstractUserController
 
 	public function setNotMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
+			return $this->respond(new ErrorResponse('User is not logged in', ErrorType::ACCESS), 401);
 		}
-		// @phpstan-ignore-next-line
 		$matchId = (int)$request->getPost('id', 0);
 		try {
 			$match = PossibleMatch::get($matchId);
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
-			return $this->respond(new ErrorDto('Possible match not found', ErrorType::NOT_FOUND), 404);
+			return $this->respond(new ErrorResponse('Possible match not found', ErrorType::NOT_FOUND), 404);
 		}
 		if ($match->user->id !== $this->user->id) {
-			return $this->respond(new ErrorDto('Cannot set match. The match ID and logged in user do not match.', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Cannot set match. The match ID and logged in user do not match.', ErrorType::VALIDATION), 400);
 		}
 
 		$match->matched = false;
 		if (!$match->save()) {
-			return $this->respond(new ErrorDto('Save failed', ErrorType::INTERNAL), 500);
+			return $this->respond(new ErrorResponse('Save failed', ErrorType::INTERNAL), 500);
 		}
 		return $this->respond(new SuccessResponse());
 	}
 
 	public function setMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
+			return $this->respond(new ErrorResponse('User is not logged in', ErrorType::ACCESS), 401);
 		}
 		$playerId = (int)$request->getPost('id', 0);
-		$player = PlayerFactory::getById($playerId, ['system' => $request->getPost('system', 'evo5')]);
+		/** @var string $system */
+		$system = $request->getPost('system', 'evo5');
+		$player = PlayerFactory::getById($playerId, ['system' => $system]);
 		if (!isset($player)) {
-			return $this->respond(new ErrorDto('Player not found', ErrorType::NOT_FOUND), 404);
+			return $this->respond(new ErrorResponse('Player not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		if (isset($player->user) && $player->user->id !== $this->user->id) {
-			return $this->respond(new ErrorDto('Cannot overwrite a player\'s user.', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Cannot overwrite a player\'s user.', ErrorType::VALIDATION), 400);
 		}
 
 		if (!comparePlayerNames($this->user->name, $player->name)) {
-			return $this->respond(new ErrorDto('User names don\'t match.', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('User names don\'t match.', ErrorType::VALIDATION), 400);
 		}
 
 		if (!$this->playerUserService->setPlayerUser($this->user, $player)) {
-			return $this->respond(new ErrorDto('Setting a user failed', ErrorType::INTERNAL), 500);
+			return $this->respond(new ErrorResponse('Setting a user failed', ErrorType::INTERNAL), 500);
 		}
 
 		return $this->respond(new SuccessResponse());
@@ -118,7 +120,7 @@ class UserGameController extends AbstractUserController
 
 	public function setAllMe(): ResponseInterface {
 		if (!isset($this->user)) {
-			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
+			return $this->respond(new ErrorResponse('User is not logged in', ErrorType::ACCESS), 401);
 		}
 
 		$matches = PossibleMatch::getForUser($this->user);
@@ -144,13 +146,13 @@ class UserGameController extends AbstractUserController
 
 	public function setGroupMe(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
-			return $this->respond(new ErrorDto('User is not logged in', ErrorType::ACCESS), 401);
+			return $this->respond(new ErrorResponse('User is not logged in', ErrorType::ACCESS), 401);
 		}
 		$groupId = (int)$request->getPost('id', 0);
 		try {
 			$group = GameGroup::get($groupId);
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
-			return $this->respond(new ErrorDto('Group not found', ErrorType::NOT_FOUND), 404);
+			return $this->respond(new ErrorResponse('Group not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		$errors = [];
@@ -184,7 +186,7 @@ class UserGameController extends AbstractUserController
 		}
 
 		if (!empty($errors)) {
-			return $this->respond(new ErrorDto('Internal error', ErrorType::INTERNAL, values: ['errors' => $errors]), 500);
+			return $this->respond(new ErrorResponse('Internal error', ErrorType::INTERNAL, values: ['errors' => $errors]), 500);
 		}
 
 		$group->clearCache();
@@ -292,12 +294,12 @@ class UserGameController extends AbstractUserController
 		$dateString = (string) $request->getGet('date', ''); // @phpstan-ignore-line
 		$fromString = (string) $request->getGet('from', ''); // @phpstan-ignore-line
 		if (empty($dateString) && empty($fromString)) {
-			return $this->respond(new ErrorDto('Missing date or from parameter.', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Missing date or from parameter.', ErrorType::VALIDATION), 400);
 		}
 
 		if (!empty($dateString)) {
 			$date = new DateTimeImmutable($dateString);
-			return $this->respond($this->rankOrderService->getDateRanks($date));
+			return $this->respond(array_values($this->rankOrderService->getDateRanks($date)));
 		}
 
 		$date = new DateTimeImmutable($fromString);
@@ -309,6 +311,6 @@ class UserGameController extends AbstractUserController
 			$response = $this->rankOrderService->getDateRanks($date);
 			$date = $date->add($day);
 		}
-		return $this->respond($response);
+		return $this->respond(array_values($response));
 	}
 }

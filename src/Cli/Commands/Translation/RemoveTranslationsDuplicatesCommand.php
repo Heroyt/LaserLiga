@@ -36,7 +36,6 @@ class RemoveTranslationsDuplicatesCommand extends Command
 
         $templates = [];
 
-        /** @var string[] $languages */
         foreach ($this->translations->supportedLanguages as $lang => $country) {
             $concatLang = $lang . '_' . $country;
             $path = LANGUAGE_DIR . $concatLang;

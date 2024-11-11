@@ -2,21 +2,24 @@
 
 namespace App\Services\Player;
 
+use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player as GamePlayer;
 use App\GameModels\Game\Team;
 use App\Models\Auth\Player;
 use App\Models\Auth\User;
+use App\Models\DataObjects\Ranking\PlayerGameRating;
+use App\Models\DataObjects\Ranking\PlayerRankDiffResult;
+use App\Models\DataObjects\Ranking\PlayerType;
+use App\Models\DataObjects\Ranking\RankingPlayer;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Dibi\Exception;
-use Dibi\Row;
-use JsonException;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Symfony\Component\Serializer\Serializer;
 use Throwable;
 
 /**
@@ -30,21 +33,24 @@ class RankCalculator
 {
 
 	/** @var int Difference of RATING_RATIO_CONSTANT between players should mean that one player is 10 times more likely to win */
-	public const RATING_RATIO_CONSTANT = 400;
+	public const int RATING_RATIO_CONSTANT = 400;
 
 	/** @var int How strongly a result should affect the rating change */
-	public const K_FACTOR = 10;
+	public const int K_FACTOR = 10;
 
 	/** @var int Padding applied to the worst player's skill */
-	public const        MIN_PLAYER_PADDING = 50;
+	public const int MIN_PLAYER_PADDING = 50;
 
 	/** @var int Padding applied to the best player's skill */
-	public const        MAX_PLAYER_PADDING = 0;
+	public const int MAX_PLAYER_PADDING = 0;
 
 	/** @var float Weight applied to player skill comparison if both players are teammates */
-	public const        TEAMMATE_WEIGHT = 0.5;
+	public const float TEAMMATE_WEIGHT = 0.5;
 
-	public function __construct(private readonly Cache $cache) {
+	public function __construct(
+		private readonly Cache      $cache,
+		private readonly Serializer $serializer,
+	) {
 	}
 
 	/**
@@ -68,9 +74,8 @@ class RankCalculator
 		if ($user instanceof User) {
 			$user = $user->createOrGetPlayer();
 		}
-		$currentRank = (float)$user->stats->rank;
 
-		/** @var (Row|object{name:string,id_user:int|null,skill:int,id_team:int,rank:int|null})[][] $values Game's player statistics */
+		/** @var RankingPlayer[][] $values Game's player statistics */
 		$values = DB::select(
 			["[{$system}_players]", 'a'],
 			'[a].[name], [a].[id_user], [a].[skill], [a].[id_team], %sql as [rank]',
@@ -83,15 +88,15 @@ class RankCalculator
 			'games/' . $system,
 			'games/' . $code,
 			'averageSkill'
-		)->fetchAssoc('id_team|[]');
+		)->fetchAssocDto(RankingPlayer::class, 'id_team|[]');
 
 		// Check if game is in a group - then for unregistered players, take their average skill as a rank
 		$game = GameFactory::getByCode($code);
 		$group = $game?->getGroup();
 
-		/** @var array{id_user:int|null,skill:int,id_team:int,rank:int}[] $teammates */
+		/** @var RankingPlayer[] $teammates */
 		$teammates = [];
-		/** @var array{id_user:int|null,skill:int,id_team:int,rank:int}[] $enemies */
+		/** @var RankingPlayer[] $enemies */
 		$enemies = [];
 
 		$minSkill = 9999;
@@ -114,10 +119,10 @@ class RankCalculator
 				}
 
 				if ($player->id_user === $user->id) {
-					$teammates[] = $player->toArray();
+					$teammates[] = $player;
 					continue;
 				}
-				$enemies[] = $player->toArray();
+				$enemies[] = $player;
 			}
 		}
 		else {
@@ -140,7 +145,7 @@ class RankCalculator
 						unset($team[$key]);
 						continue;
 					}
-					$team[$key] = $player->toArray();
+					$team[$key] = $player;
 				}
 				if (!$foundPlayer) {
 					$enemyTeams[] = $team;
@@ -156,7 +161,6 @@ class RankCalculator
 			$skill,
 			$minSkill,
 			$maxSkill,
-			$currentRank,
 			$teammates,
 			$enemies,
 			$code,
@@ -173,24 +177,24 @@ class RankCalculator
 	 * because it incorporates other statistics such as K:D ratio, accuracy, etc. and is not influenced by the game's length
 	 * and the number of players.
 	 *
-	 * @param int                                                            $skill
-	 * @param int|float                                                      $minSkill
-	 * @param int|float                                                      $maxSkill
-	 * @param int|float                                                      $currentRank
-	 * @param array{id_user:int|null,skill:int,rank?:int|null,id_team:int}[] $teammates
-	 * @param array{id_user:int|null,skill:int,rank?:int|null,id_team:int}[] $enemies
-	 * @param string                                                         $code
-	 * @param User|Player                                                    $user
-	 * @param DateTimeInterface                                              $date
+	 * @param int               $skill
+	 * @param int|float         $minSkill
+	 * @param int|float         $maxSkill
+	 * @param RankingPlayer[]   $teammates
+	 * @param RankingPlayer[]   $enemies
+	 * @param string            $code
+	 * @param User|Player       $user
+	 * @param DateTimeInterface $date
 	 *
 	 * @return int Current player's rank after the difference
-	 * @throws Exception If the SQL insert / update query fails
+	 * @throws Exception
+	 * @throws ValidationException
 	 * @post The difference is logged in the DB.
 	 *
 	 * @link https://en.wikipedia.org/wiki/Elo_rating_system
 	 * @link https://ryanmadden.net/adapting-elo/
 	 */
-	public function calculateRankForGamePlayer(int $skill, int|float $minSkill, int|float $maxSkill, int|float $currentRank, array $teammates, array $enemies, string $code, User|Player $user, DateTimeInterface $date): int {
+	public function calculateRankForGamePlayer(int $skill, int|float $minSkill, int|float $maxSkill, array $teammates, array $enemies, string $code, User|Player $user, DateTimeInterface $date): int {
 		$ratingDiff = 0.0;
 		$count = 0;
 
@@ -211,8 +215,15 @@ class RankCalculator
 
 		$Q = 2.2 / ((($teamSkill > $enemiesSkill ? $teamRank - $enemiesRank : $enemiesRank - $teamRank) * 0.001) + 2.2);
 
+		if ($user instanceof User) {
+			$userName = $user->name;
+		}
+		else {
+			$userName = $user->nickname;
+		}
+
 		$expectedResults = [
-			'user'         => $user->nickname ?? $user->name,
+			'user'         => $userName,
 			'currentRank'  => $currentDateRank,
 			'teamRank'     => $teamRank,
 			'teamSkill'    => $teamSkill,
@@ -227,53 +238,21 @@ class RankCalculator
 			// Normalize the real skill to values between 0 and 1
 			$normalizedSkill = ($skill - $minSkill) / ($maxSkill - $minSkill);
 			foreach ($enemies as $enemy) {
-				$diff = $enemy['rank'] - $currentDateRank;
-				$normalizedEnemySkill = ($enemy['skill'] - $minSkill) / ($maxSkill - $minSkill);
-				// Magic ELO formula -> same principle as chess
-				$expectedResult = 1 / (1 + 10 ** ($diff / $this::RATING_RATIO_CONSTANT));
-				$marginOfVictory = log(abs($skill - $enemy['skill']) + 1) * $Q;
-
-				$result = 1 / (1 + 100 ** ($normalizedEnemySkill - $normalizedSkill));
-
-				$ratingDifference = ($result - $expectedResult) * $marginOfVictory;
-				$ratingDiff += $ratingDifference;
+				$result = new PlayerRankDiffResult(PlayerType::ENEMY, $enemy, $normalizedSkill);
+				$this->calculateRankingResult($result, $skill, $currentDateRank, $minSkill, $maxSkill, $Q);
+				$ratingDiff += $result->ratingDiff;
 				$count++;
-				$expectedResults['players'][] = [
-					'type'            => 'enemy',
-					'normalizedSkill' => $normalizedEnemySkill,
-					'result'          => $result,
-					'player'          => $enemy,
-					'diff'            => $diff,
-					'ratingDiff'      => $ratingDifference,
-					'expected'        => $expectedResult,
-					'marginOfVictory' => $marginOfVictory,
-				];
+				$expectedResults['players'][] = $result;
 			}
 			foreach ($teammates as $teammate) {
-				if ($teammate['id_user'] === $user->id) {
+				if ($teammate->id_user === $user->id) {
 					continue;
 				}
-				$diff = $teammate['rank'] - $currentDateRank;
-				$normalizedTeammateSkill = ($teammate['skill'] - $minSkill) / ($maxSkill - $minSkill);
-				// Magic ELO formula -> same principle as chess
-				$expectedResult = 1 / (1 + 10 ** ($diff / $this::RATING_RATIO_CONSTANT));
-				$marginOfVictory = log(abs($skill - $teammate['skill']) + 1) * $Q;
-
-				$result = 1 / (1 + 100 ** ($normalizedTeammateSkill - $normalizedSkill));
-
-				$ratingDifference = ($result - $expectedResult) * $marginOfVictory * $this::TEAMMATE_WEIGHT;
-				$ratingDiff += $ratingDifference;
+				$result = new PlayerRankDiffResult(PlayerType::TEAMMATE, $teammate, $normalizedSkill);
+				$this->calculateRankingResult($result, $skill, $currentDateRank, $minSkill, $maxSkill, $Q);
+				$ratingDiff += $result->ratingDiff;
 				$count++;
-				$expectedResults['players'][] = [
-					'type'            => 'teammate',
-					'result'          => $result,
-					'normalizedSkill' => $normalizedTeammateSkill,
-					'player'          => $teammate,
-					'diff'            => $diff,
-					'ratingDiff'      => $ratingDifference,
-					'expected'        => $expectedResult,
-					'marginOfVictory' => $marginOfVictory,
-				];
+				$expectedResults['players'][] = $result;
 			}
 		}
 
@@ -286,29 +265,32 @@ class RankCalculator
 		$test = DB::select('player_game_rating', 'COUNT(*)')
 		          ->where('[code] = %s AND [id_user] = %i', $code, $user->id)
 		          ->fetchSingle(false);
-		try {
-			$expectedResultsJson = json_encode(
-				$expectedResults,
-				JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-			);
-		} catch (JsonException) {
-		}
+
+		$expectedResultsJson = $this->serializer->serialize($expectedResults, 'json');
+
+		// Limit rating diff to < -50, 50 >.
 		$ratingDiff = max(min($ratingDiff, 50.0), -50.0);
+
 		if ($user instanceof User) {
 			$user = $user->createOrGetPlayer();
 		}
+
+		// Check if the user would have a negative rank.
+		// If so, prevent it and decrease the difference, so they would end up with 0 rank.
 		$rank = $user->stats->rank;
-		$user->stats->rank = (int) round($user->stats->rank + $ratingDiff);
+		$user->stats->rank = (int)round($user->stats->rank + $ratingDiff);
+		// -100 because the rank starts at 100 by default.
 		if ($user->stats->rank < -100) {
-			$ratingDiff = (float)(-100-$rank);
+			$ratingDiff = (float)(-100 - $rank);
 			$user->stats->rank = -100;
 		}
+
 		$insertData = [
 			'code'             => $code,
 			'id_user'          => $user->id,
 			'difference'       => $ratingDiff,
 			'date'             => $date,
-			'expected_results' => $expectedResultsJson ?? null,
+			'expected_results' => $expectedResultsJson,
 			'normalized_skill' => ($normalizedSkill ?? null),
 			'max_skill'        => $maxSkill,
 			'min_skill'        => $minSkill,
@@ -332,13 +314,16 @@ class RankCalculator
 	 * @return int
 	 */
 	public function getPlayerRankOnDate(int $userId, DateTimeInterface $date): int {
-		return max(0, (int)round(
-			DB::select('player_game_rating', '100 + SUM([difference])')->where(
-				'[id_user] = %i AND [date] < %dt',
-				$userId,
-				$date
-			)->fetchSingle(false) ?? 100
-		));
+		return max(
+			0,
+			(int)round(
+				DB::select('player_game_rating', '100 + SUM([difference])')->where(
+					'[id_user] = %i AND [date] < %dt',
+					$userId,
+					$date
+				)->fetchSingle(false) ?? 100
+			)
+		);
 	}
 
 	/**
@@ -346,28 +331,28 @@ class RankCalculator
 	 *
 	 * Registered players get the rank by date and for other, their rank is their skill in game.
 	 *
-	 * @param array{id_user:int|null,skill:int,rank?:int|null,id_team:int}[] $players
-	 * @param DateTimeInterface                                              $date
+	 * @param RankingPlayer[]   $players
+	 * @param DateTimeInterface $date
 	 *
 	 * @return void
 	 */
-	private function convertPlayersSkillToRank(array &$players, DateTimeInterface $date): void {
-		foreach ($players as &$player) {
-			if (isset($player['rank'])) {
+	private function convertPlayersSkillToRank(array $players, DateTimeInterface $date): void {
+		foreach ($players as $player) {
+			if (isset($player->rank)) {
 				continue;
 			}
-			if (!isset($player['id_user'])) {
-				$player['rank'] = $player['skill'];
+			if (!isset($player->id_user)) {
+				$player->rank = $player->skill;
 				continue;
 			}
-			$player['rank'] = $this->getPlayerRankOnDate($player['id_user'], $date);
+			$player->rank = $this->getPlayerRankOnDate($player->id_user, $date);
 		}
 	}
 
 	/**
 	 * Calculates the average team rank.
 	 *
-	 * @param array{id_user:int|null,skill:int,rank:int,id_team:int}[] $players
+	 * @param RankingPlayer[] $players
 	 *
 	 * @return float
 	 */
@@ -377,13 +362,13 @@ class RankCalculator
 		if ($count === 0) {
 			return 0.0;
 		}
-		return array_reduce($players, static fn($a, $b) => $a + $b['rank'], 0) / $count;
+		return array_reduce($players, static fn($a, $b) => $a + ($b->rank ?? $b->skill), 0) / $count;
 	}
 
 	/**
 	 * Calculates the average skill of given players
 	 *
-	 * @param array{skill:int}[] $players
+	 * @param RankingPlayer[] $players
 	 *
 	 * @return float
 	 */
@@ -392,7 +377,23 @@ class RankCalculator
 		if ($count === 0) {
 			return 0.0;
 		}
-		return array_reduce($players, static fn($a, $b) => $a + $b['skill'], 0) / $count;
+		return array_reduce($players, static fn($a, $b) => $a + $b->skill, 0) / $count;
+	}
+
+	private function calculateRankingResult(PlayerRankDiffResult $result, int $skill, int $currentDateRank, int|float $minSkill, int|float $maxSkill, float $Q): void {
+		$diff = ($result->player->rank ?? $result->player->skill) - $currentDateRank;
+		$normalizedEnemySkill = ($result->player->skill - $minSkill) / ($maxSkill - $minSkill);
+
+
+		// Magic ELO formula -> same principle as chess
+		$result->expectedResult = 1 / (1 + 10 ** ($diff / $this::RATING_RATIO_CONSTANT));
+		$result->marginOfVictory = log(abs($skill - $result->player->skill) + 1) * $Q;
+
+		$result->result = 1 / (1 + 100 ** ($normalizedEnemySkill - $result->normalizedSkill));
+		$result->ratingDiff = ($result->result - $result->expectedResult) * $result->marginOfVictory;
+		if ($result->type === PlayerType::TEAMMATE) {
+			$result->ratingDiff *= $this::TEAMMATE_WEIGHT;
+		}
 	}
 
 	/**
@@ -405,6 +406,9 @@ class RankCalculator
 	 *
 	 * @return void
 	 * @throws Exception
+	 * @throws Throwable
+	 * @throws ValidationException
+	 * @throws GameModeNotFoundException
 	 */
 	public function recalculateRatingForGame(Game $game): void {
 		if (!$game->getMode()?->rankable) {
@@ -433,20 +437,15 @@ class RankCalculator
 			if (!isset($teams[$team->id])) {
 				$teams[$team->id] = [];
 			}
-			$teams[$team->id][$player->id] = [
-				'name'    => $player->name,
-				'id_user' => $player->user?->id,
-				'id_team' => $team->id,
-				'skill'   => $player->skill,
-			];
+			$teams[$team->id][$player->id] = RankingPlayer::fromGamePlayer($player);
 
 			try {
-				if (!isset($teams[$team->id][$player->id]['id_user']) && $game->getGroup() !== null) {
-					$teams[$team->id][$player->id]['rank'] = $game->getGroup()
-					                                              ->getPlayerByName($player->name)
-					                                              ?->getSkill();
+				if (!isset($teams[$team->id][$player->id]->id_user) && $game->getGroup() !== null) {
+					$teams[$team->id][$player->id]->rank = $game->getGroup()
+					                                            ->getPlayerByName($player->name)
+					                                            ?->getSkill();
 				}
-			} catch (ModelNotFoundException|ValidationException|Throwable) {
+			} catch (Throwable) {
 			}
 
 			if (isset($player->user)) {
@@ -455,13 +454,14 @@ class RankCalculator
 		}
 
 		// Convert all player's skills to rank
-		foreach ($teams as $id => $team) {
-			$this->convertPlayersSkillToRank($teams[$id], $date);
+		foreach ($teams as $team) {
+			$this->convertPlayersSkillToRank($team, $date);
 		}
 
 		foreach ($users as $player) {
 			$enemies = [];
-			if ($game->getMode()?->isSolo()) {
+			/** @noinspection NullPointerExceptionInspection */
+			if ($game->getMode()->isSolo()) {
 				$teammates = [$teams[$player->team->id][$player->id]];
 				foreach ($teams[$player->team->id] as $id => $playerInfo) {
 					if ($id === $player->id) {
@@ -486,7 +486,6 @@ class RankCalculator
 				$player->skill,
 				$minSkill,
 				$maxSkill,
-				$player->user->stats->rank,
 				$teammates,
 				$enemies,
 				$game->code,
@@ -540,18 +539,17 @@ class RankCalculator
 
 		$rating = DB::select('player_game_rating', '*')
 		            ->where('[code] = %s AND [id_user] = %i', $game->code, $user->id)
-		            ->fetch(cache: false);
+		            ->fetchDto(PlayerGameRating::class, cache: false);
 		if (isset($rating)) {
 			// Reset already calculated rating
-			$user->stats->rank -= $rating->difference;
+			$user->stats->rank = (int)round($user->stats->rank - $rating->difference);
 			DB::delete('player_game_rating', ['[code] = %s AND [id_user] = %i', $game->code, $user->id]);
 		}
 
-		$currentRank = $user->stats->rank;
 
-		/** @var array{id_user:int|null,skill:int,id_team:int}[] $teammates */
+		/** @var RankingPlayer[] $teammates */
 		$teammates = [];
-		/** @var array{id_user:int|null,skill:int,id_team:int}[] $enemies */
+		/** @var RankingPlayer[] $enemies */
 		$enemies = [];
 
 		$maxSkill = 0;
@@ -565,17 +563,12 @@ class RankCalculator
 				$minSkill = $skill;
 			}
 
-			$playerData = [
-				'name'    => $gamePlayer->name,
-				'id_user' => $gamePlayer->user?->id,
-				'skill'   => $gamePlayer->skill,
-				'id_team' => $gamePlayer->team->id,
-			];
+			$playerData = RankingPlayer::fromGamePlayer($gamePlayer);
 
-			if (!isset($playerData['id_user']) && $game->getGroup() !== null) {
-				$playerData['rank'] = $game->getGroup()->getPlayerByName($playerData['name'])?->getSkill();
+			if (!isset($playerData->id_user) && $game->getGroup() !== null) {
+				$playerData->rank = $game->getGroup()->getPlayerByName($playerData->name)?->getSkill();
 			}
-			if ($game->getMode()?->isSolo() || $gamePlayer->team->id !== $player->team->id) {
+			if ($gamePlayer->team->id !== $player->team->id || $game->getMode()?->isSolo()) {
 				$enemies[] = $playerData;
 			}
 			else {
@@ -588,7 +581,6 @@ class RankCalculator
 			$player->getSkill(),
 			$minSkill,
 			$maxSkill,
-			$currentRank,
 			$teammates,
 			$enemies,
 			$game->code,

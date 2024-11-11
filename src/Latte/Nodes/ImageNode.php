@@ -40,11 +40,11 @@ class ImageNode extends StatementNode
 		$node->modifier->escape = false;
 
 		$args = $node->args->toArguments();
-		$node->path = $args[0]?->value ?? new StringNode('');
-		$node->width = $args[1]?->value ?? new NullNode();
-		$node->height = $args[2]?->value ?? new NullNode();
-		$node->classes = $args[3]?->value ?? new ArrayNode();
-		$node->attributes = $args[4]?->value ?? new ArrayNode();
+		$node->path = isset($args[0]) ? $args[0]->value : new StringNode('');
+		$node->width = isset($args[1]) ? $args[1]->value : new NullNode();
+		$node->height = isset($args[2]) ? $args[2]->value : new NullNode();
+		$node->classes = isset($args[3]) ? $args[3]->value : new ArrayNode();
+		$node->attributes = isset($args[4]) ? $args[4]->value : new ArrayNode();
 
 		try {
 			$image = NodeHelpers::toValue($node->path, constants: true);
@@ -141,14 +141,14 @@ class ImageNode extends StatementNode
 		if (isset($this->image) && !($this->height instanceof Node) && !($this->width instanceof Node)) {
 			$urls = $this->image->getResized($this->width, $this->height);
 			return $context->format(
-				<<<PHP
+				<<<XXX
 					$ʟ_tmp = %node;
 					$ʟ_attrs = %node;
 					if (is_string($ʟ_tmp)) {
 						$ʟ_tmp = [$ʟ_tmp];
 					}
 					echo '<picture class="'.($ʟ_tmp ? ' '.LR\Filters::escapeHtmlAttr(implode(" ", array_unique($ʟ_tmp))) : '').'"><source srcset="'.LR\Filters::escapeHtmlAttr(%dump).'" type="image/webp"/><img src="'.LR\Filters::escapeHtmlAttr(%dump).'" '.%raw::attrs(isset($ʟ_attrs[0]) && is_array($ʟ_attrs[0]) ? $ʟ_attrs[0] : $ʟ_attrs, %dump).' /></picture>'; %line
-					PHP,
+					XXX,
 				$this->classes,
 				$this->attributes,
 				$urls['webp'],
@@ -199,9 +199,7 @@ class ImageNode extends StatementNode
 	}
 
 	public function &getIterator(): \Generator {
-		if ($this->path instanceof Node) {
-			yield $this->path;
-		}
+		yield $this->path;
 		if ($this->width instanceof Node) {
 			yield $this->width;
 		}

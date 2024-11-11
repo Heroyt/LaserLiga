@@ -16,6 +16,7 @@
 namespace App\Core;
 
 use App\Models\Auth\User;
+use App\Models\DataObjects\User\UserTokenRow;
 use Dibi\DriverException;
 use Dibi\Exception;
 use JsonException;
@@ -79,7 +80,6 @@ class Loader
 		self::initDB();
 		Timer::stop('core.init.db');
 
-
 		if (isset($_COOKIE['rememberme'])) {
 			/** @var Auth $auth */
 			$auth = App::getService('auth');
@@ -87,10 +87,11 @@ class Loader
 				$ex = explode(':', $_COOKIE['rememberme']);
 				if (count($ex) === 2) {
 					[$token, $validator] = $ex;
-					$row = DB::select('user_tokens', '*')->where('[token] = %s AND [expire] > NOW()', $token)->fetch(cache: false);
+					$row = DB::select('user_tokens', '*')->where('[token] = %s AND [expire] > NOW()', $token)->fetchDto(UserTokenRow::class, cache: false);
 					if (isset($row)) {
-						$password = App::getContainer()->getByType(Passwords::class);
-						if (isset($password) && $password->verify($validator, $row->validator)) {
+						$password = App::getService('passwords');
+						assert($password instanceof Passwords);
+						if ($password->verify($validator, $row->validator)) {
 							$auth->setLoggedIn(User::get($row->id_user));
 						}
 					}

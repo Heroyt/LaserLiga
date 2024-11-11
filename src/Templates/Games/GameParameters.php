@@ -17,6 +17,7 @@ class GameParameters extends TemplateParameters
 	public ?User $user = null;
 	public Game $game;
 	public string $gameDescription = '';
+	/** @var array<string,mixed> */
 	public array $schema = [];
 	public string $prevGame = '';
 	public string $nextGame = '';

@@ -2,8 +2,6 @@
 
 namespace App\Controllers\Api;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Exceptions\FileException;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
@@ -14,6 +12,7 @@ use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\DataObjects\Game\MinimalGameRow;
+use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Services\Achievements\AchievementChecker;
 use App\Services\Achievements\AchievementProvider;
 use App\Services\GenderService;
@@ -27,7 +26,9 @@ use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Dto\SuccessResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
@@ -159,12 +160,12 @@ class DevController extends ApiController
 		/** @var AchievementProvider $achievementProvider */
 		$achievementProvider = App::getServiceByType(AchievementProvider::class);
 
-		/** @var string $code */
+		/** @var string|null $code */
 		$code = $request->getGet('code');
 		if (isset($code)) {
 			$game = GameFactory::getByCode($code);
 			if (!isset($game)) {
-				return $this->respond(new ErrorDto('Game not found', ErrorType::NOT_FOUND), 404);
+				return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND), 404);
 			}
 			$achievements = $achievementChecker->checkGame($game);
 			if (isset($_GET['save'])) {
@@ -173,6 +174,7 @@ class DevController extends ApiController
 			return $this->respond($achievements);
 		}
 
+		/** @var null|numeric-string|string $user */
 		$user = $request->getGet('user');
 		if (isset($user)) {
 			if (is_numeric($user)) {
@@ -183,11 +185,11 @@ class DevController extends ApiController
 			}
 
 			if (!isset($player)) {
-				return $this->respond(new ErrorDto('Player not found', ErrorType::NOT_FOUND), 404);
+				return $this->respond(new ErrorResponse('Player not found', ErrorType::NOT_FOUND), 404);
 			}
 
 			$achievements = [];
-			$result = $player->queryGames()->orderBy('start')->execute();
+			$result = $player->queryGames()->orderBy('start')->fetchIteratorDto(PlayerGamesGame::class);
 			foreach ($result as $row) {
 				$game = GameFactory::getByCode($row->code);
 				if (!isset($game)) {
@@ -252,7 +254,7 @@ class DevController extends ApiController
 			return $this->respond(['games' => $countGames, 'achievements' => $countAchievements]);
 		}
 
-		return $this->respond(new ErrorDto('Nothing to process', ErrorType::VALIDATION), 400);
+		return $this->respond(new ErrorResponse('Nothing to process', ErrorType::VALIDATION), 400);
 	}
 
 	#[OA\Get(

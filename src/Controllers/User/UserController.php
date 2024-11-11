@@ -2,8 +2,6 @@
 
 namespace App\Controllers\User;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Auth\User;
@@ -18,6 +16,8 @@ use DateTimeImmutable;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Requests\Response;
 use Lsr\Interfaces\RequestInterface;
@@ -59,7 +59,7 @@ class UserController extends AbstractUserController
 			$user->createOrGetPlayer(),
 			new DateTimeImmutable()
 		);
-		$this->params->lastGames = $user->player?->queryGames()
+		$this->params->lastGames = $user->player->queryGames()
 		                                        ->limit(10)
 		                                        ->orderBy('start')
 		                                        ->desc()
@@ -68,7 +68,7 @@ class UserController extends AbstractUserController
 			                                        'user/' . $user->player->getCode() . '/games',
 			                                        'user/' . $user->player->getCode() . '/lastGames'
 		                                        )
-		                                        ->fetchAll() ?? [];
+		                                        ->fetchAllDto(PlayerGamesGame::class);
 
 		$this->params->breadcrumbs = [
 			'Laser Liga' => [],
@@ -151,7 +151,7 @@ class UserController extends AbstractUserController
 		$currentUser = $this->params->loggedInUser;
 		if (!isset($currentUser) || $user->id === $currentUser->id) {
 			return $this->respond(
-				new ErrorDto('Must be logged in and not the same as the compared user.', ErrorType::ACCESS),
+				new ErrorResponse('Must be logged in and not the same as the compared user.', ErrorType::ACCESS),
 				400
 			);
 		}
@@ -168,7 +168,7 @@ class UserController extends AbstractUserController
 		$user = $this->getUser($code);
 		$player = $user->player;
 		if ($player === null) {
-			return $this->respond(new ErrorDto('User is not a valid player', ErrorType::VALIDATION), 404);
+			return $this->respond(new ErrorResponse('User is not a valid player', ErrorType::VALIDATION), 404);
 		}
 
 		$trends = [

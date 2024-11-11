@@ -4,10 +4,9 @@ namespace App\Cli\Commands\Translation;
 
 use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
-use App\Core\App;
 use Gettext\Generator\PoGenerator;
 use Gettext\Loader\PoLoader;
-use Gettext\Translations;
+use Lsr\Core\App;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -25,9 +24,8 @@ class RemoveCommentsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $poLoader = new PoLoader();
         $poGenerator = new PoGenerator();
-        /** @var Translations[] $translations */
         /** @var string[] $languages */
-        $languages = App::getSupportedLanguages();
+        $languages = App::getInstance()->getSupportedLanguages();
 
         $template = null;
 

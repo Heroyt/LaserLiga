@@ -2,21 +2,23 @@
 
 namespace App\Controllers;
 
+use App\Models\Auth\User;
 use App\Models\Push\Notification;
 use App\Models\Push\Subscription;
 use App\Services\PushService;
-use JsonException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Nette\Utils\Validators;
 use Psr\Http\Message\ResponseInterface;
 
 class PushController extends Controller
 {
 
+	/**
+	 * @param Auth<User>        $auth
+	 */
 	public function __construct(
 		private readonly Auth        $auth,
 		private readonly PushService $pushService,
@@ -25,7 +27,8 @@ class PushController extends Controller
 	}
 
 	public function isSubscribed(Request $request): ResponseInterface {
-		$endpoint = (string)$request->getGet('endpoint', '');
+		/** @var string $endpoint */
+		$endpoint = $request->getGet('endpoint', '');
 		if (empty($endpoint) || !Validators::isUri($endpoint)) {
 			return $this->respond(['error' => 'Invalid endpoint'], 400);
 		}
@@ -42,7 +45,8 @@ class PushController extends Controller
 	 * @throws ValidationException
 	 */
 	public function subscribe(Request $request): ResponseInterface {
-		$endpoint = (string)$request->getPost('endpoint', '');
+		/** @var string $endpoint */
+		$endpoint = $request->getPost('endpoint', '');
 		/** @var array{p256dh?: string, auth?: string} $keys */
 		$keys = $request->getPost('keys', []);
 		$p256dh = $keys['p256dh'] ?? '';
@@ -71,7 +75,8 @@ class PushController extends Controller
 	}
 
 	public function updateUser(Request $request): ResponseInterface {
-		$endpoint = (string)$request->getPost('endpoint', '');
+		/** @var string $endpoint */
+		$endpoint = $request->getPost('endpoint', '');
 
 		if (empty($endpoint) || !Validators::isUri($endpoint)) {
 			return $this->respond(['error' => 'Invalid endpoint'], 400);
@@ -92,7 +97,8 @@ class PushController extends Controller
 	}
 
 	public function unsubscribe(Request $request): ResponseInterface {
-		$endpoint = (string)$request->getPost('endpoint', '');
+		/** @var string $endpoint */
+		$endpoint = $request->getPost('endpoint', '');
 		if (empty($endpoint) || !Validators::isUri($endpoint)) {
 			return $this->respond(['error' => 'Invalid endpoint'], 400);
 		}

@@ -60,6 +60,9 @@ class AchievementProvider
 		return $achievements;
 	}
 
+	/**
+	 * @return PlayerAchievement[]
+	 */
 	public function getForGame(Game $game): array {
 		$achievements = [];
 		$rows = DB::select('player_achievements', '*')
@@ -197,6 +200,7 @@ class AchievementProvider
 	 * @return int[]
 	 */
 	public function getClaimedCounts(): array {
+		/** @phpstan-ignore-next-line  */
 		$this->counts ??= DB::select('player_achievements', 'id_achievement, COUNT(*) as [count]')
 		                    ->groupBy('id_achievement')
 		                    ->cacheTags('user/achievements', 'user/achievements/count')

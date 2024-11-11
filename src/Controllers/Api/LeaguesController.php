@@ -2,8 +2,6 @@
 
 namespace App\Controllers\Api;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
 use App\Models\Arena;
@@ -14,6 +12,8 @@ use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -71,7 +71,7 @@ class LeaguesController extends ApiController
 	),)]
 	public function get(League $league): ResponseInterface {
 		if ($league->arena->id !== $this->arena->id) {
-			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorResponse('Access denied', ErrorType::ACCESS), 403);
 		}
 
 		return $this->respond($league);
@@ -97,7 +97,7 @@ class LeaguesController extends ApiController
 	),)]
 	public function getTournaments(League $league): ResponseInterface {
 		if ($league->arena->id !== $this->arena->id) {
-			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorResponse('Access denied', ErrorType::ACCESS), 403);
 		}
 
 		return $this->respond($league->getTournaments());
@@ -269,9 +269,7 @@ class LeaguesController extends ApiController
 						foreach ($team->getPlayers() as $player) {
 							$teamIds[$leagueTeam->id][$team->id][$player->id] = $player->leaguePlayer?->id;
 							$playerCount++;
-							$key = ($player->user?->id ?? 0) . '-' . Strings::toAscii(
-									Strings::lower($player->nickname ?? '')
-								);
+							$key = ($player->user->id ?? 0) . '-' . Strings::toAscii(Strings::lower($player->nickname ?? ''));
 
 							if (!isset($player->leaguePlayer)) {
 								$missingPlayers[$leagueTeam->id . '-' . $key] = $player;
@@ -286,7 +284,7 @@ class LeaguesController extends ApiController
 							$player->leaguePlayer = $playerMap[$leagueTeam->id][$key];
 							if (!$player->save()) {
 								return $this->respond(
-									new ErrorDto(
+									new ErrorResponse(
 										        'Cannot save player',
 										        ErrorType::DATABASE,
 										        'Error while saving player into the database',
@@ -300,16 +298,14 @@ class LeaguesController extends ApiController
 
 					foreach ($missingPlayers as $player) {
 						$missingCount++;
-						$key = ($player->user?->id ?? 0) . '-' . Strings::toAscii(
-								Strings::lower($player->nickname ?? '')
-							);
+						$key = ($player->user->id ?? 0) . '-' . Strings::toAscii(Strings::lower($player->nickname ?? ''));
 
 						if (isset($playerMap[$leagueTeam->id][$key])) {
 							$foundMapPlayerCount++;
 							$player->leaguePlayer = $playerMap[$leagueTeam->id][$key];
 							if (!$player->save()) {
 								return $this->respond(
-									new ErrorDto(
+									new ErrorResponse(
 										        'Cannot save player',
 										        ErrorType::DATABASE,
 										        'Error while saving player into the database',
@@ -345,7 +341,7 @@ class LeaguesController extends ApiController
 							$player->leaguePlayer = $foundPlayer;
 							if (!$player->save()) {
 								return $this->respond(
-									new ErrorDto(
+									new ErrorResponse(
 										        'Cannot save player',
 										        ErrorType::DATABASE,
 										        'Error while saving player into the database',
@@ -377,7 +373,7 @@ class LeaguesController extends ApiController
 						$playerMap[$leagueTeam->id][$key] = $player->leaguePlayer;
 						if (!$player->save()) {
 							return $this->respond(
-								new ErrorDto(
+								new ErrorResponse(
 									        'Cannot save player',
 									        ErrorType::DATABASE,
 									        'Error while saving player into the database',
@@ -392,7 +388,7 @@ class LeaguesController extends ApiController
 			DB::getConnection()->commit();
 		} catch (Throwable $e) {
 			DB::getConnection()->rollback();
-			return $this->respond(new ErrorDto('Database error', ErrorType::DATABASE, exception: $e), 500);
+			return $this->respond(new ErrorResponse('Database error', ErrorType::DATABASE, exception: $e), 500);
 		}
 		return $this->respond(
 			[

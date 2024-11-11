@@ -9,6 +9,7 @@ use App\GameModels\Game\Game;
 use App\Helpers\Gender;
 use App\Models\Achievements\Title;
 use App\Models\Arena;
+use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Models\DataObjects\Player\PlayerStats;
 use App\Services\Achievements\TitleProvider;
 use App\Services\Avatar\AvatarService;
@@ -144,7 +145,7 @@ class Player extends Model
 	}
 
 	public function getFirstGame(): ?Game {
-		$row = $this->queryGames()->orderBy('start')->limit(1)->fetch();
+		$row = $this->queryGames()->orderBy('start')->limit(1)->fetchDto(PlayerGamesGame::class);
 		if (!isset($row)) {
 			return null;
 		}
@@ -152,7 +153,7 @@ class Player extends Model
 	}
 
 	public function getLastGame(): ?Game {
-		$row = $this->queryGames()->orderBy('start')->desc()->limit(1)->fetch();
+		$row = $this->queryGames()->orderBy('start')->desc()->limit(1)->fetchDto(PlayerGamesGame::class);
 		if (!isset($row)) {
 			return null;
 		}

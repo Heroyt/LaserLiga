@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace App\Controllers\Games;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
@@ -13,6 +11,8 @@ use App\Models\DataObjects\Game\LeaderboardPlayer;
 use App\Templates\Games\GameTodayLeaderboardParameters;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Helpers\Tools\Strings;
 use Psr\Http\Message\ResponseInterface;
@@ -33,13 +33,13 @@ class GameTodayLeaderboardController extends Controller
 
 		// Validation
 		if (empty($system)) {
-			return $this->respond(new ErrorDto('Missing required parameter - system', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Missing required parameter - system', ErrorType::VALIDATION), 400);
 		}
 		if (!in_array($system, GameFactory::getSupportedSystems(), true)) {
-			return $this->respond(new ErrorDto('Unknown system', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Unknown system', ErrorType::VALIDATION), 400);
 		}
 		if (($timestamp = strtotime($date)) === false) {
-			return $this->respond(new ErrorDto('invalid date', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('invalid date', ErrorType::VALIDATION), 400);
 		}
 
 		/** @var class-string<Game> $gameClass */

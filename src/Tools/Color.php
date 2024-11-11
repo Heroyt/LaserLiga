@@ -14,6 +14,7 @@ class Color
 	 * @return string
 	 */
 	public static function getGamesColor(array $games) : string {
+		/** @var array<string,array<int, string>> $styles */
 		$styles = [];
 		foreach ($games as $game) {
 			if (isset($styles[$game::SYSTEM])) {

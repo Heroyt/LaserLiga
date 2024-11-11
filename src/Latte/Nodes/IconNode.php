@@ -10,6 +10,7 @@ use Latte\Compiler\NodeHelpers;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\Php\ModifierNode;
+use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\Nodes\TextNode;
 use Latte\Compiler\PrintContext;
@@ -38,7 +39,7 @@ class IconNode extends StatementNode
         $node->modifier->escape = false;
 
         $args = $node->args->toArguments();
-        $node->style = $args['style']?->value ?? $args[0]?->value ?? 'solid';
+        $node->style = isset($args[0]) ? $args[0]->value : new StringNode('solid');
 
         try {
             $style = NodeHelpers::toValue($node->style, constants: true);
@@ -56,9 +57,9 @@ class IconNode extends StatementNode
 
     private static function createNode(IconNode $node): Node {
         $args = $node->args->toArguments();
-        $node->icon = $args['name']?->value ?? $args[0]?->value ?? '';
-        $node->classes = $args['classes']?->value ?? $args[1]?->value ?? new ArrayNode();
-		$node->attributes = $args['attributes']?->value ?? $args[2]?->value ?? new ArrayNode();
+        $node->icon = isset($args[0]) ? $args[0]->value : new StringNode('');
+        $node->classes = isset($args[1]) ? $args[1]->value : new ArrayNode();
+		$node->attributes = isset($args[2]) ? $args[2]->value : new ArrayNode();
 
         $icon = null;
         try {
@@ -70,6 +71,7 @@ class IconNode extends StatementNode
         $node->addDynamic = !($node->style instanceof IconType) || !isset($icon) || !is_string($icon);
 
         if (!$node->addDynamic) {
+			assert($node->style instanceof IconType);
             /** @var FontAwesomeManager $manager */
             $manager = App::getService('fontawesome');
             $manager->addIcon($node->style, $icon);
@@ -133,7 +135,7 @@ class IconNode extends StatementNode
             $this->position,
         );
         if ($this->addDynamic) {
-            return $icon . "\App\Core\App::getService('fontawesome')->addIcon($ʟ_style,$ʟ_icon);\n";
+            return $icon . '\App\Core\App::getService(\'fontawesome\')->addIcon($ʟ_style,$ʟ_icon);'."\n";
         }
 
         return $icon;

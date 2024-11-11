@@ -44,6 +44,7 @@ class TournamentPoints implements InsertExtendInterface
 			$pointsOther = json_decode($row->points_other, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException) {
 		}
+		/** @phpstan-ignore-next-line  */
 		return new static(
 			$row->points_win,
 			$row->points_draw,

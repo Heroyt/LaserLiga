@@ -16,8 +16,10 @@ $nav = [
 	],
 ];
 
+$auth = App::getService('auth');
+assert($auth instanceof Auth, 'Invalid service type from DI');
 /** @var User $user */
-$user = App::getServiceByType(Auth::class)->getLoggedIn();
+$user = $auth->getLoggedIn();
 
 if (!empty($user->player?->getTournaments() ?? [])) {
 	$nav[] = [

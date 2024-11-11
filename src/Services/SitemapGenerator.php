@@ -5,6 +5,7 @@ namespace App\Services;
 use App\GameModels\Factory\GameFactory;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
+use App\Models\DataObjects\Game\MinimalGameRow;
 use App\Models\Events\Event;
 use App\Models\GameGroup;
 use App\Models\Tournament\League\League;
@@ -21,8 +22,8 @@ use SimpleXMLElement;
 class SitemapGenerator
 {
 
-	public const SITEMAP_FILE = ROOT . 'sitemap.xml';
-	public const IGNORE_PATHS = [
+	public const string SITEMAP_FILE      = ROOT . 'sitemap.xml';
+	public const array  IGNORE_PATHS      = [
 		'logout',
 		'admin',
 		'api',
@@ -34,7 +35,7 @@ class SitemapGenerator
 		'mailtest',
 		'dashboard',
 	];
-	public const USER_IGNORE_PATHS = ['stats', 'rank', 'img', 'compare', 'avatar', 'title'];
+	public const array  USER_IGNORE_PATHS = ['stats', 'rank', 'img', 'compare', 'avatar', 'title'];
 
 	/** @var string[] */
 	private static array $lastGames = [];
@@ -155,7 +156,8 @@ class SitemapGenerator
 						if (isset($path[2]) && $path[2] === '{arenaId}') {
 							$arenas = Arena::getAll();
 							foreach ($arenas as $arena) {
-								$path[2] = $arena->id;
+								assert($arena->id !== null);
+								$path[2] = (string) $arena->id;
 								$elem = self::findOrCreateUrl(App::getLink($path), $xml);
 								self::updateUrl($elem);
 							}
@@ -180,16 +182,23 @@ class SitemapGenerator
 		}
 
 		$content = $xml->asXML();
+		assert($content !== false);
 		file_put_contents(self::SITEMAP_FILE, $content);
 		return $content;
 	}
 
+	/**
+	 * @param array<RouteInterface|RouteInterface[]> $routes
+	 * @param RouteInterface[]                       $out
+	 *
+	 * @return void
+	 */
 	private static function getRoutes(array $routes, array &$out): void {
 		foreach ($routes as $value) {
 			if (is_array($value)) {
 				self::getRoutes($value, $out);
 			}
-			else if ($value instanceof RouteInterface) {
+			else {
 				$out[] = $value;
 			}
 		}
@@ -197,7 +206,7 @@ class SitemapGenerator
 
 	/**
 	 * @param SimpleXMLElement $parent
-	 * @param array $path
+	 * @param string[]            $path
 	 *
 	 * @return void
 	 * @throws ValidationException
@@ -279,7 +288,11 @@ class SitemapGenerator
 	 */
 	private static function getLastGames(): array {
 		if (empty(self::$lastGames)) {
-			$rows = GameFactory::queryGames()->orderBy('start')->desc()->limit(200)->fetchAll();
+			$rows = GameFactory::queryGames()
+			                   ->orderBy('start')
+			                   ->desc()
+			                   ->limit(200)
+			                   ->fetchIteratorDto(MinimalGameRow::class);
 			self::$lastGames = [];
 			foreach ($rows as $row) {
 				self::$lastGames[] = $row->code;
@@ -299,7 +312,8 @@ class SitemapGenerator
 		self::$arenas ??= Arena::getAll();
 
 		foreach (self::$arenas as $arena) {
-			$path[1] = $arena->id;
+			assert($arena->id !== null);
+			$path[1] = (string) $arena->id;
 			$url = App::getLink($path);
 			$element = self::findOrCreateUrl($url, $parent);
 			self::updateUrl($element, '0.8', 'daily');
@@ -317,7 +331,8 @@ class SitemapGenerator
 		self::$tournaments ??= Tournament::getAll();
 
 		foreach (self::$tournaments as $tournament) {
-			$path[1] = $tournament->id;
+			assert($tournament->id !== null);
+			$path[1] = (string) $tournament->id;
 			$url = App::getLink($path);
 			$element = self::findOrCreateUrl($url, $parent);
 			self::updateUrl($element, '0.8', 'weekly');
@@ -335,7 +350,8 @@ class SitemapGenerator
 		self::$events ??= Event::getAll();
 
 		foreach (self::$events as $event) {
-			$path[1] = $event->id;
+			assert($event->id !== null);
+			$path[1] = (string) $event->id;
 			$url = App::getLink($path);
 			$element = self::findOrCreateUrl($url, $parent);
 			self::updateUrl($element, '0.8', 'weekly');
@@ -353,7 +369,8 @@ class SitemapGenerator
 		self::$leagues ??= League::getAll();
 
 		foreach (self::$leagues as $league) {
-			$path[1] = $league->id;
+			assert($league->id !== null);
+			$path[1] = (string) $league->id;
 			$url = App::getLink($path);
 			$element = self::findOrCreateUrl($url, $parent);
 			self::updateUrl($element, '0.8');
@@ -361,7 +378,8 @@ class SitemapGenerator
 			$teams = LeagueTeam::query()->where('id_league = %i', $league->id)->get();
 			$path[2] = 'team';
 			foreach ($teams as $team) {
-				$path[3] = $team->id;
+				assert($team->id !== null);
+				$path[3] = (string) $team->id;
 				$url = App::getLink($path);
 				$element = self::findOrCreateUrl($url, $parent);
 				self::updateUrl($element, '0.8');

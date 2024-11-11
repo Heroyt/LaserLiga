@@ -45,6 +45,7 @@ class PlayerStats implements InsertExtendInterface
 	}
 
 	public static function parseRow(Row $row) : ?static {
+		/** @phpstan-ignore-next-line  */
 		return new PlayerStats(
 			(int) ($row->games_played ?? 0),
 			(int) ($row->arenas_played ?? 0),

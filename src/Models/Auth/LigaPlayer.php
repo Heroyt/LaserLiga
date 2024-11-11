@@ -111,6 +111,9 @@ class LigaPlayer extends Player
 		$cache->clean([CacheParent::Tags => ['user/' . $this->id . '/games', 'user/' . $this->id . '/stats']]);
 	}
 
+	/**
+	 * @return array<string, int>
+	 */
 	public function getTrophyCount(bool $rankableOnly = false, ?\DateTimeInterface $until = null): array {
 		$query = DB::select('player_trophies_count', '[name], COUNT([name]) as [count]')
 							 ->where('[id_user] = %i', $this->id)

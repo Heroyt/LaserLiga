@@ -2,8 +2,6 @@
 
 namespace App\Controllers\Api;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
 use App\Models\Arena;
@@ -12,14 +10,16 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\Player;
 use App\Models\Auth\UserConnection;
 use Dibi\Row;
+use InvalidArgumentException;
 use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
-use InvalidArgumentException;
 
 class Players extends ApiController
 {
@@ -145,7 +145,9 @@ class Players extends ApiController
 		}
 
 		// Filter by connected accounts
-		$connectionType = ConnectionType::tryFrom((string)$request->getGet('connectionType', ''));
+		/** @var string $getConnectionType */
+		$getConnectionType = $request->getGet('connectionType', '');
+		$connectionType = ConnectionType::tryFrom($getConnectionType);
 		$connectionIdentif = $request->getGet('identifier', '');
 		if (isset($connectionType) && !empty($connectionIdentif)) {
 			$query->join(UserConnection::TABLE, 'conn')
@@ -217,12 +219,12 @@ class Players extends ApiController
 			$player = LigaPlayer::getByCode($code);
 		} catch (InvalidArgumentException $e) {
 			return $this->respond(
-				new ErrorDto('Invalid Code', ErrorType::VALIDATION, exception: $e, values: ['code' => $code]),
+				new ErrorResponse('Invalid Code', ErrorType::VALIDATION, exception: $e, values: ['code' => $code]),
 				400
 			);
 		}
 		if (!isset($player)) {
-			return $this->respond(new ErrorDto('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
+			return $this->respond(new ErrorResponse('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
 			                      404);
 		}
 		return $this->respond($player);
@@ -267,12 +269,12 @@ class Players extends ApiController
 			$player = LigaPlayer::getByCode($code);
 		} catch (InvalidArgumentException $e) {
 			return $this->respond(
-				new ErrorDto('Invalid Code format', ErrorType::VALIDATION, exception: $e, values: ['code' => $code]),
+				new ErrorResponse('Invalid Code format', ErrorType::VALIDATION, exception: $e, values: ['code' => $code]),
 				400
 			);
 		}
 		if (!isset($player)) {
-			return $this->respond(new ErrorDto('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
+			return $this->respond(new ErrorResponse('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
 			                      404);
 		}
 		return $this->respond($player->getTitle());

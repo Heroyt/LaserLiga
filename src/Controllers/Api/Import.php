@@ -129,7 +129,9 @@ class Import extends ApiController
 
 		$game->arena = $this->arena;
 
-		foreach ($request->getGet('players', []) as $vest => $playerMeta) {
+		/** @var array<int,array{name?:string,user?:string}> $playersData */
+		$playersData = $request->getGet('players', []);
+		foreach ($playersData as $vest => $playerMeta) {
 			$player = $game->getVestPlayer($vest);
 			if (!isset($player)) {
 				continue;
@@ -143,8 +145,9 @@ class Import extends ApiController
 			}
 		}
 
+		/** @var numeric|null $groupId */
 		$groupId = $request->getGet('group');
-		if (!empty($groupId) && ($group = GameGroup::get($groupId)) !== null) {
+		if (!empty($groupId) && ($group = GameGroup::get((int) $groupId)) !== null) {
 			$game->group = $group;
 		}
 
@@ -172,9 +175,9 @@ class Import extends ApiController
 				$ranksBefore = $this->rankOrderService->getTodayRanks();
 				$now = new DateTimeImmutable();
 				foreach ($users as $player) {
-					$player?->user->clearCache();
-					$this->playerUserService->updatePlayerStats($player?->user->user);
-					$this->pushService->sendNewGameNotification($player, $player?->user);
+					$player->user->clearCache();
+					$this->playerUserService->updatePlayerStats($player->user->user);
+					$this->pushService->sendNewGameNotification($player, $player->user);
 					$this->achievementChecker->checkPlayerGame($game, $player);
 				}
 

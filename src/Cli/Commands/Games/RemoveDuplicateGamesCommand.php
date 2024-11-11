@@ -6,14 +6,12 @@ namespace App\Cli\Commands\Games;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Evo5\Game;
-use App\Models\DataObjects\Game\MinimalGameRow;
+use App\Models\DataObjects\Game\DuplicateGameCheckRow;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use Lsr\Core\DB;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class RemoveDuplicateGamesCommand extends Command
@@ -27,6 +25,7 @@ class RemoveDuplicateGamesCommand extends Command
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
+		/** @var array<string,array<int,DuplicateGameCheckRow>> $games */
 		$games = DB::select(Game::TABLE, 'code, id_game, id_mode, id_music, id_group')
 			->where(
 				'code IN %sql',
@@ -35,7 +34,7 @@ class RemoveDuplicateGamesCommand extends Command
 				->having('count(*) > 1')
 				->fluent
 			)
-			->fetchAssoc('code|id_game');
+			->fetchAssocDto(DuplicateGameCheckRow::class,'code|id_game');
 
 		$idsToRemove = [];
 		foreach ($games as $code => $duplicates) {

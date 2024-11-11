@@ -107,10 +107,22 @@ class CleanCacheCommand extends Command
         }
 
         if ($all || $di) {
+			$filesDi = glob(TMP_DIR . 'di/*');
+			if ($filesDi === false) {
+				$filesDi = [];
+			}
+			$filesPhp = glob(TMP_DIR . '*.php');
+			if ($filesPhp === false) {
+				$filesPhp = [];
+			}
+			$filesLock = glob(TMP_DIR . '*.php.lock');
+			if ($filesLock === false) {
+				$filesLock = [];
+			}
             $files = array_merge(
-                glob(TMP_DIR . 'di/*'),
-                glob(TMP_DIR . '*.php'),
-                glob(TMP_DIR . '*.php.lock'),
+                $filesDi,
+				$filesPhp,
+				$filesLock,
             );
             foreach ($files as $file) {
                 unlink($file);

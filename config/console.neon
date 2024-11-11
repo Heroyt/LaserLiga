@@ -4,8 +4,6 @@ orisai.console:
 	name: 'LaserLiga'
 services:
 	# Commands
-	command.theme.generate: App\Cli\Commands\Theme\GenerateThemeCommand
-
 	command.cache.clean: App\Cli\Commands\Cache\CleanCacheCommand
 
 	command.games.skills: App\Cli\Commands\Games\RecalculateSkillsGameCommand

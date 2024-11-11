@@ -6,6 +6,10 @@ use App\Exceptions\FileException;
 use GdImage;
 use InvalidArgumentException;
 use RuntimeException;
+use function imagecreatefromgif;
+use function imagecreatefromjpeg;
+use function imagecreatefrompng;
+use function imagecreatefromwebp;
 
 class ImageService
 {
@@ -48,31 +52,10 @@ class ImageService
 
 			$resized = $this->resize($image, $size);
 
-			if (!$resized) {
-				continue;
-			}
-
 			$resizedFileName = $optimizedDir . '/' . $name . 'x' . $size . '.' . $type;
 			$this->save($resized, $resizedFileName);
 			$this->save($resized, $optimizedDir . '/' . $name . 'x' . $size . '.webp');
 		}
-	}
-
-	/**
-	 * @param GdImage $image
-	 * @param string  $path
-	 *
-	 * @return bool
-	 */
-	public function save(GdImage $image, string $path): bool {
-		$type = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-		return match ($type) {
-			'jpg', 'jpeg' => imagejpeg($image, $path),
-			'png'         => imagepng($image, $path),
-			'gif'         => imagegif($image, $path),
-			'webp' => imagewebp($image, $path),
-			default => false,
-		};
 	}
 
 	/**
@@ -96,10 +79,10 @@ class ImageService
 		}
 
 		$image = match ($type) {
-			'jpg', 'jpeg' => \imagecreatefromjpeg($file),
-			'png'         => \imagecreatefrompng($file),
-			'gif'         => \imagecreatefromgif($file),
-			'webp'        => \imagecreatefromwebp($file),
+			'jpg', 'jpeg' => imagecreatefromjpeg($file),
+			'png'         => imagecreatefrompng($file),
+			'gif'         => imagecreatefromgif($file),
+			'webp'        => imagecreatefromwebp($file),
 			default       => throw new RuntimeException('Invalid image type'),
 		};
 
@@ -112,13 +95,30 @@ class ImageService
 	}
 
 	/**
-	 * @param \GdImage $image
-	 * @param int|null $width
-	 * @param int|null $height
+	 * @param GdImage $image
+	 * @param string  $path
 	 *
-	 * @return \GdImage
+	 * @return bool
 	 */
-	public function resize(GdImage $image, ?int $width = null, ?int $height = null) {
+	public function save(GdImage $image, string $path): bool {
+		$type = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+		return match ($type) {
+			'jpg', 'jpeg' => imagejpeg($image, $path),
+			'png'         => imagepng($image, $path),
+			'gif'         => imagegif($image, $path),
+			'webp'        => imagewebp($image, $path),
+			default       => false,
+		};
+	}
+
+	/**
+	 * @param GdImage         $image
+	 * @param int<1,max>|null $width
+	 * @param int<1,max>|null $height
+	 *
+	 * @return GdImage
+	 */
+	public function resize(GdImage $image, ?int $width = null, ?int $height = null): GdImage {
 		if ($width === null && $height === null) {
 			throw new InvalidArgumentException('At least 1 argument $width or $height must be set.');
 		}
@@ -127,6 +127,7 @@ class ImageService
 		$originalHeight = imagesy($image);
 
 		if ($width === null) {
+			/** @var int<1,max> $width */
 			$width = (int)ceil($originalWidth * $height / $originalHeight);
 
 			$out = imagecreatetruecolor($width, $height);
@@ -146,6 +147,7 @@ class ImageService
 		}
 
 		if ($height === null) {
+			/** @var int<1,max> $height */
 			$height = (int)ceil($originalHeight * $width / $originalWidth);
 
 			$out = imagecreatetruecolor($width, $height);
@@ -190,11 +192,11 @@ class ImageService
 
 		if ($ratio1 > $ratio2) {
 			$resizedWidth = $originalWidth * $height / $originalHeight;
-			$srcX = ($resizedWidth - $width) / 2;
+			$srcX = (int) (($resizedWidth - $width) / 2);
 		}
 		else {
 			$resizedHeight = $originalHeight * $width / $originalWidth;
-			$srcY = ($resizedHeight - $height) / 2;
+			$srcY = (int) (($resizedHeight - $height) / 2);
 		}
 
 

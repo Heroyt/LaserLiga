@@ -8,8 +8,10 @@ use Lsr\Core\Auth\Services\Auth;
 
 $nav = [];
 
+$auth = App::getService('auth');
+assert($auth instanceof Auth, 'Invalid service type from DI');
 /** @var User $user */
-$user = App::getServiceByType(Auth::class)->getLoggedIn();
+$user = $auth->getLoggedIn();
 
 $fontawesome = App::getService('fontawesome');
 assert($fontawesome instanceof FontAwesomeManager, 'Invalid service type from DI');

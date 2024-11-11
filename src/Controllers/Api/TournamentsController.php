@@ -2,8 +2,6 @@
 
 namespace App\Controllers\Api;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
 use App\Models\Arena;
@@ -15,14 +13,16 @@ use App\Models\Tournament\Progression;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use DateTimeImmutable;
+use Exception;
 use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
-use Exception;
 
 class TournamentsController extends ApiController
 {
@@ -90,7 +90,7 @@ class TournamentsController extends ApiController
 	)]
 	public function get(Tournament $tournament): ResponseInterface {
 		if ($tournament->arena->id !== $this->arena->id) {
-			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorResponse('Access denied', ErrorType::ACCESS), 403);
 		}
 
 		return $this->respond($tournament);
@@ -222,7 +222,7 @@ class TournamentsController extends ApiController
 	)]
 	public function getTournamentTeams(Tournament $tournament, Request $request): ResponseInterface {
 		if ($tournament->arena->id !== $this->arena->id) {
-			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorResponse('Access denied', ErrorType::ACCESS), 403);
 		}
 
 		$withPlayers = !empty($request->getGet('withPlayers'));
@@ -470,7 +470,7 @@ class TournamentsController extends ApiController
 	)]
 	public function syncGames(Tournament $tournament, Request $request): ResponseInterface {
 		if ($tournament->arena->id !== $this->arena->id) {
-			return $this->respond(new ErrorDto('Access denied', ErrorType::ACCESS), 403);
+			return $this->respond(new ErrorResponse('Access denied', ErrorType::ACCESS), 403);
 		}
 
 		$ids = ['groups' => [], 'games' => [], 'progressions' => []];

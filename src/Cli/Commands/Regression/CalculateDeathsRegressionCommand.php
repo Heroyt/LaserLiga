@@ -6,7 +6,7 @@ use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
-use App\Services\RegressionCalculator;
+use App\Services\Maths\RegressionCalculator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

@@ -4,9 +4,11 @@ namespace App\Services\Player;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
 use App\Models\Auth\Player;
+use App\Models\DataObjects\Game\GamesTogetherRow;
 use App\Models\DataObjects\GamesTogether;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
@@ -36,18 +38,20 @@ readonly class PlayersGamesTogetherService
 			return $this->loadGamesTogether($player1, $player2);
 		}
 		$cacheKey = 'games_together_' . min($player1->id, $player2->id) . '-' . max($player1->id, $player2->id);
-		// @phpstan-ignore-next-line
-		return $this->cache->load($cacheKey, function (array &$dependencies) use ($player1, $player2, $modes) {
-			$dependencies[$this->cache::Tags] = [
-				'players',
-				'user/' . $player1->id . '/games',
-				'user/' . $player2->id . '/games',
-				'user/compare',
-				'user/compare/' . $player1->id . '/' . $player2->id,
-				'user/compare/' . $player2->id . '/' . $player1->id,
-			];
-			return $this->loadGamesTogether($player1, $player2, $modes);
-		});
+		return $this->cache->load(
+			$cacheKey,
+			fn() => $this->loadGamesTogether($player1, $player2, $modes),
+			[
+				Cache::Tags => [
+					'players',
+					'user/' . $player1->id . '/games',
+					'user/' . $player2->id . '/games',
+					'user/compare',
+					'user/compare/' . $player1->id . '/' . $player2->id,
+					'user/compare/' . $player2->id . '/' . $player1->id,
+				],
+			]
+		);
 	}
 
 	/**
@@ -93,40 +97,36 @@ readonly class PlayersGamesTogetherService
 				'user/compare/' . $player1->id . '/' . $player2->id,
 				'user/compare/' . $player2->id . '/' . $player1->id
 			)
-			->fetchAll();
+			->fetchAllDto(GamesTogetherRow::class);
 
 		$data = new GamesTogether($player1, $player2);
 
 		$data->gameCount = count($games);
 		foreach ($games as $gameRow) {
-			/** @var Game $game */
 			$game = GameFactory::getByCode($gameRow->code);
-			//$gameObjects[$game->code] = $game;
+			assert($game instanceof Game);
 			$data->gameCodes[] = $gameRow->code;
-			$user1 = $user2 = null;
+			$user1 = null;
 			if (!empty($gameRow->users)) {
 				$users = explode(',', $gameRow->users);
-				$user1 = $users[0] ?? null;
-				if (count($users) > 1) {
-					$user2 = $users[1];
-				}
+				$user1 = $users[0];
 			}
 			$vest1 = $vest2 = null;
 			if (!empty($gameRow->vests)) {
 				$vests = explode(',', $gameRow->vests);
-				$vest1 = $vests[0] ?? null;
+				$vest1 = $vests[0];
 				if (count($vests) > 1) {
 					$vest2 = $vests[1];
 				}
 			}
 			$team1 = $team2 = null;
-				if (!empty($gameRow->teams)) {
-					$teams = explode(',', $gameRow->teams);
-					$team1 = $teams[0] ?? null;
-					if (count($teams) > 1) {
-						$team2 = $teams[1];
-					}
+			if (!empty($gameRow->teams)) {
+				$teams = explode(',', $gameRow->teams);
+				$team1 = $teams[0];
+				if (count($teams) > 1) {
+					$team2 = $teams[1];
 				}
+			}
 			if (((int)$user1) === $player1->id) {
 				/** @var \App\GameModels\Game\Player $currentPlayer */
 				$currentPlayer = $game->getVestPlayer($vest1);
@@ -140,7 +140,7 @@ readonly class PlayersGamesTogetherService
 				$otherPlayer = $game->getVestPlayer($vest1);
 			}
 
-			$teammates = $team1 === $team2 && $gameRow->type === 'TEAM';
+			$teammates = $team1 === $team2 && $gameRow->type === GameModeType::TEAM;
 			if ($teammates) {
 				$data->gameCodesTogether[] = $gameRow->code;
 				$data->gameCountTogether++;
@@ -166,7 +166,7 @@ readonly class PlayersGamesTogetherService
 				if ($game->getMode()?->isTeam()) {
 					$data->gameCountEnemyTeam++;
 					/** @var Team|null $winTeam */
-					$winTeam = $game->getMode()?->getWin($game);
+					$winTeam = $game->getMode()->getWin($game);
 					if ($currentPlayer->getTeam()?->id === $winTeam?->id) {
 						$data->winsEnemy++;
 					}

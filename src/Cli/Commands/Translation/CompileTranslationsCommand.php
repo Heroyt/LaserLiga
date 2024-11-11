@@ -31,7 +31,6 @@ class CompileTranslationsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $poLoader = new PoLoader();
         $moGenerator = new MoGenerator();
-        /** @var string[] $languages */
         foreach ($this->translations->supportedLanguages as $lang => $country) {
             $concatLang = $lang . '_' . $country;
             $path = LANGUAGE_DIR . $concatLang;

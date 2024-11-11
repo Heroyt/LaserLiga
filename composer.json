@@ -50,7 +50,8 @@
     "symfony/lock": "^7",
     "orisai/nette-console": "^1.4",
     "ext-redis": "*",
-    "ext-igbinary": "*"
+    "ext-igbinary": "*",
+    "ext-zlib": "*"
   },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

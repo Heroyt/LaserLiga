@@ -22,9 +22,9 @@ class UserHighlightChecker implements PlayerHighlightChecker
 {
 
 	/** @var float Percentage difference from the average where the highlight should be considered */
-	public const HIGHLIGHT_THRESHOLD = 0.3;
-	private float     $minThreshold;
-	private int|float $maxThreshold;
+	public const float HIGHLIGHT_THRESHOLD = 0.3;
+	private float $minThreshold;
+	private float $maxThreshold;
 
 	public function __construct(private readonly PlayersGamesTogetherService $gamesTogetherService) {
 		$this->minThreshold = 1 + self::HIGHLIGHT_THRESHOLD;
@@ -42,7 +42,7 @@ class UserHighlightChecker implements PlayerHighlightChecker
 
 		try {
 			$this->checkComparePlayerHighlights($player->getGame(), $player, $highlights);
-		} catch (ModelNotFoundException|ValidationException|Throwable) {
+		} catch (Throwable) {
 		}
 	}
 
@@ -197,7 +197,7 @@ class UserHighlightChecker implements PlayerHighlightChecker
 			$isWin = false;
 			if ($game->getMode()?->isTeam()) {
 				/** @var Team|null $winTeam */
-				$winTeam = $game->getMode()?->getWin($game);
+				$winTeam = $game->getMode()->getWin($game);
 				if ($winTeam?->color === $player->getTeam()?->color) {
 					$isWin = true;
 				}

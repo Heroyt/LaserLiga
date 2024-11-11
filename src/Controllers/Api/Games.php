@@ -15,6 +15,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
+use App\Models\DataObjects\Game\MinimalGameRow;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Services\Achievements\AchievementChecker;
@@ -35,6 +36,7 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Helpers\Tools\Strings;
@@ -134,9 +136,11 @@ class Games extends ApiController
 		$notFilters = ['date', 'system', 'sql', 'returnLink', 'returnCodes'];
 		try {
 			$date = null;
-			if (!empty($request->getGet('date'))) {
+			/** @var string|null $getDate */
+			$getDate = $request->getGet('date');
+			if (!empty($getDate)) {
 				try {
-					$date = new DateTime($request->getGet('date'));
+					$date = new DateTime($getDate);
 				} catch (Exception $e) {
 					return $this->respond(
 						new ErrorResponse('Invalid parameter: "date"', ErrorType::VALIDATION, exception: $e),
@@ -145,15 +149,17 @@ class Games extends ApiController
 				}
 			}
 
-			if (!empty($request->getGet('system'))) {
-				$query = $this->arena->queryGamesSystem($request->getGet('system'), $date);
+			/** @var string|null $system */
+			$system = $request->getGet('system');
+			if (!empty($system)) {
+				$query = $this->arena->queryGamesSystem($system, $date);
 			}
 			else {
 				$query = $this->arena->queryGames($date);
 			}
 
 			// TODO: Filter parsing could be more universally implemented for all API Controllers
-			$availableFilters = GameFactory::getAvailableFilters($request->getGet('system'));
+			$availableFilters = GameFactory::getAvailableFilters($system);
 			foreach ($request->getQueryParams() as $field => $value) {
 				$not = str_starts_with($value, 'not');
 				if ($not) {
@@ -278,7 +284,7 @@ class Games extends ApiController
 							$values[1]
 						);
 					}
-					else if ($type === 'date') {
+					else {
 						$query->where(
 							'%n ' . ($not ? 'NOT ' : '') . 'BETWEEN %dt AND %dt',
 							Strings::toSnakeCase($field),
@@ -317,7 +323,7 @@ class Games extends ApiController
 				return $this->respond((string)$query);
 			}
 
-			$games = $query->fetchAll();
+			$games = $query->fetchAllDto(MinimalGameRow::class);
 		} catch (InvalidArgumentException $e) {
 			return $this->respond(
 				new ErrorResponse(
@@ -413,7 +419,7 @@ class Games extends ApiController
 				$users[$player->vest] = $player->user;
 			}
 		}
-		return $this->respond($users);
+		return $this->respond(array_values($users));
 	}
 
 	/**
@@ -585,7 +591,7 @@ class Games extends ApiController
 		$codes = $request->getGet('codes', []);
 		if (!empty($codes)) {
 			if (is_string($codes)) {
-				$this->recalcGameSkill($codes); // Only one game
+				$codes = [$codes]; // Only one game
 			}
 			return GameFactory::iterateOverCodes($codes);
 		}
@@ -614,9 +620,6 @@ class Games extends ApiController
 		$limit = (int)$request->getGet('limit', 0);
 		if ($user > 0) {
 			$player = LigaPlayer::get($user);
-			if (!isset($user)) {
-				return new ErrorResponse('User does not exist', ErrorType::NOT_FOUND);
-			}
 			$query = $player->queryGames();
 			if (isset($modes)) {
 				$query->where('[id_mode] IN %in', array_keys($modes));
@@ -632,7 +635,8 @@ class Games extends ApiController
 		}
 		$hasUser = !empty($request->getGet('hasuser'));
 		if ($hasUser) {
-			$since = (string)$request->getGet('since', '');
+			/** @var string $since */
+			$since = $request->getGet('since', '');
 			$query = PlayerFactory::queryPlayersWithGames()->where('[id_user] IS NOT NULL')->orderBy('start');
 			if (isset($modes)) {
 				$query->where('[id_mode] IN %in', array_keys($modes));
@@ -961,6 +965,13 @@ class Games extends ApiController
 		 *         color?: int,
 		 *         position?: int,
 		 *     }[],
+		 *     music?: array{
+		 *         id?:numeric
+		 *     },
+		 *     group?: array{
+		 *         id?:numeric,
+		 *         name:string,
+		 *     }
 		 * }[] $games
 		 */
 		$games = $request->getPost('games', []);
@@ -989,7 +1000,7 @@ class Games extends ApiController
 				// Check group
 				if (!empty($gameInfo['group']['id'])) {
 					$gameGroup = GameGroup::getOrCreateFromLocalId(
-						$gameInfo['group']['id'],
+						(int) $gameInfo['group']['id'],
 						$gameInfo['group']['name'],
 						$this->arena
 					);
@@ -1202,14 +1213,15 @@ class Games extends ApiController
 	)]
 	public function stats(Request $request): ResponseInterface {
 		$cache = $request->getGet('noCache') === null;
-		$date = $request->getGet('date');
-		if (is_string($date)) {
-			$date = new DateTimeImmutable($date);
+		$getDate = $request->getGet('date');
+		if (is_string($getDate)) {
+			$date = new DateTimeImmutable($getDate);
 		}
 		else {
-			$this->respond(new ErrorResponse('Invalid date', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Invalid date', ErrorType::VALIDATION), 400);
 		}
 
+		/** @var string|null $system */
 		$system = $request->getGet('system');
 		return $this->respond([
 			               'games'   => (
@@ -1387,7 +1399,7 @@ class Games extends ApiController
 	)]
 	public function setGroup(string $code, Request $request): ResponseInterface {
 		if (empty($code)) {
-			return $this->respond(['error' => 'Invalid code'], 400);
+			return $this->respond(new ErrorResponse('Invalid code', ErrorType::VALIDATION), 400);
 		}
 		try {
 			$game = GameFactory::getByCode($code);
@@ -1395,16 +1407,17 @@ class Games extends ApiController
 				throw new ModelNotFoundException('Game not found');
 			}
 		} catch (Throwable $e) {
-			return $this->respond(['error' => 'Game not found', 'exception' => $e->getMessage()], 404);
+			return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND, exception: $e), 404);
 		}
 
+		/** @var numeric $group */
 		$group = $request->getPost('groupId', 0);
 		if ($group > 0) {
 			try {
-				$game->group = GameGroup::get($group);
+				$game->group = GameGroup::get((int) $group);
 			} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
 				return $this->respond(
-					['error' => 'Game group not found', 'exception' => $e->getMessage(), 'trace' => $e->getTrace()],
+					new ErrorResponse('Game group not found', ErrorType::NOT_FOUND, exception: $e),
 					404
 				);
 			}
@@ -1420,10 +1433,10 @@ class Games extends ApiController
 		try {
 			$game->save();
 		} catch (ModelNotFoundException|ValidationException $e) {
-			return $this->respond(['error' => 'Save failed', 'exception' => $e->getMessage()], 500);
+			return $this->respond(new ErrorResponse('Save failed', exception: $e), 500);
 		}
 
-		return $this->respond(['success' => true]);
+		return $this->respond(new SuccessResponse('Group set.'));
 	}
 
 	/**
@@ -1482,23 +1495,23 @@ class Games extends ApiController
 	)]
 	public function changeGameMode(string $code, Request $request): ResponseInterface {
 		if (empty($code)) {
-			return $this->respond(['error' => 'Invalid code'], 400);
+			return $this->respond(new ErrorResponse('Invalid code', ErrorType::VALIDATION), 400);
 		}
 
 		// Find game
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			return $this->respond(['error' => 'Game not found'], 404);
+			return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		// Find game mode
 		$gameModeId = (int) $request->getPost('mode', 0);
 		if ($gameModeId < 1) {
-			return $this->respond(['error' => 'Invalid game mode ID'], 400);
+			return $this->respond(new ErrorResponse('Invalid game mode ID', ErrorType::VALIDATION), 400);
 		}
 		$gameMode = GameModeFactory::getById($gameModeId, ['system' => $game::SYSTEM]);
 		if (!isset($gameMode)) {
-			return $this->respond(['error' => 'Game mode not found'], 404);
+			return $this->respond(new ErrorResponse('Game mode not found', ErrorType::NOT_FOUND), 404);
 		}
 
 		$previousType = $game->gameType;
@@ -1508,15 +1521,15 @@ class Games extends ApiController
 		$game->mode = $gameMode;
 
 		// Check mode type change
-		if ($previousType !== $game->getMode()) {
+		if ($previousType !== $game->getMode()->type) {
 			if ($previousType === GameModeType::SOLO) {
-				return $this->respond(['error' => 'Cannot change mode from solo to team'], 400);
+				return $this->respond(new ErrorResponse('Cannot change mode from solo to team', ErrorType::VALIDATION), 400);
 			}
 
 			// Assign all players to one team
 			$team = $game->getTeams()->first();
 			if (!isset($team)) {
-				return $this->respond(['error' => 'Error while getting a team from a game'], 500);
+				return $this->respond(new ErrorResponse('Error while getting a team from a game'), 500);
 			}
 			/** @var Player $player */
 			foreach ($game->getPlayers() as $player) {
@@ -1529,10 +1542,10 @@ class Games extends ApiController
 		$this->rankCalculator->recalculateRatingForGame($game);
 
 		if (!$game->save()) {
-			return $this->respond(['error' => 'Error saving game'], 500);
+			return $this->respond(new ErrorResponse('Error saving game'), 500);
 		}
 
-		return $this->respond(['status' => 'OK']);
+		return $this->respond(new SuccessResponse('Game updated'));
 	}
 
 }

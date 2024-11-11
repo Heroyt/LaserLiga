@@ -75,7 +75,11 @@ class PushService
 			$data['options']['data'] = $notification->action;
 		}
 
-		$payload = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		try {
+			$payload = json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		} catch (\JsonException) {
+			return;
+		}
 
 		$privateKeyRaw = $this->config->getConfig('ENV')['VAPID_PRIVATE_RAW'];
 		$privateKey = file_get_contents(ROOT . $this->config->getConfig('ENV')['VAPID_PRIVATE']);
@@ -185,7 +189,7 @@ class PushService
 		}
 	}
 
-	private function checkSubscription(PlayerUser $user): bool {
+	public function checkSubscription(PlayerUser $user): bool {
 		return DB::select(Subscription::TABLE, 'COUNT(*)')->where('id_user = %i', $user->id)->fetchSingle(false) > 0;
 	}
 

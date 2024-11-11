@@ -109,7 +109,6 @@ class GroupController extends Controller
 		if (count($mapped) !== 3) {
 			return null;
 		}
-		/** @phpstan-ignore-next-line */
 		return $mapped;
 	}
 

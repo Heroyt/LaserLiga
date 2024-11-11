@@ -12,7 +12,7 @@ use Lsr\Core\App;
  */
 class NameInflectionService
 {
-	public const CASES                = [
+	public const array CASES                = [
 		1 => 'nominative',
 		2 => 'genitive',
 		3 => 'dative',
@@ -21,7 +21,7 @@ class NameInflectionService
 		6 => 'locative',
 		7 => 'instrumental',
 	];
-	public const INFLECTION_LANGUAGES = ['cs'];
+	public const array INFLECTION_LANGUAGES = ['cs'];
 	/** @var array<string,array{1?:string,2?:string,3?:string,4?:string,5?:string,6?:string,7?:string}> */
 	private static array $memory = [];
 	/** @var array{m:string[],f:string[],o:string[]}[] */
@@ -136,7 +136,6 @@ class NameInflectionService
 			self::$suffixes[$case][$gender->value] = unserialize(file_get_contents($file), ['allowed_classes' => false]
 			);
 		}
-		// @phpstan-ignore-next-line
 		return self::$suffixes[$case][$gender->value];
 	}
 

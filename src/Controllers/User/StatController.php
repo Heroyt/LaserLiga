@@ -186,9 +186,7 @@ class StatController extends AbstractUserController
 		$limit = $request->getGet('limit', 'month');
 		/** @var DateTimeImmutable $since */
 		$since = match ($limit) {
-			'all'   => $player->queryGames()->orderBy('start')->fetchDto(
-				PlayerGamesGame::class
-			)?->start ?? new DateTimeImmutable(),
+			'all'   => $player->queryGames()->orderBy('start')->fetchDto(PlayerGamesGame::class)->start ?? new DateTimeImmutable(),
 			'year'  => new DateTimeImmutable('-1 years'),
 			'week'  => new DateTimeImmutable('-7 days'),
 			default => new DateTimeImmutable('-1 months'),

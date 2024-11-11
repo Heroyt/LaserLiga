@@ -19,7 +19,7 @@ trait WithMetadata
 {
 
 	/** @var int 5 minutes in seconds */
-	protected const MAX_LOAD_START_TIME_DIFFERENCE = 300;
+	protected const int MAX_LOAD_START_TIME_DIFFERENCE = 300;
 
 	/**
 	 * Decode game metadata
@@ -36,7 +36,8 @@ trait WithMetadata
 		if ($decodedJson !== false) {
 			try {
 				/** @var array<string,string> $meta Meta data from game */
-				return json_decode($decodedJson, true, 512, JSON_THROW_ON_ERROR);
+				$meta = json_decode($decodedJson, true, 512, JSON_THROW_ON_ERROR);
+				return $meta;
 			} catch (JsonException) {
 				// Ignore meta
 			}
@@ -168,12 +169,12 @@ trait WithMetadata
 		foreach ($game->getPlayers() as $player) {
 			// Names from game are strictly ASCII
 			// If a name contained any non ASCII character, it is coded in the metadata
-			if (!empty($meta['p' . $player->vest . 'n'])) {
+			if (!empty($meta['p' . $player->vest . 'n']) && is_string($meta['p' . $player->vest . 'n'])) {
 				$player->name = $meta['p' . $player->vest . 'n'];
 			}
 
 			// Check for player's user code
-			if (!empty($meta['p' . $player->vest . 'u'])) {
+			if (!empty($meta['p' . $player->vest . 'u']) && is_string($meta['p' . $player->vest . 'u'])) {
 				$code = $meta['p' . $player->vest . 'u'];
 				$user = LigaPlayer::getByCode($code);
 				if (isset($user)) {

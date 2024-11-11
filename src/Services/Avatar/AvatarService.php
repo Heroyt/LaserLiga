@@ -5,7 +5,7 @@ namespace App\Services\Avatar;
 class AvatarService
 {
 
-	public const BASE_API = 'https://api.dicebear.com/7.x/';
+	public const string BASE_API = 'https://api.dicebear.com/7.x/';
 
 	/**
 	 * Get an avatar using a dicebear API
@@ -28,6 +28,7 @@ class AvatarService
 			);
 		}
 		$svg = simplexml_load_string($response);
+		assert($svg !== false);
 		$svg['class'] = 'player-avatar';
 		return $svg->asXML();
 	}

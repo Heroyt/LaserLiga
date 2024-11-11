@@ -30,6 +30,9 @@ class TrophyHighlight extends GameHighlight
 		parent::__construct(GameHighlightType::TROPHY, $value, $rarityScore);
 	}
 
+	/**
+	 * @return array<string,mixed>
+	 */
 	public function jsonSerialize(): array {
 		$data = parent::jsonSerialize();
 		$data['player'] = ['vest' => $this->player->vest, 'name' => $this->player->name];
@@ -47,7 +50,7 @@ class TrophyHighlight extends GameHighlight
 		$fields = $this->player->getTrophy()::getFields();
 		$name = $this->player->name;
 		if ($this->value === 'favouriteTarget') {
-			$name2 = $this->player->getFavouriteTarget()?->name ?? '';
+			$name2 = $this->player->getFavouriteTarget()->name ?? '';
 			$gender = GenderService::rankWord($name);
 			return sprintf(
 				lang(
@@ -63,7 +66,7 @@ class TrophyHighlight extends GameHighlight
 			);
 		}
 		if ($this->value === 'favouriteTargetOf') {
-			$name2 = $this->player->getFavouriteTargetOf()?->name ?? '';
+			$name2 = $this->player->getFavouriteTargetOf()->name ?? '';
 			$gender = GenderService::rankWord($name);
 			return sprintf(
 				lang(

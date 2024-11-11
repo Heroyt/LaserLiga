@@ -2,8 +2,6 @@
 
 namespace App\Controllers;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Player;
@@ -13,6 +11,8 @@ use DateInterval;
 use DateTime;
 use DateTimeImmutable;
 use Lsr\Core\Controllers\Controller;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Helpers\Tools\Strings;
 use Psr\Http\Message\ResponseInterface;
@@ -40,17 +40,17 @@ class DistributionController extends Controller
 	public function distribution(string $code, int $id, string $param, Request $request): ResponseInterface {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
-			return $this->respond(new ErrorDto(lang('Hra neexistuje'), ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse(lang('Hra neexistuje'), ErrorType::VALIDATION), 400);
 		}
 		/** @var Player|null $player */
 		$player = $game->getPlayers()->query()->filter('id', $id)->first();
 		if (!isset($player)) {
-			return $this->respond(new ErrorDto(lang('Hráč neexistuje'), ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse(lang('Hráč neexistuje'), ErrorType::VALIDATION), 400);
 		}
 
 		$enum = DistributionParam::tryFrom($param);
 		if (!isset($enum)) {
-			return $this->respond(new ErrorDto(lang('Neznámý parametr'), ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse(lang('Neznámý parametr'), ErrorType::VALIDATION), 400);
 		}
 
 		[$min, $max, $step] = match ($enum) {
@@ -60,7 +60,6 @@ class DistributionController extends Controller
 			DistributionParam::shots                           => [0, 2000, null],
 			DistributionParam::rank                            => [0, 1500, null],
 			DistributionParam::kd                              => [0, 10, null],
-			default                                            => [null, null, null]
 		};
 
 
@@ -113,14 +112,6 @@ class DistributionController extends Controller
 		}
 		$distribution = $query->get();
 		$percentile = $query->getPercentile($value);
-
-		// Normalize values
-		if ($percentile === 100) {
-			$percentile = 99;
-		}
-		else if ($percentile === 0) {
-			$percentile = 1;
-		}
 
 		$valueReal = $value;
 		if ($value > $query->max) {

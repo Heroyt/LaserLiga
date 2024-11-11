@@ -14,7 +14,7 @@ class PlayerCode implements Validator
 	 * Validate a value and throw an exception on error
 	 *
 	 * @param mixed             $value
-	 * @param Player|LigaPlayer $class
+	 * @param class-string<Player|LigaPlayer>|Player|LigaPlayer $class
 	 * @param string            $property
 	 *
 	 * @return void
@@ -22,6 +22,6 @@ class PlayerCode implements Validator
 	 * @throws ValidationException
 	 */
 	public function validateValue(mixed $value, object|string $class, string $property) : void {
-		$class::validateCode($value, $class);
+		$class::validateCode($value, is_string($class) ? new $class : $class);
 	}
 }

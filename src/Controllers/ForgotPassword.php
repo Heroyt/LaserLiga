@@ -7,12 +7,10 @@ use App\Models\Auth\User;
 use App\Models\DataObjects\User\ForgotData;
 use App\Services\MailService;
 use DateTimeImmutable;
-use Dibi\DateTime;
 use Dibi\Exception;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Lsr\Logging\Logger;
 use Nette\Mail\SendException;
 use Nette\Utils\Validators;
@@ -22,10 +20,9 @@ class ForgotPassword extends Controller
 {
 
 	public function __construct(
-		Latte                        $latte,
 		private readonly MailService $mailService
 	) {
-		parent::__construct($latte);
+		parent::__construct();
 	}
 
 	public function forgot(Request $request) : ResponseInterface {
@@ -37,7 +34,8 @@ class ForgotPassword extends Controller
 		];
 		$this->description = 'Formulář pro obnovení zapomenutého hesla.';
 
-		$email = (string) $request->getPost('email', '');
+		/** @var string $email */
+		$email = $request->getPost('email', '');
 		if (!empty($email) && empty($request->getErrors())) {
 			$logger = new Logger(LOG_DIR, 'passReset');
 			if (Validators::isEmail($email)) {
@@ -98,8 +96,10 @@ class ForgotPassword extends Controller
 			lang($this->title) => ['login', 'forgot'],
 		];
 
-		$hash = (string) $request->getGet('token', '');
-		$email = (string) $request->getGet('email', '');
+		/** @var string $hash */
+		$hash = $request->getGet('token', '');
+		/** @var string $email */
+		$email = $request->getGet('email', '');
 
 		if (empty($hash) || empty($email)) {
 			return $this->resetInvalid('Požadavek neexistuje');
@@ -126,8 +126,10 @@ class ForgotPassword extends Controller
 			return $this->resetInvalid('Neplatný požadavek', 403);
 		}
 
-		$password = (string) $request->getPost('password', '');
-		$password1 = (string) $request->getPost('password1', '');
+		/** @var string $password */
+		$password = $request->getPost('password', '');
+		/** @var string $password1 */
+		$password1 = $request->getPost('password1', '');
 		if (!empty($password) && empty($request->getErrors())) {
 			$logger = new Logger(LOG_DIR, 'passReset');
 			if ($password === $password1) {

@@ -10,6 +10,8 @@ use App\GameModels\Game\Team;
 use App\GameModels\Game\Today;
 use App\Helpers\Gender;
 use App\Models\Auth\LigaPlayer;
+use App\Models\Auth\User;
+use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Services\GenderService;
 use App\Services\Thumbnails\ThumbnailGenerator;
 use App\Templates\Games\GameParameters;
@@ -28,6 +30,9 @@ use Psr\Http\Message\ResponseInterface;
 class GameController extends Controller
 {
 
+	/**
+	 * @param Auth<User>               $auth
+	 */
 	public function __construct(
 		private readonly Auth $auth,
 		private readonly ThumbnailGenerator $thumbnailGenerator,
@@ -114,14 +119,14 @@ class GameController extends Controller
 			                            ->where('id_user = %i AND start < %dt', $player->id, $game->start)
 			                            ->orderBy('start')
 			                            ->desc()
-			                            ->fetch();
+			                            ->fetchDto(PlayerGamesGame::class);
 			if (isset($prevGameRow)) {
 				$this->params->prevUserGame = $prevGameRow->code;
 			}
 			$nextGameRow = PlayerFactory::queryPlayerGames()
 			                            ->where('id_user = %i AND start > %dt', $player->id, $game->start)
 			                            ->orderBy('start')
-			                            ->fetch();
+			                            ->fetchDto(PlayerGamesGame::class);
 			if (isset($nextGameRow)) {
 				$this->params->nextUserGame = $nextGameRow->code;
 			}
@@ -142,7 +147,7 @@ class GameController extends Controller
 			lang('Výsledky laser game v %s z dne %s v herním módu %s.'),
 			$game->arena->name,
 			$game->start->format('d.m.Y H:i'),
-			$game->getMode()?->name ?? 'Team deathmach'
+			$game->getMode()->name ?? 'Team deathmach'
 		);
 		$players = $game->getPlayersSorted();
 		if ($game->getMode()?->isTeam()) {
@@ -212,6 +217,12 @@ class GameController extends Controller
 		return $description;
 	}
 
+	/**
+	 * @param Game   $game
+	 * @param string $description
+	 *
+	 * @return array<string,mixed>
+	 */
 	private function getSchema(Game $game, string $description = ''): array {
 		assert($game->arena !== null && $game->arena->id !== null && $game->start !== null, 'Invalid game');
 		$schema = [
@@ -225,8 +236,8 @@ class GameController extends Controller
 			"agent"        => [],
 			"provider"     => [
 				'@type'      => 'Organization',
-				'identifier' => App::getLink(['arena', $game->arena->id]),
-				'url'        => [App::getLink(['arena', $game->arena->id])],
+				'identifier' => App::getLink(['arena', (string) $game->arena->id]),
+				'url'        => [App::getLink(['arena', (string) $game->arena->id])],
 				'logo'       => $game->arena->getLogoUrl(),
 				'name'       => $game->arena->name,
 			],

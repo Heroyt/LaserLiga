@@ -105,6 +105,7 @@ class UserSettingsController extends AbstractUserController
 			}
 		}
 
+		/** @var string|null $laserMaxx */
 		$laserMaxx = $request->getPost('mylasermaxx');
 		$laserMaxxConnection = $user->getConnectionByType(ConnectionType::MY_LASERMAXX);
 		if (empty($laserMaxx) && isset($laserMaxxConnection)) {
@@ -120,6 +121,7 @@ class UserSettingsController extends AbstractUserController
 			$laserMaxxConnection->identifier = $laserMaxx;
 		}
 
+		/** @var string|null $laserForce */
 		$laserForce = $request->getPost('laserforce');
 		$laserForceConnection = $user->getConnectionByType(ConnectionType::LASER_FORCE);
 		if (empty($laserForce) && isset($laserForceConnection)) {

@@ -15,6 +15,9 @@ class HighlightCollection implements Countable, Iterator, JsonSerializable
 	/** @var array<int, GameHighlight[]> */
 	public array $data = [];
 
+	/**
+	 * @var int<0,max>
+	 */
 	private int $count = 0;
 
 	/** @var GameHighlight[] */

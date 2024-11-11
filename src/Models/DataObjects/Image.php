@@ -5,7 +5,6 @@ namespace App\Models\DataObjects;
 use App\Exceptions\FileException;
 use App\Services\ImageService;
 use Lsr\Core\App;
-use RuntimeException;
 
 class Image
 {
@@ -37,12 +36,14 @@ class Image
 		if (isset($optimized[$index])) {
 			return $optimized[$index];
 		}
-		$index = (string)$size;
+		$index = (string) $size;
 		return $optimized[$index] ?? $optimized['webp'] ?? $optimized['original'];
 	}
 
 	/**
-	 * @return array{original:string,webp:string}
+	 * @param int<1,max>|null $width
+	 * @param int<1,max>|null $height
+	 * @return array{original?:string,webp?:string}
 	 * @throws FileException
 	 */
 	public function getResized(?int $width = null, ?int $height = null): array {
@@ -99,7 +100,7 @@ class Image
 	}
 
 	/**
-	 * @return array<string,string>
+	 * @return array<string|numeric-string,string>
 	 */
 	public function getOptimized(): array {
 		if (!empty($this->optimized)) {
@@ -136,7 +137,7 @@ class Image
 	}
 
 	/**
-	 * @param array<string,string> $images
+	 * @param array<string|numeric-string,string> $images
 	 *
 	 * @return void
 	 */
@@ -158,7 +159,7 @@ class Image
 			}
 			$file = $optimizedDir . $this->name . 'x' . $size . '.webp';
 			if (file_exists($file)) {
-				$images[$size . '-webp'] = $this->pathToUrl($file);
+				$images[($size . '-webp')] = $this->pathToUrl($file);
 			}
 		}
 	}

@@ -14,7 +14,7 @@ use Lsr\Core\Models\Model;
 class UserConnection extends Model
 {
 
-	public const TABLE = 'user_connected_accounts';
+	public const string TABLE = 'user_connected_accounts';
 
 	public ConnectionType $type;
 	#[ManyToOne]
@@ -24,7 +24,7 @@ class UserConnection extends Model
 	public function getUrl(): string {
 		return match ($this->type) {
 			ConnectionType::LASER_FORCE  => 'https://v2.iplaylaserforce.com/iframe.php?memberId=' . $this->identifier,
-			ConnectionType::MY_LASERMAXX => $this->identifier,
+			ConnectionType::MY_LASERMAXX => (string) $this->identifier,
 			default                      => '#',
 		};
 	}

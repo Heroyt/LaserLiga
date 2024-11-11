@@ -9,11 +9,10 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\Tournament;
-use DateTime;
+use DateTimeInterface;
 use Dibi\Exception;
 use Dibi\Row;
 use Lsr\Core\App;
-use Lsr\Core\Auth\Models\UserType;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -24,7 +23,6 @@ use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use OpenApi\Attributes as OA;
 use RuntimeException;
-use DateTimeInterface;
 
 #[PrimaryKey('id_arena')]
 #[OA\Schema]
@@ -113,7 +111,7 @@ class Arena extends Model
 	 *
 	 * @param Row $row Row from DB
 	 *
-	 * @return Arena|null
+	 * @return static|null
 	 * @throws ValidationException
 	 */
 	public static function parseRow(Row $row): ?static {
@@ -124,20 +122,6 @@ class Arena extends Model
 			}
 		}
 		return null;
-	}
-
-	public function createUser(string $email, string $password): User {
-		if (isset($this->user)) {
-			return $this->user;
-		}
-		$this->user = User::register($email, $password, $this->name);
-		if (!isset($this->user)) {
-			throw new RuntimeException('Error while creating a new arena user');
-		}
-		$this->user->type = UserType::get($this::ARENA_USER_TYPE_ID);
-		$this->user->save();
-		$this->save();
-		return $this->user;
 	}
 
 	/**
@@ -172,7 +156,7 @@ class Arena extends Model
 	/**
 	 * Add data from the object into the data array for DB INSERT/UPDATE
 	 *
-	 * @param array $data
+	 * @param array<string,mixed> $data
 	 */
 	public function addQueryData(array &$data): void {
 		$data[self::getPrimaryKey()] = $this->id;
@@ -228,7 +212,11 @@ class Arena extends Model
 		}
 		$type = pathinfo($image, PATHINFO_EXTENSION);
 		if ($type === 'svg') {
-			return file_get_contents($image);
+			$contents = file_get_contents($image);
+			if ($contents === false) {
+				return '';
+			}
+			return $contents;
 		}
 		return '<img src="' . str_replace(
 				ROOT,

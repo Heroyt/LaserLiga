@@ -21,7 +21,7 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 class Stats extends Model
 {
 
-	public const TABLE = 'tournament_stats';
+	public const string TABLE = 'tournament_stats';
 
 	/** @var int[][] */
 	private static array $tournamentPlayers = [];
@@ -213,7 +213,7 @@ class Stats extends Model
 	 */
 	private function getTournamentPlayers(?LeagueCategory $category = null, ?Tournament $tournament = null): array {
 		if (isset($this->tournament) || isset($tournament)) {
-			$id = $this->tournament?->id ?? $tournament->id;
+			$id = $this->tournament->id ?? $tournament->id;
 			if (!isset(self::$tournamentPlayers[$id])) {
 				self::$tournamentPlayers[$id] = DB::select(TournamentPlayer::TABLE, 'id_player')
 				                                  ->where('id_tournament = %i', $id)

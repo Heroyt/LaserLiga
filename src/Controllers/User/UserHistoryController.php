@@ -82,7 +82,7 @@ class UserHistoryController extends AbstractUserController
 		$allowedOrderFields = [];
 
 		/** @var string|string[] $selectedFields */
-		$selectedFields = $request->getGet('fields', ['players', 'skill']);
+		$selectedFields = $request->getGet('fields', ['players', 'skill']); // @phpstan-ignore  argument.type
 		if (is_string($selectedFields)) {
 			if (empty($selectedFields)) {
 				$selectedFields = ['players', 'skill'];
@@ -151,7 +151,6 @@ class UserHistoryController extends AbstractUserController
 		$this->params->dates = $dates;
 		$this->params->user = $user;
 		$player = $user->player;
-		assert($player !== null, 'User is not a player');
 		$this->params->games = $games;
 		$this->params->p = $page;
 		$this->params->pages = $pages;
@@ -185,7 +184,7 @@ class UserHistoryController extends AbstractUserController
 	 */
 	protected function filters(Request $request, Fluent $query): array {
 		$modeIds = [];
-		/** @var string[] $modes */
+		/** @var string[]|string $modes */
 		$modes = $request->getGet('modes', []);
 		if (!empty($modes) && is_array($modes)) {
 			foreach ($modes as $mode) {
@@ -196,7 +195,7 @@ class UserHistoryController extends AbstractUserController
 		}
 
 		$arenaIds = [];
-		/** @var string[] $arenas */
+		/** @var string[]|string $arenas */
 		$arenas = $request->getGet('arenas', []);
 		if (!empty($arenas) && is_array($arenas)) {
 			foreach ($arenas as $arena) {

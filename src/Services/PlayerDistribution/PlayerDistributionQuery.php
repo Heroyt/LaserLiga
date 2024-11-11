@@ -103,7 +103,7 @@ class PlayerDistributionQuery
 			}
 			$start1 = (float)explode($a[0] === '-' ? '--' : '-', $a)[0];
 			$start2 = (float)explode($b[0] === '-' ? '--' : '-', $b)[0];
-			return $start1 - $start2;
+			return (int)($start1 - $start2);
 		});
 		return $data;
 	}
@@ -165,7 +165,8 @@ class PlayerDistributionQuery
 		if ($total === 0) {
 			return 99;
 		}
-		return (int)round(100 * ($counts[0] ?? 0) / $total);
+		$percentile = (int)round(100 * ($counts[0] ?? 0) / $total);
+		return max(min($percentile, 99), 1);
 	}
 
 	/**
@@ -184,7 +185,8 @@ class PlayerDistributionQuery
 		if ($total === 0) {
 			return 99;
 		}
-		return (int)round(100 * ($counts[0] ?? 0) / $total);
+		$percentile = (int)round(100 * ($counts[0] ?? 0) / $total);
+		return max(min($percentile, 99), 1);
 	}
 
 }

@@ -34,6 +34,7 @@ class Requirements implements InsertExtendInterface
 	 * @inheritDoc
 	 */
 	public static function parseRow(Row $row) : ?static {
+		/** @phpstan-ignore-next-line  */
 		return new self(
 			Requirement::from($row->player_name),
 			Requirement::from($row->player_surname),

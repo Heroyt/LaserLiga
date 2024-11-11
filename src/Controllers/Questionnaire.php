@@ -6,7 +6,6 @@ use App\Models\Questionnaire\Answer;
 use App\Models\Questionnaire\User;
 use App\Services\QuestionnaireHelper;
 use Dibi\Exception;
-use JsonException;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -50,7 +49,7 @@ class Questionnaire extends Controller
 		bdump($filters);
 
 		// Get answers to an array that is easily processed
-		/** @var Answer[] $answers */
+		/** @var Answer[] $userAnswers */
 		$userAnswers = [];
 		$answers = Answer::getAll();
 		foreach ($answers as $answer) {

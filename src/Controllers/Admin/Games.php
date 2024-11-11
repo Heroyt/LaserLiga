@@ -14,18 +14,19 @@ use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Services\Player\PlayerUserService;
 use App\Services\PushService;
+use DateInterval;
+use DateTimeImmutable;
 use Dibi\Exception;
+use JsonException;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Psr\Http\Message\ResponseInterface;
-use App\GameModels\Game\Lasermaxx\Team;
-use DateInterval;
-use DateTimeImmutable;
-use JsonException;
 use Throwable;
 
 class Games extends Controller
@@ -111,16 +112,26 @@ class Games extends Controller
 				);
 				break;
 			default:
-				return $this->respond(['error' => 'Unknown game type'], 400);
+				return $this->respond(new ErrorResponse('Unknown game type', ErrorType::VALIDATION), 400);
 		}
 		$game->arena = Arena::get((int)$request->getPost('arena'));
 		$game->mode = GameModeFactory::getById((int)$request->getPost('gameMode'));
 		$game->modeName = $game->mode->loadName ?? '';
-		$game->start = new DateTimeImmutable($request->getPost('start'));
-		$game->code = $request->getPost('code');
-		$game->fileNumber = (int)$request->getPost('fileNumber');
-		$game->ammo = (int)$request->getPost('ammo');
-		$game->lives = (int)$request->getPost('lives');
+		/** @var string $start */
+		$start = $request->getPost('start', date('Y-m-d H:i:s'));
+		$game->start = new DateTimeImmutable($start);
+		/** @var string $code */
+		$code = $request->getPost('code');
+		$game->code = $code;
+		/** @var numeric-string $fileNumber */
+		$fileNumber = $request->getPost('fileNumber');
+		$game->fileNumber = (int)$fileNumber;
+		/** @var numeric-string $ammo */
+		$ammo = $request->getPost('ammo');
+		$game->ammo = (int)$ammo;
+		/** @var numeric-string $lives */
+		$lives = $request->getPost('lives');
+		$game->lives = (int)$lives;
 
 		$game->timing = new Timing(
 			(int)$request->getPost('timing-before'),
@@ -135,8 +146,10 @@ class Games extends Controller
 		);
 
 		$teams = [];
-		foreach ($request->getPost('teams', []) as $id => $data) {
-			/** @var Team $team */
+		/** @var array<int,array{name:string,color:numeric-string}> $teamsData */
+		$teamsData = $request->getPost('teams', []);
+		foreach ($teamsData as $id => $data) {
+			/** @var \App\GameModels\Game\Evo5\Team|\App\GameModels\Game\Evo6\Team $team */
 			$team = new $game->teamClass;
 			$game->addTeam($team);
 			$teams[$id] = $team;
@@ -150,8 +163,20 @@ class Games extends Controller
 
 		$players = [];
 		$users = [];
-		foreach ($request->getPost('players', []) as $id => $data) {
-			/** @var \App\GameModels\Game\Lasermaxx\Player $player */
+		/** @var array<int,array{
+		 *     team:numeric-string,
+		 *     user?:numeric-string,
+		 *     name:string,
+		 *     mineHits:numeric-string,
+		 *     shots:numeric-string,
+		 *     agent:numeric-string,
+		 *     invisibility:numeric-string,
+		 *     machineGun:numeric-string,
+		 *     shield:numeric-string,
+		 *     }> $playersData */
+		$playersData = $request->getPost('players', []);
+		foreach ($playersData as $id => $data) {
+			/** @var Player|\App\GameModels\Game\Evo6\Player $player */
 			$player = new $game->playerClass;
 			$player->team = $teams[(int)$data['team']];
 			$player->team->addPlayer($player);
@@ -164,7 +189,7 @@ class Games extends Controller
 				try {
 					$player->user = LigaPlayer::get((int)$data['user']);
 					$users[$player->user->id] = ['user' => $player->user, 'player' => $player];
-				} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+				} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 				}
 			}
 
@@ -187,15 +212,18 @@ class Games extends Controller
 				$player->bonus->invisibility = (int)$data['invisibility'];
 				$player->bonus->machineGun = (int)$data['machineGun'];
 				$player->bonus->shield = (int)$data['shield'];
+				$player->scorePowers = ($game->scoring->machineGun * $player->bonus->machineGun) + ($game->scoring->agent * $player->bonus->agent) + ($game->scoring->invisibility * $player->bonus->invisibility) + ($game->scoring->shield * $player->bonus->shield);
 			}
-			else if ($player instanceof \App\GameModels\Game\Evo6\Player) {
+			else {
 				$player->bonuses = (int)$data['agent'] + (int)$data['invisibility'] + (int)$data['machineGun'] + (int)$data['shield'];
+				$player->scorePowers = $player->bonuses + $game->scoring->shield;
 			}
-			$player->scorePowers = ($game->scoring->machineGun * $player->bonus->machineGun) + ($game->scoring->agent * $player->bonus->agent) + ($game->scoring->invisibility * $player->bonus->invisibility) + ($game->scoring->shield * $player->bonus->shield);
 			$player->vest = $id + 1;
 		}
 
-		foreach ($request->getPost('hits', []) as $id => $data) {
+		/** @var array<int,array<int,int>> $hitsData */
+		$hitsData = $request->getPost('hits', []);
+		foreach ($hitsData as $id => $data) {
 			$player = $players[$id];
 			foreach ($data as $targetId => $count) {
 				$target = $players[$targetId];
@@ -233,7 +261,7 @@ class Games extends Controller
 		$game->calculateSkills();
 
 		if (!$game->save()) {
-			return $this->respond(['error' => 'Failed to save the game'], 500);
+			return $this->respond(new ErrorResponse('Failed to save the game'), 500);
 		}
 
 		foreach ($users as $user) {

@@ -78,10 +78,13 @@ class League extends Model implements EventRegistrationInterface
 	/**
 	 * @param string|int ...$append
 	 *
-	 * @return array<string>
+	 * @return list<string>
 	 */
 	public function getUrlPath(string|int ...$append): array {
-		return array_merge(!empty($this->slug) ? ['liga', $this->slug] : ['league', (string) $this->id], $append);
+		return array_merge(
+			!empty($this->slug) ? ['liga', (string) $this->slug] : ['league', (string) $this->id],
+			array_map(static fn($val) => (string) $val, $append)
+		);
 	}
 
 	/**
@@ -114,8 +117,8 @@ class League extends Model implements EventRegistrationInterface
 				if (!isset($team->leagueTeam)) {
 					continue;
 				}
-				$pointsAll[$team->leagueTeam->id] ??= 0; // Initialize empty values for teams
-				$pointsAll[$team->leagueTeam->id] += $key + match ($teamCount - $key) {
+				$pointsAll[(int) $team->leagueTeam->id] ??= 0; // Initialize empty values for teams
+				$pointsAll[(int) $team->leagueTeam->id] += $key + match ($teamCount - $key) {
 						1       => 7, // Will get 4 points more than the second place (4 + 2 extra from second + 1 extra from third)
 						2       => 4, // Will get 3 points more than the third place (3 + 1 extra from third)
 						3       => 2, // Will get 2 points more than the fourth place

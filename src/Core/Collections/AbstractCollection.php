@@ -60,10 +60,6 @@ abstract class AbstractCollection implements CollectionInterface
 
 	/**
 	 * Checks value's type before adding to the collection
-	 *
-	 * @param T $value
-	 *
-	 * @return bool
 	 */
 	protected function checkType(Model $value) : bool {
 		if (!isset($this->type)) {

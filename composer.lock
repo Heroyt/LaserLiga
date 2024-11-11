@@ -868,16 +868,16 @@
         },
         {
             "name": "lsr/core",
-            "version": "0.2.68",
+            "version": "0.2.69",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-core.git",
-                "reference": "e33a59c4dd4fb82c7415c993907f10229ba16205"
+                "reference": "46f34ef2098ed30dc045a85d26db8e0a143d9f29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-core/zipball/e33a59c4dd4fb82c7415c993907f10229ba16205",
-                "reference": "e33a59c4dd4fb82c7415c993907f10229ba16205",
+                "url": "https://api.github.com/repos/Heroyt/lsr-core/zipball/46f34ef2098ed30dc045a85d26db8e0a143d9f29",
+                "reference": "46f34ef2098ed30dc045a85d26db8e0a143d9f29",
                 "shasum": ""
             },
             "require": {
@@ -903,9 +903,9 @@
             },
             "require-dev": {
                 "phpstan/extension-installer": "^1.2",
-                "phpstan/phpstan": "^1.10",
-                "phpstan/phpstan-dibi": "^1.0",
-                "phpstan/phpstan-nette": "^1.2",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-dibi": "^2.0",
+                "phpstan/phpstan-nette": "^2.0",
                 "phpunit/phpunit": "^11",
                 "roave/security-advisories": "dev-latest"
             },
@@ -931,6 +931,9 @@
                 ],
                 "docs": [
                     "doxygen"
+                ],
+                "phpstan": [
+                    "./vendor/bin/phpstan"
                 ]
             },
             "authors": [
@@ -941,10 +944,10 @@
             ],
             "description": "Laser framework core.",
             "support": {
-                "source": "https://github.com/Heroyt/lsr-core/tree/v0.2.68",
+                "source": "https://github.com/Heroyt/lsr-core/tree/v0.2.69",
                 "issues": "https://github.com/Heroyt/lsr-core/issues"
             },
-            "time": "2024-10-20T14:13:30+00:00"
+            "time": "2024-11-11T17:29:44+00:00"
         },
         {
             "name": "lsr/helpers",
@@ -5543,16 +5546,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.0.0",
+            "version": "2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "72115ab2bf1e40af1f9b238938d493ba7f3221e7"
+                "reference": "ab4e9b4415a5fc9e4d27f7fe16c8bc9d067dcd6d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/72115ab2bf1e40af1f9b238938d493ba7f3221e7",
-                "reference": "72115ab2bf1e40af1f9b238938d493ba7f3221e7",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/ab4e9b4415a5fc9e4d27f7fe16c8bc9d067dcd6d",
+                "reference": "ab4e9b4415a5fc9e4d27f7fe16c8bc9d067dcd6d",
                 "shasum": ""
             },
             "require": {
@@ -5597,7 +5600,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-11-11T07:06:55+00:00"
+            "time": "2024-11-11T15:43:04+00:00"
         },
         {
             "name": "phpstan/phpstan-dibi",

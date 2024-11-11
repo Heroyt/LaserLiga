@@ -275,6 +275,7 @@ function getImageStyleSet(Image|string $image, bool $includeAllSizes = true): st
 			}
 
 			$index = (string)$size;
+			/** @phpstan-ignore-next-line */
 			if (isset($versions[$index])) {
 				$srcSet[] = 'url("'.$versions[$index] . '") ' . ($key+1) . 'x type("'.$mime.'")';
 			}
@@ -306,6 +307,7 @@ function getImageSrcSet(Image|string $image, bool $includeAllSizes = true): stri
 				continue;
 			}
 			$index = (string)$size;
+			/** @phpstan-ignore-next-line */
 			if (isset($versions[$index])) {
 				$srcSet[] = $versions[$index] . ' ' . $size . 'w';
 			}

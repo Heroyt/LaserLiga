@@ -104,7 +104,6 @@ class GameGroup extends Model
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
 
-			/** @phpstan-ignore-next-line */
 			$this->teams = $cache->load(
 				'group/' . $this->id . '/teams',
 				function (array &$dependencies) use ($games): array {
@@ -233,7 +232,7 @@ class GameGroup extends Model
 	 *
 	 * @param string $sortBy The field name to sort the games by (default is 'start')
 	 * @param bool   $desc   Whether to sort the games in descending order (default is true)
-	 * @param array  $modes  An array of mode IDs to filter the games by (default is empty)
+	 * @param int[]  $modes  An array of mode IDs to filter the games by (default is empty)
 	 *
 	 * @return Game[] An array of Game instances that belong to the group,
 	 *               filtered by modes if provided
@@ -244,7 +243,6 @@ class GameGroup extends Model
 		if (empty($this->games)) {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
-			/** @phpstan-ignore-next-line */
 			$this->games = $cache->load(
 				'group/' . $this->id . '/games/' . $sortBy . ($desc ? '/desc' : ''),
 				function (array &$dependencies) use ($sortBy, $desc): array {
@@ -253,7 +251,7 @@ class GameGroup extends Model
 						$this::TABLE . '/' . $this->id,
 						'group/' . $this->id . '/games',
 					];
-					$dependencies[CacheParent::EXPIRE] = '1 months';
+					$dependencies[CacheParent::Expire] = '1 months';
 					$games = [];
 					$query = GameFactory::queryGames(true, fields: ['id_group'])
 					                    ->where('[id_group] = %i', $this->id)
@@ -273,7 +271,6 @@ class GameGroup extends Model
 			return array_filter($this->games, static fn(Game $game) => in_array($game->getMode()?->id, $modes, true));
 		}
 
-		/** @phpstan-ignore-next-line */
 		return $this->games;
 	}
 
@@ -288,7 +285,7 @@ class GameGroup extends Model
 		$teamPlayersNames = [];
 		foreach ($team->getPlayers() as $player) {
 			$groupPlayer = $this->getPlayer($player);
-			$teamPlayersNames[] = $groupPlayer?->asciiName ?? $player->name;
+			$teamPlayersNames[] = $groupPlayer->asciiName ?? $player->name;
 		}
 		sort($teamPlayersNames);
 		return md5(implode('-', $teamPlayersNames));
@@ -306,7 +303,6 @@ class GameGroup extends Model
 		if (empty($this->players)) {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
-			/** @phpstan-ignore-next-line */
 			$this->players = $cache->load(
 				'group/' . $this->id . '/players',
 				function (array &$dependencies) use ($games): array {
@@ -382,7 +378,6 @@ class GameGroup extends Model
 				}
 			);
 		}
-		/** @phpstan-ignore-next-line */
 		return $this->players;
 	}
 
@@ -458,7 +453,6 @@ class GameGroup extends Model
 		if (empty($this->games)) {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
-			/** @phpstan-ignore-next-line */
 			return $cache->load('group/' . $this->id . '/games/ids', function (array &$dependencies): array {
 				$dependencies[CacheParent::Tags] = [
 					'gameGroups',
@@ -497,7 +491,7 @@ class GameGroup extends Model
 	public function getDateRange(string $format = 'd.m.Y'): string {
 		$first = $this->getFirstDate()?->format($format);
 		$last = $this->getLastDate()?->format($format);
-		return match (true) { // @phpstan-ignore-line
+		return match (true) {
 			(!isset($first) && !isset($last)) => '',
 			!isset($first) => $last,
 			!isset($last), $first === $last => $first,

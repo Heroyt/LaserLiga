@@ -20,7 +20,10 @@ $suffixes = [
 	7 => ['m' => null, 'f' => null, 'o' => null],
 ];
 
-$mw = unserialize(file_get_contents(MW), ['allowed_classes' => false]);
+$contents = file_get_contents(MW);
+assert(is_string($contents), 'Failed to read file');
+/** @var array<string,string> $mw */
+$mw = unserialize($contents, ['allowed_classes' => false]);
 
 function mw(string $suffix, string $gender): void {
 	global $mw;
@@ -36,6 +39,9 @@ function woman(string $suffix): void {
 	mw($suffix, 'w');
 }
 
+/**
+ * @param array{m:null|string[],f:null|string[],o:null|string[]}[]|array<string,string>  $data
+ */
 function update(string $file, array $data): void {
 	file_put_contents($file, serialize($data));
 }
@@ -45,7 +51,9 @@ function load(string $gender, int $case): void {
 	$file = $gender . '_' . CASES[$case] . '_suffixes.txt';
 	if ($suffixes[$case][$gender] === null) {
 		if (file_exists($file)) {
-			$suffixes[$case][$gender] = unserialize(file_get_contents($file), ['allowed_classes' => false]);
+			$contents = file_get_contents($file);
+			assert(is_string($contents), 'Failed to read file');
+			$suffixes[$case][$gender] = unserialize($contents, ['allowed_classes' => false]);
 		}
 		else {
 			$suffixes[$case][$gender] = [];

@@ -6,7 +6,6 @@ use App\Models\Arena;
 use App\Models\Auth\User;
 use App\Services\Turnstile;
 use App\Templates\Login\LoginParams;
-use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
@@ -15,7 +14,6 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
-use Lsr\Core\Templating\Latte;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Security\Passwords;
@@ -64,9 +62,12 @@ class Login extends Controller
 		];
 		$this->description = 'Vytvořte si nový hráčský účet v systému Laser liga.';
 		// Validate
-		$email = (string) ($request->getPost('email', ''));
-		$password = (string) ($request->getPost('password', ''));
-		$name = (string) ($request->getPost('name', ''));
+		/** @var string $email */
+		$email = $request->getPost('email', '');
+		/** @var string $password */
+		$password = $request->getPost('password', '');
+		/** @var string $name */
+		$name = $request->getPost('name', '');
 		$arena = null;
 
 		$this->validateCaptcha($request);
@@ -89,10 +90,10 @@ class Login extends Controller
 		try {
 			/** @var numeric|null $arenaId */
 			$arenaId = $request->getPost('arena');
-			if (!empty($arenaId) && ($arena = Arena::get($arenaId)) === null) {
-				$this->params->errors['arena'] = lang('Aréna neexistuje', context: 'errors');
+			if (!empty($arenaId)) {
+				$arena = Arena::get((int) $arenaId);
 			}
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			$this->params->errors['arena'] = lang('Aréna neexistuje', context: 'errors');
 		}
 		if (!empty($this->params->errors)) {
@@ -137,8 +138,10 @@ class Login extends Controller
 		];
 		$this->description = 'Přihlášení do systému Laser ligy.';
 		// Validate
-		$email = (string) ($request->getPost('email', ''));
-		$password = (string) ($request->getPost('password', ''));
+		/** @var string $email */
+		$email = $request->getPost('email', '');
+		/** @var string $password */
+		$password = $request->getPost('password', '');
 		$rememberMe = !empty($request->getPost('remember'));
 
 		$this->validateCaptcha($request);

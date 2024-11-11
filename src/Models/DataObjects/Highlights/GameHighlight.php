@@ -9,10 +9,10 @@ use OpenApi\Attributes as OA;
 class GameHighlight implements JsonSerializable
 {
 
-	public const VERY_HIGH_RARITY = 100;
-	public const HIGH_RARITY      = 90;
-	public const MEDIUM_RARITY    = 50;
-	public const LOW_RARITY       = 10;
+	public const int VERY_HIGH_RARITY = 100;
+	public const int HIGH_RARITY   = 90;
+	public const int MEDIUM_RARITY = 50;
+	public const int LOW_RARITY    = 10;
 
 	/**
 	 * @param GameHighlightType $type
@@ -25,9 +25,13 @@ class GameHighlight implements JsonSerializable
 		#[OA\Property]
 		public string                     $value,
 		#[OA\Property]
-		public int                        $rarityScore = self::LOW_RARITY,) {
+		public int                        $rarityScore = self::LOW_RARITY,
+	) {
 	}
 
+	/**
+	 * @return array<string,mixed>
+	 */
 	public function jsonSerialize(): array {
 		return ['type'        => $this->type,
 		        'score'       => $this->rarityScore,

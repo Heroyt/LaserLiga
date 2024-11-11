@@ -55,7 +55,7 @@ class GamePlayerController extends Controller
 		}
 		$this->params->player = $player;
 
-		$this->params->maxShots = $game->getPlayers()->query()->sortBy('shots')->desc()->first()?->shots ?? 1000;
+		$this->params->maxShots = $game->getPlayers()->query()->sortBy('shots')->desc()->first()->shots ?? 1000;
 		$this->params->today = new Today(
 			$game,
 			$player,

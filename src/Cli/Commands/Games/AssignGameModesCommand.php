@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace App\Cli\Commands\Games;
 
-use App\Cli\Colors;
-use App\Cli\Enums\ForegroundColors;
 use App\GameModels\Factory\GameFactory;
+use App\Models\DataObjects\Game\MinimalGameRow;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,13 +35,15 @@ class AssignGameModesCommand extends Command
 		$query = GameFactory::queryGames(true)
 							->where('id_mode IS NULL')
 		                    ->orderBy('start')
-		                    ->desc();
+		                    ->desc()
+							->limit($limit)
+							->offset($offset);
 
 		if ($arenaId) {
 			$query->where('id_arena = %i', (int) $arenaId);
 		}
 
-		$games = $query->getIterator($offset, $limit);
+		$games = $query->fetchIteratorDto(MinimalGameRow::class);
 
 		$count = 0;
 		foreach ($games as $row) {

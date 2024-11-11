@@ -12,14 +12,14 @@ class QuestionnaireHelper
 	 * @return void
 	 */
 	public static function dontShowQuestionnaire() : void {
-		setcookie('dont_show_questionnaire', true, time() + 3600 * 24 * 365, '/'); // Expire in one year
+		setcookie('dont_show_questionnaire', '1', time() + 3600 * 24 * 365, '/'); // Expire in one year
 	}
 
 	/**
 	 * @return void
 	 */
 	public static function showQuestionnaireLater() : void {
-		setcookie('dont_show_questionnaire', true, time() + 3600 * 24, '/'); // Expire in one day
+		setcookie('dont_show_questionnaire', '1', time() + 3600 * 24, '/'); // Expire in one day
 	}
 
 	/**

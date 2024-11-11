@@ -18,6 +18,9 @@ use Lsr\Exceptions\FileException;
 abstract class AbstractResultsParser implements ResultsParserInterface
 {
 
+	/**
+	 * @var array<string, string[][]>
+	 */
 	protected array $matches = [];
 
 	/**
@@ -50,7 +53,6 @@ abstract class AbstractResultsParser implements ResultsParserInterface
 	 */
 	public function getFileLines(): iterable {
 		$separator = "\r\n";
-		/** @var string|false $line */
 		$line = strtok($this->getFileContents(), $separator);
 		while ($line !== false) {
 			yield $line;

@@ -2,8 +2,6 @@
 
 namespace App\Controllers\Api;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
 use App\GameModels\Factory\GameFactory;
@@ -12,6 +10,8 @@ use App\GameModels\Vest;
 use App\Models\Arena;
 use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 use OpenApi\Attributes as OA;
@@ -118,16 +118,16 @@ class VestController extends ApiController
 
 		$vests = $request->getPost('vest', []);
 		if (!is_array($vests)) {
-			return $this->respond(new ErrorDto('"vest" is not an array', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('"vest" is not an array', ErrorType::VALIDATION), 400);
 		}
 		if (empty($vests)) {
-			return $this->respond(new ErrorDto('"vest" array cannot be empty', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('"vest" array cannot be empty', ErrorType::VALIDATION), 400);
 		}
 
 		$errors = [];
 		$supportedSystems = GameFactory::getSupportedSystems();
 
-		/** @var array{vestNum:string,system:string,status:string,info:string|null} $vestData */
+		/** @var array{vestNum:string,system:string,status:string,info:string|null}|mixed $vestData */
 		foreach ($vests as $key => $vestData) {
 			// Validate data
 			if (!is_array($vestData)) {
@@ -175,7 +175,7 @@ class VestController extends ApiController
 		}
 
 		if (count($errors) > 0) {
-			return $this->respond(new ErrorDto('Validation error', ErrorType::VALIDATION, values: $errors), 400);
+			return $this->respond(new ErrorResponse('Validation error', ErrorType::VALIDATION, values: $errors), 400);
 		}
 
 		// Save all new and updated vests
@@ -192,7 +192,7 @@ class VestController extends ApiController
 		}
 
 		if (count($errors) > 0) {
-			return $this->respond(new ErrorDto('Save error', ErrorType::DATABASE, values: $errors), 500);
+			return $this->respond(new ErrorResponse('Save error', ErrorType::DATABASE, values: $errors), 500);
 		}
 		return $this->respond(['vests' => $newVests]);
 	}

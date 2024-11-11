@@ -16,7 +16,7 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 class Seeder implements InstallInterface
 {
 
-	public const USER_TYPES = [
+	public const array USER_TYPES = [
 		[
 			'id_user_type' => 1,
 			'name'         => 'Admin',
@@ -31,16 +31,11 @@ class Seeder implements InstallInterface
 		],
 	];
 
-	public const RIGHTS = [
+	public const array RIGHTS = [
 		'edit-users' => 'Can edit all users.',
 	];
 
-	public const TYPE_RIGHTS = [
-		1 => [], // Admin has all rights
-		2 => [],
-	];
-
-	public const GAME_MODES = [
+	public const array GAME_MODES = [
 		[
 			'id_mode'              => 1,
 			'system'               => 'evo5',
@@ -443,7 +438,7 @@ class Seeder implements InstallInterface
 		],
 	];
 
-	public const GAME_MODE_NAMES = [
+	public const array GAME_MODE_NAMES = [
 		[
 			'id_mode' => 1,
 			'sysName' => '1-TEAM',
@@ -524,16 +519,6 @@ class Seeder implements InstallInterface
 			if ($fresh) {
 				DB::delete('user_type_rights', ['1=1']);
 				DB::resetAutoIncrement('user_type_rights');
-			}
-			foreach (self::TYPE_RIGHTS as $typeId => $rights) {
-				foreach ($rights as $right) {
-					$insert = [
-						'id_user_type' => $typeId,
-						'right'        => $right,
-					];
-					echo json_encode($insert, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE).PHP_EOL;
-					DB::insertIgnore('user_type_rights', $insert);
-				}
 			}
 
 			// Insert admin

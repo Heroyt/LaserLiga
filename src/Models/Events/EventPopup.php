@@ -31,6 +31,7 @@ class EventPopup implements InsertExtendInterface
 	 * @inheritDoc
 	 */
 	public static function parseRow(Row $row): ?static {
+		/** @phpstan-ignore-next-line  */
 		return new self(
 			$row->popup_title,
 			$row->popup_description,

@@ -2,11 +2,11 @@
 
 namespace App\Controllers\User;
 
-use App\Api\Response\ErrorDto;
-use App\Api\Response\ErrorType;
 use App\Exceptions\DispatchBreakException;
 use App\Models\Auth\User;
 use Lsr\Core\Controllers\Controller;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 
 abstract class AbstractUserController extends Controller
@@ -23,7 +23,7 @@ abstract class AbstractUserController extends Controller
 			if ($this->request->isAjax()) {
 				$this->params['errors'][] = 'User not found';
 				throw DispatchBreakException::create(
-					new ErrorDto('User not found', ErrorType::NOT_FOUND, detail: $this->params['errors']),
+					new ErrorResponse('User not found', ErrorType::NOT_FOUND, detail: $this->params['errors']),
 					404
 				);
 			}
