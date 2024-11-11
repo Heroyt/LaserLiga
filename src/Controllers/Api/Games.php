@@ -627,6 +627,7 @@ class Games extends ApiController
 			if ($offset > 0) {
 				$query->offset($offset);
 			}
+			$query->orderBy('start');
 			return GameFactory::iterateByIdFromQuery($query);
 		}
 		$hasUser = !empty($request->getGet('hasuser'));

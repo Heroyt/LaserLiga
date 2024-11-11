@@ -293,6 +293,16 @@ class RankCalculator
 			);
 		} catch (JsonException) {
 		}
+		$ratingDiff = max(min($ratingDiff, 50.0), -50.0);
+		if ($user instanceof User) {
+			$user = $user->createOrGetPlayer();
+		}
+		$rank = $user->stats->rank;
+		$user->stats->rank = (int) round($user->stats->rank + $ratingDiff);
+		if ($user->stats->rank < -100) {
+			$ratingDiff = (float)(-100-$rank);
+			$user->stats->rank = -100;
+		}
 		$insertData = [
 			'code'             => $code,
 			'id_user'          => $user->id,
@@ -310,10 +320,7 @@ class RankCalculator
 			DB::insertIgnore('player_game_rating', $insertData);
 		}
 
-		// Update current rank
-		$currentRank += $ratingDiff;
-
-		return (int)round($currentRank);
+		return $user->stats->rank;
 	}
 
 	/**
@@ -325,13 +332,13 @@ class RankCalculator
 	 * @return int
 	 */
 	public function getPlayerRankOnDate(int $userId, DateTimeInterface $date): int {
-		return (int)round(
+		return max(0, (int)round(
 			DB::select('player_game_rating', '100 + SUM([difference])')->where(
 				'[id_user] = %i AND [date] < %dt',
 				$userId,
 				$date
 			)->fetchSingle(false) ?? 100
-		);
+		));
 	}
 
 	/**
@@ -499,6 +506,10 @@ class RankCalculator
 	public function recalculateUsersRanksFromDifference(): void {
 		DB::getConnection()->query(
 			"UPDATE %n [a] SET [rank] = 100 + COALESCE((SELECT SUM([b].[difference]) FROM [player_game_rating] [b] WHERE [a].[id_user] = [b].[id_user]),0)",
+			Player::TABLE
+		);
+		DB::getConnection()->query(
+			"UPDATE %n [a] SET [rank] = 0 WHERE [rank] < 0",
 			Player::TABLE
 		);
 		$this->cache->clean([$this->cache::Tags => [Player::TABLE, Player::TABLE . '/query']]);
