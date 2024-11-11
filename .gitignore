@@ -23,6 +23,8 @@ Temporary Items
 .apdisk
 *.lock
 *-lock.json
+!composer.lock
+!pnpm-lock.yaml
 temp/
 dist/
 node_modules/
