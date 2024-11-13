@@ -12,9 +12,6 @@
 
 use App\Core\Loader;
 use Dibi\Bridges\Tracy\Panel;
-use Gettext\Loader\PoLoader;
-use Gettext\Translations;
-use Latte\Bridges\Tracy\BlueScreenPanel;
 use Latte\Bridges\Tracy\LattePanel;
 use Lsr\Core\App;
 use Lsr\Core\DB;
@@ -26,8 +23,9 @@ use Lsr\Helpers\Tracy\TimerTracyPanel;
 use Lsr\Helpers\Tracy\TranslationTracyPanel;
 use Nette\Bridges\DITracy\ContainerPanel;
 use Nette\Bridges\HttpTracy\SessionPanel;
+use Nette\Mail\Mailer;
 use Tracy\Debugger;
-use Tracy\NativeSession;
+use Tracy\Logger;
 
 if (!defined('ROOT')) {
 	define("ROOT", dirname(__DIR__) . '/');
@@ -64,10 +62,21 @@ Debugger::getBar()
 
 Loader::init();
 
-define('CHECK_TRANSLATIONS', (bool) (App::getInstance()->config->getConfig()['General']['TRANSLATIONS'] ?? false));
+$config = App::getInstance()->config->getConfig();
+
+if (isset($config['ENV']['TRACY_MAIL']) && is_string($config['ENV']['TRACY_MAIL'])) {
+	$logger = Debugger::getLogger();
+	assert($logger instanceof Logger);
+	$logger->email = (string) $config['ENV']['TRACY_MAIL'];
+	$mailer = App::getService('mailer');
+	assert($mailer instanceof Mailer);
+	$logger->mailer = $mailer;
+}
+
+define('CHECK_TRANSLATIONS', (bool) ($config['General']['TRANSLATIONS'] ?? false));
 define(
 	'TRANSLATIONS_COMMENTS',
-	(bool) (App::getInstance()->config->getConfig()['General']['TRANSLATIONS_COMMENTS'] ?? false)
+	(bool) ($config['General']['TRANSLATIONS_COMMENTS'] ?? false)
 );
 
 if (defined('INDEX') && PHP_SAPI !== 'cli') {
