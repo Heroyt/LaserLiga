@@ -9,6 +9,7 @@ use App\Models\Achievements\AchievementClaimDto;
 use App\Models\Achievements\PlayerAchievement;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\Player;
+use App\Models\DataObjects\Player\PlayerAchievementRow;
 use App\Services\PushService;
 use Dibi\Exception;
 use Lsr\Core\Caching\Cache;
@@ -48,7 +49,7 @@ class AchievementProvider
 			          'user/' . $player->id . '/achievements',
 			          'game/' . $player->getGame()->code . '/achievements'
 		          )
-		          ->fetchAll();
+		          ->fetchAllDto(PlayerAchievementRow::class);
 		foreach ($rows as $row) {
 			$achievements[] = new PlayerAchievement(
 				Achievement::get($row->id_achievement),
@@ -68,7 +69,7 @@ class AchievementProvider
 		$rows = DB::select('player_achievements', '*')
 		          ->where('code = %s', $game->code)
 		          ->cacheTags('user/achievements', 'game/' . $game->code . '/achievements')
-		          ->fetchAll();
+		          ->fetchAllDto(PlayerAchievementRow::class);
 		foreach ($rows as $row) {
 			$achievements[] = new PlayerAchievement(
 				Achievement::get($row->id_achievement),
@@ -81,15 +82,17 @@ class AchievementProvider
 	}
 
 	/**
-	 * @param Player $player
-	 *
 	 * @return AchievementClaimDto[]
+	 * @throws Exception
 	 * @throws ValidationException
 	 */
 	public function getAllClaimedUnclaimed(Player $player): array {
 		$allAchievements = Achievement::query()->orderBy('type')->get();
 		/** @var array<int,object{id_achievement:int,id_user:int,datetime:\DateTimeInterface,code:string}|null> $playerAchievements */
-		$playerAchievements = $this->queryAchievementsForUser($player)->fetchAssoc('id_achievement');
+		$playerAchievements = $this->queryAchievementsForUser($player)->fetchAssocDto(
+			PlayerAchievementRow::class,
+			'id_achievement'
+		);
 		$counts = $this->getClaimedCounts();
 		$achievements = [];
 		foreach ($allAchievements as $achievement) {
@@ -112,6 +115,19 @@ class AchievementProvider
 	}
 
 	/**
+	 * @return int[]
+	 */
+	public function getClaimedCounts(): array {
+		/** @phpstan-ignore-next-line */
+		$this->counts ??= DB::select('player_achievements', 'id_achievement, COUNT(*) as [count]')
+		                    ->groupBy('id_achievement')
+		                    ->cacheTags('user/achievements', 'user/achievements/count')
+		                    ->fetchPairs('id_achievement', 'count');
+
+		return $this->counts;
+	}
+
+	/**
 	 * @param Player $player
 	 *
 	 * @return PlayerAchievement[]
@@ -123,12 +139,17 @@ class AchievementProvider
 	public function getForUser(Player $player): array {
 		$achievements = [];
 
-		$rows = $this->queryAchievementsForUser($player)->fetchAll();
+		$rows = $this->queryAchievementsForUser($player)->fetchAllDto(PlayerAchievementRow::class);
 		foreach ($rows as $row) {
+			$game = GameFactory::getByCode((string)$row->code);
+			if ($game === null) {
+				$this->removePlayerAchievement($row->id_user, $row->id_achievement);
+				continue;
+			}
 			$achievements[] = new PlayerAchievement(
 				Achievement::get((int)$row->id_achievement),
 				$player,
-				GameFactory::getByCode((string)$row->code),
+				$game,
 				$row->datetime
 			);
 		}
@@ -196,17 +217,13 @@ class AchievementProvider
 		}
 	}
 
-	/**
-	 * @return int[]
-	 */
-	public function getClaimedCounts(): array {
-		/** @phpstan-ignore-next-line  */
-		$this->counts ??= DB::select('player_achievements', 'id_achievement, COUNT(*) as [count]')
-		                    ->groupBy('id_achievement')
-		                    ->cacheTags('user/achievements', 'user/achievements/count')
-		                    ->fetchPairs('id_achievement', 'count');
-
-		return $this->counts;
+	private function removePlayerAchievement(int $idUser, int $idAchievement): void {
+		DB::delete('player_achievements', ['id_user = %i AND id_achievement = %i', $idUser, $idAchievement]);
+		$this->cache->clean([
+			                    $this->cache::Tags => [
+				                    'user/' . $idUser . '/achievements',
+			                    ],
+		                    ]);
 	}
 
 }

@@ -10,7 +10,7 @@ use Lsr\Core\DB;
 use Orisai\Scheduler\Job\Job;
 use Orisai\Scheduler\Job\JobLock;
 
-class RegressionUpdateJob implements Job
+final readonly class RegressionUpdateJob implements Job
 {
 
 	public function getName(): string {

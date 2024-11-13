@@ -526,11 +526,12 @@ class DevController extends ApiController
 	public function generateSitemap(): ResponseInterface {
 		$content = SitemapGenerator::generate();
 		return $this->respond(
-			[
-				'status'     => 'ok',
-				'sitemapUrl' => str_replace(ROOT, $this->app->getBaseUrl(), SitemapGenerator::SITEMAP_FILE),
-				'content'    => $content,
-			]
+			new SuccessResponse(
+				values: [
+					        'sitemapUrl' => str_replace(ROOT, $this->app->getBaseUrl(), SitemapGenerator::SITEMAP_FILE),
+					        'content'    => $content,
+				        ]
+			)
 		);
 	}
 

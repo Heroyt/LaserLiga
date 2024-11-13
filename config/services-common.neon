@@ -31,6 +31,18 @@ orisai.scheduler:
 		regressionUpdate:
 			expression: 0 3 * * *
 			callback: [@cron.regressionUpdate, 'run']
+		playerRankUpdate:
+			expression: 11 * * * *
+			callback: [@cron.playerRankUpdate, 'run']
+		playerAchievementCheck:
+			expression: 59 * * * *
+			callback: [@cron.playerAchievementCheck, 'run']
+		sitemap:
+			expression: 30 23 * * *
+			callback: [@cron.sitemap, 'run']
+		gamemodes:
+			expression: 45 23 * * *
+			callback: [@cron.gamemodes, 'run']
 services:
 	# Core
 	app: Lsr\Core\App
@@ -108,6 +120,7 @@ services:
 	gameHighlight: App\Services\GameHighlight\GameHighlightService(tagged(highlightChecker))
 	achievementChecker: App\Services\Achievements\AchievementChecker
 	achievementProvider: App\Services\Achievements\AchievementProvider
+	playerAchievementChecker: App\Services\Achievements\PlayerAchievementChecker
 	titleProvider: App\Services\Achievements\TitleProvider
 	eventRegistration: App\Services\EventRegistrationService
 	arenaStats: App\Services\ArenaStatsAggregator
@@ -115,6 +128,10 @@ services:
 	cron.logArchive: App\Cron\LogArchiveJob
 	cron.arenaReport: App\Cron\ArenaReportJob
 	cron.regressionUpdate: App\Cron\RegressionUpdateJob
+	cron.playerRankUpdate: App\Cron\PlayerRankUpdateJob
+	cron.playerAchievementCheck: App\Cron\PlayerAchievementCheckJob
+	cron.sitemap: App\Cron\GenerateSitemapJob
+	cron.gamemodes: App\Cron\CheckGameModesJob
 
 	result.parser: App\Tools\ResultParsing\ResultsParser
 	result.parser.evo5: App\Tools\ResultParsing\Evo5\ResultsParser
