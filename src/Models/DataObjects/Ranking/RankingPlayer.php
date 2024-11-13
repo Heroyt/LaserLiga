@@ -9,9 +9,9 @@ class RankingPlayer
 {
 	public string $name;
 	public int $skill;
-	public int $id_team;
+	public ?int $id_team = null;
 	public ?int $id_user = null;
-	public ?int $rank = null;
+	public null|int|float $rank = null;
 
 	public static function fromGamePlayer(Player $player): RankingPlayer {
 		$rankingPlayer = new self();
