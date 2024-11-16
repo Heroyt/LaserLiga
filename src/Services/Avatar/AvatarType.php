@@ -20,6 +20,7 @@ enum AvatarType: string
 	case BOTTTS_NEUTRAL     = 'bottts-neutral';
 	case CROODLES           = 'croodles';
 	case CROODLES_NEUTRAL   = 'croodles-neutral';
+	case DYLAN              = 'dylan';
 	case FUN_EMOJI          = 'fun-emoji';
 	case LORELEI            = 'lorelei';
 	case LORELEI_NEUTRAL    = 'lorelei-neutral';
@@ -51,6 +52,7 @@ enum AvatarType: string
 			self::BOTTTS_NEUTRAL     => lang('Roboti - obličej', context: 'avatar'),
 			self::CROODLES           => lang('Čmáranice', context: 'avatar'),
 			self::CROODLES_NEUTRAL   => lang('Čmáranice - obličej', context: 'avatar'),
+			self::DYLAN              => lang('Dylan', context: 'avatar'),
 			self::FUN_EMOJI          => lang('Emoji', context: 'avatar'),
 			self::LORELEI            => lang('Lorelei', context: 'avatar'),
 			self::LORELEI_NEUTRAL    => lang('Lorelei - obličej', context: 'avatar'),
@@ -63,6 +65,27 @@ enum AvatarType: string
 			self::PIXEL_ART          => lang('Pixel art', context: 'avatar'),
 			self::PIXEL_ART_NEUTRAL  => lang('Pixel art - obličej', context: 'avatar'),
 			self::THUMBS             => lang('Palečky', context: 'avatar'),
+		};
+	}
+
+	public function getLicenseNoticeUrl(): string {
+		return match ($this) {
+			self::ADVENTURER, self::ADVENTURER_NEUTRAL => 'https://www.figma.com/community/file/1184595184137881796',
+			self::AVATAAARS, self::AVATAAARS_NEUTRAL   => 'https://avataaars.com/',
+			self::BIG_EARS, self::BIG_EARS_NEUTRAL     => 'https://www.figma.com/community/file/986078800058673824',
+			self::BIG_SMILE                            => 'https://www.figma.com/community/file/881358461963645496',
+			self::BOTTTS, self::BOTTTS_NEUTRAL         => 'https://bottts.com/',
+			self::CROODLES, self::CROODLES_NEUTRAL     => 'https://www.figma.com/community/file/966199982810283152',
+			self::DYLAN                                => 'https://www.figma.com/community/file/1356575240759683500',
+			self::FUN_EMOJI                            => 'https://www.figma.com/community/file/968125295144990435',
+			self::LORELEI, self::LORELEI_NEUTRAL       => 'https://www.figma.com/community/file/1198749693280469639',
+			self::MICAH                                => 'https://www.figma.com/community/file/829741575478342595',
+			self::MINIAVS                              => 'https://www.figma.com/community/file/923211396597067458',
+			self::NOTIONISTS, self::NOTIONISTS_NEUTRAL => 'https://heyzoish.gumroad.com/l/notionists',
+			self::OPEN_PEEPS                           => 'https://www.openpeeps.com/',
+			self::PERSONAS                             => 'https://personas.draftbit.com/',
+			self::PIXEL_ART, self::PIXEL_ART_NEUTRAL   => 'https://www.figma.com/community/file/1198754108850888330',
+			self::THUMBS                               => 'https://www.dicebear.com/',
 		};
 	}
 }

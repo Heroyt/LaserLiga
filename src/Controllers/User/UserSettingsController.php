@@ -46,6 +46,7 @@ class UserSettingsController extends AbstractUserController
 	}
 
 	public function show(): ResponseInterface {
+		$this->params->addCss = ['pages/playerSettings.css'];
 		/** @var User $user */
 		$user = $this->auth->getLoggedIn();
 		assert($user->player !== null, 'User is not a player');

@@ -24,6 +24,7 @@ class TitleProvider
 		foreach ($rows as $row) {
 			$titles[] = Title::get((int)$row->id_title, $row);
 		}
+		usort($titles, static fn(Title $a, Title $b) => $a->rarity->getOrder() - $b->rarity->getOrder());
 		return $titles;
 	}
 

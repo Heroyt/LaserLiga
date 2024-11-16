@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
 class Title extends Model
 {
 
-	public const TABLE = 'titles';
+	public const string TABLE = 'titles';
 
 	#[OA\Property]
 	public string  $name;

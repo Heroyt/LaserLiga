@@ -9,7 +9,7 @@ export default function initUserSettings() {
     const avatarSeed = document.getElementById('avatarSeed') as HTMLInputElement;
     const avatarSave = document.getElementById('avatarSave') as HTMLButtonElement;
     if (avatarPreview && avatarType && avatarSeed) {
-        const baseApiUrl = 'https://api.dicebear.com/7.x/';
+        const baseApiUrl = 'https://api.dicebear.com/9.x/';
         avatarType.addEventListener('change', () => {
             if (!avatarType.value) {
                 if (avatarSave) {

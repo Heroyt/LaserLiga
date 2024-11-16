@@ -9,17 +9,21 @@
     {ifset $user->player}
         <hr class="my-4">
         <h3>{lang 'Avatar'}</h3>
+        <p class="text-muted">{_'Avatara si nemůžeš přímo vybrat, ale generují se náhodně. Můžeš si vybrat z několika různých stylů a pokud chceš ovlivnit jaký avatar se vygeneruje, můžeš zkusit měnit seed.'}</p>
         <img src="{link 'user', $user->player->getCode(), 'avatar'}" alt="Avatar" class="avatar-preview"
              id="avatarPreview" style="max-height: 8rem;">
         <p>
             <label for="avatarType" class="form-label">{lang 'Typ avatara'}:</label>
-            <select id="avatarType" class="form-select">
+            <select id="avatarType" class="form-select" data-trigger-description="true">
                 <option value="" disabled selected>{lang Vyberte}</option>
                 <option n:foreach="App\Services\Avatar\AvatarType::cases() as $type"
-                        value="{$type->value}" n:attr="selected: isset($user->player->avatarStyle) && $user->player->avatarStyle === $type->value">
+                        value="{$type->value}"
+                        data-description='<a href="{$type->getLicenseNoticeUrl()}">{_'Oficiální zdroj stylu'}</a>'
+                        n:attr="selected: isset($user->player->avatarStyle) && $user->player->avatarStyle === $type->value">
                     {$type->getReadableName()}
                 </option>
             </select>
+            <span class="form-text select-description" data-target="#avatarType"></span>
         </p>
         <p>
             <label for="avatarSeed" class="form-label">{lang 'Seed'}:</label>
@@ -35,15 +39,16 @@
     {/ifset}
     <form action="{link ['user']}" id="profile-form" method="post" class="position-relative">
         {ifset $user->player}
-            <label for="player-title" class="fs-3">{lang Titul}</label>
-            <p>
-                <select name="title" id="player-title" class="form-select">
-                    <option n:foreach="$titles as $title" n:attr="selected: $title->id === $user->player->getTitle()->id"
-                            value="{$title->id}">
-                        {$title->rarity->getReadableName()}: {$title->name|lang}
-                    </option>
-                </select>
-            </p>
+            <div class="fs-3">{_'Titul'}</div>
+            <p class="text-muted">{_'Další tituly odemkneš získáním ocenění.'}</p>
+            <div class="titles-select">
+                {foreach $titles as $title}
+                    <input class="d-none" type="radio" name="title" id="title-{$title->id}" n:attr="checked: $title->id === $user->player->getTitle()->id" value="{$title->id}" />
+                    <label for="title-{$title->id}" class="player-title rarity-{$title->rarity->value}">
+                        {_$title->name}
+                    </label>
+                {/foreach}
+            </div>
             <hr class="my-4">
         {/ifset}
         <h3>{lang 'Údaje'}</h3>

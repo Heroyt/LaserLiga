@@ -5,7 +5,7 @@ namespace App\Services\Avatar;
 class AvatarService
 {
 
-	public const string BASE_API = 'https://api.dicebear.com/7.x/';
+	public const string BASE_API = 'https://api.dicebear.com/9.x/';
 
 	/**
 	 * Get an avatar using a dicebear API

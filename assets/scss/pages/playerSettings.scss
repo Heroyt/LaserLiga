@@ -1,0 +1,23 @@
+@import '../components/titles';
+
+.titles-select {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  gap: 1rem;
+
+  input:checked + label {
+    opacity: 1;
+    outline: 2px solid var(--bs-success);
+    outline-offset: .2rem;
+  }
+
+  .player-title {
+    cursor: pointer;
+    opacity: .4;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

@@ -29,4 +29,16 @@ enum Rarity: string
 		);
 	}
 
+	public function getOrder() : int {
+		return match($this) {
+			self::COMMON    => 5,
+			self::UNCOMMON  => 4,
+			self::RARE      => 3,
+			self::EPIC      => 2,
+			self::LEGENDARY => 1,
+			self::MYTHIC    => 0,
+
+		};
+	}
+
 }

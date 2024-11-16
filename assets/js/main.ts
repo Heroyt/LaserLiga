@@ -4,7 +4,8 @@ import {
     initCopyToClipboard,
     initPopovers,
     initTableRowLink,
-    initTooltips
+    initTooltips,
+    selectInputDescriptionSetup
 } from './functions';
 import route from "./router";
 import initDatePickers from "./datePickers";
@@ -178,6 +179,8 @@ window.addEventListener("load", () => {
     });
 
     initCopyToClipboard();
+
+    document.querySelectorAll<HTMLSelectElement>('select[data-trigger-description]').forEach(selectInputDescriptionSetup)
 
     // Mobile nav
     const mainNav = document.getElementById('mobile-menu-full') as HTMLDivElement;
