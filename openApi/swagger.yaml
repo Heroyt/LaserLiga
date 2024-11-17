@@ -338,7 +338,7 @@ paths:
                   type: string
                 games:
                   type: array
-                  items: { $ref: '#/components/schemas/Game' }
+                  items: { oneOf: [{ $ref: '#/components/schemas/Evo5GameImport' }, { $ref: '#/components/schemas/Evo6GameImport' }] }
               type: object
       responses:
         '201':
@@ -346,13 +346,14 @@ paths:
           content:
             application/json:
               schema:
-                required:
-                  - success
-                  - imported
-                properties:
-                  success: { type: boolean }
-                  imported: { type: integer }
                 type: object
+                allOf:
+                  - { properties: { values: { properties: { imported: { description: 'Number of games imported', type: integer } }, type: object, example: { imported: 1 } } }, type: object }
+                  - { $ref: '#/components/schemas/SuccessResponse' }
+              example:
+                message: 'Games imported'
+                values:
+                  imported: 1
         '400':
           description: 'Bad request'
           content:
@@ -1058,6 +1059,55 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/LigaPlayer'
+    post:
+      tags:
+        - Players
+      summary: 'Register a new player'
+      description: 'Register a new player'
+      operationId: registerPlayer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: 'Lay zerteg'
+                  nullable: false
+                email:
+                  type: string
+                  format: email
+                  example: lay@zerteg.com
+                  nullable: false
+                password:
+                  type: string
+                  example: superstrongpassword123
+                  nullable: false
+              type: object
+      responses:
+        '201':
+          description: 'Created a new player'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LigaPlayer'
+        '400':
+          description: 'Bad request'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 'Internal error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   '/api/players/{code}':
     get:
       tags:
@@ -1437,52 +1487,6 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
-    ErrorDto:
-      properties:
-        title:
-          type: string
-          example: 'Error title'
-        type:
-          $ref: '#/components/schemas/ErrorType'
-        detail:
-          type: string
-          example: 'Error description'
-          nullable: true
-        exception:
-          properties:
-            message:
-              type: string
-              example: 'Some exception description'
-            code:
-              type: integer
-              example: 123
-            trace:
-              type: array
-              items:
-                type: object
-              example:
-                -
-                  file: index.php
-                  line: 1
-                  function: abc
-                  args: ['Argument value']
-          type: object
-          nullable: true
-        values:
-          type: object
-          example:
-            key1: value1
-            key2: value2
-          nullable: true
-      type: object
-    ErrorType:
-      type: string
-      enum:
-        - validation_error
-        - database_error
-        - internal_error
-        - resource_not_found_error
-        - resource_access_error
     GamesListResponse:
       type: array
       items:
@@ -1499,6 +1503,7 @@ components:
       enum:
         - TEAM
         - SOLO
+      example: TEAM
     VestStatus:
       description: 'Statuses for vests'
       type: string
@@ -1506,6 +1511,18 @@ components:
         - ok
         - playable
         - broken
+    BonusCounts:
+      description: "Structure containing player's bonuses"
+      properties:
+        agent:
+          type: integer
+        invisibility:
+          type: integer
+        machineGun:
+          type: integer
+        shield:
+          type: integer
+      type: object
     GameEvo5:
       description: 'LaserMaxx Evo5 game model'
       type: object
@@ -1958,6 +1975,333 @@ components:
         - hits
         - deaths
         - user_average
+    Evo5GameImport:
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/GameImport'
+        -
+          properties:
+            scoring:
+              nullable: true
+              oneOf:
+                -
+                  $ref: '#/components/schemas/ScoringEvo5'
+            players:
+              type: array
+              items:
+                $ref: '#/components/schemas/Evo5PlayerImport'
+          type: object
+    Evo5PlayerImport:
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/PlayerImport'
+        -
+          properties:
+            bonus:
+              nullable: true
+              oneOf:
+                -
+                  $ref: '#/components/schemas/BonusCounts'
+          type: object
+    Evo6GameImport:
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/GameImport'
+        -
+          properties:
+            scoring:
+              nullable: true
+              oneOf:
+                -
+                  $ref: '#/components/schemas/ScoringEvo6'
+            players:
+              type: array
+              items:
+                $ref: '#/components/schemas/Evo6PlayerImport'
+          type: object
+    Evo6PlayerImport:
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/PlayerImport'
+        -
+          properties:
+            bonuses:
+              type: integer
+              example: 10
+              nullable: true
+            calories:
+              type: integer
+              example: 200
+              nullable: true
+          type: object
+    GameImport:
+      properties:
+        gameType:
+          oneOf:
+            -
+              $ref: '#/components/schemas/GameModeType'
+          nullable: true
+        lives:
+          type: integer
+          example: 999
+          nullable: true
+        ammo:
+          type: integer
+          example: 9999
+          nullable: true
+        modeName:
+          type: string
+          example: 'Team deathmach'
+          nullable: true
+        fileNumber:
+          description: ''
+          example: '0123'
+          nullable: true
+        code:
+          type: string
+          example: g6739f7146ded5
+          nullable: true
+        respawn:
+          type: integer
+          example: 5
+          nullable: true
+        sync:
+          type: boolean
+          example: true
+          nullable: true
+        fileTime:
+          type: string
+          format: date-time
+        importTime:
+          type: string
+          format: date-time
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        timing:
+          nullable: true
+          oneOf:
+            -
+              $ref: '#/components/schemas/Timing'
+        mode:
+          nullable: true
+          oneOf:
+            -
+              $ref: '#/components/schemas/ModeImport'
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerImport'
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamImport'
+        music:
+          nullable: true
+          oneOf:
+            -
+              $ref: '#/components/schemas/MusicImport'
+        group:
+          nullable: true
+          oneOf:
+            -
+              $ref: '#/components/schemas/GroupImport'
+      type: object
+    GroupImport:
+      properties:
+        id:
+          description: 'Local group ID'
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: 'Skupina ABC'
+      type: object
+    ModeImport:
+      properties:
+        type:
+          oneOf:
+            -
+              $ref: '#/components/schemas/GameModeType'
+          nullable: true
+        name:
+          type: string
+          example: 'Team deathmach'
+      type: object
+    MusicImport:
+      properties:
+        id:
+          description: 'Local music mode ID'
+          type: integer
+          example: 1
+      type: object
+    PlayerHitImport:
+      properties:
+        target:
+          description: "Target player's ID"
+          type: integer
+          example: '2'
+        count:
+          type: integer
+          example: 10
+      type: object
+    PlayerImport:
+      properties:
+        id:
+          type: integer
+          example: 1
+          nullable: true
+        id_player:
+          type: integer
+          example: 1
+          nullable: true
+        name:
+          type: string
+          example: Heroyt
+          nullable: true
+        code:
+          type: string
+          example: 1-8HRT8
+          nullable: true
+        team:
+          nullable: true
+          oneOf:
+            -
+              description: 'Team color'
+              type: integer
+              example: 1
+            -
+              $ref: '#/components/schemas/TeamColorImport'
+        score:
+          type: integer
+          example: 10000
+          nullable: true
+        skill:
+          type: integer
+          example: 1000
+          nullable: true
+        shots:
+          type: integer
+          example: 100
+          nullable: true
+        accuracy:
+          type: integer
+          example: 50
+          nullable: true
+        vest:
+          type: integer
+          example: 1
+          nullable: true
+        hits:
+          type: integer
+          example: 100
+          nullable: true
+        deaths:
+          type: integer
+          example: 50
+          nullable: true
+        hitsOwn:
+          type: integer
+          example: 0
+          nullable: true
+        deathsOwn:
+          type: integer
+          example: 0
+          nullable: true
+        hitsOther:
+          type: integer
+          example: 100
+          nullable: true
+        deathsOther:
+          type: integer
+          example: 50
+          nullable: true
+        vip:
+          type: boolean
+          example: false
+          nullable: true
+        myLasermaxx:
+          type: string
+          format: url
+          example: ''
+          nullable: true
+        hitPlayers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerHitImport'
+        position:
+          type: integer
+          example: 1
+          nullable: true
+        shotPoints:
+          type: integer
+          example: 0
+          nullable: true
+        scoreBonus:
+          type: integer
+          example: 0
+          nullable: true
+        scoreMines:
+          type: integer
+          example: -50
+          nullable: true
+        ammoRest:
+          type: integer
+          example: 9899
+          nullable: true
+        tournamentPlayer:
+          type: integer
+          example: 1
+          nullable: true
+      type: object
+    TeamColorImport:
+      properties:
+        id:
+          type: integer
+          example: 1
+          nullable: true
+        color:
+          type: integer
+          example: 1
+      type: object
+    TeamImport:
+      properties:
+        id:
+          type: integer
+          example: 1
+          nullable: true
+        id_team:
+          type: integer
+          example: 1
+          nullable: true
+        name:
+          type: string
+          example: 'Modrý tým'
+          nullable: true
+        score:
+          type: integer
+          example: 10000
+          nullable: true
+        color:
+          type: integer
+          example: 1
+          nullable: true
+        position:
+          type: integer
+          example: 1
+          nullable: true
+        tournamentTeam:
+          type: integer
+          example: 1
+          nullable: true
+      type: object
     PlayerRadarData:
       properties:
         rank:
@@ -2252,7 +2596,7 @@ components:
           type: string
           example: 'Error title'
         type:
-          type: Lsr\Core\Requests\Enums\ErrorType
+          $ref: '#/components/schemas/ErrorType'
         detail:
           type: string
           example: 'Error description'
@@ -2300,6 +2644,14 @@ components:
             key2: value2
           nullable: true
       type: object
+    ErrorType:
+      type: string
+      enum:
+        - validation_error
+        - database_error
+        - internal_error
+        - resource_not_found_error
+        - resource_access_error
   securitySchemes:
     bearerAuth:
       type: http
