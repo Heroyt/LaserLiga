@@ -24,6 +24,7 @@ use Lsr\Helpers\Tracy\TranslationTracyPanel;
 use Nette\Bridges\DITracy\ContainerPanel;
 use Nette\Bridges\HttpTracy\SessionPanel;
 use Nette\Mail\Mailer;
+use Tracy\Bridges\Nette\MailSender;
 use Tracy\Debugger;
 use Tracy\Logger;
 
@@ -70,7 +71,10 @@ if (isset($config['ENV']['TRACY_MAIL']) && is_string($config['ENV']['TRACY_MAIL'
 	$logger->email = (string) $config['ENV']['TRACY_MAIL'];
 	$mailer = App::getService('mailer');
 	assert($mailer instanceof Mailer);
-	$logger->mailer = $mailer;
+	$logger->mailer = static function($message, string $email) use ($mailer, $logger) {
+		$mailSender = new MailSender($mailer, $logger->email, App::getInstance()->getBaseUrl());
+		$mailSender->send($message, $email);
+	};
 }
 
 define('CHECK_TRANSLATIONS', (bool) ($config['General']['TRANSLATIONS'] ?? false));
