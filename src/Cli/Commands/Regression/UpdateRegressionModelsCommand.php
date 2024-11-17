@@ -4,7 +4,7 @@ namespace App\Cli\Commands\Regression;
 
 use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
@@ -50,7 +50,7 @@ class UpdateRegressionModelsCommand extends Command
                     $output->writeln('Calculating team deaths model');
                     $this->calculator->updateDeathsOwnModel($mode);
                 }
-            } catch (InsuficientRegressionDataException) {
+            } catch (InsufficientRegressionDataException) {
                 $output->writeln(
                     Colors::color(ForegroundColors::RED) .
                     sprintf('Insufficient data for game mode: %s (#%d)', $mode->name, $mode->id) .
