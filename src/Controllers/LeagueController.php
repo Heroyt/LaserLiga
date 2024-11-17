@@ -39,6 +39,25 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * @phpstan-type PlayerData array{
+ *     id?:numeric-string,
+ *     registered?:string,
+ *     captain?:string,
+ *     sub?:string,
+ *     name:string,
+ *     surname:string,
+ *     nickname:string,
+ *     phone?:string,
+ *     parentEmail?:string,
+ *     parentPhone?:string,
+ *     birthYear?:numeric-string,
+ *     user?:string,
+ *     email:string,
+ *     skill:string,
+ *     event?:array<int,int|int[]>
+ * }
+ */
 class LeagueController extends Controller
 {
 	use CaptchaValidation;
@@ -86,9 +105,9 @@ class LeagueController extends Controller
 	public function detail(League $league): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'         => [],
-			$league->arena->name => ['arena', $league->arena->id],
-			lang('Turnaje')      => App::getLink(['arena', $league->arena->id]) . '#tournaments-tab',
-			$league->name        => isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id],
+			$league->arena->name => ['arena', (string) $league->arena->id],
+			lang('Turnaje')      => App::getLink(['arena', (string) $league->arena->id]) . '#tournaments-tab',
+			$league->name        => isset($league->slug) ? ['liga', (string) $league->slug] : ['league', (string) $league->id],
 		];
 		$this->title = 'Liga %s';
 		$this->titleParams[] = $league->name;
@@ -123,15 +142,15 @@ class LeagueController extends Controller
 	 * @throws JsonException
 	 */
 	public function teamDetail(LeagueTeam $team): ResponseInterface {
+		$league = $team->league;
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'               => [],
-			$team->league->arena->name => ['arena', $team->league->arena->id],
-			lang('Turnaje')            => App::getLink(['arena', $team->league->arena->id]) . '#tournaments-tab',
-			$team->league->name        => isset($league->slug) ? ['liga', $team->league->slug] : [
-				'league',
-				$team->league->id,
-			],
-			$team->name                => ['league', 'team', $team->id],
+			$team->league->arena->name => ['arena', (string) $team->league->arena->id],
+			lang('Turnaje')            => App::getLink(['arena', (string) $team->league->arena->id]) . '#tournaments-tab',
+			$team->league->name        => isset($league->slug) ?
+				['liga', $team->league->slug] :
+				['league', (string) $team->league->id],
+			$team->name                => ['league', 'team', (string)$team->id],
 		];
 		$this->title = 'Statistiky týmu - %s';
 		$this->titleParams[] = $team->name;
@@ -471,7 +490,7 @@ class LeagueController extends Controller
 				}
 			}
 			else {
-				/** @var array{id?:numeric-string,registered?:string,captain?:string,sub?:string,name:string,surname:string,nickname:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:numeric-string,user?:string,email:string,skill:string}[] $players */
+				/** @var PlayerData[] $players */
 				$players = $request->getPost('players', []);
 				foreach ($players as $playerData) {
 					$user = null;
@@ -511,7 +530,7 @@ class LeagueController extends Controller
 
 			try {
 				/** @var LeagueTeam $team */
-				$team = $this->eventRegistrationService->registerTeam($league, $data, $category);
+				$team = $this->eventRegistrationService->registerTeam($league, $data, $category); // @phpstan-ignore argument.templateType
 
 				// Prepare data for tournament registration
 				foreach ($data->players as $player) {
@@ -533,7 +552,7 @@ class LeagueController extends Controller
 						if ($tournament->isFinished()) {
 							continue;
 						}
-						$this->eventRegistrationService->registerTeam($tournament, $data);
+						$this->eventRegistrationService->registerTeam($tournament, $data); // @phpstan-ignore argument.templateType
 					}
 				}
 
@@ -544,7 +563,7 @@ class LeagueController extends Controller
 					foreach ($eventIds as $eventId => $dates) {
 						$event = Event::get((int)$eventId);
 						/** @var EventTeam $eventTeam */
-						$eventTeam = $this->eventRegistrationService->registerTeam($event, $data);
+						$eventTeam = $this->eventRegistrationService->registerTeam($event, $data); // @phpstan-ignore argument.templateType
 						if (!is_array($dates)) {
 							$dates = [$dates];
 						}
@@ -717,6 +736,7 @@ class LeagueController extends Controller
 					$playerData['event'][$eventPlayer->event->id][] = $date->id;
 				}
 			}
+			/** @phpstan-ignore-next-line */
 			$this->params['values']['players'][] = $playerData;
 		}
 
@@ -777,7 +797,7 @@ class LeagueController extends Controller
 				);
 				$data->image = $this->processLogoUpload() ?? $team->getImageObj();
 
-				/** @var array{id?:numeric-string,registered?:string,captain?:string,sub?:string,name:string,surname:string,nickname:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:numeric-string,user?:string,email:string,skill:string}[] $players */
+				/** @var PlayerData[] $players */
 				$players = $request->getPost('players', []);
 				foreach ($players as $playerData) {
 					$user = null;
@@ -837,7 +857,7 @@ class LeagueController extends Controller
 									continue;
 								}
 								foreach ($tournamentTeam->getPlayers() as $tournamentPlayer) {
-									if ($tournamentPlayer->leaguePlayer?->id === $player->leaguePlayer?->id) {
+									if ($tournamentPlayer->leaguePlayer?->id === $player->leaguePlayer->id) {
 										$player->playerId = $tournamentPlayer->id;
 										break;
 									}
@@ -867,7 +887,7 @@ class LeagueController extends Controller
 							if ($tournament->isFinished() || in_array($tournament->id, $tournaments, true)) {
 								continue;
 							}
-							$this->eventRegistrationService->registerTeam($tournament, $data);
+							$this->eventRegistrationService->registerTeam($tournament, $data); // @phpstan-ignore  argument.templateType
 						}
 					}
 
@@ -906,7 +926,7 @@ class LeagueController extends Controller
 			if (empty($this->params['errors'])) {
 				DB::getConnection()->commit();
 				$request->addPassNotice(lang('Změny byly úspěšně uloženy.'));
-				$link = ['league', 'registration', $league->id, $team->id];
+				$link = ['league', 'registration', (string) $league->id, (string) $team->id];
 				if (isset($_REQUEST['h'])) {
 					$link['h'] = $_REQUEST['h'];
 				}

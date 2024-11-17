@@ -38,7 +38,12 @@
 	</defs>
 	<rect x="0" y="0" width="1200" height="600" fill="url(#bg)"/>
 	<g class="header">
-        {extractSvg($game->arena->getLogoFileName(), ['x' => $padding, 'y' => $padding, 'height' => $headerHeight, 'width'=>$headerHeight])|noescape}
+        {var string $logo = $game->arena->getLogoFileName()}
+        {if str_ends_with($logo,'.svg')}
+            {extractSvg($logo, ['x' => $padding, 'y' => $padding, 'height' => $headerHeight, 'width'=>$headerHeight])|noescape}
+        {else}
+            <image href="{$game->arena->getLogoUrl()}" x="{$padding}" y="{$padding}" height="{$headerHeight}" width="{$headerHeight}" />
+        {/if}
 		<text x="{$padding + $headerHeight + 30}" y="{$padding + 30}" text-anchor="start" font-size="20"
 			  font-family="sans-serif" fill="#fff">
 			<tspan font-weight="bold">

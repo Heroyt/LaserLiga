@@ -19,7 +19,7 @@ class UserHistoryParameters extends TemplateParameters
 	use GameFilters;
 
 	public User $user;
-	public User $loggedInUser;
+	public ?User $loggedInUser;
 	public bool $currentUser = false;
 	/** @var array<string, FilterField>  */
 	public array $allFields = [];

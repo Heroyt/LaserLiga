@@ -51,7 +51,7 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	/**
 	 * Get the result of the query
 	 *
-	 * @return CollectionInterface<T>|array
+	 * @return CollectionInterface<T>|T[]
 	 */
 	public function get(): CollectionInterface|array {
 		$collection = clone $this->collection;
@@ -151,11 +151,15 @@ abstract class AbstractCollectionQuery implements CollectionQueryInterface
 	public function filter(string $param, ...$values): CollectionQueryInterface {
 		$method = 'get' . Strings::firstUpper($param);
 		if (method_exists($this->getType(), $method)) {
-			$this->filters[] = new CollectionQueryFilter($method, $values, true);
+			/** @var CollectionQueryFilter<T> $filter */
+			$filter = new CollectionQueryFilter($method, $values, true);
+			$this->filters[] = $filter;
 			return $this;
 		}
 		if (property_exists($this->getType(), $param)) {
-			$this->filters[] = new CollectionQueryFilter($param, $values);
+			/** @var CollectionQueryFilter<T> $filter */
+			$filter = new CollectionQueryFilter($param, $values);
+			$this->filters[] = $filter;
 			return $this;
 		}
 		throw new InvalidQueryParameterException('Invalid query parameter. Neither ' . $this->getType() . '::$' . $param . ' or ' . $this->getType() . '::' . $method . '() does not exist.');

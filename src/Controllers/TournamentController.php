@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Exceptions\ModelSaveFailedException;
 use App\GameModels\Game\Enums\GameModeType;
-use App\GameModels\Game\Evo5\Player;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Event\PlayerRegistrationDTO;
@@ -23,6 +22,7 @@ use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Request;
 use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\AuthInterface;
@@ -79,12 +79,12 @@ class TournamentController extends Controller
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
 			$tournament->arena->name => ['arena', $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
-			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string) $tournament->league->id];
 		}
-		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string) $tournament->id];
 
 		$this->params['tournament'] = $tournament;
 		$this->params['rules'] = $this->latteRules($tournament);
@@ -124,14 +124,14 @@ class TournamentController extends Controller
 	private function setRegisterTitleDescription(Tournament $tournament): void {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
-			$tournament->arena->name => ['arena', $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+			$tournament->arena->name => ['arena', (string) $tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
-			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string) $tournament->league->id];
 		}
-		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
-		$this->params['breadcrumbs'][lang('Registrace')] = ['tournament', $tournament->id, 'register'];
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string) $tournament->id];
+		$this->params['breadcrumbs'][lang('Registrace')] = ['tournament', (string) $tournament->id, 'register'];
 		$this->title = '%s - Registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
 		$this->description = 'Registrace na turnaj %s v %s. Turnaj se odehrává %s od %s.';
@@ -196,7 +196,9 @@ class TournamentController extends Controller
 
 		if (empty($this->params['errors'])) {
 			DB::getConnection()->begin();
-			$data = new TeamRegistrationDTO($previousTeam?->name ?? $request->getPost('team-name'));
+			/** @var string|null $teamName */
+			$teamName = $request->getPost('team-name');
+			$data = new TeamRegistrationDTO($previousTeam->name ?? $teamName);
 			$data->image = $this->processLogoUpload();
 			if (isset($previousTeam)) {
 				if ($previousTeam->tournament->league?->id === $tournament->league?->id) {
@@ -253,7 +255,8 @@ class TournamentController extends Controller
 
 
 			try {
-				$team = $this->eventRegistrationService->registerTeam($tournament, $data);
+				/** @var Team $team */
+				$team = $this->eventRegistrationService->registerTeam($tournament, $data); // @phpstan-ignore argument.templateType
 			} catch (ModelSaveFailedException|ModelNotFoundException|ValidationException $e) {
 				$this->getLogger()->exception($e);
 				$this->params['errors'][] = lang('Nepodařilo se uložit tým. Zkuste to znovu', context: 'errors');
@@ -267,7 +270,7 @@ class TournamentController extends Controller
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
 			return $this->app->redirect(
-				['tournament', 'registration', $tournament->id, $team->id, 'h' => $team->getHash()],
+				['tournament', 'registration', (string) $tournament->id, (string) $team->id, 'h' => $team->getHash()],
 				$request
 			);
 		}
@@ -300,18 +303,18 @@ class TournamentController extends Controller
 	public function updateRegistration(Tournament $tournament, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
-			$tournament->arena->name => ['arena', $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+			$tournament->arena->name => ['arena', (string) $tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
-			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string) $tournament->league->id];
 		}
-		$this->params['breadcrumbs'][$tournament->name] = ['tournament', $tournament->id];
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string) $tournament->id];
 		$this->params['breadcrumbs'][lang('Úprava registrace')] = [
 			'tournament',
 			'registration',
-			$tournament->id,
-			$registration,
+			(string) $tournament->id,
+			(string) $registration,
 		];
 		$this->title = '%s - Úprava registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
@@ -321,20 +324,21 @@ class TournamentController extends Controller
 			);
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				return $this->app->redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
 			}
 			if (!empty($request->params['hash'])) {
 				$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				return $this->app->redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
 			}
-			return $this->updateTeam($team, $request);
+			return $this->updateTeam($team);
 		}
+		return $this->respond(new ErrorResponse('Unimplemented'), 501);
 	}
 
-	private function validateRegistrationAccess(Team|Player $registration): bool {
+	private function validateRegistrationAccess(Team|\App\Models\Tournament\Player $registration): bool {
 		if (isset($this->params['user'])) {
 			/** @var User $user */
 			$user = $this->params['user'];
@@ -342,7 +346,7 @@ class TournamentController extends Controller
 				return true;
 			}
 			// Check if registration's player is the currently registered player
-			if ($registration instanceof Player && $registration->user?->id === $user->id) {
+			if ($registration instanceof \App\Models\Tournament\Player && $registration->user?->id === $user->id) {
 				return true;
 			}
 			if ($registration instanceof Team) {
@@ -365,7 +369,7 @@ class TournamentController extends Controller
 		return false;
 	}
 
-	private function updateTeam(Team $team, Request $request): ResponseInterface {
+	private function updateTeam(Team $team): ResponseInterface {
 		$this->params['team'] = $team;
 		$this->params['tournament'] = $team->tournament;
 
@@ -374,8 +378,8 @@ class TournamentController extends Controller
 			'team-name' => $team->name,
 			'players'   => [],
 		];
-		bdump($team->getPlayers());
 		foreach ($team->getPlayers() as $player) {
+			/** @phpstan-ignore-next-line  */
 			$this->params['values']['players'][] = [
 				'id'          => $player->id,
 				'user'        => $player->user?->getCode(),
@@ -397,8 +401,8 @@ class TournamentController extends Controller
 	public function processUpdateRegister(Tournament $tournament, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
-			$tournament->arena->name => ['arena', $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', $tournament->arena->id]) . '#tournaments-tab',
+			$tournament->arena->name => ['arena', (string) $tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
 			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
@@ -419,16 +423,18 @@ class TournamentController extends Controller
 			            ->first();
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				return $this->app->redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				return $this->app->redirect(['tournament', $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
 			}
 			$this->params['errors'] = $this->eventRegistrationService->validateRegistration($tournament, $request);
 			if (empty($this->params['errors'])) {
 				DB::getConnection()->begin();
-				$data = new TeamRegistrationDTO($request->getPost('team-name'));
+				$teamName = $request->getPost('team-name');
+				assert(is_string($teamName));
+				$data = new TeamRegistrationDTO($teamName);
 				$data->leagueTeam = $team->leagueTeam->id;
 				$data->image = $this->processLogoUpload() ?? $team->getImageObj();
 
@@ -460,6 +466,7 @@ class TournamentController extends Controller
 				}
 
 				try {
+					/** @var Team $team */
 					$team = $this->eventRegistrationService->registerTeam($tournament, $data, team: $team);
 				} catch (ModelSaveFailedException|ModelNotFoundException|ValidationException $e) {
 					bdump($data);
@@ -471,7 +478,7 @@ class TournamentController extends Controller
 			if (empty($this->params['errors'])) {
 				DB::getConnection()->commit();
 				$request->addPassNotice(lang('Změny byly úspěšně uloženy.'));
-				$link = ['tournament', 'registration', $tournament->id, $team->id];
+				$link = ['tournament', 'registration', (string) $tournament->id, (string) $team->id];
 				if (isset($_REQUEST['h'])) {
 					$link['h'] = $_REQUEST['h'];
 				}

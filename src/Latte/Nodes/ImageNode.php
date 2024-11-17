@@ -3,6 +3,7 @@
 namespace App\Latte\Nodes;
 
 use App\Models\DataObjects\Image;
+use Generator;
 use InvalidArgumentException;
 use Latte\Compiler\Node;
 use Latte\Compiler\NodeHelpers;
@@ -22,10 +23,12 @@ class ImageNode extends StatementNode
 	public ModifierNode $modifier;
 	public ArrayNode    $args;
 
-	public ?TextNode               $static = null;
-	public ExpressionNode   $path;
-	public ExpressionNode|int|null $width  = null;
+	public ?TextNode      $static = null;
+	public ExpressionNode $path;
+	/** @var ExpressionNode|int<1,max>|null */
 	public ExpressionNode|int|null $height = null;
+	/** @var ExpressionNode|int<1,max>|null */
+	public ExpressionNode|int|null $width = null;
 	public ExpressionNode          $classes;
 	public ExpressionNode          $attributes;
 
@@ -57,26 +60,51 @@ class ImageNode extends StatementNode
 		} catch (InvalidArgumentException) {
 		}
 
+		$ex = null;
 		try {
 			$width = NodeHelpers::toValue($node->width, constants: true);
-			if (is_numeric($width)) {
-				$node->width = (int)$width;
+			if (is_int($width)) {
+				if ($width < 1) {
+					$ex = new InvalidArgumentException("Width must be a positive integer");
+				}
+				else {
+					$node->width = $width;
+				}
 			}
 			else if ($width === null) {
 				$node->width = null;
 			}
+			else {
+				$ex = new InvalidArgumentException('Invalid argument type for width.');
+			}
 		} catch (InvalidArgumentException) {
+		}
+
+		if ($ex !== null) {
+			throw $ex;
 		}
 
 		try {
 			$height = NodeHelpers::toValue($node->height, constants: true);
-			if (is_numeric($height)) {
-				$node->height = (int)$height;
+			if (is_int($height)) {
+				if ($height < 1) {
+					$ex = new InvalidArgumentException("Height must be a positive integer");
+				}
+				else {
+					$node->height = $height;
+				}
 			}
 			else if ($height === null) {
 				$node->height = null;
 			}
+			else {
+				$ex = new InvalidArgumentException('Invalid argument type for height.');
+			}
 		} catch (InvalidArgumentException) {
+		}
+
+		if ($ex !== null) {
+			throw $ex;
 		}
 
 		return $node;
@@ -142,14 +170,14 @@ class ImageNode extends StatementNode
 			$urls = $this->image->getResized($this->width, $this->height);
 			assert(isset($urls['webp'], $urls['original']));
 			return $context->format(
-				<<<XXX
-					$ʟ_tmp = %node;
-					$ʟ_attrs = %node;
-					if (is_string($ʟ_tmp)) {
-						$ʟ_tmp = [$ʟ_tmp];
+				<<<PHP
+					\$ʟ_tmp = %node;
+					\$ʟ_attrs = %node;
+					if (is_string(\$ʟ_tmp)) {
+						\$ʟ_tmp = [\$ʟ_tmp];
 					}
-					echo '<picture class="'.($ʟ_tmp ? ' '.LR\Filters::escapeHtmlAttr(implode(" ", array_unique($ʟ_tmp))) : '').'"><source srcset="'.LR\Filters::escapeHtmlAttr(%dump).'" type="image/webp"/><img src="'.LR\Filters::escapeHtmlAttr(%dump).'" '.%raw::attrs(isset($ʟ_attrs[0]) && is_array($ʟ_attrs[0]) ? $ʟ_attrs[0] : $ʟ_attrs, %dump).' /></picture>'; %line
-					XXX,
+					echo '<picture class="'.(\$ʟ_tmp ? ' '.LR\\Filters::escapeHtmlAttr(implode(" ", array_unique(\$ʟ_tmp))) : '').'"><source srcset="'.LR\\Filters::escapeHtmlAttr(%dump).'" type="image/webp"/><img src="'.LR\\Filters::escapeHtmlAttr(%dump).'" '.%raw::attrs(isset(\$ʟ_attrs[0]) && is_array(\$ʟ_attrs[0]) ? \$ʟ_attrs[0] : \$ʟ_attrs, %dump).' /></picture>'; %line
+					PHP,
 				$this->classes,
 				$this->attributes,
 				$urls['webp'],
@@ -199,7 +227,7 @@ class ImageNode extends StatementNode
 		return $return;
 	}
 
-	public function &getIterator(): \Generator {
+	public function &getIterator(): Generator {
 		yield $this->path;
 		if ($this->width instanceof Node) {
 			yield $this->width;

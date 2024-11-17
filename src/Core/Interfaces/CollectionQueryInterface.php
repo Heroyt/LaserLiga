@@ -35,7 +35,7 @@ interface CollectionQueryInterface
 	/**
 	 * Get the query's result
 	 *
-	 * @return CollectionInterface<T>|array
+	 * @return CollectionInterface<T>|T[]
 	 */
 	public function get() : CollectionInterface|array;
 

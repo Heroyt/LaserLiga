@@ -34,7 +34,7 @@
     {include playerHits, $player, $game}
     {include playerFavourites, $player, $game}
     {include playerHitsPlayers, $player, $game}
-    {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->getMode()?->settings->playerMines && $player->bonus->getSum() > 0}
+    {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->getMode()?->settings->playerMines && isset($player->bonus) && $player->bonus->getSum() > 0}
         {include playerMines, $player}
     {/if}
     {include playerToday, $player, $game, $today}

@@ -9,19 +9,19 @@ trait MatrixOperations
 {
 
 	/**
-	 * @param numeric[][] $mat
+	 * @param array<int|float>[] $mat
 	 *
-	 * @return numeric[][]
+	 * @return array<int|float>[]
 	 */
 	public function matTranspose(array $mat) : array {
 		return (count($mat) === 1) ? array_chunk($mat[0], 1) : array_map(NULL, ...$mat);
 	}
 
 	/**
-	 * @param numeric[][] $mat1
-	 * @param numeric[][] $mat2
+	 * @param array<int|float>[] $mat1
+	 * @param array<int|float>[] $mat2
 	 *
-	 * @return numeric[][]
+	 * @return array<int|float>[]
 	 */
 	public function matMultiply(array $mat1, array $mat2) : array {
 		$result = [];
@@ -43,9 +43,9 @@ trait MatrixOperations
 	}
 
 	/**
-	 * @param numeric[][] $matrix
+	 * @param array<int|float>[] $matrix
 	 *
-	 * @return numeric[][]
+	 * @return array<int|float>[]
 	 */
 	public function matInverse(array $matrix) : array {
 		$n = count($matrix);

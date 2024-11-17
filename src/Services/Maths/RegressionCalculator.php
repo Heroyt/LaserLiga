@@ -13,8 +13,8 @@ class RegressionCalculator
 	/**
 	 * Calculate prediction value based on a regression model
 	 *
-	 * @param numeric[] $inputs Input values in order without the constant 1
-	 * @param numeric[] $model  Calculated regression model coefficients. First argument should be the model constant.
+	 * @param array<int|float> $inputs Input values in order without the constant 1
+	 * @param array<int|float> $model  Calculated regression model coefficients. First argument should be the model constant.
 	 *
 	 * @return float
 	 */
@@ -67,10 +67,10 @@ class RegressionCalculator
 	}
 
 	/**
-	 * @param numeric[][] $matF Inputs
-	 * @param numeric[][] $matY Outputs
+	 * @param array<int|float>[] $matF Inputs
+	 * @param array<int|float>[] $matY Outputs
 	 *
-	 * @return numeric[]
+	 * @return array<int|float>
 	 */
 	public function regression(array $matF, array $matY) : array {
 		// Calculate simple linear model
@@ -83,10 +83,10 @@ class RegressionCalculator
 	}
 
 	/**
-	 * @param numeric[][] $inputs
-	 * @param numeric[]   $model
+	 * @param array<int|float>[] $inputs
+	 * @param array<int|float>   $model
 	 *
-	 * @return numeric[]
+	 * @return array<int|float>
 	 */
 	public function calculatePredictions(array $inputs, array $model) : array {
 		$predictions = [];
@@ -101,8 +101,8 @@ class RegressionCalculator
 	}
 
 	/**
-	 * @param numeric[] $predictions
-	 * @param numeric[] $actual
+	 * @param array<int|float> $predictions
+	 * @param array<int|float> $actual
 	 *
 	 * @return float
 	 */

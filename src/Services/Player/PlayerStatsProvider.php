@@ -50,16 +50,16 @@ readonly class PlayerStatsProvider
 			rank                 : $this->calculatePlayerRating($player),
 			averageAccuracy      : $aggregateValues->accuracy,
 			averagePosition      : $aggregateValues->position,
-			maxAccuracy          : $aggregateValues->maxAccuracy,
-			maxScore             : $aggregateValues->maxScore,
-			maxSkill             : $aggregateValues->maxSkill,
-			shots                : $aggregateValues->shots,
+			maxAccuracy          : (int) $aggregateValues->maxAccuracy,
+			maxScore             : (int) $aggregateValues->maxScore,
+			maxSkill             : (int) $aggregateValues->maxSkill,
+			shots                : (int) $aggregateValues->shots,
 			averageShots         : $aggregateValues->averageShots,
 			averageShotsPerMinute: $aggregateValues->shots / ($aggregateValues->minutes ?? 1),
-			totalMinutes         : $aggregateValues->minutes ?? 0,
+			totalMinutes         : (int) ($aggregateValues->minutes ?? 0),
 			kd                   : $aggregateValues->deaths !== 0 ? $aggregateValues->hits / $aggregateValues->deaths : 0.0,
-			hits                 : $aggregateValues->hits,
-			deaths               : $aggregateValues->deaths,
+			hits                 : (int) $aggregateValues->hits,
+			deaths               : (int) $aggregateValues->deaths,
 		);
 	}
 

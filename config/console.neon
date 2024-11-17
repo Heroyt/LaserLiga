@@ -1,5 +1,5 @@
 extensions:
-	orisai.console: App\DI\Extensions\ConsoleExtension
+	orisai.console: OriNette\Console\DI\ConsoleExtension
 orisai.console:
 	name: 'LaserLiga'
 services:
