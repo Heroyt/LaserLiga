@@ -4,6 +4,8 @@ namespace App\Models\Auth;
 
 use App\Models\Arena;
 use App\Models\Auth\Enums\ConnectionType;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -27,7 +29,11 @@ class User extends \Lsr\Core\Auth\Models\User
 	#[OneToOne]
 	public ?LigaPlayer $player = null;
 
-	public \DateTimeInterface $createdAt;
+	public DateTimeInterface $createdAt;
+
+	public ?string $emailToken = null;
+	public ?DateTimeInterface $emailTimestamp = null;
+	public bool $isConfirmed = false;
 
 	/** @var int[] */
 	private array $managedArenaIds;
@@ -70,7 +76,7 @@ class User extends \Lsr\Core\Auth\Models\User
 	}
 
 	public function insert(): bool {
-		$this->createdAt ??= new \DateTimeImmutable();
+		$this->createdAt ??= new DateTimeImmutable();
 		return parent::insert();
 	}
 

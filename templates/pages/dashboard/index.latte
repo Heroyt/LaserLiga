@@ -13,7 +13,16 @@
 {/define}
 
 {block content}
+    <div n:if="!$user->isConfirmed" class="alert alert-danger text-center" role="alert">
+        {_'Tvůj e-mail, není potvrzený. Zkontroluj svou schránku, nebo si nech potvrzovací e-mail'}
+        <button type="button" class="btn btn-outline-danger ms-2" id="confirmEmail">
+            {faSolid 'repeat'}
+                {_'Poslat znovu'}
+        </button>
+        <br>
+        {_'E-mail si můžeš změnit v '}
+        <a href="{link ['user']}" class="btn btn-outline-danger ms-2">{faSolid 'gear'}{_'Nastavení'}</a>
+    </div>
 	{embed '../../partials/user/profile.latte', loggedIn: true, user: $user, lastGames: $lastGames, loggedInUser: $loggedInUser, rankOrder: $rankOrder}
-
 	{/embed}
 {/block}

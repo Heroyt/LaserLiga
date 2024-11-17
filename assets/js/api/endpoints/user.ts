@@ -1,4 +1,4 @@
-import {fetchGet, fetchPost} from "../client";
+import {fetchGet, fetchPost, SuccessResponse} from "../client";
 
 export type UserCompareResponse = {
     gameCount: number,
@@ -46,4 +46,8 @@ export async function userSetAllMe(): Promise<UserSetAllMeResponse> {
 
 export async function userSetNotMe(playerId: number): Promise<UserSetNotMeResponse> {
     return fetchPost('/user/player/setnotme', {id: playerId});
+}
+
+export async function userSendNewConfirmEmail() : Promise<SuccessResponse> {
+    return fetchPost('/user/sendconfirm');
 }

@@ -43,13 +43,13 @@ $gameCodeGroup->get('', [GameController::class, 'show'])->name('game')
               ->get('highlights', [GameHighlightsController::class, 'show']);
 
 $gameCodeGroup->group('player')
-	->group('{id}')
-	->get('', [GamePlayerController::class, 'show'])
-	->get('distribution/{param}', [DistributionController::class, 'distribution',])
-	->get('elo', [Games\GamePlayerEloController::class, 'show']);
+              ->group('{id}')
+              ->get('', [GamePlayerController::class, 'show'])
+              ->get('distribution/{param}', [DistributionController::class, 'distribution',])
+              ->get('elo', [Games\GamePlayerEloController::class, 'show']);
 
 $gameCodeGroup->group('team')
-	->get('{id}', [GameTeamController::class, 'show']);
+              ->get('{id}', [GameTeamController::class, 'show']);
 
 $gameGroupGroup = $gameGroup->group('group');
 $gameGroupIdGroup = $gameGroupGroup->group('{groupid}');
@@ -113,11 +113,11 @@ Route::group('arena')
      ->get('', [Arenas::class, 'show'])
      ->name('arenas-detail')
      ->group('tab')
-	->get('stats', [Arenas::class, 'show'])->name('arena-detail-stats')
-	->get('music', [Arenas::class, 'show'])->name('arena-detail-music')
-	->get('games', [Arenas::class, 'show'])->name('arena-detail-games')
-	->get('tournaments', [Arenas::class, 'show'])->name('arena-detail-tournaments')
-	->get('info', [Arenas::class, 'show'])->name('arena-detail-info')
+     ->get('stats', [Arenas::class, 'show'])->name('arena-detail-stats')
+     ->get('music', [Arenas::class, 'show'])->name('arena-detail-music')
+     ->get('games', [Arenas::class, 'show'])->name('arena-detail-games')
+     ->get('tournaments', [Arenas::class, 'show'])->name('arena-detail-tournaments')
+     ->get('info', [Arenas::class, 'show'])->name('arena-detail-info')
      ->endGroup()
      ->get('games', [Arenas::class, 'games'])
      ->group('stats')
@@ -127,24 +127,24 @@ Route::group('arena')
      ->endGroup();
 
 // Login
-Route::group()->middlewareAll(new LoggedOut('dashboard'))->get('login', [Login::class, 'show'])->name('login')->post(
-	'login',
-	[Login::class, 'process']
-)->get('login/forgot', [ForgotPassword::class, 'forgot'])->name('forgot-password')->post(
-	'login/forgot',
-	[
-		ForgotPassword::class,
-		'forgot',
-	]
-)->middleware(new CSRFCheck('forgot'))->get('login/forgot/reset', [ForgotPassword::class, 'reset'])->name(
-	'reset-password'
-)->post('login/forgot/reset', [ForgotPassword::class, 'reset'])->middleware(new CSRFCheck('reset'))->get(
-	'register',
-	[
-		Login::class,
-		'register',
-	]
-)->name('register')->post('register', [Login::class, 'processRegister']);
+Route::group()
+     ->middlewareAll(new LoggedOut('dashboard'))
+     ->get('login', [Login::class, 'show'])
+     ->name('login')
+     ->post('login', [Login::class, 'process'])
+     ->get('login/forgot', [ForgotPassword::class, 'forgot'])
+     ->name('forgot-password')
+     ->post('login/forgot', [ForgotPassword::class, 'forgot',])
+     ->middleware(new CSRFCheck('forgot'))
+     ->get('login/forgot/reset', [ForgotPassword::class, 'reset'])
+     ->name('reset-password')
+     ->post('login/forgot/reset', [ForgotPassword::class, 'reset'])
+     ->middleware(new CSRFCheck('reset'))
+     ->get('register', [Login::class, 'register',])
+     ->name('register')
+     ->post('register', [Login::class, 'processRegister']);
+
+Route::get('login/confirm', [Login::class, 'confirm']);
 
 // Tournament
 Route::group('tournament')

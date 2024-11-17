@@ -85,6 +85,7 @@ services:
 	user: App\Models\Auth\User
 	rankCalculator: App\Services\Player\RankCalculator
 
+	userRegistration: App\Services\UserRegistrationService
 	playerUser: App\Services\Player\PlayerUserService
 	playerRankOrder: App\Services\Player\PlayerRankOrderService
 	playerDistribution: App\Services\PlayerDistribution\PlayerDistributionService

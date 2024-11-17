@@ -24,6 +24,10 @@ export default function initUserSettings() {
         });
         avatarSeed.addEventListener('input', () => {
             avatarPreview.src = baseApiUrl + avatarType.value + '/svg?radius=50&seed=' + avatarSeed.value;
+
+            if (avatarSave) {
+                avatarSave.disabled = false;
+            }
         });
 
         if (avatarSave) {

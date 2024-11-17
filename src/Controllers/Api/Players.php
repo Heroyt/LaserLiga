@@ -4,13 +4,18 @@ namespace App\Controllers\Api;
 
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
+use App\Exceptions\UserRegistrationException;
 use App\Models\Arena;
 use App\Models\Auth\Enums\ConnectionType;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\Player;
+use App\Models\Auth\User;
 use App\Models\Auth\UserConnection;
+use App\Services\UserRegistrationService;
+use Dibi\Exception;
 use Dibi\Row;
 use InvalidArgumentException;
+use Lsr\Core\Auth\Exceptions\DuplicateEmailException;
 use Lsr\Core\Controllers\ApiController;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
@@ -18,12 +23,21 @@ use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
+use Nette\Utils\Random;
+use Nette\Utils\Validators;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
+use Random\RandomException;
 
 class Players extends ApiController
 {
 	public ?Arena $arena;
+
+	public function __construct(
+		private readonly UserRegistrationService $userRegistration,
+	) {
+		parent::__construct();
+	}
 
 	public function init(RequestInterface $request): void {
 		parent::init($request);
@@ -108,7 +122,7 @@ class Players extends ApiController
 		}
 
 		// Filter by search parameter - name, code, email
-		$search = trim((string) $request->getGet('search', '')); // @phpstan-ignore-line
+		$search = trim((string)$request->getGet('search', '')); // @phpstan-ignore-line
 		if (!empty($search)) {
 			// Check code format
 			if (preg_match('/^(\d+)-([A-Z\d]{1,5})$/', trim($search), $matches) === 1) {
@@ -224,8 +238,10 @@ class Players extends ApiController
 			);
 		}
 		if (!isset($player)) {
-			return $this->respond(new ErrorResponse('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
-			                      404);
+			return $this->respond(
+				new ErrorResponse('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
+				404
+			);
 		}
 		return $this->respond($player);
 	}
@@ -269,13 +285,16 @@ class Players extends ApiController
 			$player = LigaPlayer::getByCode($code);
 		} catch (InvalidArgumentException $e) {
 			return $this->respond(
-				new ErrorResponse('Invalid Code format', ErrorType::VALIDATION, exception: $e, values: ['code' => $code]),
+				new ErrorResponse('Invalid Code format', ErrorType::VALIDATION, exception: $e, values: ['code' => $code]
+				),
 				400
 			);
 		}
 		if (!isset($player)) {
-			return $this->respond(new ErrorResponse('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
-			                      404);
+			return $this->respond(
+				new ErrorResponse('Player not found', ErrorType::NOT_FOUND, values: ['code' => $code]),
+				404
+			);
 		}
 		return $this->respond($player->getTitle());
 	}
@@ -338,6 +357,113 @@ class Players extends ApiController
 		}
 
 		return $this->respond($data);
+	}
+
+	#[OA\Post(
+		path       : "/api/players",
+		operationId: "registerPlayer",
+		description: "Register a new player",
+		summary    : "Register a new player",
+		requestBody: new OA\RequestBody(
+			required: true,
+			content : new OA\JsonContent(
+				          required  : ['name', 'email', 'password'],
+				          properties: [
+					                      new OA\Property(
+						                      property: 'name',
+						                      type    : "string",
+						                      example : "Lay zerteg",
+						                      nullable: false
+					                      ),
+					                      new OA\Property(
+						                      property: 'email',
+						                      type    : "string",
+						                      format  : "email",
+						                      example : "lay@zerteg.com",
+						                      nullable: false
+					                      ),
+					                      new OA\Property(
+						                      property: 'password',
+						                      type    : "string",
+						                      example : "superstrongpassword123",
+						                      nullable: false
+					                      ),
+				                      ],
+				          type      : 'object',
+			          ),
+		),
+		tags       : ['Players'],
+	)]
+	#[OA\Response(
+		response   : 201,
+		description: "Created a new player",
+		content    : new OA\JsonContent(ref: "#/components/schemas/LigaPlayer"),
+	)]
+	#[OA\Response(
+		response   : 400,
+		description: "Bad request",
+		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
+	)]
+	#[OA\Response(
+		response   : 500,
+		description: "Internal error",
+		content    : new OA\JsonContent(ref: '#/components/schemas/ErrorResponse'),
+	)]
+	public function register(Request $request): ResponseInterface {
+		$name = $request->getPost('name', '');
+		if (empty($name) || !is_string($name)) {
+			return $this->respond(
+				new ErrorResponse(lang('Přezdívka je povinná', context: 'errors'), ErrorType::VALIDATION),
+				400
+			);
+		}
+		$password = $request->getPost('password', Random::generate());
+		if (!is_string($password)) {
+			return $this->respond(
+				new ErrorResponse(lang('Neplatné heslo', context: 'errors'), ErrorType::VALIDATION),
+				400
+			);
+		}
+		$email = $request->getPost('email', '');
+		if (empty($email) || !is_string($email)) {
+			return $this->respond(
+				new ErrorResponse(lang('E-mail je povinný', context: 'errors'), ErrorType::VALIDATION),
+				400
+			);
+		}
+		if (!Validators::isEmail($email)) {
+			return $this->respond(
+				new ErrorResponse(lang('Neplatný E-mail', context: 'errors'), ErrorType::VALIDATION),
+				400
+			);
+		}
+		$test = User::getByEmail($email);
+		if ($test !== null) {
+			return $this->respond(
+				new ErrorResponse(
+					lang('Hráč s tímto e-mailem již existuje.', context: 'errors'), ErrorType::VALIDATION
+				),
+				400
+			);
+		}
+
+		try {
+			$user = $this->userRegistration->registerUser($name, $email, $password, $this->arena);
+		} catch (DuplicateEmailException) {
+			return $this->respond(
+				new ErrorResponse(
+					lang('Hráč s tímto e-mailem již existuje.', context: 'errors'), ErrorType::VALIDATION
+				),
+				400
+			);
+		} catch (UserRegistrationException|Exception|RandomException $e) {
+			return $this->respond(
+				new ErrorResponse(lang('Registrace se nezdařila', context: 'errors'), exception: $e),
+				500
+			);
+		}
+
+		return $this->respond($user->createOrGetPlayer($this->arena), 201);
 	}
 
 }

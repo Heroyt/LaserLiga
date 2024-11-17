@@ -11,6 +11,33 @@ export type FormSaveResponse = {
     errors?: string | string[],
 }
 
+export type ErrorResponseType =
+    'validation_error'
+    | 'database_error'
+    | 'internal_error'
+    | 'resource_not_found_error'
+    | 'resource_access_error';
+
+export type ExceptionResponse = {
+    message: string,
+    code: number,
+    trace: { file: string, line: number, function?: string, args?: string[] }[]
+}
+
+export type ErrorResponse<Values = { [index: string]: any }> = {
+    title: string,
+    type: ErrorResponseType,
+    detail?: string,
+    exception?: null | ExceptionResponse,
+    values?: Values | null
+};
+
+export type SuccessResponse<Values = { [index: string]: any }> = {
+    message: string,
+    detail?: string|null,
+    values?: Values | null,
+}
+
 export class ResponseError extends Error {
     public response: Response;
 

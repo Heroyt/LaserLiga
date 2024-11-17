@@ -1,0 +1,14 @@
+{layout '../@layout.txt.latte'}
+
+{varType string $hash}
+{varType App\Models\Auth\User $user}
+
+{block body}
+    {lang 'Potvrď registraci v Laser Lize', context: 'mails.confirm'}
+
+    {lang 'Děkujeme za tvou registraci do laser ligy.', context: 'mail.confirm'}
+
+    {lang 'Prosím, potvrď svůj e-mail kliknutím na odkaz níže.', context: 'mail.confirm'}
+
+    {lang 'Portvdit e-mail', context: 'mail.confirm'} - {link ['login', 'confirm', 'token' => $hash, 'email' => $user->email]}
+{/block}

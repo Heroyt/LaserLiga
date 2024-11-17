@@ -18,7 +18,7 @@
                 <option value="" disabled selected>{lang Vyberte}</option>
                 <option n:foreach="App\Services\Avatar\AvatarType::cases() as $type"
                         value="{$type->value}"
-                        data-description='<a href="{$type->getLicenseNoticeUrl()}">{_'Oficiální zdroj stylu'}</a>'
+                        data-description='<a target="_blank" href="{$type->getLicenseNoticeUrl()}">{_'Oficiální zdroj stylu'}</a>'
                         n:attr="selected: isset($user->player->avatarStyle) && $user->player->avatarStyle === $type->value">
                     {$type->getReadableName()}
                 </option>
@@ -68,6 +68,25 @@
             <div class="form-text" id="loginName-description">
                 {lang 'Vaše jméno/přezdívka do hry.'}
             </div>
+        </div>
+        <div class="form-group mb-3">
+            <div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
+                <input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
+                       id="email" placeholder="email@email.cz" autocomplete="email username" required value="{$user->email}">
+                <label for="email">{lang 'E-mail'}:</label>
+            </div>
+            <div class="invalid-feedback">
+                {ifset $errors['email']}
+                    {$errors['email']}
+                {/ifset}
+            </div>
+        </div>
+        <div n:if="!$user->isConfirmed" class="alert alert-danger">
+            {_'Tvůj e-mail, není potvrzený. Zkontroluj svou schránku, nebo si nech potvrzovací e-mail'}
+            <button type="button" class="btn btn-outline-danger" id="confirmEmail">
+                {faSolid 'repeat'}
+                {_'Poslat znovu'}
+            </button>
         </div>
         <div class="form-group mb-3">
             <div class="form-floating {ifset $errors['arena']}is-invalid{/ifset}">
@@ -146,7 +165,7 @@
             </div>
         </section>
 
-        <div class="text-center">
+        <div class="text-center position-sticky py-4 bottom-0 w-100 bg-background-0 z-3">
             <button type="submit" class="btn btn-success btn-lg">
                 {lang 'Uložit', context: 'actions'}
             </button>

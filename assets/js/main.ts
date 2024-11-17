@@ -12,6 +12,9 @@ import initDatePickers from "./datePickers";
 import {initClearButtons} from "./pages/utils";
 import {Tab} from 'bootstrap';
 import {checkPush, registerPush, updatePush} from "./push";
+import {startLoading, stopLoading} from "./loaders";
+import {userSendNewConfirmEmail} from "./api/endpoints/user";
+import {triggerNotification} from "./components/notifications";
 
 declare global {
     const usr: number | null;
@@ -227,6 +230,25 @@ window.addEventListener("load", () => {
                 await navigator.share(shareData);
             });
         });
+    }
+
+    const confirmEmail = document.getElementById('confirmEmail') as HTMLButtonElement;
+    if (confirmEmail) {
+        confirmEmail.addEventListener('click', () => {
+            startLoading(true);
+            userSendNewConfirmEmail()
+                .then(res => {
+                    stopLoading(true, true);
+                    triggerNotification({
+                        content: res.message,
+                        type: 'success',
+                    })
+                })
+                .catch(e => {
+                    stopLoading(false, true);
+                    triggerNotification(e);
+                })
+        })
     }
 
     // Pages

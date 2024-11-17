@@ -1,0 +1,16 @@
+{layout '../@layout.latte'}
+
+{varType string $hash}
+{varType App\Models\Auth\User $user}
+
+{block body}
+    <h1>{lang 'Potvrď registraci v Laser Lize', context: 'mails.confirm'}</h1>
+    <h2><a href="{link ['user', $user->player?->getCode()]}">{$user->name} - {$user->player?->getCode()}</a></h2>
+    <p>{lang 'Děkujeme za tvou registraci do laser ligy.', context: 'mail.confirm'}</p>
+    <p>{lang 'Prosím, potvrď svůj e-mail kliknutím na odkaz níže.', context: 'mail.confirm'}</p>
+    <p>
+        <a href="{link ['login', 'confirm', 'token' => $hash, 'email' => $user->email]}" class="btn btn-lg">
+            {lang 'Portvďit e-mail', context: 'mail.confirm'}
+        </a>
+    </p>
+{/block}

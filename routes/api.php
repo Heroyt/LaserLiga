@@ -88,7 +88,8 @@ $apiGroup->group('music')
 
 // Players
 $playersGroup = $apiGroup->group('players')
-                         ->get('', [Players::class, 'find']);
+                         ->get('', [Players::class, 'find'])
+                         ->post('', [Players::class, 'register']);
 
 $playersGroup->get('old/{code}', [Players::class, 'playersByOldCode']);
 $playersGroup->group('{code}')

@@ -11,14 +11,19 @@ use App\Models\Auth\UserConnection;
 use App\Services\Achievements\TitleProvider;
 use App\Services\Avatar\AvatarService;
 use App\Services\Avatar\AvatarType;
+use App\Services\UserRegistrationService;
 use App\Templates\User\UserSettingsParameters;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Dto\SuccessResponse;
+use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Security\Passwords;
+use Nette\Utils\Validators;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -35,6 +40,7 @@ class UserSettingsController extends AbstractUserController
 		protected readonly Passwords   $passwords,
 		private readonly TitleProvider $titleProvider,
 		private readonly AvatarService               $avatarService,
+		private readonly UserRegistrationService $userRegistrationService,
 	) {
 		parent::__construct();
 		$this->params = new UserSettingsParameters();
@@ -77,10 +83,24 @@ class UserSettingsController extends AbstractUserController
 
 		/** @var string $name */
 		$name = $request->getPost('name', '');
+		/** @var string $email */
+		$email = $request->getPost('email', '');
 		$arena = null;
 
 		if (empty($name)) {
 			$request->passErrors['name'] = lang('Jméno je povinné', context: 'errors');
+		}
+		if (empty($email)) {
+			$request->passErrors['email'] = lang('E-mail je povinný', context: 'errors');
+		}
+		else if (!Validators::isEmail($email)) {
+			$request->passErrors['email'] = lang('E-mail nemá správný formát', context: 'errors');
+		}
+		else {
+			$test = User::getByEmail($email);
+			if (isset($test) && $test->id !== $user->id) {
+				$request->passErrors['email'] = lang('E-mail již používá jiný hráč', context: 'errors');
+			}
 		}
 		try {
 			$arenaId = (int)$request->getPost('arena', 0);
@@ -143,6 +163,9 @@ class UserSettingsController extends AbstractUserController
 		}
 
 		$user->name = $name;
+		$emailChanged = $user->email !== $email;
+		$user->email = $email;
+		$player->email = $email;
 		$player->nickname = $name;
 		if (isset($arena)) {
 			$player->arena = $arena;
@@ -151,10 +174,20 @@ class UserSettingsController extends AbstractUserController
 			$player->title = $title;
 		}
 
+		if ($emailChanged) {
+			$user->isConfirmed = false;
+			$user->emailTimestamp = null;
+		}
+
 		if (!$user->save()) {
 			$request->addPassError(lang('Profil se nepodařilo uložit'));
 			return $this->respondForm($request, statusCode: 500);
 		}
+
+		if ($emailChanged) {
+			$this->userRegistrationService->sendEmailConfirmation($user);
+		}
+
 		$request->passNotices[] = [
 			'type'    => 'success',
 			'content' => lang('Úspěšně uloženo'),
@@ -222,5 +255,18 @@ class UserSettingsController extends AbstractUserController
 		$player->avatarSeed = $seed;
 		$player->save();
 		return $this->respond([$player, $type, $avatarType, $seed]);
+	}
+
+	public function sendNewConfirmEmail() : ResponseInterface {
+		/** @var User $user */
+		$user = $this->auth->getLoggedIn();
+
+		if ($user->isConfirmed) {
+			return $this->respond(new ErrorResponse(lang('Uživatel je již ověřený'), ErrorType::VALIDATION), 400);
+		}
+
+		$this->userRegistrationService->sendEmailConfirmation($user);
+
+		return $this->respond(new SuccessResponse(lang('Potvrzovací e-mail byl odeslaný')));
 	}
 }

@@ -2,10 +2,16 @@
 
 namespace App\Controllers;
 
+use App\Exceptions\UserRegistrationException;
 use App\Models\Arena;
 use App\Models\Auth\User;
+use App\Models\DataObjects\User\ForgotData;
 use App\Services\Turnstile;
+use App\Services\UserRegistrationService;
 use App\Templates\Login\LoginParams;
+use DateTimeImmutable;
+use Dibi\Exception;
+use Lsr\Core\Auth\Exceptions\DuplicateEmailException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
@@ -19,6 +25,8 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Security\Passwords;
 use Nette\Utils\Validators;
 use Psr\Http\Message\ResponseInterface;
+use Random\RandomException;
+use Tracy\Debugger;
 
 /**
  * @property LoginParams $params
@@ -31,9 +39,10 @@ class Login extends Controller
 	 * @param Auth<User> $auth
 	 */
 	public function __construct(
-		protected readonly Auth    $auth,
-		private readonly Passwords $passwords,
-		private readonly Turnstile $turnstile,
+		protected readonly Auth                  $auth,
+		private readonly Passwords               $passwords,
+		private readonly Turnstile               $turnstile,
+		private readonly UserRegistrationService $userRegistration,
 	) {
 		parent::__construct();
 		$this->params = new LoginParams();
@@ -44,7 +53,7 @@ class Login extends Controller
 		$this->params->turnstileKey = $this->turnstile->getKey();
 	}
 
-	public function show() : ResponseInterface {
+	public function show(): ResponseInterface {
 		$this->title = 'Přihlášení';
 		$this->params->breadcrumbs = [
 			'Laser Liga'       => [],
@@ -54,7 +63,7 @@ class Login extends Controller
 		return $this->view('pages/login/index');
 	}
 
-	public function processRegister(Request $request) : ResponseInterface {
+	public function processRegister(Request $request): ResponseInterface {
 		$this->title = 'Registrace';
 		$this->params->breadcrumbs = [
 			'Laser Liga'       => [],
@@ -91,7 +100,7 @@ class Login extends Controller
 			/** @var numeric|null $arenaId */
 			$arenaId = $request->getPost('arena');
 			if (!empty($arenaId)) {
-				$arena = Arena::get((int) $arenaId);
+				$arena = Arena::get((int)$arenaId);
 			}
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			$this->params->errors['arena'] = lang('Aréna neexistuje', context: 'errors');
@@ -101,17 +110,18 @@ class Login extends Controller
 			return $this->view('pages/login/register');
 		}
 
-		/** @var User|null $user */
-		$user = $this->auth->register($email, $password, $name);
-		if (!isset($user)) {
+		try {
+			$user = $this->userRegistration->registerUser($name, $email, $password, $arena);
+		} catch (UserRegistrationException|Exception|RandomException $e) {
 			$this->params->arenas = Arena::getAll();
 			$this->params->errors[] = lang('Něco se pokazilo.', context: 'errors');
+			Debugger::log($e);
 			return $this->view('pages/login/register');
-		}
-
-		try {
-			$user->createOrGetPlayer($arena);
-		} catch (ValidationException) {
+		} catch (DuplicateEmailException $e) {
+			$this->params->arenas = Arena::getAll();
+			$this->params->errors[] = lang('Uživatel s tímto e-mailem již existuje.', context: 'errors');
+			Debugger::log($e);
+			return $this->view('pages/login/register');
 		}
 
 		// Login user
@@ -119,7 +129,7 @@ class Login extends Controller
 		return $this->app->redirect('dashboard', $request);
 	}
 
-	public function register() : ResponseInterface {
+	public function register(): ResponseInterface {
 		$this->title = 'Registrace';
 		$this->params->breadcrumbs = [
 			'Laser Liga'       => [],
@@ -130,7 +140,7 @@ class Login extends Controller
 		return $this->view('pages/login/register');
 	}
 
-	public function process(Request $request) : ResponseInterface {
+	public function process(Request $request): ResponseInterface {
 		$this->title = 'Přihlášení';
 		$this->params->breadcrumbs = [
 			'Laser Liga'       => [],
@@ -172,10 +182,10 @@ class Login extends Controller
 					'token'     => $token,
 					'validator' => $this->passwords->hash($validator),
 					'id_user'   => $this->auth->getLoggedIn()->id,
-					'expire'    => new \DateTimeImmutable('+ 30 days'),
+					'expire'    => new DateTimeImmutable('+ 30 days'),
 				]
 			);
-			setcookie('rememberme', $token.':'.$validator, time() + (30 * 24 * 3600));
+			setcookie('rememberme', $token . ':' . $validator, time() + (30 * 24 * 3600));
 		}
 
 		$request->passNotices[] = ['type' => 'info', 'content' => lang('Přihlášení bylo úspěšné.')];
@@ -183,7 +193,7 @@ class Login extends Controller
 	}
 
 	#[Get('/logout', 'logout'), Post('/logout')]
-	public function logout(Request $request) : ResponseInterface {
+	public function logout(Request $request): ResponseInterface {
 		if ($this->auth->loggedIn()) {
 			$this->auth->logout();
 		}
@@ -198,6 +208,56 @@ class Login extends Controller
 		}
 		$request->addPassNotice(lang('Odhlášení bylo úspěšné.'));
 		return $this->app->redirect('login', $request);
+	}
+
+	public function confirm(Request $request): ResponseInterface {
+		$this->title = 'Portvdit e-mail';
+		$this->description = 'Potvrzení e-mailu registrovaného hráče.';
+		$this->params['breadcrumbs'] = [
+			'Laser Liga'       => [],
+			lang('Přihlášení') => ['login'],
+			lang($this->title) => ['login', 'confirm'],
+		];
+
+		/** @var string $hash */
+		$hash = $request->getGet('token', '');
+		/** @var string $email */
+		$email = $request->getGet('email', '');
+
+		if (empty($hash) || empty($email)) {
+			return $this->confirmInvalid('Požadavek neexistuje');
+		}
+
+		// Validate hash and email
+		$user = User::getByEmail($email);
+		if ($user === null) {
+			return $this->confirmInvalid('Uživatel neexistuje');
+		}
+		$row = DB::select(User::TABLE, '[email_token] as [token], [email_timestamp] as [timestamp]')
+		         ->where('[email] = %s', $email)
+		         ->fetchDto(ForgotData::class, false);
+		if (!isset($row)) {
+			return $this->confirmInvalid('Neplatný požadavek');
+		}
+		if ($row->token === null || !hash_equals($hash, hash_hmac('sha256', $email, $row->token))) {
+			return $this->confirmInvalid('Neplatný požadavek', 403);
+		}
+
+		$user->emailToken = null;
+		$user->emailTimestamp = new DateTimeImmutable();
+		$user->isConfirmed = true;
+		$user->save();
+
+		return $this->view('pages/login/confirm');
+	}
+
+	private function confirmInvalid(string $message, int $code = 400): ResponseInterface {
+		$this->title = 'Portvdit e-mail - Neplatný požadavek';
+		$this->description = 'Neplatný požadavek pro potvrzení e-mailu.';
+
+		$this->params->errors[] = lang($message, context: 'errors');
+		return $this->view('pages/login/confirmInvalid')
+		            ->withStatus($code);
 	}
 
 }

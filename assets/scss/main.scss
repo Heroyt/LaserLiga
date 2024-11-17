@@ -49,10 +49,10 @@ footer {
 @import '~bootstrap/scss/list-group';
 
 // BS Helpers
-@import "~bootstrap/scss/helpers/color-bg";
-@import "~bootstrap/scss/helpers/position";
-@import "~bootstrap/scss/helpers/visually-hidden";
-@import "~bootstrap/scss/helpers/vr";
+@import '~bootstrap/scss/helpers/color-bg';
+@import '~bootstrap/scss/helpers/position';
+@import '~bootstrap/scss/helpers/visually-hidden';
+@import '~bootstrap/scss/helpers/vr';
 
 // BS Utilities
 @import '~bootstrap/scss/utilities/api';
@@ -81,3 +81,9 @@ footer {
 @import 'components/popup';
 @import 'components/playBtn';
 @import 'components/musicModeCard';
+
+@include media-breakpoint-down('lg') {
+  .position-sticky.bottom-0 {
+    bottom: 5rem !important;
+  }
+}

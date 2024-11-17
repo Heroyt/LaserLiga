@@ -55,6 +55,7 @@ $userGroup = $routes
 	->get('/history', [UserHistoryController::class, 'show'])->name('my-game-history')
 	->get('/tournaments', [UserTournamentController::class, 'myTournaments'])->name('my-tournaments')
 	->get('/findgames', [UserFindGamesController::class, 'show'])->name('find-my-games')
+	->post('sendconfirm', [UserSettingsController::class, 'sendNewConfirmEmail'])
 	->group('/player')
 	->post('/setme', [UserGameController::class, 'setMe'])
 	->post('/setallme', [UserGameController::class, 'setAllMe'])

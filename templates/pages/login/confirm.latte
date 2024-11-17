@@ -1,0 +1,16 @@
+{layout '../../@layout.latte'}
+
+{varType string[] $errors}
+
+{define content}
+	<div class="card mx-auto text-center" style="max-width: 400px;">
+		<div class="card-header">
+			<h3>{lang 'Tvuj E-mail byl potvrzen'}</h3>
+		</div>
+		<div class="card-body py-5">
+			<div class="text-center">
+				<a href="{link ['dashboard']}" class="btn btn-lg btn-primary">{lang 'Profil'}</a>
+			</div>
+		</div>
+	</div>
+{/define}
