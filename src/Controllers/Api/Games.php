@@ -5,7 +5,7 @@ namespace App\Controllers\Api;
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
 use App\Exceptions\GameModeNotFoundException;
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Factory\PlayerFactory;
@@ -16,6 +16,7 @@ use App\GameModels\Game\Player;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\DataObjects\Game\MinimalGameRow;
+use App\Models\DataObjects\Import\GameImportDto;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Services\Achievements\AchievementChecker;
@@ -46,6 +47,7 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\Serializer\Serializer;
 use Throwable;
 
 /**
@@ -63,6 +65,7 @@ class Games extends ApiController
 		private readonly RankCalculator         $rankCalculator,
 		private readonly AchievementProvider    $achievementProvider,
 		private readonly AchievementChecker     $achievementChecker,
+		private readonly Serializer             $serializer,
 	) {
 		parent::__construct();
 	}
@@ -531,7 +534,7 @@ class Games extends ApiController
 		if ($games instanceof ErrorResponse) {
 			return $this->respond(
 				$games,
-				match($games->type) {
+				match ($games->type) {
 					ErrorType::VALIDATION                    => 400,
 					ErrorType::DATABASE, ErrorType::INTERNAL => 500,
 					ErrorType::NOT_FOUND                     => 404,
@@ -569,7 +572,7 @@ class Games extends ApiController
 						'skill' => $player->getSkill(),
 					];
 				}
-			} catch (InsuficientRegressionDataException) {
+			} catch (InsufficientRegressionDataException) {
 				// Skip
 			}
 			GameFactory::clearInstances();
@@ -864,7 +867,16 @@ class Games extends ApiController
 					                      new OA\Property(
 						                      property: "games",
 						                      type    : "array",
-						                      items   : new OA\Items(ref: '#/components/schemas/Game')
+						                      items   : new OA\Items(
+							                                oneOf: [
+								                                       new OA\Schema(
+									                                       ref: '#/components/schemas/Evo5GameImport'
+								                                       ),
+								                                       new OA\Schema(
+									                                       ref: '#/components/schemas/Evo6GameImport'
+								                                       ),
+							                                       ],
+						                                )
 					                      ),
 				                      ],
 				          type      : 'object',
@@ -876,12 +888,26 @@ class Games extends ApiController
 		response   : 201,
 		description: "Successful import",
 		content    : new OA\JsonContent(
-			required  : ["success", "imported"],
-			properties: [
-				            new OA\Property(property: "success", type: "boolean"),
-				            new OA\Property(property: "imported", type: "integer"),
-			            ],
-			type      : "object"
+			type   : "object",
+			example: ['message' => 'Games imported', 'values' => ['imported' => 1]],
+			allOf  : [
+				       new OA\Schema(properties: [
+					                                 new OA\Property(
+						                                 property  : 'values',
+						                                 properties: [
+							                                             new OA\Property(
+								                                             property   : "imported",
+								                                             description: "Number of games imported",
+								                                             type       : "integer"
+							                                             ),
+						                                             ],
+						                                 type      : 'object',
+						                                 example   : ['imported' => 1]
+					                                 ),
+				                                 ],
+				                     type      : 'object'),
+				       new OA\Schema(ref: "#/components/schemas/SuccessResponse"),
+			       ]
 		)
 	)]
 	#[OA\Response(
@@ -911,6 +937,18 @@ class Games extends ApiController
 				new ErrorResponse('Invalid game system', ErrorType::VALIDATION, values: [
 					'class' => $gameClass,
 					'post'  => $_REQUEST,
+				]),
+				400
+			);
+		}
+		/** @var class-string<GameImportDto> $dtoClass */
+		$dtoClass = 'App\Models\DataObjects\Import\\' . Strings::toPascalCase($system) . '\GameImportDto';
+		if (!class_exists($dtoClass)) {
+			return $this->respond(
+				new ErrorResponse('Invalid game system - cannot find DTO class', ErrorType::VALIDATION, values: [
+					'class'  => $dtoClass,
+					'post'   => $_REQUEST,
+					'system' => $system,
 				]),
 				400
 			);
@@ -980,35 +1018,37 @@ class Games extends ApiController
 		$users = [];
 
 		foreach ($games as $gameInfo) {
+			$dtoInfo = $this->serializer->denormalize($gameInfo, $dtoClass);
+			assert($dtoInfo instanceof GameImportDto);
 			$start = microtime(true);
 			try {
 				// Parse game
-				$game = $gameClass::fromJson($gameInfo);
+				$game = $gameClass::fromImportDto($dtoInfo);
 				$game->arena = $this->arena;
 
 				// Check music mode
-				if (!empty($gameInfo['music']['id'])) {
+				if ($dtoInfo->music !== null) {
 					$musicMode = MusicMode::query()->where(
 						'[id_arena] = %i AND [id_local] = %i',
 						$this->arena->id,
-						$gameInfo['music']['id']
+						$dtoInfo->music->id,
 					)->first();
 					if (isset($musicMode)) {
 						$game->music = $musicMode;
 					}
 				}
 				// Check group
-				if (!empty($gameInfo['group']['id'])) {
+				if ($dtoInfo->group !== null) {
 					$gameGroup = GameGroup::getOrCreateFromLocalId(
-						(int) $gameInfo['group']['id'],
-						$gameInfo['group']['name'],
+						$dtoInfo->group->id,
+						$dtoInfo->group->name,
 						$this->arena
 					);
 					if (isset($gameGroup->id)) {
 						$game->group = $gameGroup;
-						if ($gameGroup->name !== $gameInfo['group']['name']) {
+						if ($gameGroup->name !== $dtoInfo->group->name) {
 							// Update group's name
-							$gameGroup->name = $gameInfo['group']['name'];
+							$gameGroup->name = $dtoInfo->group->name;
 							$gameGroup->save();
 						}
 						$gameGroup->clearCache();
@@ -1106,7 +1146,7 @@ class Games extends ApiController
 			$logger->debug($key . ': ' . Timer::get($key) . 's');
 		}
 
-		return $this->respond(['success' => true, 'imported' => $imported]/*, 201*/);
+		return $this->respond(new SuccessResponse('Games imported', values: ['imported' => $imported]), 201);
 	}
 
 	/**
@@ -1224,14 +1264,14 @@ class Games extends ApiController
 		/** @var string|null $system */
 		$system = $request->getGet('system');
 		return $this->respond([
-			               'games'   => (
-			               is_string($system) ?
-				               $this->arena->queryGamesSystem($system, $date) :
-				               $this->arena->queryGames($date)
-			               )->count(cache: $cache),
-			               'players' => $this->arena->queryPlayers($date, cache: $cache)->count(cache: $cache),
-			               'teams'   => $this->arena->queryTeams($date, cache: $cache)->count(cache: $cache),
-		               ]);
+			                      'games'   => (
+			                      is_string($system) ?
+				                      $this->arena->queryGamesSystem($system, $date) :
+				                      $this->arena->queryGames($date)
+			                      )->count(cache: $cache),
+			                      'players' => $this->arena->queryPlayers($date, cache: $cache)->count(cache: $cache),
+			                      'teams'   => $this->arena->queryTeams($date, cache: $cache)->count(cache: $cache),
+		                      ]);
 	}
 
 	/**
@@ -1379,12 +1419,12 @@ class Games extends ApiController
 		description: "Success",
 		content    : new OA\JsonContent(
 			properties: [
-				       new OA\Property(
-						   property: 'success',
-					       type : "boolean",
-				       ),
-			       ],
-			type: 'object'
+				            new OA\Property(
+					            property: 'success',
+					            type    : "boolean",
+				            ),
+			            ],
+			type      : 'object'
 		),
 	)]
 	#[OA\Response(
@@ -1414,7 +1454,7 @@ class Games extends ApiController
 		$group = $request->getPost('groupId', 0);
 		if ($group > 0) {
 			try {
-				$game->group = GameGroup::get((int) $group);
+				$game->group = GameGroup::get((int)$group);
 			} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
 				return $this->respond(
 					new ErrorResponse('Game group not found', ErrorType::NOT_FOUND, exception: $e),
@@ -1477,10 +1517,10 @@ class Games extends ApiController
 			properties: [
 				            new OA\Property(
 					            property: 'status',
-					            type : "string",
+					            type    : "string",
 				            ),
 			            ],
-			type: 'object'
+			type      : 'object'
 		),
 	)]
 	#[OA\Response(
@@ -1505,7 +1545,7 @@ class Games extends ApiController
 		}
 
 		// Find game mode
-		$gameModeId = (int) $request->getPost('mode', 0);
+		$gameModeId = (int)$request->getPost('mode', 0);
 		if ($gameModeId < 1) {
 			return $this->respond(new ErrorResponse('Invalid game mode ID', ErrorType::VALIDATION), 400);
 		}
@@ -1523,7 +1563,10 @@ class Games extends ApiController
 		// Check mode type change
 		if ($previousType !== $game->getMode()->type) {
 			if ($previousType === GameModeType::SOLO) {
-				return $this->respond(new ErrorResponse('Cannot change mode from solo to team', ErrorType::VALIDATION), 400);
+				return $this->respond(
+					new ErrorResponse('Cannot change mode from solo to team', ErrorType::VALIDATION),
+					400
+				);
 			}
 
 			// Assign all players to one team
