@@ -77,7 +77,7 @@ class ApiToken implements Middleware
 
 		return $this->respond(
 			$request,
-			new ErrorResponse('Invalid token.', ErrorType::ACCESS),
+			new ErrorResponse('Invalid token.', ErrorType::ACCESS, values: ['token' => $authParams]),
 		);
 	}
 }
