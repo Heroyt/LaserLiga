@@ -29,6 +29,7 @@ $publicUserIdGroup = $publicUserRoutes
 	->group('/{code}')
 	->get('/', [UserController::class, 'show'])->name('public-profile')
 	->get('/img', [UserController::class, 'thumb'])
+	->get('/img.png', [UserController::class, 'thumb'])
 	->get('/avatar', [UserController::class, 'avatar'])
 	->post('/avatar', [UserSettingsController::class, 'updateAvatar'])
 	->get('/title/svg', [UserController::class, 'title'])

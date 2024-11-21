@@ -40,6 +40,7 @@ $gameCodeGroup = $gameGroup->group('{code}');
 $gameCodeGroup->get('', [GameController::class, 'show'])->name('game')
               ->get('{user}', [GameController::class, 'show'])->name('user-game')
               ->get('thumb', [GameController::class, 'thumb'])
+              ->get('thumb.png', [GameController::class, 'thumb'])
               ->get('highlights', [GameHighlightsController::class, 'show']);
 
 $gameCodeGroup->group('player')
