@@ -188,22 +188,24 @@ window.addEventListener("load", () => {
     // Mobile nav
     const mainNav = document.getElementById('mobile-menu-full') as HTMLDivElement;
     const toggleMainNav = document.getElementById('triggerMainNav') as HTMLButtonElement;
-    const closeBtn = mainNav.querySelector('.btn-close') as HTMLButtonElement;
-    let mainNavActive = true;
-    let mainNavThrottle : NodeJS.Timeout = null;
-    toggleMainNav.addEventListener('click', () => {
-        if (!mainNavActive) {
-            return;
-        }
-        mainNavActive = false;
-        mainNavThrottle = setTimeout(() => mainNavActive = true, 50);
-        mainNav.classList.toggle('show');
-        toggleMainNav.classList.toggle('show');
-    });
-    closeBtn.addEventListener('click', () => {
-        mainNav.classList.remove('show');
-        toggleMainNav.classList.remove('show');
-    });
+    if (mainNav && toggleMainNav) {
+        const closeBtn = mainNav.querySelector('.btn-close') as HTMLButtonElement;
+        let mainNavActive = true;
+        let mainNavThrottle: NodeJS.Timeout = null;
+        toggleMainNav.addEventListener('click', () => {
+            if (!mainNavActive) {
+                return;
+            }
+            mainNavActive = false;
+            mainNavThrottle = setTimeout(() => mainNavActive = true, 50);
+            mainNav.classList.toggle('show');
+            toggleMainNav.classList.toggle('show');
+        });
+        closeBtn.addEventListener('click', () => {
+            mainNav.classList.remove('show');
+            toggleMainNav.classList.remove('show');
+        });
+    }
 
     // Share buttons
     if (navigator.share) {
