@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Lsr\Logging\Logger;
+
 final readonly class Turnstile
 {
 	private const string TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
@@ -29,6 +31,8 @@ final readonly class Turnstile
 	 */
 	public function validate(?string $token): bool
 	{
+		$logger = new Logger(LOG_DIR, 'turnstile');
+		$logger->debug('Validating turnstile response', ['token' => $token, 'enabled' => $this->enabled]);
 		if (!$this->enabled) {
 			return true;
 		}
@@ -46,6 +50,7 @@ final readonly class Turnstile
 		$data = curl_exec($ch);
 		/** @var array{success: bool} $result */
 		$result = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+		($logger)->info('Validate token '.$token, $result);
 		curl_close($ch);
 		return $result['success'];
 	}

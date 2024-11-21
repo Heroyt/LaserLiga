@@ -17,6 +17,7 @@
                 <form action="{link ['register']}" method="post" id="register-form"
                       class="card mx-auto text-center has-validation"
                       style="max-width: 400px;">
+                    {csrfInput 'register-user'}
                     <div class="card-header">
                         <h3>{lang 'Vytvořit účet'}</h3>
                     </div>
@@ -91,7 +92,7 @@
                                        class="form-control {ifset $errors['password']}is-invalid{/ifset}"
                                        id="loginPassword"
                                        placeholder="****"
-                                       autocomplete="password" required>
+                                       autocomplete="new-password" required>
                                 <label for="loginPassword">{lang 'Heslo'}:</label>
                             </div>
                             <div class="invalid-feedback">
@@ -100,6 +101,7 @@
                                 {/ifset}
                             </div>
                         </div>
+                        <input type="text" name="password_confirmation" autocomplete="new-password" class="visually-hidden">
                         <div class="cf-turnstile mb-3" data-sitekey="{$turnstileKey}"></div>
                         <div class="mb-3">
                             <button type="submit"

@@ -17,6 +17,7 @@ use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
@@ -70,6 +71,34 @@ class Login extends Controller
 			lang($this->title) => ['register'],
 		];
 		$this->description = 'Vytvořte si nový hráčský účet v systému Laser liga.';
+
+		if (!formValid('register-user')) {
+			$this->params->errors[] = lang('Požadavek vypršel, zkuste znovu načíst stránku.', context: 'errors');
+			$this->params->arenas = Arena::getAll();
+			return $this->view('pages/login/register');
+		}
+
+		if (!$this->validateCaptcha($request)) {
+			$this->params->arenas = Arena::getAll();
+			return $this->view('pages/login/register');
+		}
+
+		$botTest = $request->getPost('password_confirmation', '');
+
+		if (!empty($botTest)) {
+			$this->getApp()->getLogger()->notice(
+				'Detected bot registration',
+				[
+					'path'   => $request->getPath(),
+					'body'   => $request->getParsedBody(),
+					'ip'     => $request->getIp(),
+					'cookie' => $request->getCookieParams(),
+					'errors' => $this->params->errors,
+				]
+			);
+			return $this->respond(new SuccessResponse()); // Fake response
+		}
+
 		// Validate
 		/** @var string $email */
 		$email = $request->getPost('email', '');
@@ -78,8 +107,6 @@ class Login extends Controller
 		/** @var string $name */
 		$name = $request->getPost('name', '');
 		$arena = null;
-
-		$this->validateCaptcha($request);
 
 		if (empty($email)) {
 			$this->params->errors['email'] = lang('E-mail je povinný', context: 'errors');
