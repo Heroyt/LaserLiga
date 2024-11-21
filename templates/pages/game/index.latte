@@ -1,6 +1,6 @@
 {layout '../../@layout.latte'}
 
-{varType \Lsr\Core\Controller $page}
+{varType Lsr\Core\Controllers\Controller $page}
 {varType App\GameModels\Game\Game $game}
 {varType App\GameModels\Game\Today $today}
 {varType string $prevGame}
@@ -54,7 +54,12 @@
         </style>
         <script n:ifset="$schema" type="application/ld+json">
             {json_encode($schema, JSON_PRETTY_PRINT)|noescape}
-
+        </script>
+        <script>
+            _mtm.push({
+                'game': {$game->code},
+                'gameArena': {$game->arena?->name}
+            })
         </script>
     {/ifset}
     {ifset $style}

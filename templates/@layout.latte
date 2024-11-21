@@ -116,6 +116,10 @@
             {if $auth->loggedIn()}
             _paq.push(['setUserId', {$auth->getLoggedIn()->email}]);
             _paq.push(['setCustomVariable', 1, 'playerCode', {$auth->getLoggedIn()->player->getCode()}, 'visit']);
+            _mtm.push({
+                playerName: {$auth->getLoggedIn()->name},
+                playerCode: {$auth->getLoggedIn()->player->getCode()},
+            });
             {/if}
             _paq.push(['trackPageView']);
             _paq.push(['trackVisibleContentImpressions', true]);

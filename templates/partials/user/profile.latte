@@ -4,15 +4,101 @@
 {var bool $showCompare = isset($loggedInUser) && $loggedInUser->id !== $user->id}
 {var bool $currentUser = isset($loggedInUser) && $loggedInUser->id === $user->id}
 
-<div class="player-profile" itemscope itemtype="http://schema.org/Person">
-    <meta itemprop="url" content="{link 'user', $user->player->getCode()}">
-    <meta itemprop="identifier" content="{$user->player->getCode()}">
+{capture $abstract}
+    {var App\GameModels\Game\Game|null $firstGame = $user->player->getFirstGame()}
+    {var App\Helpers\Gender $gender = $user->player->getGender()}
+    {ifset $firstGame}
+        {switch $gender}
+            {case App\Helpers\Gender::MALE}
+            {sprintf(lang('%s začal svou cestu laser game hráče svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
+            {case App\Helpers\Gender::FEMALE}
+            {sprintf(lang('%s začala svou cestu laser game hráčky svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
+            {case App\Helpers\Gender::OTHER}
+            {sprintf(lang('%s začalo svou cestu laser game hráče svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
+        {/switch}
+    {else}
+        {switch $gender}
+            {case App\Helpers\Gender::MALE}
+            {sprintf(lang('%s začal svou cestu laser game hráče registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
+            {case App\Helpers\Gender::FEMALE}
+            {sprintf(lang('%s začala svou cestu laser game hráčky registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
+            {case App\Helpers\Gender::OTHER}
+            {sprintf(lang('%s začalo svou cestu laser game hráče registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
+        {/switch}
+    {/ifset}
+    <br>
+    {switch true}
+        {case $user->player->stats->gamesPlayed > 500}
+        {sprintf(lang('Od té doby má za sebou neuvěřitelných %d her!'), $user->player->stats->gamesPlayed)}
+        {case $user->player->stats->gamesPlayed > 100}
+        {switch $gender}
+            {case App\Helpers\Gender::MALE}
+            {sprintf(lang('Už stihl odehrát %d her.'), $user->player->stats->gamesPlayed)}
+            {case App\Helpers\Gender::FEMALE}
+            {sprintf(lang('Už stihla odehrát %d her.'), $user->player->stats->gamesPlayed)}
+            {case App\Helpers\Gender::OTHER}
+            {sprintf(lang('Už stihlo odehrát %d her.'), $user->player->stats->gamesPlayed)}
+        {/switch}
+        {case $user->player->stats->gamesPlayed > 10}
+        {switch $gender}
+            {case App\Helpers\Gender::MALE}
+            {sprintf(lang('Zatím odehrál %d her.'), $user->player->stats->gamesPlayed)}
+            {case App\Helpers\Gender::FEMALE}
+            {sprintf(lang('Zatím odehrála %d her.'), $user->player->stats->gamesPlayed)}
+            {case App\Helpers\Gender::OTHER}
+            {sprintf(lang('Zatím odehrálo %d her.'), $user->player->stats->gamesPlayed)}
+        {/switch}
+        {case $user->player->stats->gamesPlayed > 0}
+        {lang 'Od té doby ještě nemá odehráno tolik her, ale každá cesta někde začíná.'}
+        {default}
+        {switch $gender}
+            {case App\Helpers\Gender::MALE}
+            {lang 'Od té doby bohužel ještě nehrál ani jednu hru.'}
+            {case App\Helpers\Gender::FEMALE}
+            {lang 'Od té doby bohužel ještě nehrála ani jednu hru.'}
+            {case App\Helpers\Gender::OTHER}
+            {lang 'Od té doby bohužel ještě nehrálo ani jednu hru.'}
+        {/switch}
+    {/switch}
+{/capture}
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "dateCreated": {$user->createdAt->format('c')},
+        "abstract": {$abstract|stripHtml|trim},
+        "thumbnailUrl": "{link 'user', $user->player->getCode(), 'img.png'}",
+        "identifier": {$user->player->getCode()},
+        "url": "{link 'user', $user->player->getCode()}",
+        "mainEntity": {
+            "@type": "Person",
+            "name": {$user->name},
+            "alternateName": {$user->name},
+            "identifier": {$user->player->getCode()},
+            "interactionStatistic": [
+                {
+                    "@type": "InteractionCounter",
+                    "interactionType": {
+                        "@type": "PlayAction",
+                        "name": {_'Odehráno her'}
+                    },
+                    "userInteractionCount": {$user->player->stats->gamesPlayed}
+                }
+            ],
+            "image": [
+                "{link 'user', $user->player->getCode(), 'avatar'}",
+                "{link 'user', $user->player->getCode(), 'img.png'}"
+            ]
+        }
+    }
+</script>
+<div class="player-profile">
     <header>
-        <link itemprop="image" content="{link 'user', $user->player->getCode(), 'avatar'}">
         {$user->player->getAvatar()|noescape}
         <h1 class="mt-2">
             <span class="visually-hidden">{lang 'Profil uživatele'}:</span>
-            <span itemprop="name">{$user->name}</span>
+            <span>{$user->name}</span>
         </h1>
         <h2 n:ifset="$user->player">
             <span class="visually-hidden">{lang 'Herní kód hráče'}:</span>
@@ -23,62 +109,8 @@
             </button>
         </h2>
         {include '../title.latte', $user->player->getTitle(), false, $currentUser}
-        <p class="text-center mt-3 text-muted" itemprop="description">
-            {var App\GameModels\Game\Game|null $firstGame = $user->player->getFirstGame()}
-            {var App\Helpers\Gender $gender = $user->player->getGender()}
-            {ifset $firstGame}
-                {switch $gender}
-                    {case App\Helpers\Gender::MALE}
-                    {sprintf(lang('%s začal svou cestu laser game hráče svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
-                    {case App\Helpers\Gender::FEMALE}
-                    {sprintf(lang('%s začala svou cestu laser game hráčky svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
-                    {case App\Helpers\Gender::OTHER}
-                    {sprintf(lang('%s začalo svou cestu laser game hráče svou první hrou %s.'), $user->name, '<time datetime="'.$firstGame?->start?->format('Y-m-d').'">'.$firstGame?->start?->format('j. n. Y').'</time>')|noescape}
-                {/switch}
-            {else}
-                {switch $gender}
-                    {case App\Helpers\Gender::MALE}
-                    {sprintf(lang('%s začal svou cestu laser game hráče registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
-                    {case App\Helpers\Gender::FEMALE}
-                    {sprintf(lang('%s začala svou cestu laser game hráčky registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
-                    {case App\Helpers\Gender::OTHER}
-                    {sprintf(lang('%s začalo svou cestu laser game hráče registrací do Laser ligy %s.'), $user->name, '<time datetime="'.$user->createdAt?->format('Y-m-d').'">'.$user->createdAt?->format('j. n. Y').'</time>')|noescape}
-                {/switch}
-            {/ifset}
-            <br>
-            {switch true}
-                {case $user->player->stats->gamesPlayed > 500}
-                {sprintf(lang('Od té doby má za sebou neuvěřitelných %d her!'), $user->player->stats->gamesPlayed)}
-                {case $user->player->stats->gamesPlayed > 100}
-                {switch $gender}
-                    {case App\Helpers\Gender::MALE}
-                    {sprintf(lang('Už stihl odehrát %d her.'), $user->player->stats->gamesPlayed)}
-                    {case App\Helpers\Gender::FEMALE}
-                    {sprintf(lang('Už stihla odehrát %d her.'), $user->player->stats->gamesPlayed)}
-                    {case App\Helpers\Gender::OTHER}
-                    {sprintf(lang('Už stihlo odehrát %d her.'), $user->player->stats->gamesPlayed)}
-                {/switch}
-                {case $user->player->stats->gamesPlayed > 10}
-                {switch $gender}
-                    {case App\Helpers\Gender::MALE}
-                    {sprintf(lang('Zatím odehrál %d her.'), $user->player->stats->gamesPlayed)}
-                    {case App\Helpers\Gender::FEMALE}
-                    {sprintf(lang('Zatím odehrála %d her.'), $user->player->stats->gamesPlayed)}
-                    {case App\Helpers\Gender::OTHER}
-                    {sprintf(lang('Zatím odehrálo %d her.'), $user->player->stats->gamesPlayed)}
-                {/switch}
-                {case $user->player->stats->gamesPlayed > 0}
-                {lang 'Od té doby ještě nemá odehráno tolik her, ale každá cesta někde začíná.'}
-                {default}
-                {switch $gender}
-                    {case App\Helpers\Gender::MALE}
-                    {lang 'Od té doby bohužel ještě nehrál ani jednu hru.'}
-                    {case App\Helpers\Gender::FEMALE}
-                    {lang 'Od té doby bohužel ještě nehrála ani jednu hru.'}
-                    {case App\Helpers\Gender::OTHER}
-                    {lang 'Od té doby bohužel ještě nehrálo ani jednu hru.'}
-                {/switch}
-            {/switch}
+        <p class="text-center mt-3 text-muted">
+            {$abstract}
         </p>
         <p class="mt-3 text-center">
             <button n:if="$currentUser" type="button" class="btn btn-secondary" data-bs-toggle="modal"
@@ -249,7 +281,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <img itemprop="image" loading="lazy" src="{link 'user', $user->player->getCode(), 'img'}"
+                    <img loading="lazy" src="{link 'user', $user->player->getCode(), 'img'}"
                          alt="{lang 'Statistiky hráče'} {$user->name}" class="img-fluid my-3">
                     <p>{lang 'Kliknutím na tlačítko níže můžete stáhnout obrázek profilu, nebo profil sdílet.'}</p>
                 </div>
