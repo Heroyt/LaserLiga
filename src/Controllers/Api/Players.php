@@ -173,6 +173,11 @@ class Players extends ApiController
 			      );
 		}
 
+		$limit = $request->getGet('limit');
+		if (is_numeric($limit)) {
+			$query->limit((int) $limit)->orderBy('rank')->desc();
+		}
+
 		$players = $query->get();
 
 		$ids = array_map(static fn($player) => $player->id, $players);
