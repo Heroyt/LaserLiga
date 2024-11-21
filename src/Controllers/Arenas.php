@@ -174,7 +174,6 @@ class Arenas extends Controller
 	 */
 	private function filters(Request $request, Fluent $query) : array {
 		$modeIds = [];
-		/** @var string[] $modes */
 		$modes = $request->getGet('modes', []);
 		if (!empty($modes) && is_array($modes)) {
 			foreach ($modes as $mode) {
@@ -223,7 +222,7 @@ class Arenas extends Controller
 
 	private function statFilter(Fluent $query, Request $request) : void {
 		$week = $request->getGet('week');
-		if (is_string($week) || is_numeric($week)) {
+		if (is_string($week)) {
 			try {
 				$date = new DateTimeImmutable($week);
 			} catch (Exception) {
@@ -238,11 +237,10 @@ class Arenas extends Controller
 			}
 		}
 		$month = $request->getGet('month');
-		if (is_string($month) || is_numeric($month)) {
+		if (is_string($month)) {
 			try {
 				$date = new DateTimeImmutable($month);
-			} catch (Exception $e) {
-				bdump($e);
+			} catch (Exception) {
 				$date = new DateTimeImmutable();
 			}
 			$day = $date->format('Y-m');
@@ -251,8 +249,7 @@ class Arenas extends Controller
 				$start = new DateTimeImmutable($day.'-1');
 				$end = new DateTimeImmutable($day.'-'.$days);
 				$query->where('[start] BETWEEN %d AND %d', $start, $end);
-			} catch (Exception $e) {
-				bdump($e);
+			} catch (Exception) {
 			}
 		}
 	}

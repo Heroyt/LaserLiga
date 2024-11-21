@@ -20,6 +20,7 @@ use App\Services\EventRegistrationService;
 use App\Services\Turnstile;
 use Dibi\DriverException;
 use Exception;
+use JsonException;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -31,7 +32,6 @@ use Lsr\Interfaces\AuthInterface;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Logger;
 use Psr\Http\Message\ResponseInterface;
-use JsonException;
 
 class EventController extends Controller
 {
@@ -370,7 +370,7 @@ class EventController extends Controller
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
 			return $this->app->redirect(
-				['events', 'registration', $event->id, $team->id, 'h' => $team->getHash()],
+				['events', 'registration', (string) $event->id, (string) $team->id, 'h' => $team->getHash()],
 				$request
 			);
 		}
@@ -500,7 +500,7 @@ class EventController extends Controller
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
 			return $this->app->redirect(
-				['events', 'registration', $event->id, $registeredPlayer->id, $registeredPlayer->getHash()],
+				['events', 'registration', (string) $event->id, (string) $registeredPlayer->id, $registeredPlayer->getHash()],
 				$request
 			);
 		}
@@ -536,14 +536,14 @@ class EventController extends Controller
 			                 ->first();
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				return $this->app->redirect(['events', $event->id], $request);
+				return $this->app->redirect(['events', (string) $event->id], $request);
 			}
 			if (!empty($request->params['hash'])) {
 				$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				return $this->app->redirect(['events', $event->id], $request);
+				return $this->app->redirect(['events', (string) $event->id], $request);
 			}
 			return $this->updateTeam($team);
 		}
@@ -559,14 +559,14 @@ class EventController extends Controller
 	                     ->first();
 		if (!isset($player)) {
 			$request->addPassError(lang('Registrace neexistuje'));
-			return $this->app->redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', (string) $event->id], $request);
 		}
 		if (!empty($request->params['hash'])) {
 			$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
 		}
 		if (!$this->validateRegistrationAccess($player)) {
 			$request->addPassError(lang('K tomuto hráči nemáte přístup'));
-			return $this->app->redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', (string) $event->id], $request);
 		}
 		return $this->updatePlayer($player);
 	}
@@ -614,14 +614,14 @@ class EventController extends Controller
 		$this->params['team'] = $team;
 		$this->params['event'] = $team->event;
 
-		$this->params['values'] = [
+		$values = [
 			'id'        => $team->id,
 			'team-name' => $team->name,
 			'players'   => [],
 		];
 		bdump($team->getPlayers());
 		foreach ($team->getPlayers() as $player) {
-			$this->params['values']['players'][] = [
+			$values['players'][] = [
 				'id'          => $player->id,
 				'user'        => $player->user?->getCode(),
 				'name'        => $player->name,
@@ -635,6 +635,8 @@ class EventController extends Controller
 				'skill'       => $player->skill->value,
 			];
 		}
+
+		$this->params['values'] = $values;
 
 		return $this->view('pages/events/updateTeam');
 	}
@@ -706,16 +708,18 @@ class EventController extends Controller
 		$team = EventTeam::query()->where('id_event = %i AND id_team = %i', $event->id, $registration)->first();
 		if (!isset($team)) {
 			$request->addPassError(lang('Registrace neexistuje'));
-			return $this->app->redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', (string) $event->id], $request);
 		}
 		if (!$this->validateRegistrationAccess($team)) {
 			$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-			return $this->app->redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', (string) $event->id], $request);
 		}
 		$this->params['errors'] = $this->eventRegistrationService->validateRegistration($event, $request);
 		if (empty($this->params['errors'])) {
 			DB::getConnection()->begin();
-			$data = new TeamRegistrationDTO($request->getPost('team-name'));
+			$name = $request->getPost('team-name', '');
+			assert(is_string($name));
+			$data = new TeamRegistrationDTO($name);
 			$data->leagueTeam = $team->leagueTeam->id;
 			$data->image = $this->processLogoUpload() ?? $team->getImageObj();
 
@@ -747,6 +751,7 @@ class EventController extends Controller
 			}
 
 			try {
+				/** @var EventTeam $team */
 				$team = $this->eventRegistrationService->registerTeam($event, $data, team: $team);
 			} catch (ModelSaveFailedException|ModelNotFoundException|ValidationException $e) {
 				bdump($data);
@@ -765,6 +770,7 @@ class EventController extends Controller
 			if (!$this->eventRegistrationService->sendRegistrationEmail($team, true)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
+			/** @phpstan-ignore argument.type */
 			return $this->app->redirect($link, $request);
 		}
 		$this->params['team'] = $team;
@@ -788,11 +794,11 @@ class EventController extends Controller
 		                          ->first();
 		if (!isset($eventPlayer)) {
 			$request->addPassError(lang('Registrace neexistuje'));
-			return $this->app->redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', (string) $event->id], $request);
 		}
 		if (!$this->validateRegistrationAccess($eventPlayer)) {
 			$request->addPassError(lang('K tomuto hráči nemáte přístup'));
-			return $this->app->redirect(['events', $event->id], $request);
+			return $this->app->redirect(['events', (string) $event->id], $request);
 		}
 
 		$dates = $request->getPost('dates', []);
@@ -870,6 +876,7 @@ class EventController extends Controller
 			if (!$this->eventRegistrationService->sendPlayerRegistrationEmail($eventPlayer, true)) {
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
+			/** @phpstan-ignore argument.type */
 			return $this->app->redirect($link, $request);
 		}
 		$this->params['player'] = $eventPlayer;
