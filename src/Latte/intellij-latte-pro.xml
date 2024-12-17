@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE latte PUBLIC "-//LATTE//Latte plugin XML V0.0.1//EN" ".idea/intellij-latte-pro/xmlSources/Latte.dtd">
+<latte version="1" vendor="heroyt/laserliga">
+    <tags>
+        <tag name="fa" type="UNPAIRED" deprecatedMessage="" allowedFilters="true">
+            <arguments>
+                <argument name="style" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="string"
+                          required="true"/>
+                <argument name="icon" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="string"
+                          required="true"/>
+                <argument name="classes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+                <argument name="attributes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+            </arguments>
+        </tag>
+        <tag name="faSolid" type="UNPAIRED" deprecatedMessage="" allowedFilters="true">
+            <arguments>
+                <argument name="icon" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="string"
+                          required="true"/>
+                <argument name="classes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+                <argument name="attributes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+            </arguments>
+        </tag>
+        <tag name="faRegular" type="UNPAIRED" deprecatedMessage="" allowedFilters="true">
+            <arguments>
+                <argument name="icon" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="string"
+                          required="true"/>
+                <argument name="classes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+                <argument name="attributes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+            </arguments>
+        </tag>
+        <tag name="faBrand" type="UNPAIRED" deprecatedMessage="" allowedFilters="true">
+            <arguments>
+                <argument name="icon" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="string"
+                          required="true"/>
+                <argument name="classes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+                <argument name="attributes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+            </arguments>
+        </tag>
+        <tag name="image" type="UNPAIRED" deprecatedMessage="" allowedFilters="true">
+            <arguments>
+                <argument name="path" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="string"
+                          required="true"/>
+                <argument name="width" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="int"
+                          required="false"/>
+                <argument name="height" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="int"
+                          required="false"/>
+                <argument name="classes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+                <argument name="attributes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+            </arguments>
+        </tag>
+        <tag name="img" type="UNPAIRED" deprecatedMessage="" allowedFilters="true">
+            <arguments>
+                <argument name="path" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="string"
+                          required="true"/>
+                <argument name="width" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="int"
+                          required="false"/>
+                <argument name="height" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="int"
+                          required="false"/>
+                <argument name="classes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+                <argument name="attributes" types="PHP_IDENTIFIER,VARIABLE,PHP_EXPRESSION" validType="array"
+                          required="false"/>
+            </arguments>
+        </tag>
+    </tags>
+    <variables>
+    </variables>
+    <functions>
+    </functions>
+    <filters>
+    </filters>
+</latte>

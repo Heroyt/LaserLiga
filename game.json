@@ -1,0 +1,1102 @@
+{
+  "id": 10867,
+  "resultsFile": "0843",
+  "modeName": "Z-SOLO-7-BM-P-S",
+  "fileTime": "2024-11-18T15:45:32+01:00",
+  "start": "2024-11-18T15:38:22+01:00",
+  "importTime": "2024-11-18T15:45:31+01:00",
+  "end": "2024-11-18T15:45:22+01:00",
+  "timing": {
+    "before": 20,
+    "gameLength": 7,
+    "after": 10
+  },
+  "code": "cb673b530f24755",
+  "gameType": "SOLO",
+  "sync": false,
+  "started": false,
+  "finished": false,
+  "playerCount": 9,
+  "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+  "players": {
+    "1": {
+      "id": 78751,
+      "name": "Mysterio",
+      "score": 1100,
+      "skill": 433,
+      "vest": 1,
+      "shots": 182,
+      "accuracy": 17,
+      "hits": 31,
+      "deaths": 40,
+      "position": 5,
+      "hitPlayers": {
+        "1": {
+          "shot": 78751,
+          "target": 78751,
+          "count": 0
+        },
+        "2": {
+          "shot": 78751,
+          "target": 78752,
+          "count": 3
+        },
+        "3": {
+          "shot": 78751,
+          "target": 78753,
+          "count": 7
+        },
+        "4": {
+          "shot": 78751,
+          "target": 78754,
+          "count": 7
+        },
+        "5": {
+          "shot": 78751,
+          "target": 78755,
+          "count": 4
+        },
+        "6": {
+          "shot": 78751,
+          "target": 78756,
+          "count": 7
+        },
+        "7": {
+          "shot": 78751,
+          "target": 78757,
+          "count": 3
+        },
+        "8": {
+          "shot": 78751,
+          "target": 78758,
+          "count": 0
+        },
+        "10": {
+          "shot": 78751,
+          "target": 78759,
+          "count": 0
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 610,
+      "relativeHits": 0.9784,
+      "relativeDeaths": 1.2606,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9817,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 31,
+      "deathsOwn": 40,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-GHMUF",
+      "rank": 186,
+      "avgSkill": 433
+    },
+    "2": {
+      "id": 78752,
+      "name": "Slanina",
+      "score": 600,
+      "skill": 360,
+      "vest": 2,
+      "shots": 74,
+      "accuracy": 26,
+      "hits": 19,
+      "deaths": 26,
+      "position": 7,
+      "hitPlayers": {
+        "1": {
+          "shot": 78752,
+          "target": 78751,
+          "count": 3
+        },
+        "2": {
+          "shot": 78752,
+          "target": 78752,
+          "count": 0
+        },
+        "3": {
+          "shot": 78752,
+          "target": 78753,
+          "count": 2
+        },
+        "4": {
+          "shot": 78752,
+          "target": 78754,
+          "count": 4
+        },
+        "5": {
+          "shot": 78752,
+          "target": 78755,
+          "count": 3
+        },
+        "6": {
+          "shot": 78752,
+          "target": 78756,
+          "count": 5
+        },
+        "7": {
+          "shot": 78752,
+          "target": 78757,
+          "count": 2
+        },
+        "8": {
+          "shot": 78752,
+          "target": 78758,
+          "count": 0
+        },
+        "10": {
+          "shot": 78752,
+          "target": 78759,
+          "count": 0
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 623,
+      "relativeHits": 0.5997,
+      "relativeDeaths": 0.8194,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9925,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 19,
+      "deathsOwn": 26,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-EW92I",
+      "rank": 223,
+      "avgSkill": 360
+    },
+    "3": {
+      "id": 78753,
+      "name": "Lprimohouse",
+      "score": 1450,
+      "skill": 465,
+      "vest": 3,
+      "shots": 177,
+      "accuracy": 18,
+      "hits": 31,
+      "deaths": 33,
+      "position": 4,
+      "hitPlayers": {
+        "1": {
+          "shot": 78753,
+          "target": 78751,
+          "count": 10
+        },
+        "2": {
+          "shot": 78753,
+          "target": 78752,
+          "count": 5
+        },
+        "3": {
+          "shot": 78753,
+          "target": 78753,
+          "count": 0
+        },
+        "4": {
+          "shot": 78753,
+          "target": 78754,
+          "count": 1
+        },
+        "5": {
+          "shot": 78753,
+          "target": 78755,
+          "count": 6
+        },
+        "6": {
+          "shot": 78753,
+          "target": 78756,
+          "count": 3
+        },
+        "7": {
+          "shot": 78753,
+          "target": 78757,
+          "count": 3
+        },
+        "8": {
+          "shot": 78753,
+          "target": 78758,
+          "count": 3
+        },
+        "10": {
+          "shot": 78753,
+          "target": 78759,
+          "count": 0
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 623,
+      "relativeHits": 0.9784,
+      "relativeDeaths": 1.04,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9822,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 31,
+      "deathsOwn": 33,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-EW92I",
+      "rank": 223,
+      "avgSkill": 465
+    },
+    "4": {
+      "id": 78754,
+      "name": "Bosák",
+      "score": 900,
+      "skill": 396,
+      "vest": 4,
+      "shots": 109,
+      "accuracy": 22,
+      "hits": 24,
+      "deaths": 30,
+      "position": 6,
+      "hitPlayers": {
+        "1": {
+          "shot": 78754,
+          "target": 78751,
+          "count": 4
+        },
+        "2": {
+          "shot": 78754,
+          "target": 78752,
+          "count": 2
+        },
+        "3": {
+          "shot": 78754,
+          "target": 78753,
+          "count": 2
+        },
+        "4": {
+          "shot": 78754,
+          "target": 78754,
+          "count": 0
+        },
+        "5": {
+          "shot": 78754,
+          "target": 78755,
+          "count": 4
+        },
+        "6": {
+          "shot": 78754,
+          "target": 78756,
+          "count": 3
+        },
+        "7": {
+          "shot": 78754,
+          "target": 78757,
+          "count": 7
+        },
+        "8": {
+          "shot": 78754,
+          "target": 78758,
+          "count": 0
+        },
+        "10": {
+          "shot": 78754,
+          "target": 78759,
+          "count": 2
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 623,
+      "relativeHits": 0.7575,
+      "relativeDeaths": 0.9454,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9890,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 24,
+      "deathsOwn": 30,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-EW92I",
+      "rank": 223,
+      "avgSkill": 396
+    },
+    "5": {
+      "id": 78755,
+      "name": "Sniper",
+      "score": -400,
+      "skill": 191,
+      "vest": 5,
+      "shots": 222,
+      "accuracy": 8,
+      "hits": 17,
+      "deaths": 42,
+      "position": 9,
+      "hitPlayers": {
+        "1": {
+          "shot": 78755,
+          "target": 78751,
+          "count": 3
+        },
+        "2": {
+          "shot": 78755,
+          "target": 78752,
+          "count": 2
+        },
+        "3": {
+          "shot": 78755,
+          "target": 78753,
+          "count": 2
+        },
+        "4": {
+          "shot": 78755,
+          "target": 78754,
+          "count": 1
+        },
+        "5": {
+          "shot": 78755,
+          "target": 78755,
+          "count": 0
+        },
+        "6": {
+          "shot": 78755,
+          "target": 78756,
+          "count": 4
+        },
+        "7": {
+          "shot": 78755,
+          "target": 78757,
+          "count": 2
+        },
+        "8": {
+          "shot": 78755,
+          "target": 78758,
+          "count": 2
+        },
+        "10": {
+          "shot": 78755,
+          "target": 78759,
+          "count": 1
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 623,
+      "relativeHits": 0.5366,
+      "relativeDeaths": 1.3236,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9777,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 17,
+      "deathsOwn": 42,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-EW92I",
+      "rank": 223,
+      "avgSkill": 191
+    },
+    "6": {
+      "id": 78756,
+      "name": "Fortnite kid",
+      "score": 2750,
+      "skill": 637,
+      "vest": 6,
+      "shots": 265,
+      "accuracy": 16,
+      "hits": 42,
+      "deaths": 29,
+      "position": 2,
+      "hitPlayers": {
+        "1": {
+          "shot": 78756,
+          "target": 78751,
+          "count": 7
+        },
+        "2": {
+          "shot": 78756,
+          "target": 78752,
+          "count": 7
+        },
+        "3": {
+          "shot": 78756,
+          "target": 78753,
+          "count": 5
+        },
+        "4": {
+          "shot": 78756,
+          "target": 78754,
+          "count": 2
+        },
+        "5": {
+          "shot": 78756,
+          "target": 78755,
+          "count": 12
+        },
+        "6": {
+          "shot": 78756,
+          "target": 78756,
+          "count": 0
+        },
+        "7": {
+          "shot": 78756,
+          "target": 78757,
+          "count": 6
+        },
+        "8": {
+          "shot": 78756,
+          "target": 78758,
+          "count": 1
+        },
+        "10": {
+          "shot": 78756,
+          "target": 78759,
+          "count": 2
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 648,
+      "relativeHits": 1.3256,
+      "relativeDeaths": 0.9139,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9734,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 42,
+      "deathsOwn": 29,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-RBKE2",
+      "rank": 255,
+      "avgSkill": 637
+    },
+    "7": {
+      "id": 78757,
+      "name": "Terminátor",
+      "score": 500,
+      "skill": 303,
+      "vest": 7,
+      "shots": 126,
+      "accuracy": 17,
+      "hits": 21,
+      "deaths": 32,
+      "position": 8,
+      "hitPlayers": {
+        "1": {
+          "shot": 78757,
+          "target": 78751,
+          "count": 7
+        },
+        "2": {
+          "shot": 78757,
+          "target": 78752,
+          "count": 3
+        },
+        "3": {
+          "shot": 78757,
+          "target": 78753,
+          "count": 3
+        },
+        "4": {
+          "shot": 78757,
+          "target": 78754,
+          "count": 4
+        },
+        "5": {
+          "shot": 78757,
+          "target": 78755,
+          "count": 1
+        },
+        "6": {
+          "shot": 78757,
+          "target": 78756,
+          "count": 0
+        },
+        "7": {
+          "shot": 78757,
+          "target": 78757,
+          "count": 0
+        },
+        "8": {
+          "shot": 78757,
+          "target": 78758,
+          "count": 2
+        },
+        "10": {
+          "shot": 78757,
+          "target": 78759,
+          "count": 1
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 610,
+      "relativeHits": 0.6628,
+      "relativeDeaths": 1.0085,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9873,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 21,
+      "deathsOwn": 32,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-GHMUF",
+      "rank": 186,
+      "avgSkill": 303
+    },
+    "8": {
+      "id": 78758,
+      "name": "Pes",
+      "score": 1950,
+      "skill": 551,
+      "vest": 8,
+      "shots": 660,
+      "accuracy": 4,
+      "hits": 25,
+      "deaths": 11,
+      "position": 3,
+      "hitPlayers": {
+        "1": {
+          "shot": 78758,
+          "target": 78751,
+          "count": 2
+        },
+        "2": {
+          "shot": 78758,
+          "target": 78752,
+          "count": 1
+        },
+        "3": {
+          "shot": 78758,
+          "target": 78753,
+          "count": 8
+        },
+        "4": {
+          "shot": 78758,
+          "target": 78754,
+          "count": 1
+        },
+        "5": {
+          "shot": 78758,
+          "target": 78755,
+          "count": 7
+        },
+        "6": {
+          "shot": 78758,
+          "target": 78756,
+          "count": 1
+        },
+        "7": {
+          "shot": 78758,
+          "target": 78757,
+          "count": 5
+        },
+        "8": {
+          "shot": 78758,
+          "target": 78758,
+          "count": 0
+        },
+        "10": {
+          "shot": 78758,
+          "target": 78759,
+          "count": 0
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 610,
+      "relativeHits": 0.7891,
+      "relativeDeaths": 0.3467,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9339,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 25,
+      "deathsOwn": 11,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-GHMUF",
+      "rank": 186,
+      "avgSkill": 551
+    },
+    "10": {
+      "id": 78759,
+      "name": "El Háňa",
+      "score": 3600,
+      "skill": 985,
+      "vest": 10,
+      "shots": 145,
+      "accuracy": 27,
+      "hits": 39,
+      "deaths": 6,
+      "position": 1,
+      "hitPlayers": {
+        "1": {
+          "shot": 78759,
+          "target": 78751,
+          "count": 4
+        },
+        "2": {
+          "shot": 78759,
+          "target": 78752,
+          "count": 3
+        },
+        "3": {
+          "shot": 78759,
+          "target": 78753,
+          "count": 4
+        },
+        "4": {
+          "shot": 78759,
+          "target": 78754,
+          "count": 10
+        },
+        "5": {
+          "shot": 78759,
+          "target": 78755,
+          "count": 5
+        },
+        "6": {
+          "shot": 78759,
+          "target": 78756,
+          "count": 6
+        },
+        "7": {
+          "shot": 78759,
+          "target": 78757,
+          "count": 4
+        },
+        "8": {
+          "shot": 78759,
+          "target": 78758,
+          "count": 3
+        },
+        "10": {
+          "shot": 78759,
+          "target": 78759,
+          "count": 0
+        }
+      },
+      "teamNum": 0,
+      "team": {
+        "id": 21793,
+        "color": 3,
+        "score": 12450,
+        "bonus": null,
+        "position": 0,
+        "name": "Růžový tým",
+        "playerCount": 9,
+        "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+        "game": "cb673b530f24755"
+      },
+      "user": 599,
+      "relativeHits": 1.2309,
+      "relativeDeaths": 0.1891,
+      "color": 3,
+      "favouriteTarget": null,
+      "favouriteTargetOf": null,
+      "game": "cb673b530f24755",
+      "shotPoints": 0,
+      "scoreBonus": 0,
+      "scorePowers": 0,
+      "scoreMines": 0,
+      "ammoRest": 9854,
+      "minesHits": 0,
+      "hitsOther": 0,
+      "hitsOwn": 39,
+      "deathsOwn": 6,
+      "deathsOther": 0,
+      "vip": false,
+      "myLasermaxx": "",
+      "bonus": {
+        "array": {
+          "agent": 0,
+          "invisibility": 0,
+          "machine_gun": 0,
+          "shield": 0
+        },
+        "sum": 0,
+        "agent": 0,
+        "invisibility": 0,
+        "machineGun": 0,
+        "shield": 0
+      },
+      "code": "2-EZ640",
+      "rank": 589,
+      "avgSkill": 985
+    }
+  },
+  "teamClass": "App\\GameModels\\Game\\Evo5\\Team",
+  "teams": {
+    "3": {
+      "id": 21793,
+      "color": 3,
+      "score": 12450,
+      "bonus": null,
+      "position": 0,
+      "name": "Růžový tým",
+      "playerCount": 9,
+      "playerClass": "App\\GameModels\\Game\\Evo5\\Player",
+      "game": "cb673b530f24755"
+    }
+  },
+  "metaData": {
+    "music": "11",
+    "mode": "Z-SOLO-7-BM-P-S",
+    "loadTime": 1731940548,
+    "variations": {
+      "1": "-7",
+      "2": "-BM",
+      "6": "-P",
+      "7": "-S"
+    },
+    "p10n": "El Háňa",
+    "p10u": "2-EZ640",
+    "p4n": "Bosák",
+    "p5u": "2-EW92I",
+    "p6u": "2-RBKE2",
+    "p7n": "Terminátor",
+    "p8u": "2-GHMUF",
+    "t0n": "Červený tým",
+    "t1n": "Zelený tým",
+    "t2n": "Modrý tým",
+    "t3n": "Růžový tým",
+    "t4n": "Žlutý tým",
+    "t5n": "Oceánový tým",
+    "hash": "295e79b4eef0b830e3ddf5538f5f128d"
+  },
+  "fileNumber": 843,
+  "lives": 999,
+  "ammo": 9999,
+  "respawn": 5,
+  "scoring": {
+    "deathOther": -50,
+    "hitOther": 100,
+    "deathOwn": -25,
+    "hitOwn": -25,
+    "hitPod": -50,
+    "shot": 0,
+    "machineGun": 75,
+    "invisibility": 75,
+    "agent": 75,
+    "shield": 75
+  },
+  "system": "evo5",
+  "group": null,
+  "music": {
+    "id": 11,
+    "name": "HARDSTYLE",
+    "group": null,
+    "fileName": "/var/www/upload/HARDSTYLE.mp3",
+    "introFile": null,
+    "endingFile": null,
+    "armedFile": null,
+    "order": 12,
+    "previewStart": 0,
+    "public": true,
+    "backgroundImage": null,
+    "icon": null
+  },
+  "mode": {
+    "id": 2,
+    "name": "Deathmach",
+    "alias": "Deathmach OLD",
+    "description": "Klasická hra všichni proti všem.",
+    "type": "SOLO",
+    "loadName": "Z-SOLO-DM",
+    "teams": "[\"2\"]",
+    "settings": {
+      "public": true,
+      "mines": true,
+      "partWin": false,
+      "partTeams": true,
+      "partPlayers": true,
+      "partHits": true,
+      "partBest": true,
+      "partBestDay": true,
+      "playerScore": true,
+      "playerShots": true,
+      "playerMiss": true,
+      "playerAccuracy": true,
+      "playerMines": true,
+      "playerPlayers": true,
+      "playerPlayersTeams": true,
+      "playerKd": true,
+      "playerFavourites": true,
+      "playerLives": false,
+      "teamScore": true,
+      "teamAccuracy": true,
+      "teamShots": true,
+      "teamHits": true,
+      "teamZakladny": false,
+      "bestScore": true,
+      "bestHits": true,
+      "bestDeaths": true,
+      "bestAccuracy": true,
+      "bestHitsOwn": true,
+      "bestDeathsOwn": true,
+      "bestShots": true,
+      "bestMiss": true,
+      "bestMines": true
+    },
+    "rankable": true,
+    "active": false,
+    "public": true,
+    "variations": {
+      "1": "-7",
+      "2": "-BM",
+      "6": "-P",
+      "7": "-S"
+    }
+  },
+  "tournamentGame": null,
+  "tournament": null
+}

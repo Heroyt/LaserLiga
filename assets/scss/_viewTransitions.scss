@@ -1,0 +1,12 @@
+@supports (view-transition-name: header) {
+	@media (prefers-reduced-motion: no-preference) {
+		//noinspection CssInvalidAtRule
+		@view-transition {
+			navigation: auto;
+		}
+
+		header.navbar {
+			view-transition-name: header;
+		}
+	}
+}
