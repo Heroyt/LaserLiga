@@ -2,3 +2,6 @@
 	path = src/GameModels
 	url = https://github.com/Heroyt/LACModels
 	branch = liga
+[submodule "languages"]
+	path = languages
+	url = https://github.com/Heroyt/LACTranslations
