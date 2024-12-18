@@ -1,0 +1,154 @@
+@import "../components/titles";
+@import "../components/mobile-leaderboard";
+
+%games {
+	.mobile-games-list .card {
+		background-color: transparent;
+		backdrop-filter: blur(10px) brightness(.5);
+
+		.card-body {
+			background-color: transparent;
+
+			--bs-card-spacer-y: .5rem;
+			--text: #fff;
+
+			.arena-logo {
+				--fill-white: var(--black-forced);
+				--fill-black: var(--white-forced);
+			}
+		}
+	}
+}
+
+%kiosk-container {
+	display: grid;
+	grid-gap: 1rem;
+	grid-template-rows: 8rem 1fr;
+	align-items: start;
+	height: 100%;
+
+	.title {
+		grid-area: title;
+		text-align: center;
+
+		svg {
+			margin: 0 auto;
+		}
+	}
+
+	.arena {
+		grid-area: arena;
+	}
+}
+
+%overflow {
+	overflow: auto;
+	padding-bottom: 6rem;
+	height: 100%;
+}
+
+.kiosk-wrapper {
+	height: calc(100vh - 7.5rem);
+	overflow: hidden;
+	position: fixed;
+	width: calc(100vw - 6rem);
+	top: 0;
+	left: 0;
+	margin: 2rem 3rem 0;
+}
+
+.kiosk-bg img {
+	filter: blur(5px);
+	height: 100vh;
+	left: 0;
+	object-fit: cover;
+	object-position: center;
+	position: fixed;
+	top: 0;
+	width: 100vw;
+	z-index: -1;
+}
+
+.kiosk-container {
+	@extend %kiosk-container;
+	@extend %overflow;
+
+	grid-template-columns: 1fr 2fr;
+	grid-template-areas: 'title games' 'arena games';
+
+	.games {
+		@extend %games;
+		@extend %overflow;
+
+		grid-area: games;
+	}
+}
+
+.stats-container {
+	@extend %kiosk-container;
+
+	grid-template-columns: 2fr 1fr;
+	grid-template-rows: 1fr;
+	grid-template-areas: 'stats arena';
+
+	.stats-wrapper {
+		@extend %overflow;
+
+		grid-area: stats;
+	}
+}
+
+.music-container {
+	@extend %kiosk-container;
+
+	grid-template-columns: 2fr 1fr;
+	grid-template-areas: 'music title' 'music arena';
+
+	.music-wrapper {
+		grid-area: music;
+		height: 100%;
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-rows: auto 1fr;
+
+		.music-modes {
+			@extend %overflow;
+
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+			grid-auto-rows: max-content;
+			grid-gap: .5rem;
+			align-items: stretch;
+		}
+	}
+}
+
+.player-leaderboard {
+	@extend %overflow;
+}
+
+.arena-history {
+	@extend %games;
+
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: auto auto 1fr;
+	height: 100%;
+	grid-gap: .5rem;
+
+	.games-table {
+		@extend %overflow;
+	}
+}
+
+.justify-self-start {
+	justify-self: start;
+}
+
+.autocomplete {
+	> div {
+		font-size: 1.1rem;
+		padding: .5rem;
+	}
+}
+

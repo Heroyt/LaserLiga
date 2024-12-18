@@ -5,9 +5,9 @@
 @import '~bootstrap/scss/maps';
 @import '../mixins';
 @import "../components/titles";
+@import "../components/mobile-leaderboard";
 
 #user-leaderboard-table {
-
   .player-avatar {
     background-color: var(--background-2);
     border-radius: 50%;
@@ -18,87 +18,5 @@
 		display: inline-block;
 		height: 3rem;
     width: auto;
-  }
-}
-
-.mobile-leaderboard {
-  .card {
-    .card-body {
-      display: grid;
-      background-color: var(--background-1);
-      align-items: center;
-
-      grid-gap: .5rem;
-      grid-template-areas: "rank player arena" "stats stats stats";
-      grid-template-columns: 4rem 1fr 4rem;
-
-      @media screen and (max-width: 450px) {
-        grid-template-areas: "rank arena" "player player" "stats stats";
-        grid-template-columns: 1fr 1fr;
-
-      }
-
-      .arena {
-        grid-area: arena;
-        justify-self: end;
-
-        .arena-logo {
-          height: 4em;
-          width: auto;
-        }
-      }
-
-      .rank {
-        grid-area: rank;
-      }
-
-      .player-head {
-        grid-area: player;
-        justify-self: center;
-        display: grid;
-        grid-template-columns: 5rem 1fr;
-        grid-template-areas: 'avatar name' 'avatar title';
-        justify-items: start;
-        align-items: center;
-        grid-gap: .5rem 2rem;
-
-        .player-avatar {
-          grid-area: avatar;
-          background-color: var(--background-2);
-          border-radius: 50%;
-          padding: .3rem;
-          height: 5rem;
-        }
-
-        .nickname {
-          grid-area: name;
-        }
-
-        .player-title {
-          grid-area: title;
-        }
-      }
-
-      .stats {
-        grid-area: stats;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-evenly;
-        padding-top: 1rem;
-
-        > div {
-          padding: 1rem;
-          border-radius: 10px;
-          background-color: var(--background-2);
-          color: var(--text);
-          margin: .6rem;
-        }
-
-        path, circle, rect {
-          fill: currentColor;
-        }
-      }
-    }
   }
 }

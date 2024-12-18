@@ -1,4 +1,7 @@
 .arena-logo {
+	--fill-white: var(--white);
+	--fill-black: var(--black);
+
 	height: 100%;
 	max-height: 10rem;
 	width: 100%;
@@ -16,7 +19,7 @@
   circle[fill="white"],
   circle[fill="#fff"],
   circle[fill="#ffffff"] {
-    fill: var(--white);
+    fill: var(--fill-white);
   }
 
   path[fill="black"],
@@ -28,6 +31,6 @@
   circle[fill="black"],
   circle[fill="#000"],
   circle[fill="#000000"] {
-    fill: var(--black);
+    fill: var(--fill-black);
   }
 }

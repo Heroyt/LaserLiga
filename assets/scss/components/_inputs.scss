@@ -34,7 +34,7 @@
 
 .required > label,
 label.required {
-	&:before {
+	&::before {
 		color: var(--bs-danger);
 		content: '*';
 		display: inline-block;

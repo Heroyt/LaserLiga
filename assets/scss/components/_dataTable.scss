@@ -50,7 +50,7 @@
 
   svg:not(.player-avatar) {
     path, circle, rect {
-      fill: currentColor;
+      fill: currentcolor;
     }
   }
 
@@ -75,6 +75,7 @@
   .data-table-large {
     display: none;
   }
+
   .data-table-mobile {
     display: block;
   }

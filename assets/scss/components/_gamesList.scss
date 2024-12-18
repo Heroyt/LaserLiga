@@ -3,7 +3,6 @@
     .card-body {
       display: grid;
       background-color: var(--background-1);
-
       grid-gap: .5rem;
       grid-template-columns: 1fr 2fr 1fr;
       grid-template-areas:
@@ -65,7 +64,7 @@
         }
 
         path, circle, rect {
-          fill: currentColor;
+          fill: currentcolor;
         }
       }
     }

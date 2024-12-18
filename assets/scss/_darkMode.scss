@@ -17,9 +17,11 @@ $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-co
 		@each $name, $values in $custom-colors-dark {
 			@each $weight, $color in $values {
 				$separator: '-';
+
 				@if $weight == '' {
 					$separator: '';
 				}
+
 				@if type-of($color) == 'map' {
 					--#{map.get($color, 'alias')}: #{map.get($color, 'color')};
 					--#{$name}#{$separator}#{$weight}: #{map.get($color, 'color')};
@@ -28,6 +30,7 @@ $theme-colors-dark: map.merge($theme-colors, functions.getThemeColors($custom-co
 				}
 			}
 		}
+
 		--#{$variable-prefix}body-bg: #{map.get($theme-colors-dark, 'background')};
 		--#{$variable-prefix}body-color: #{map.get($theme-colors-dark, 'text')};
 	}

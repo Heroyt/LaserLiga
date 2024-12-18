@@ -3,12 +3,15 @@
 
 @function getUtilityColors($colors) {
 	$map: ();
+
 	@each $name, $values in $colors {
 		@each $weight, $color in $values {
 			$separator: '-';
+
 			@if $weight == '' {
 				$separator: '';
 			}
+
 			@if type-of($color) == 'map' {
 				$map: map.deep-merge(
 						$map,
@@ -25,6 +28,7 @@
 						)
 				);
 			}
+
 			$map: map.deep-merge(
 					$map,
 					(
@@ -33,11 +37,13 @@
 			);
 		}
 	}
+
 	@return $map;
 }
 
 @function getThemeColors($colors) {
 	$map: ();
+
 	@each $name, $values in $colors {
 		@each $weight, $color in $values {
 			@if type-of($color) == 'map' {
@@ -50,11 +56,13 @@
 			}
 		}
 	}
+
 	@return $map;
 }
 
 @function getThemeColors($colors) {
 	$map: ();
+
 	@each $name, $values in $colors {
 		@each $weight, $color in $values {
 			@if type-of($color) == 'map' {
@@ -67,26 +75,29 @@
 			}
 		}
 	}
+
 	@return $map;
 }
 
 @function getVarFromColor($colorSearch, $colors) {
 	$result: $colorSearch;
+
 	@if type-of($colorSearch) != null {
 		@each $name, $values in $colors {
 			@each $weight, $color in $values {
-				@if (type-of($color) == 'map') {
-					@if (map.get($color, 'color') == $colorSearch) {
+				@if type-of($color) == 'map' {
+					@if map.get($color, 'color') == $colorSearch {
 						$result: var(--#{map.get($color, "alias")});
 					}
 				} @else {
-					@if ($color == $colorSearch) {
+					@if $color == $colorSearch {
 						$result: var(--#{$name}-#{$weight});
 					}
 				}
 			}
 		}
 	}
+
 	@return $result;
 }
 

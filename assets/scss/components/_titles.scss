@@ -4,6 +4,7 @@
   --rarity-color: var(--bs-secondary);
   --text-color: #fff;
   --radius: 1em;
+
   display: inline-block;
   padding: .6em 1.2em .5em;
   text-transform: uppercase;
@@ -21,27 +22,31 @@
 
   &.rarity-uncommon {
     --rarity-color: var(--bs-success);
+
     border-radius: var(--radius);
-    box-shadow: 0 .1em .15em 0 rgba(0, 0, 0, 0.25) inset;
+    box-shadow: 0 .1em .15em 0 rgb(0 0 0 / 25%) inset;
   }
 
   &.rarity-rare {
     --rarity-color: var(--primary);
+
     border-radius: var(--radius);
-    box-shadow: inset 0 .07em 0 .07em rgba(0, 0, 0, .4), inset 0 -.1em 0 -.07em hsla(0, 0%, 100%, .25);
+    box-shadow: inset 0 .07em 0 .07em rgb(0 0 0 / 40%), inset 0 -.1em 0 -.07em hsl(0deg 0% 100% / 25%);
   }
 
   &.rarity-epic {
     --rarity-color: var(--purple-500);
+
     border-top-left-radius: var(--radius);
     border-bottom-left-radius: var(--radius);
     background: linear-gradient(270deg, var(--purple-500) 32.81%, var(--purple-600) 100%);
-    box-shadow: -0.4em 0 0 0 var(--purple-300) inset, -0.7em 0 0 0 hsla(0, 0%, 100%, .8) inset;
+    box-shadow: -0.4em 0 0 0 var(--purple-300) inset, -0.7em 0 0 0 hsl(0deg 0% 100% / 80%) inset;
   }
 
   &.rarity-legendary {
     --rarity-color: var(--gold);
     --text-color: #000;
+
     border-bottom-right-radius: var(--radius);
     border-bottom-left-radius: var(--radius);
     background: linear-gradient(to bottom right, #F8F9F0 0%, var(--gold) 23%, var(--gold-100) 50%) bottom right / 50% 50% no-repeat, linear-gradient(to bottom left, #F8F9F0 0%, var(--gold) 23%, var(--gold-100) 50%) bottom left / 50% 50% no-repeat, linear-gradient(to top left, #F8F9F0 0%, var(--gold) 23%, var(--gold-100) 50%) top left / 50% 50% no-repeat, linear-gradient(to top right, #F8F9F0 0%, var(--gold) 23%, var(--gold-100) 50%) top right / 50% 50% no-repeat;
@@ -50,12 +55,13 @@
 
   &.rarity-mythic {
     --rarity-color: var(--danger);
+
     border-top-left-radius: var(--radius);
     border-bottom-right-radius: var(--radius);
     border: 1px solid #fff;
     background: linear-gradient(to bottom right, var(--red-100) 0%, var(--danger) 50%) bottom right / 50% 50% no-repeat, linear-gradient(to bottom left, var(--red-100) 0%, var(--danger) 50%) bottom left / 50% 50% no-repeat, linear-gradient(to top left, var(--red-100) 0%, var(--danger) 50%) top left / 50% 50% no-repeat, linear-gradient(to top right, var(--red-100) 0%, var(--danger) 50%) top right / 50% 50% no-repeat;
-    box-shadow: 0 1em 0 0 rgba(255, 255, 255, 0.25) inset;
-    text-shadow: 0 0 .2em rgba(0, 0, 0, 0.80);
+    box-shadow: 0 1em 0 0 rgb(255 255 255 / 25%) inset;
+    text-shadow: 0 0 .2em rgb(0 0 0 / 80%);
   }
 
   &.player-title-sm {

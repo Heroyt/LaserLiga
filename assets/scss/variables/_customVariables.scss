@@ -4,39 +4,28 @@
 @use 'colors' as *;
 @use "sass:map";
 @use "../functions";
-
 @import '../maps';
 @import 'fonts';
 
 $enable-dark-mode: true;
 $color-mode-type: data;
-
 $enable-gradients: false;
 $enable-negative-margins: false;
-
 $tmp-theme-colors: functions.getThemeColors($custom-colors-light);
-
 $link-hover-color: map.get($tmp-theme-colors, "primary");
-
 $table-striped-bg-factor: .05;
 $table-striped-bg: rgba(#fff, $table-striped-bg-factor);
-
 $form-check-label-cursor: pointer;
 $form-check-input-border: 1px solid var(--black);
-
 $popover-max-width: 350px;
-
 $utilityColors: functions.getUtilityColors($custom-colors-light);
 $theme-colors: map.merge($theme-colors, functions.getThemeColors($custom-colors-light));
-
 $utilities-bg-colors: map.merge($utilities-bg-colors, $utilityColors);
 $utilities-text-colors: map.merge($utilities-text-colors, $utilityColors);
-
 $font-sizes: map.merge(
                 $font-sizes,
                 (
                         brand: $font-size-base * 4,
                 )
 );
-
 $navbar-light-color: rgba(var(--#{$prefix}emphasis-color-rgb), .8);

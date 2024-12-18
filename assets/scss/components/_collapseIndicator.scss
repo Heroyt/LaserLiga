@@ -22,12 +22,12 @@
 }
 
 [data-more][data-less] {
-  &:after {
+  &::after {
     display: inline;
     content: " " attr(data-less);
   }
 
-  &.collapsed:after {
+  &.collapsed::after {
     content: " " attr(data-more);
   }
 }

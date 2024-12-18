@@ -4,7 +4,6 @@
 @import '../variables/customVariables';
 @import '~bootstrap/scss/maps';
 @import '../mixins';
-
 @import '../components/achievements';
 @import '../components/titles';
 
@@ -102,7 +101,7 @@
     }
 
 		path, circle, rect {
-			fill: currentColor;
+			fill: currentcolor;
 		}
 	}
 
@@ -153,7 +152,6 @@
 		}
 
 		.trend-icon {
-
 			.trend-icon-inner {
 				align-items: center;
 				border-radius: 50%;

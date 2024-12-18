@@ -1,5 +1,6 @@
 .stats {
   --min-stat-width: 150px;
+
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(var(--min-stat-width), 1fr));
   grid-gap: 1rem;

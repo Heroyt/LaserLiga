@@ -21,6 +21,7 @@
 			@if type-of($utility) == "map" {
 				$class: map.get($utility, "class");
 				$property: map.get($utility, "property");
+
 				@each $name, $value in map.get($utility, "values") {
 					.#{$class}-#{$breakpoint}-#{$name} {
 						#{$property}: $value !important;

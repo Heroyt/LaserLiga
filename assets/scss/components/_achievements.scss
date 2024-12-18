@@ -1,6 +1,7 @@
 .achievement-card {
   --rarity-color: var(--bs-secondary);
   --text-color: #fff;
+
   display: block;
   border-radius: var(--bs-border-radius);
   padding: 1rem;
@@ -42,7 +43,7 @@
     --rarity-color: var(--primary);
 
     &.achievement-claimed {
-      box-shadow: 0 3px 0 3px rgba(0, 0, 0, 0.40) inset, 0px -5px 0px -3px rgba(255, 255, 255, 0.25) inset;
+      box-shadow: 0 3px 0 3px rgb(0 0 0 / 40%) inset, 0 -5px 0 -3px rgb(255 255 255 / 25%) inset;
     }
   }
 
@@ -69,7 +70,7 @@
 
     &.achievement-claimed {
       background: linear-gradient(to bottom right, #F6B5B5 0%, #C92626 50%) bottom right / 50% 50% no-repeat, linear-gradient(to bottom left, #F6B5B5 0%, #C92626 50%) bottom left / 50% 50% no-repeat, linear-gradient(to top left, #F6B5B5 0%, #C92626 50%) top left / 50% 50% no-repeat, linear-gradient(to top right, #F6B5B5 0%, #C92626 50%) top right / 50% 50% no-repeat;
-      text-shadow: 0 0 4px rgba(0, 0, 0, 0.80);
+      text-shadow: 0 0 4px rgb(0 0 0 / 80%);
     }
   }
 
@@ -108,15 +109,15 @@
 
   .achievement-card {
     --index: 0;
+
     grid-column: 1;
     grid-row: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 5px rgb(0 0 0 / 50%);
     transition: transform 200ms ease-out, filter 200ms ease-in-out;
-
     z-index: calc(11 - var(--index));
     transform: rotate(calc(var(--index) * -2deg)) translate(calc(var(--index) * -1px), calc(var(--index) * -5px));
     filter: brightness(calc(11 / (11 - var(--index))));

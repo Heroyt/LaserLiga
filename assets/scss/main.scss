@@ -81,9 +81,14 @@ footer {
 @import 'components/popup';
 @import 'components/playBtn';
 @import 'components/musicModeCard';
+@import "viewTransitions";
 
 @include media-breakpoint-down('lg') {
   .position-sticky.bottom-0 {
     bottom: 5rem !important;
   }
+}
+
+.container-kiosk {
+	padding-bottom: 6rem !important;
 }

@@ -5,7 +5,6 @@
 @use 'variables/colors' as *;
 @use 'sass:map';
 @use 'functions';
-
 @import '~bootstrap/scss/utilities';
 
 $utilities: map.deep-merge(
