@@ -17,9 +17,7 @@ use Lsr\Core\App;
 use Lsr\Core\DB;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Helpers\Tracy\CacheTracyPanel;
-use Lsr\Helpers\Tracy\DbTracyPanel;
 use Lsr\Helpers\Tracy\RoutingTracyPanel;
-use Lsr\Helpers\Tracy\TimerTracyPanel;
 use Lsr\Helpers\Tracy\TranslationTracyPanel;
 use Nette\Bridges\DITracy\ContainerPanel;
 use Nette\Bridges\HttpTracy\SessionPanel;
@@ -55,15 +53,21 @@ Debugger::$dumpTheme = 'dark';
 
 // Register custom tracy panels
 Debugger::getBar()
-        ->addPanel(new TimerTracyPanel())
+//        ->addPanel(new TimerTracyPanel())
         ->addPanel(new CacheTracyPanel())
-        ->addPanel(new DbTracyPanel())
+//        ->addPanel(new DbTracyPanel())
         ->addPanel(new TranslationTracyPanel())
         ->addPanel(new RoutingTracyPanel());
 
 Loader::init();
 
 $config = App::getInstance()->config->getConfig();
+
+$auth = App::getService('auth');
+assert($auth instanceof \Lsr\Core\Auth\Services\Auth);
+if (isset($_COOKIE['tracy-debug']) && $auth->loggedIn() && $auth->getLoggedIn()->hasRight('debug')) {
+	Debugger::enable(Debugger::Development, LOG_DIR);
+}
 
 if (isset($config['ENV']['TRACY_MAIL']) && is_string($config['ENV']['TRACY_MAIL'])) {
 	$logger = Debugger::getLogger();
@@ -88,7 +92,7 @@ if (defined('INDEX') && PHP_SAPI !== 'cli') {
 	if (!isset($_ENV['noDb'])) {
 		(new Panel())->register(DB::getConnection());
 	}
-	if (!PRODUCTION) {
+	if (Debugger::isEnabled()) {
 		Debugger::getBar()
 		        ->addPanel(new ContainerPanel(App::getContainer()))
 		        ->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line

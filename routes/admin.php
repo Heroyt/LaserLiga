@@ -1,6 +1,7 @@
 <?php
 
 use App\Controllers\Admin\Arenas;
+use App\Controllers\Admin\Debug;
 use App\Controllers\Admin\Games;
 use App\Controllers\Admin\TournamentStats;
 use App\Core\Middleware\LoggedIn;
@@ -12,6 +13,11 @@ $adminGroup = Route::group('/admin');
 $arenasMiddleware = new LoggedIn(['manage-arenas']);
 $gamesMiddleware = new LoggedIn(['manage-games']);
 $tournamentMiddleware = new LoggedIn(['manage-tournaments']);
+
+$adminGroup->group('tracy')
+           ->middlewareAll(new LoggedIn(['debug']))
+           ->get('on', [Debug::class, 'turnOnTracy'])
+           ->get('off', [Debug::class, 'turnOffTracy']);
 
 $arenasAdminGroup = $adminGroup->group('/arenas')
                                ->middlewareAll($arenasMiddleware);
