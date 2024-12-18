@@ -3,4 +3,7 @@ Allow: /
 Disallow: /manual/
 Disallow: /lang/
 
+Sitemap: https://laserliga.cz/sitemap_index.xml
 Sitemap: https://laserliga.cz/sitemap.xml
+Sitemap: https://laserliga.cz/sitemap_games.xml
+Sitemap: https://laserliga.cz/sitemap_users.xml
