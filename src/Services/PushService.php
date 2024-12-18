@@ -15,6 +15,7 @@ use Lsr\Core\Config;
 use Lsr\Core\DB;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Logger;
+use Minishlink\WebPush\MessageSentReport;
 use Minishlink\WebPush\WebPush;
 use Throwable;
 
@@ -111,12 +112,19 @@ class PushService
 		}
 
 		$reports = $push->flush();
+		/** @var MessageSentReport $report */
 		foreach ($reports as $report) {
 			if ($report->isSuccess()) {
 				$logger->debug('Sent notification - ' . $report->getEndpoint());
 			}
 			else {
 				$logger->warning('Sent failed - ' . $report->getReason());
+
+				// Delete lost subscription
+				if ($report->getResponse()?->getStatusCode() === 410) {
+					$subscription = Subscription::query()->where('[endpoint] = %s', $report->getEndpoint())->first();
+					$subscription?->delete();
+				}
 			}
 		}
 	}
