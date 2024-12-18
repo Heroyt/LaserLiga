@@ -55,6 +55,9 @@ class UserHighlightChecker implements PlayerHighlightChecker
 	 * @return void
 	 */
 	private function checkPlayerAccuracy(Player $player, HighlightCollection $highlights): void {
+		if ($player->user->stats->averageAccuracy < 1) {
+			return;
+		}
 		$accuracyDiff = $player->accuracy / $player->user->stats->averageAccuracy;
 		if ($accuracyDiff > $this->minThreshold) {
 			$highlights->add(
