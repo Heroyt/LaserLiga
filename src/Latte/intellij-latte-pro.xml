@@ -76,6 +76,42 @@
     <variables>
     </variables>
     <functions>
+        <function name="json" returnType="string" documentation="Serialize value to json">
+            <functionArguments>
+                <functionArgument name="data" type="mixed" />
+            </functionArguments>
+        </function>
+        <function name="xml" returnType="string" documentation="Serialize value to xml">
+            <functionArguments>
+                <functionArgument name="data" type="mixed" />
+            </functionArguments>
+        </function>
+        <function name="csv" returnType="string" documentation="Serialize value to xml">
+            <functionArguments>
+                <functionArgument name="data" type="mixed" />
+            </functionArguments>
+        </function>
+        <function name="fa" returnType="string" documentation="Get a font awesome icon">
+            <functionArguments>
+                <functionArgument name="style" type="\App\Models\DataObjects\FontAwesome\IconType"/>
+                <functionArgument name="icon" type="string"/>
+            </functionArguments>
+        </function>
+        <function name="faSolid" returnType="string" documentation="Get a font awesome icon">
+            <functionArguments>
+                <functionArgument name="icon" type="string"/>
+            </functionArguments>
+        </function>
+        <function name="faRegular" returnType="string" documentation="Get a font awesome icon">
+            <functionArguments>
+                <functionArgument name="icon" type="string"/>
+            </functionArguments>
+        </function>
+        <function name="faBrand" returnType="string" documentation="Get a font awesome icon">
+            <functionArguments>
+                <functionArgument name="icon" type="string"/>
+            </functionArguments>
+        </function>
     </functions>
     <filters>
     </filters>

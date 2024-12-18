@@ -55,7 +55,7 @@ class LacExtension extends Extension
           'csv'  => [$this, 'csvSerialize'],
           'faSolid' => [$this->fontAwesomeManager, 'solid'],
           'faRegular' => [$this->fontAwesomeManager, 'regular'],
-          'faBrands' => [$this->fontAwesomeManager, 'brands'],
+          'faBrand' => [$this->fontAwesomeManager, 'brands'],
           'fa' => [$this->fontAwesomeManager, 'icon'],
         ];
     }
