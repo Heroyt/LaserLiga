@@ -18,6 +18,7 @@ use App\Controllers\Lang;
 use App\Controllers\LeagueController;
 use App\Controllers\Login;
 use App\Controllers\MailTestController;
+use App\Controllers\PrivacyController;
 use App\Controllers\PushController;
 use App\Controllers\Questionnaire;
 use App\Controllers\TournamentController;
@@ -30,6 +31,9 @@ Route::get('mailtest/123', [MailTestController::class, 'sendTestMail']);
 Route::get('mailtest/123/show', [MailTestController::class, 'showTestMail']);
 
 Route::get('', [Index::class, 'show'])->name('index');
+
+Route::get('zasady-zpracovani-osobnich-udaju', [PrivacyController::class, 'index'])->name('privacy-policy');
+Route::get('privacy-policy', [PrivacyController::class, 'index']);
 
 $gameGroup = Route::group('game');
 

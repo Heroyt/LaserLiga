@@ -63,6 +63,7 @@ services:
 				- 'cli'
 				- 'highlights'
 				- 'tournament'
+				- 'privacy'
 
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
