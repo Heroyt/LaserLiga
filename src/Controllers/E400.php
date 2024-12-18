@@ -30,22 +30,22 @@ use Throwable;
  * @version 1.0
  * @since   1.0
  */
-class E404 extends Controller
+class E400 extends Controller
 {
 	/**
 	 * @var string $title Page name
 	 */
-	protected string $title = '404';
+	protected string $title = '400';
 	/**
 	 * @var string $description Page description
 	 */
-	protected string $description = 'Page not found';
+	protected string $description = 'Invalid request';
 
-	public function show(Request $request, ?Throwable $e = null): ResponseInterface {
-		if (str_contains($request->getHeaderLine('Accept'), 'application/json')) {
+	public function show(?Request $request, ?Throwable $e = null): ResponseInterface {
+		if (str_contains($request?->getHeaderLine('Accept'), 'application/json')) {
 			return $this->respond(
 				new ErrorResponse(
-					           'Resource not found',
+					           'Invalid request',
 					type: ErrorType::NOT_FOUND,
 					detail: $e?->getMessage(),
 					exception: $e,
@@ -54,6 +54,6 @@ class E404 extends Controller
 			);
 		}
 		$this->params['exception'] = $e;
-		return $this->view('errors/E404')->withStatus(404);
+		return $this->view('errors/E400')->withStatus(400);
 	}
 }

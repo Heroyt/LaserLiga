@@ -12,13 +12,17 @@
 
 /** Root directory */
 
+use App\Controllers\E400;
 use App\Controllers\E404;
 use App\Exceptions\DispatchBreakException;
 use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Requests\Exceptions\RouteNotFoundException;
 use Lsr\Core\Requests\Request;
+use Lsr\Core\Routing\Exceptions\MethodNotAllowedException;
 use Lsr\Helpers\Tools\Timer;
+use Nyholm\Psr7\ServerRequest;
 
 const ROOT = __DIR__ . '/';
 /** Visiting site normally */
@@ -40,18 +44,34 @@ require_once ROOT . "include/load.php";
 $app = App::getInstance();
 
 Timer::start('app');
+
 try {
-	$response = $app->run();
-} catch (RouteNotFoundException $e) {
-	bdump($e);
-	// Handle 404 Error
-	$controller = App::getContainer()->getByType(E404::class);
-	/** @var Request $request */
-	$request = $app->getRequest();
+	$app->getRequest(); // Test request parse
+	try {
+		$response = $app->run();
+	} catch (RouteNotFoundException|ModelNotFoundException|\Lsr\Core\Routing\Exceptions\ModelNotFoundException $e) {
+		bdump($e);
+		// Handle 404 Error
+		$controller = App::getContainer()->getByType(E404::class);
+		/** @var Request $request */
+		$request = $app->getRequest();
+		$controller->init($request);
+		$response = $controller->show($request, $e);
+	} catch (DispatchBreakException $e) {
+		$response = $e->getResponse();
+	} catch (MethodNotAllowedException $e) {
+		$controller = App::getContainer()->getByType(E400::class);
+		/** @var Request $request */
+		$request = $app->getRequest();
+		$controller->init($request);
+		$response = $controller->show($request, $e)
+		                       ->withStatus(405);
+	}
+} catch (JsonException $e) {
+	$request = new Request(new ServerRequest($_SERVER['REQUEST_METHOD'], $_SERVER['SCRIPT_URI']));
+	$controller = App::getContainer()->getByType(E400::class);
 	$controller->init($request);
-	$response = $controller->show($request);
-} catch (DispatchBreakException $e) {
-	$response = $e->getResponse();
+	$response = $controller->show($request, $e);
 }
 Timer::stop('app');
 
