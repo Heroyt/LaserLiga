@@ -22,6 +22,7 @@ use App\Controllers\PrivacyController;
 use App\Controllers\PushController;
 use App\Controllers\Questionnaire;
 use App\Controllers\TournamentController;
+use App\Controllers\WellKnownController;
 use App\Core\Middleware\CSRFCheck;
 use Lsr\Core\Auth\Middleware\LoggedOut;
 use Lsr\Core\Routing\Route;
@@ -272,3 +273,7 @@ Route::group('push')
      ->post('subscribe', [PushController::class, 'subscribe'])
      ->post('update', [PushController::class, 'updateUser'])
      ->post('unsubscribe', [PushController::class, 'unsubscribe']);
+
+// Well-known
+Route::group('.well-known')
+	->get('change-password', [WellKnownController::class, 'changePassword']);
