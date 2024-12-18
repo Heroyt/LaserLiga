@@ -44,7 +44,7 @@
                     {lang 'Statistiky'}
                 </a>
             {/ifset}
-            {if isset($user) && $team->validateAccess($user) && $team->leagueTeam->id}
+            {if isset($user) && $team->validateAccess($user)}
                 <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $tournament->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $tournament->id, $team->id}{/if}"
                    class="btn btn-secondary">
                     {faSolid 'pen-to-square'}
