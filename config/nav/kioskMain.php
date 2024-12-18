@@ -10,21 +10,17 @@ $auth = App::getServiceByType(Auth::class);
 $fontawesome = App::getService('fontawesome');
 assert($fontawesome instanceof FontAwesomeManager, 'Invalid service type from DI');
 
+$session = App::getService('session');
+assert($session instanceof \Lsr\Core\Session, 'Invalid service type from DI');
+
+$kioskArena = $session->get('kioskArena');
+
 $nav = [
 	[
-		'name' => lang('Arény'),
-		'icon' => $fontawesome->solid('location-dot'),
-		'route' => 'arenas-list',
-		'path' => ['arena'],
+		'name' => lang('Úvod'),
+		'icon' => $fontawesome->solid('house'),
+		'path' => ['kiosk', (string) $kioskArena],
 	],
 ];
-
-if ($auth->loggedIn()) {
-	$nav[] = [
-		'name' => lang('Žebříček'),
-		'icon' => $fontawesome->solid('ranking-star'),
-		'route' => 'player-leaderboard',
-	];
-}
 
 return $nav;

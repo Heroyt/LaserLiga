@@ -1,0 +1,283 @@
+{templateType App\Templates\Kiosk\DashboardParameters}
+{layout '../../@layout.latte'}
+
+{define addHead}
+    {\App\Tools\Color::getGamesColor($games)|noescape}
+{/define}
+
+{define containerClasses}
+{/define}
+
+{block content}
+    {img 'assets/images/laser-1.jpeg', 1500, null, ['kiosk-bg']}
+    <div class="kiosk-wrapper" id="kiosk-wrapper" data-id="{$arena->id}">
+        {switch $type}
+            {case App\Templates\Kiosk\DashboardType::DASHBOARD}
+            {include dashboard}
+            {case App\Templates\Kiosk\DashboardType::GAMES}
+            {include games}
+            {case App\Templates\Kiosk\DashboardType::STATS}
+            {include stats}
+            {case App\Templates\Kiosk\DashboardType::MUSIC}
+            {include music}
+            {case App\Templates\Kiosk\DashboardType::LEADERBOARD}
+            {include leaderboard}
+            {case App\Templates\Kiosk\DashboardType::SEARCH}
+            {include search}
+        {/switch}
+    </div>
+{/block}
+
+{define search}
+    <a href="{link ['kiosk', $arena->id]}" class="btn btn-info kiosk-link justify-self-start">{faSolid 'angle-left'} {_'Zpět'}</a>
+    <div class="title text-center" style="view-transition-name: liga-title;">
+        {svgIcon 'Vesta', 'auto', '5rem'}
+        <h1>Laser Liga</h1>
+    </div>
+    <div class="card mx-auto" style="max-width:500px;">
+        <div class="card-body">
+            <label for="kiosk-user-search">{_'Hledat hráče'}:</label>
+            <input type="search" class="form-control form-control-lg" id="kiosk-user-search" placeholder="{_'Hledat'}">
+            <div class="form-text">{_'Zadejte předzívku nebo kód hráče a vyberte ze seznamu.'}</div>
+        </div>
+    </div>
+{/define}
+
+{define leaderboard}
+    <div class="d-flex justify-content-between">
+        <a href="{link ['kiosk', $arena->id]}" class="btn btn-info kiosk-link">
+            {faSolid 'angle-left'} {_'Zpět'}
+        </a>
+        <a href="{link ['user', 'leaderboard']}" class="btn btn-primary">
+            {faSolid 'ranking-star'} {_'Globální žebříček'}
+        </a>
+    </div>
+<form action="{link ['kiosk', $arena->id, 'leaderboard']}"
+		  method="get" id="user-leaderboard-form"
+		  class="player-leaderboard data-table-form">
+    <div style="view-transition-name: arena-logo;">
+        {$arena->getLogoHtml()|noescape}
+    </div>
+    <h3 style="view-transition-name: leaderboard-title;" class="text-center">{_'Žebříček hráčů'}</h3>
+    <div class="leaderboard-table">
+    {embed '../../components/leaderboard/kiosk.latte',
+        user: $user,
+        userOrder: $userOrder,
+        players: $players,
+        p: $p,
+        pages: $pages,
+        limit: $limit,
+        total: $total,
+        orderBy: $orderBy,
+        desc: $desc,
+        activeType: $activeType,
+        searchedPlayer: $searchedPlayer,
+        ranks: $ranks,
+    }
+		{/embed}
+    </div>
+</form>
+{/define}
+
+{define dashboard}
+    <div class="kiosk-container">
+        <div class="title" style="view-transition-name: liga-title;">
+            {svgIcon 'Vesta', 'auto', '5rem'}
+            <h1>Laser Liga</h1>
+        </div>
+        <div class="card bg-background-1 px-3 pt-3 arena" style="view-transition-name: arena-card;">
+            <div style="view-transition-name: arena-logo;">
+                {$arena->getLogoHtml()|noescape}
+            </div>
+            <div class="card-header" style="view-transition-name: arena-name;">
+                <h2 class="card-title fs-3 text-center">{$arena->name}</h2>
+            </div>
+            <div class="card-body text-center">
+                <p>
+                    <a href="{link ['kiosk', $arena->id, 'stats']}" class="btn btn-lg btn-primary kiosk-link">
+                        {faSolid 'eye'}
+                        {_'Statistiky'}
+                    </a>
+                </p>
+                <p>
+                    <a href="{link ['kiosk', $arena->id, 'music']}"
+                       class="btn btn-lg btn-primary kiosk-link kiosk-link-cache">
+                        {faSolid 'music'}
+                        {_'Hudební módy'}
+                    </a>
+                </p>
+                <p>
+                    <a href="{link ['kiosk', $arena->id, 'leaderboard']}"
+                       class="btn btn-lg btn-primary kiosk-link kiosk-link-cache">
+                        {faSolid 'ranking-star'}
+                        {_'Žebříček'}
+                    </a>
+                </p>
+            </div>
+        </div>
+        <section class="games">
+            <h3 style="view-transition-name: games-title;" class="text-center">{_'Poslední hry'}</h3>
+            <div class="data-table-mobile mobile-games-list d-block" id="games-list-mobile">
+                {foreach $games as $game}
+                    {breakIf $iterator->counter0 > 2}
+                    {var string[] $link = ['game', $game->code]}
+                    <div data-code="{$game->code}" class="card w-100 my-2 linkable" data-href="{link $link}"
+                         style="view-transition-name: game-{$game->code};">
+                        <div class="card-body">
+                            <a href="{link $link}" class="visually-hidden">
+                                {sprintf(lang('Zobrazit výsledky ze hry %s'), $game->arena?->name . ' ' . $game->start->format('d.m.Y H:i'))}
+                            </a>
+
+                            <div class="date-mode">
+                                <div class="date">
+                                    {faSolid 'calendar-days', 'me-1'}
+                                    {$game->start->format('d.m.Y H:i')}
+                                </div>
+                                <div n:if="$game->getMode() !== null" class="mode">
+                                    {faSolid 'gun', 'me-1'}
+                                    {lang $game->getMode()->name, context: 'gameModes'}
+                                </div>
+                            </div>
+                            {$game->arena->getLogoHtml()|noescape}
+
+                            <div class="players">
+                            <span n:foreach="$game->getPlayersSorted() as $player"
+                                    n:tag="isset($player->user) ? 'a' : 'span'"
+                                    {ifset $player->user}href="{link ['user', $player->user->getCode()]}"{/ifset}
+                                    data-toggle="tooltip"
+                                    title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
+                                    class="badge m-1 bg-{$player->getTeam() !== null ? $player->getTeam()->getTeamBgClass(true) : 'background-2'}">
+                                {$player->position}.&nbsp;{$player->name}
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                {/foreach}
+            </div>
+            <div class="text-center">
+                <a href="{link ['kiosk', $arena->id, 'games']}" class="btn btn-primary kiosk-link">
+                    {faSolid 'plus'}
+                    {_'Zobrazit další'}
+                </a>
+            </div>
+        </section>
+    </div>
+{/define}
+
+{define games}
+    <form action="{link ['kiosk', $arena->id, 'games']}" method="get" id="arena-history-form" data-no-history="1"
+          class="arena-history data-table-form">
+        <a href="{link ['kiosk', $arena->id]}"
+           class="btn btn-info kiosk-link justify-self-start">{faSolid 'angle-left'} {_'Zpět'}</a>
+        <h3 style="view-transition-name: games-title;" class="text-center">{_'Poslední hry'}</h3>
+        <div class="games-table">
+            {embed '../../components/gamesList/kiosk.latte',
+            user: $user,
+            games: $games,
+            p: $p,
+            pages: $pages,
+            limit: $limit,
+            total: $total,
+            orderBy: $orderBy,
+            desc: $desc,
+            modeIds: $modeIds,
+            date: $date,
+            dates: $dates
+            }
+            {/embed}
+        </div>
+    </form>
+{/define}
+
+{define stats}
+    <div class="stats-container">
+        <div class="card bg-background-1 px-3 pt-3 arena" style="view-transition-name: arena-card;">
+            <div style="view-transition-name: arena-logo;">
+                {$arena->getLogoHtml()|noescape}
+            </div>
+            <div class="card-header" style="view-transition-name: arena-name;">
+                <h2 class="card-title fs-3 text-center">{$arena->name}</h2>
+            </div>
+            <div class="card-body text-center">
+                <div style="view-transition-name: arena-stats;">
+                    <p class="text-decoration-none">
+                        <strong>{lang 'Registrováno hráčů'}:</strong> {$arena->getRegisteredPlayerCount()}
+                    </p>
+                    <p class="text-decoration-none">
+                        <strong>{lang 'Dnes odehráno her'}:</strong> {$todayGames}
+                    </p>
+                    <p class="text-decoration-none">
+                        <strong>{lang 'Dnes odehráno hráčů'}:</strong> {$todayPlayers}
+                    </p>
+                </div>
+                <p>
+                    <a href="{link ['kiosk', $arena->id]}" class="btn btn-info kiosk-link">
+                        {_'Zpět'}
+                        {faSolid 'angle-right'}
+                    </a>
+                </p>
+            </div>
+        </div>
+        <section class="stats-wrapper">
+            <h2 class="my-3 text-center">{_'Statistiky'}</h2>
+            <label for="graph-filter">{_'Období'}:</label>
+            <select id="graph-filter"
+                    class="form-select"
+                    data-track-content=""
+                    data-date="{$date?->format('Y-m-d') ?? date('Y-m-d')}"
+                    data-content-name="Arena - date filter"
+                    data-content-piece="Select">
+                <option value="" selected>{_'Za celou dobu'}</option>
+                <option value="date">{_'Dnes'}</option>
+                <option value="week">{_'Tento týden'}</option>
+                <option value="month">{_'Tento měsíc'}</option>
+            </select>
+            <span class="form-text">{_'Období dat pro následující grafy.'}</span>
+            <div class="d-flex">
+                <div class="flex-fill-same">
+                    <h3 class="mt-3">{_'Herní módy'}:</h3>
+                    <p class="text-muted">{_'Souhrn herních módů laser game, které se hráli v této aréně.'}</p>
+                    <canvas id="gameModes" style="max-height: 350px; width: 100%;"></canvas>
+                </div>
+                <div class="flex-fill-same">
+                    <h3 class="mt-2">{_'Hudební módy'}:</h3>
+                    <p class="text-muted">{_'Počet her s daným hudebním módem v této aréně.'}</p>
+                    <canvas id="musicModes" style="max-height: 350px; width: 100%;"></canvas>
+                </div>
+            </div>
+        </section>
+    </div>
+{/define}
+
+{define music}
+    <div class="music-container">
+        <div class="title" style="view-transition-name: liga-title;">
+            {svgIcon 'Vesta', 'auto', '5rem'}
+            <h1>Laser Liga</h1>
+        </div>
+        <div class="card bg-background-1 px-3 pt-3 arena" style="view-transition-name: arena-card;">
+            <div style="view-transition-name: arena-logo;">
+                {$arena->getLogoHtml()|noescape}
+            </div>
+            <div class="card-header" style="view-transition-name: arena-name;">
+                <h2 class="card-title fs-3 text-center">{$arena->name}</h2>
+            </div>
+            <div class="card-body text-center">
+                <p>
+                    <a href="{link ['kiosk', $arena->id]}" class="btn btn-info kiosk-link">
+                        {_'Zpět'}
+                        {faSolid 'angle-right'}
+                    </a>
+                </p>
+            </div>
+        </div>
+        <section class="music-wrapper">
+            <h2 class="my-3">{lang 'Hudební módy'}:</h2>
+            <div class="music-modes">
+                {foreach $music as $musicGroup}
+                    {include '../../components/music/musicModeCard.latte', $musicGroup}
+                {/foreach}
+            </div>
+        </section>
+    </div>
+{/define}

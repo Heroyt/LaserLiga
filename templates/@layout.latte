@@ -4,6 +4,9 @@
 {import 'symbols.latte'}
 
 {varType Lsr\Core\Controllers\Controller $page}
+{varType array $_GET}
+{var bool $iframe = isset($_GET['iframe'])}
+{var bool $kiosk = $page->getApp()->session->get('kiosk', false)}
 {var string $mode = $page->app->getRequest()->getCookieParams()['mode'] ?? 'light'}
 {varType Lsr\Interfaces\RequestInterface $request}
 {varType string[] $errors}
@@ -39,115 +42,129 @@
     {/foreach}
 {/define}
 
-<!DOCTYPE html>
-<html lang="{$page->app->translations->getLangId()}" data-bs-theme="{$mode}">
-<head>
-    <!-- Matomo Tag Manager -->
-    <link rel="dns-prefetch" href="https://analytics.laserliga.cz">
-    <script>
-        let _mtm = window._mtm = window._mtm || [];
-        _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
-        let d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-        g.async = true;
-        g.src = 'https://analytics.laserliga.cz/js/container_F9NT5Iaa.js';
-        s.parentNode.insertBefore(g, s);
-    </script>
-    <!-- End Matomo Tag Manager -->
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="seobility" content="36aefeb049a215aadb2892ba279d1f71">
-    <!-- Favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/favicon/android-chrome-192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="{getUrl}assets/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="{getUrl}assets/favicon/favicon-16x16.png">
-    <link rel="icon" href="{getUrl}assets/favicon/favicon.ico">
-    <link rel="manifest" href="{getUrl}assets/manifest.json">
-    <meta name="theme-color" content="#192029">
-
-    <title>{$page->getTitle()}</title>
-    <meta name="description" content="{$page->getDescription()}">
-
-    <link rel="preload" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}" as="style">
-    <link rel="stylesheet" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}">
-    {foreach $addCss as $file}
-        <link rel="preload" as="style" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
-        <link rel="stylesheet" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
-    {/foreach}
-
-    <!-- Non-critical assets -->
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-          href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap"/>
-    <noscript>
-        <link rel="stylesheet"
-              href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap"/>
-    </noscript>
-    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-          href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"/>
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"
-              rel="stylesheet">
-    </noscript>
-    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-          href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
-    <noscript>
-        <link rel="stylesheet" href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
-    </noscript>
-    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
-          href="{getUrl}dist/bootstrap.css?v={$page->app->getCacheVersion()}">
-    <noscript>
-        <link rel="stylesheet" href="{getUrl}dist/bootstrap.css?v={$page->app->getCacheVersion()}">
-    </noscript>
-
-    {\Tracy\Debugger::renderLoader()|noescape}
-
-    {include addHead}
-
-    {block tracking}
-        <!-- Matomo -->
+{if $request->isAjax()}
+    {include errors}
+    {include content}
+{else}
+    <!DOCTYPE html>
+    <html lang="{$page->app->translations->getLangId()}" data-bs-theme="{$mode}">
+    <head>
+        <!-- Matomo Tag Manager -->
+        <link rel="dns-prefetch" href="https://analytics.laserliga.cz">
         <script>
-            let _paq = window._paq = window._paq || [];
-            /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-            {if $auth->loggedIn()}
-            _paq.push(['setUserId', {$auth->getLoggedIn()->email}]);
-            _paq.push(['setCustomVariable', 1, 'playerCode', {$auth->getLoggedIn()->player->getCode()}, 'visit']);
-            _mtm.push({
-                playerName: {$auth->getLoggedIn()->name},
-                playerCode: {$auth->getLoggedIn()->player->getCode()},
-            });
-            {/if}
-            _paq.push(['trackPageView']);
-            _paq.push(['trackVisibleContentImpressions', true]);
-            _paq.push(['enableLinkTracking']);
-            window.addEventListener('load', () => {
-                (function () {
-                    const u = "//analytics.laserliga.cz/";
-                    _paq.push(['setTrackerUrl', u + 'matomo.php']);
-                    _paq.push(['setSiteId', '1']);
-                    const d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-                    g.async = true;
-                    g.src = u + 'matomo.js';
-                    s.parentNode.insertBefore(g, s);
-                })();
-            });
+            let _mtm = window._mtm = window._mtm || [];
+            _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+            let d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+            g.async = true;
+            g.src = 'https://analytics.laserliga.cz/js/container_F9NT5Iaa.js';
+            s.parentNode.insertBefore(g, s);
         </script>
-        <!-- End Matomo Code -->
-    {/block}
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-</head>
-<body>
+        <!-- End Matomo Tag Manager -->
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <meta name="seobility" content="36aefeb049a215aadb2892ba279d1f71">
+        <!-- Favicon -->
+        <link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/favicon/android-chrome-192x192.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="{getUrl}assets/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="{getUrl}assets/favicon/favicon-16x16.png">
+        <link rel="icon" href="{getUrl}assets/favicon/favicon.ico">
+        {if $kiosk}
+            <link rel="manifest" href="{getUrl}manifest_kiosk.json">
+        {else}
+            <link rel="manifest" href="{getUrl}assets/manifest.json">
+        {/if}
+        <meta name="theme-color" content="#192029">
 
-{include refreshLoader}
-{include smallLoader}
+        <title>{$page->getTitle()}</title>
+        <meta name="description" content="{$page->getDescription()}">
 
-{if !isset($_GET['iframe'])}
-    <div class="content-wrapper">
-        {include header}
+        <link rel="preload" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}" as="style">
+        <link rel="stylesheet" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}">
+        {foreach $addCss as $file}
+            <link rel="preload" as="style" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
+            <link rel="stylesheet" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
+        {/foreach}
+
+        <!-- Non-critical assets -->
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+              href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap"/>
+        <noscript>
+            <link rel="stylesheet"
+                  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap"/>
+        </noscript>
+        <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+              href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"/>
+        <noscript>
+            <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"
+                  rel="stylesheet">
+        </noscript>
+        <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+              href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
+        <noscript>
+            <link rel="stylesheet" href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
+        </noscript>
+        <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
+              href="{getUrl}dist/bootstrap.css?v={$page->app->getCacheVersion()}">
+        <noscript>
+            <link rel="stylesheet" href="{getUrl}dist/bootstrap.css?v={$page->app->getCacheVersion()}">
+        </noscript>
+
+        {\Tracy\Debugger::renderLoader()|noescape}
+
+        {include addHead}
+
+        {block tracking}
+            <!-- Matomo -->
+            <script>
+                let _paq = window._paq = window._paq || [];
+                /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+                {if $auth->loggedIn()}
+                _paq.push(['setUserId', {$auth->getLoggedIn()->email}]);
+                _paq.push(['setCustomVariable', 1, 'playerCode', {$auth->getLoggedIn()->player->getCode()}, 'visit']);
+                _mtm.push({
+                    playerName: {$auth->getLoggedIn()->name},
+                    playerCode: {$auth->getLoggedIn()->player->getCode()},
+                });
+                {/if}
+                _paq.push(['trackPageView']);
+                _paq.push(['trackVisibleContentImpressions', true]);
+                _paq.push(['enableLinkTracking']);
+                window.addEventListener('load', () => {
+                    (function () {
+                        const u = "//analytics.laserliga.cz/";
+                        _paq.push(['setTrackerUrl', u + 'matomo.php']);
+                        _paq.push(['setSiteId', '1']);
+                        const d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+                        g.async = true;
+                        g.src = u + 'matomo.js';
+                        s.parentNode.insertBefore(g, s);
+                    })();
+                });
+            </script>
+            <!-- End Matomo Code -->
+        {/block}
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    </head>
+    <body>
+
+    {include refreshLoader}
+    {include smallLoader}
+
+    {if $kiosk}
+        {include 'kioskHeader.latte'}
+        <main class="container container-kiosk {include containerClasses|trim}" n:attr="$containerAttributes">
+            {include errors}
+            {include content}
+        </main>
+
+        {include afterContent}
+    {elseif $iframe}
         <main class="container {include containerClasses|trim}" n:attr="$containerAttributes">
             {include errors}
             {include content}
@@ -156,76 +173,79 @@
         {include afterContent}
 
         {include footer}
-    </div>
-{else}
-    <main class="container {include containerClasses|trim}" n:attr="$containerAttributes">
-        {include errors}
-        {include content}
-    </main>
+    {else}
+        <div class="content-wrapper">
+            {include header}
+            <main class="container {include containerClasses|trim}" n:attr="$containerAttributes">
+                    {include errors}
+                {include content}
+            </main>
 
-    {include afterContent}
+            {include afterContent}
 
-    {include footer}
-{/if}
-{include loader}
-
-
-<div class="toast-container position-fixed end-0 p-3" id="toasts" style="top: 5rem;">
-    {foreach $notices as $notice}
-        {var string $type = 'info'}
-        {var string $content = ''}
-        {var string $title = ''}
-        {if is_string($notice)}
-            {do $content = $notice}
-        {else}
-            {do $type = $notice['type'] ?? 'info'}
-            {do $content = $notice['content'] ?? ''}
-            {do $title = $notice['title'] ?? ''}
-        {/if}
-        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <svg class="bd-placeholder-img rounded me-2 text-{$type}" width="20" height="20"
-                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"
-                     focusable="false">
-                    <rect width="100%" height="100%" style="fill: currentcolor;"></rect>
-                </svg>
-                <strong class="me-auto" n:if="!empty($title)">{$title}</strong>
-                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                {$content}
-            </div>
+            {include footer}
         </div>
-    {/foreach}
-</div>
+    {/if}
+    {include loader}
 
-<script>
-    const page = {$page->app->getPageInfo()};
-    const usr = {$auth->getLoggedIn()?->id};
-    const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
-    const assetVersion = {$page->app->getCacheVersion()};
-</script>
 
-<script type="speculationrules">
-    {
-      "prerender": [
+    <div class="toast-container position-fixed end-0 p-3" id="toasts" style="top: 5rem;">
+        {foreach $notices as $notice}
+            {var string $type = 'info'}
+            {var string $content = ''}
+            {var string $title = ''}
+            {if is_string($notice)}
+                {do $content = $notice}
+            {else}
+                {do $type = $notice['type'] ?? 'info'}
+                {do $content = $notice['content'] ?? ''}
+                {do $title = $notice['title'] ?? ''}
+            {/if}
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <svg class="bd-placeholder-img rounded me-2 text-{$type}" width="20" height="20"
+                         xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"
+                         focusable="false">
+                        <rect width="100%" height="100%" style="fill: currentcolor;"></rect>
+                    </svg>
+                    <strong class="me-auto" n:if="!empty($title)">{$title}</strong>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    {$content}
+                </div>
+            </div>
+        {/foreach}
+    </div>
+
+    <script>
+        const page = {$page->app->getPageInfo()};
+        const usr = {$auth->getLoggedIn()?->id};
+        const prettyUrl = {\Lsr\Core\App::isPrettyUrl()};
+        const assetVersion = {$page->app->getCacheVersion()};
+    </script>
+
+    <script type="speculationrules">
         {
-          "where": {
-            "and": [
-              { "href_matches": "/*" },
-              { "not": { "href_matches": "/lang/*" } },
-              { "not": { "selector_matches": ".no-prerender" } },
-              { "not": { "selector_matches": "[rel~=nofollow]" } }
-            ]
-          }
+          "prerender": [
+            {
+              "where": {
+                "and": [
+                  { "href_matches": "/*" },
+                  { "not": { "href_matches": "/lang/*" } },
+                  { "not": { "selector_matches": ".no-prerender" } },
+                  { "not": { "selector_matches": "[rel~=nofollow]" } }
+                ]
+              }
+            }
+          ]
         }
-      ]
-    }
-</script>
+    </script>
 
-<script defer type="module" src="{getUrl}dist/main.js?{$page->app->getCacheVersion()}"></script>
-<script n:foreach="$addJs as $js" src="{getUrl}dist/{$js}?v={$page->app->getCacheVersion()}" type="module"
-                                  defer></script>
-{include svgSymbols}
-</body>
-</html>
+    <script defer type="module" src="{getUrl}dist/main.js?{$page->app->getCacheVersion()}"></script>
+    <script n:foreach="$addJs as $js" src="{getUrl}dist/{$js}?v={$page->app->getCacheVersion()}" type="module"
+                                      defer></script>
+    {include svgSymbols}
+    </body>
+    </html>
+{/if}

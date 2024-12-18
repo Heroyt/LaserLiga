@@ -189,7 +189,7 @@ window.addEventListener("load", () => {
     const mainNav = document.getElementById('mobile-menu-full') as HTMLDivElement;
     const toggleMainNav = document.getElementById('triggerMainNav') as HTMLButtonElement;
     if (mainNav && toggleMainNav) {
-        const closeBtn = mainNav.querySelector('.btn-close') as HTMLButtonElement;
+        const closeBtns = mainNav.querySelectorAll<HTMLElement>('.btn-close, [data-trigger="close"]');
         let mainNavActive = true;
         let mainNavThrottle: NodeJS.Timeout = null;
         toggleMainNav.addEventListener('click', () => {
@@ -201,10 +201,12 @@ window.addEventListener("load", () => {
             mainNav.classList.toggle('show');
             toggleMainNav.classList.toggle('show');
         });
-        closeBtn.addEventListener('click', () => {
-            mainNav.classList.remove('show');
-            toggleMainNav.classList.remove('show');
-        });
+        for (const closeBtn of closeBtns) {
+            closeBtn.addEventListener('click', () => {
+                mainNav.classList.remove('show');
+                toggleMainNav.classList.remove('show');
+            });
+        }
     }
 
     // Share buttons
@@ -255,4 +257,6 @@ window.addEventListener("load", () => {
 
     // Pages
     route(page);
+
+    window.triggerNotification = triggerNotification;
 });

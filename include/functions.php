@@ -4,6 +4,7 @@ use App\Exceptions\FileException;
 use App\Models\DataObjects\Image;
 use App\Services\ImageService;
 use Lsr\Helpers\Tools\Strings;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * @file      functions.php
@@ -322,4 +323,20 @@ function getImageSrcSet(Image|string $image, bool $includeAllSizes = true): stri
 	}
 
 	return implode(',', $srcSet);
+}
+
+/**
+ * @param  ServerRequestInterface  $request
+ * @return list<non-empty-lowercase-string>
+ */
+function getAcceptTypes(ServerRequestInterface $request): array {
+	$types = [];
+	foreach ($request->getHeader('Accept') as $value) {
+		$str = strtolower(trim(explode(';', $value, 2)[0]));
+		if ($str === '') {
+			continue;
+		}
+		$types[] = $str;
+	}
+	return $types;
 }

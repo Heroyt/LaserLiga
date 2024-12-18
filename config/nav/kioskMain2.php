@@ -13,11 +13,6 @@ assert($fontawesome instanceof FontAwesomeManager, 'Invalid service type from DI
 if ($auth->loggedIn()) {
 	return [
 		[
-			'name' => lang('Moje hry'),
-			'icon' => $fontawesome->solid('gun'),
-			'route' => 'my-game-history',
-		],
-		[
 			'name' => lang('Profil'),
 			'icon' => $fontawesome->solid('user'),
 			'route' => 'dashboard',

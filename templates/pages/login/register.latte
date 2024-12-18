@@ -1,9 +1,12 @@
+{templateType App\Templates\Login\LoginParams}
 {layout '../../@layout.latte'}
 
 {varType string[] $errors}
 {varType array $_POST}
 {varType string $turnstileKey}
 {varType App\Models\Arena[] $arenas}
+
+{var int|null $kioskArena = $page->getApp()->session->get('kioskArena')}
 
 {define containerClasses}
     mb-5 mb-lg-0
@@ -55,7 +58,7 @@
                                 <select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"
                                         id="loginArena">
                                     <option value="">{lang 'Žádná'}</option>
-                                    <option n:foreach="$arenas as $arena" {if isset($_POST['arena']) && ((int) $_POST['arena']) === $arena->id}selected{/if}
+                                    <option n:foreach="$arenas as $arena" n:attr="selected: (isset($_POST['arena']) && ((int) $_POST['arena']) === $arena->id) || (int) $kioskArena === $arena->id"
                                             value="{$arena->id}">
                                         {$arena->name}
                                     </option>

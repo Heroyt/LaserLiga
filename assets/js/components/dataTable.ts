@@ -110,19 +110,36 @@ export function initDataTableForm(form: HTMLFormElement, afterUpdate: (() => voi
 		startLoading(true);
         fetchGet(form.action, query)
             .then((response: string) => {
-                form.innerHTML = response;
-				if (updateHistory) {
-                    window.history.pushState({}, '', form.action + (query.size > 0 ? '?' + query.toString() : ''));
-				}
-				initForm();
-				stopLoading(true, true);
-                if (afterUpdate) {
-                    afterUpdate();
+                if (!document.startViewTransition) {
+                    processResponse(response);
+                }
+                else {
+                    document.startViewTransition(() => {
+                        processResponse(response);
+                    })
                 }
 			})
 			.catch(e => {
 				console.error(e);
 				stopLoading(false, true);
 			})
+
+        function processResponse(response: string) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = response;
+            const tmpForm = tmp.querySelector<HTMLFormElement>(`form#${form.id}`);
+            if (tmpForm) {
+                response = tmpForm.innerHTML;
+            }
+            form.innerHTML = response;
+            if (updateHistory) {
+                window.history.pushState({}, '', form.action + (query.size > 0 ? '?' + query.toString() : ''));
+            }
+            initForm();
+            stopLoading(true, true);
+            if (afterUpdate) {
+                afterUpdate();
+            }
+        }
 	}
 }

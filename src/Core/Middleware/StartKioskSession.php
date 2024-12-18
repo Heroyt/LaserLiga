@@ -2,82 +2,36 @@
 
 namespace App\Core\Middleware;
 
-use App\Exceptions\AuthHeaderException;
-use App\Models\Arena;
 use Lsr\Core\App;
-use Lsr\Core\Requests\Dto\ErrorResponse;
-use Lsr\Core\Requests\Enums\ErrorType;
+use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Middleware;
-use Lsr\Core\Routing\MiddlewareResponder;
+use Lsr\Core\Session;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * Middleware for checking a valid API key
- *
- * It will return HTTP 401 or HTTP 400 error of failure.
+ * Middleware for checking if a user is in kiosk mode
  */
-class ApiToken implements Middleware
+class StartKioskSession implements Middleware
 {
-	use MiddlewareResponder;
-
-	private static string $bearerToken;
-
-	/**
-	 * @return string
-	 * @throws AuthHeaderException
-	 */
-	public static function getBearerToken(): string {
-		if (!isset(self::$bearerToken)) {
-			$request = App::getInstance()->getRequest();
-			$auth = $request->getHeader('authorization');
-			if (empty($auth)) {
-				throw new AuthHeaderException('Missing Authorization header.');
-			}
-			preg_match('/([a-zA-Z\d]+) (.*)/', $auth[0], $matches);
-			$authMethod = strtolower($matches[1] ?? '');
-			$authParams = trim($matches[2] ?? '');
-			if ($authMethod !== 'bearer') {
-				throw new AuthHeaderException('Unsupported authorization scheme.');
-			}
-			self::$bearerToken = $authParams;
-		}
-		return self::$bearerToken;
-	}
 
 	/**
 	 * @inheritDoc
 	 * @throws \JsonException
 	 */
 	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface {
-		$auth = $request->getHeader('authorization');
-		if (empty($auth)) {
-			return $this->respond($request, new ErrorResponse('Missing Authorization header', ErrorType::ACCESS));
+		$session = App::getService('session');
+		assert($session instanceof Session);
+
+		$session->set('kiosk', true);
+		if ($request instanceof Request) {
+			$arenaId = $request->getParam('arenaid');
+			if ($arenaId !== null) {
+				$session->set('kioskArena', (int)$arenaId);
+			}
 		}
 
-		preg_match('/([a-zA-Z\d]+) (.*)/', $auth[0], $matches);
-		$authMethod = strtolower($matches[1] ?? '');
-		$authParams = trim($matches[2] ?? '');
-		if ($authMethod !== 'bearer') {
-			return $this->respond(
-				$request,
-				new ErrorResponse(
-					        'Unsupported authorization scheme.',
-					        ErrorType::VALIDATION,
-					values: ['supportedSchemes' => ['Bearer']]
-				)
-			);
-		}
-
-		self::$bearerToken = $authParams;
-		if (Arena::checkApiKey($authParams) !== null) {
-			return $handler->handle($request);
-		}
-
-		return $this->respond(
-			$request,
-			new ErrorResponse('Invalid token.', ErrorType::ACCESS, values: ['token' => $authParams]),
-		);
+		return $handler->handle($request);
 	}
 }

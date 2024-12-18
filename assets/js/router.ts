@@ -133,5 +133,14 @@ export default function route(pageInfo: PageInfo): void {
                 module.default();
             });
             break;
+        case 'kiosk-dashboard':
+        case 'kiosk-dashboard-type':
+            import(
+                './pages/kiosk/dashboard'
+                )
+                .then(module => {
+                    module.default();
+                });
+            break;
     }
 }
