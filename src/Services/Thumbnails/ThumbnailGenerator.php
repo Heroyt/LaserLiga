@@ -15,7 +15,7 @@ class ThumbnailGenerator
 {
 
 	/** @var BackgroundData[]  */
-	public const BACKGROUNDS = [
+	public const array BACKGROUNDS = [
 		['assets/images/img-laser.jpeg', 1200, 1600, 0, 600],
 		['assets/images/img-vesta-zbran.jpeg', 1200, 800, 0, 50],
 		['assets/images/brana.jpeg', 1200, 675, 0, 0],

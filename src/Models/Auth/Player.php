@@ -185,10 +185,11 @@ class Player extends Model
 	public function getAvatar(): string {
 		if (!isset($this->avatar)) {
 			$avatarService = App::getServiceByType(AvatarService::class);
+			assert($avatarService instanceof AvatarService);
 			$this->avatar = $avatarService->getAvatar($this->getCode(), AvatarType::getRandom());
 			$this->save();
 		}
-		return $this->avatar;
+		return str_replace('mask="url(#viewboxMask)"', '', $this->avatar);
 	}
 
 	public function getTitle(): Title {
