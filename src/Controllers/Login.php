@@ -21,6 +21,7 @@ use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
+use Lsr\Core\Session;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Security\Passwords;
@@ -44,6 +45,7 @@ class Login extends Controller
 		private readonly Passwords               $passwords,
 		private readonly Turnstile               $turnstile,
 		private readonly UserRegistrationService $userRegistration,
+		private readonly Session $session,
 	) {
 		parent::__construct();
 		$this->params = new LoginParams();
@@ -122,6 +124,9 @@ class Login extends Controller
 		}
 		if (empty($name)) {
 			$this->params->errors['name'] = lang('Jméno je povinné', context: 'errors');
+		}
+		else if ($this->containsUrl($name)) {
+			$this->params->errors['name'] = lang('Jméno nesmí obsahovat URL', context: 'errors');
 		}
 		try {
 			/** @var numeric|null $arenaId */
@@ -233,7 +238,15 @@ class Login extends Controller
 			}
 			setcookie('rememberme', '', -1);
 		}
+
 		$request->addPassNotice(lang('Odhlášení bylo úspěšné.'));
+
+		$kiosk = $this->session->get('kiosk');
+		if ($kiosk) {
+			$arenaId = $this->session->get('kioskArena');
+			return $this->app->redirect(['kiosk', $arenaId], $request);
+		}
+
 		return $this->app->redirect('login', $request);
 	}
 
@@ -285,6 +298,10 @@ class Login extends Controller
 		$this->params->errors[] = lang($message, context: 'errors');
 		return $this->view('pages/login/confirmInvalid')
 		            ->withStatus($code);
+	}
+
+	private function containsUrl(string $string) : bool {
+		return preg_match('/\b(?:https?|ftp|www)(:\/\/)*[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i', $string) === 1;
 	}
 
 }
