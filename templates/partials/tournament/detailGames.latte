@@ -58,7 +58,7 @@
             {var bool $played = isset($gameTournament->code)}
             <td class="text-center">{$gameTournament->start->format('H:i')}</td>
             <td class="text-center">{$gameTournament->group?->name}</td>
-            <td n:foreach="$gameTournament->teams as $team" {if $played}class="fw-bold text-{if $team->points <= 0}danger{elseif $team->points === 1}info{else}success{/if}"{/if}>
+            <td n:foreach="$gameTournament->teams as $team" {if $played}class="fw-bold text-{if $team->points <= $tournament->points->loss}danger{elseif $team->points === $tournament->points->second || $team->points === $tournament->points->draw}info{else}success{/if}"{/if}>
                 {$team->getName()}
                 {if $played}
                     ({if $team->points >= 0}+{/if}{$team->points})
