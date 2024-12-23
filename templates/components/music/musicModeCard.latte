@@ -26,7 +26,7 @@
     {if count($musicGroup->music) === 1}
         <div class="music-mode-name-play">
             <div class="name">
-                {_$musicGroup->music[0]->name, context: 'music'}
+                {_$musicGroup->music[0]->name, domain: 'music'}
             </div>
             <div class="d-flex align-items-center music">
                 <div class="time-music font-monospace">
@@ -49,12 +49,12 @@
         </div>
     {else}
         <div class="name">
-            {_$musicGroup->name, context: 'music.group'}
+            {_$musicGroup->name, domain: 'music', context: 'group'}
         </div>
         <div n:if="count($musicGroup->music) > 1" class="children">
             <div n:foreach="$musicGroup->music as $musicMode" class="child" data-id="{$musicMode->id}">
                 <div class="name">
-                    {_$musicMode->name, context: 'music'}
+                    {_$musicMode->name, domain: 'music'}
                 </div>
                 <div class="d-flex align-items-center music">
                     <div class="time-music font-monospace">

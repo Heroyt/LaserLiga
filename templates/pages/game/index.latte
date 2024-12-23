@@ -228,7 +228,7 @@
                 </div>
                 <div n:if="$game->getMusic() !== null" class="my-1">
                     <strong>{lang 'Hudební mód', context: 'results.info'}:</strong>
-                    {lang $game->getMusic()?->name, context: 'musicModes'}
+                    {lang $game->getMusic()?->name, domain: 'music'}
                 </div>
                 <div n:if="$game->getGroup() !== null">
                     <strong>{lang 'Skupina', context: 'results.info'}:</strong>
