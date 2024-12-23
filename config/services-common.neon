@@ -64,6 +64,7 @@ services:
 				- 'highlights'
 				- 'tournament'
 				- 'privacy'
+				- 'music'
 
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
