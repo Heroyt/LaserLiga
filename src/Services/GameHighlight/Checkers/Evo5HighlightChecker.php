@@ -14,7 +14,7 @@ use App\Services\GenderService;
 class Evo5HighlightChecker implements GameHighlightChecker
 {
 
-	public const DUPLICATE_MAX_POWER = 99999;
+	public const int DUPLICATE_MAX_POWER = 99999;
 
 	/**
 	 * @inheritDoc
@@ -62,7 +62,9 @@ class Evo5HighlightChecker implements GameHighlightChecker
 							Gender::MALE   => '%s jediný byl zasažen minou.',
 							Gender::FEMALE => '%s jediná byla zasažena minou.',
 							Gender::OTHER  => '%s jediné bylo zasaženo minou.',
-						}
+						},
+						context: 'pod',
+						domain: 'highlights',
 					),
 					'@' . $name . '@'
 				),  GameHighlight::VERY_HIGH_RARITY
@@ -81,7 +83,9 @@ class Evo5HighlightChecker implements GameHighlightChecker
 							Gender::MALE   => '%s jediný získal bonus.',
 							Gender::FEMALE => '%s jediná získala bonusy.',
 							Gender::OTHER  => '%s jediné získalo bonusy.',
-						}
+						},
+						context: 'pod',
+						domain: 'highlights',
 					),
 					'@' . $name . '@'
 				),  GameHighlight::VERY_HIGH_RARITY
@@ -101,7 +105,9 @@ class Evo5HighlightChecker implements GameHighlightChecker
 							Gender::MALE   => '%s získal %.1fx tolik bonusů co ostatní.',
 							Gender::FEMALE => '%s získala %.1fx tolik bonusů co ostatní.',
 							Gender::OTHER  => '%s získalo %.1fx tolik bonusů co ostatní.',
-						}
+						},
+						context: 'pod',
+						domain: 'highlights',
 					),
 					'@' . $name . '@',
 					$ratio

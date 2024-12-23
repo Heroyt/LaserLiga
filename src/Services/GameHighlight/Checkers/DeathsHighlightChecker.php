@@ -27,12 +27,17 @@ class DeathsHighlightChecker implements PlayerHighlightChecker
 					GameHighlightType::DEATHS,
 					sprintf(
 						lang(
-							         '%s zasáhlo více spoluhráčů, než protihráčů',
-							context: 'results.highlights'
+							match ($gender) {
+								Gender::MALE   => '%s byl zasažen více spoluhráči (%d), než protihráči (%d)',
+								Gender::FEMALE => '%s byla zasažena více spoluhráči (%d), než protihráči (%d)',
+								Gender::OTHER  => '%s bylo zasaženo více spoluhráči (%d), než protihráči (%d)',
+							},
+							context: 'deaths',
+							domain : 'highlights'
 						),
-						'@' . $name . '@<' . NameInflectionService::genitive(
-							$name
-						) . '>'
+						'@' . $name . '@<' . NameInflectionService::genitive($name) . '>',
+						$player->deathsOwn,
+						$player->deathsOther
 					),
 					GameHighlight::VERY_HIGH_RARITY + 20
 				)
@@ -55,7 +60,9 @@ class DeathsHighlightChecker implements PlayerHighlightChecker
 									Gender::MALE   => '%s strávil %s ve hře vypnutý.',
 									Gender::FEMALE => '%s strávila %s ve hře vypnutá.',
 									Gender::OTHER  => '%s strávilo %s ve hře vypnuté.',
-								} . ($minutes / $gameLength > 0.5 ? ' To je víc než polovina hry!' : '')
+								} . ($minutes / $gameLength > 0.5 ? ' To je víc než polovina hry!' : ''),
+								context: 'deaths',
+								domain: 'highlights'
 							),
 							'@' . $name . '@',
 							sprintf(

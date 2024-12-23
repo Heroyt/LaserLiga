@@ -66,7 +66,8 @@ class UserHighlightChecker implements PlayerHighlightChecker
 					sprintf(
 						lang(
 							         '%s má %0.2fx lepší přesnost, než obvykle',
-							context: 'results.highlights'
+							context: 'user',
+							domain : 'highlights'
 						),
 						'@' . $player->name . '@',
 						$accuracyDiff
@@ -84,7 +85,8 @@ class UserHighlightChecker implements PlayerHighlightChecker
 					sprintf(
 						lang(
 							         '%s má %0.2fx horší přesnost, než obvykle',
-							context: 'results.highlights'
+							context: 'user',
+							domain : 'highlights'
 						),
 						'@' . $player->name . '@',
 						1 / $accuracyDiff
@@ -115,7 +117,8 @@ class UserHighlightChecker implements PlayerHighlightChecker
 					sprintf(
 						lang(
 							         '%s má %0.2fx více výstřelů za minutu, než obvykle',
-							context: 'results.highlights'
+							context: 'user',
+							domain : 'highlights'
 						),
 						'@' . $player->name . '@',
 						$shotsDiff
@@ -133,7 +136,8 @@ class UserHighlightChecker implements PlayerHighlightChecker
 					sprintf(
 						lang(
 							         '%s má %0.2fx méně výstřelů za minutu, než obvykle',
-							context: 'results.highlights'
+							context: 'user',
+							domain : 'highlights'
 						),
 						'@' . $player->name . '@',
 						1 / $shotsDiff
@@ -175,7 +179,8 @@ class UserHighlightChecker implements PlayerHighlightChecker
 						sprintf(
 							lang(
 								         '%s a %s mají stejné skóre.',
-								context: 'results.highlights'
+								context: 'user',
+								domain : 'highlights'
 							),
 							'@' . $player->name . '@',
 							'@' . $player2->name . '@',
@@ -270,7 +275,8 @@ class UserHighlightChecker implements PlayerHighlightChecker
 							Gender::FEMALE => '%s proti %s většinou prohrává, ale teď ' . $genderedWord . ' porazila.',
 							Gender::OTHER  => '%s proti %s většinou prohrává, ale teď ' . $genderedWord . ' porazilo.',
 						},
-						context: 'results.highlights'
+						context: 'user',
+						domain : 'highlights'
 					),
 					'@' . $player->name . '@',
 					'@' . $player2->name . '@<' . NameInflectionService::dative(
@@ -278,7 +284,8 @@ class UserHighlightChecker implements PlayerHighlightChecker
 					) . '>',
 				) . ($game->getMode()?->isTeam() ? ' (' . lang(
 						         'Týmové skóre',
-						context: 'results.highlights'
+						context: 'user',
+						domain : 'highlights'
 					) . ')' : ''),
 				(int)round(
 					GameHighlight::MEDIUM_RARITY + (20 / $winLossRatio)

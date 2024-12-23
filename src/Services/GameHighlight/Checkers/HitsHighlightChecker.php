@@ -60,7 +60,10 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 						new GameHighlight(
 							GameHighlightType::HITS,
 							sprintf(
-								lang('Hráči %s a %s se oba navzájem zasáhli %dx.', context: 'results.highlights'),
+								lang(        'Hráči %s a %s se oba navzájem zasáhli %dx.',
+									context: 'hits',
+									domain : 'highlights'
+								),
 								'@' . $name1 . '@',
 								'@' . $name2 . '@',
 								$hits->count
@@ -89,7 +92,7 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 										Gender::FEMALE => '%s zasáhla nejvíce spoluhráčů (%d).',
 										Gender::OTHER  => '%s zasáhlo nejvíce spoluhráčů (%d).',
 									},
-									context: 'results.highlights'
+									domain: 'highlights', context: 'results'
 								),
 								'@' . $maxHitsOwnPlayers[0]->name . '@',
 								$maxHitsOwn,
@@ -132,7 +135,7 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 										Gender::FEMALE => '%s byla zasažena nejvíce spoluhráči (%d).',
 										Gender::OTHER  => '%s bylo zasaženo nejvíce spoluhráči (%d).',
 									},
-									context: 'results.highlights'
+									domain: 'highlights', context: 'results'
 								),
 								'@' . $maxDeathsOwnPlayers[0]->name . '@',
 								$maxDeathsOwn,
@@ -149,7 +152,7 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 						new GameHighlight(
 							GameHighlightType::HITS,
 							sprintf(
-								lang('%s byli zasaženi nejvíce spoluhráči (%d).', context: 'results.highlights'),
+								lang('%s byli zasaženi nejvíce spoluhráči (%d).', domain: 'highlights', context: 'results'),
 								$firstNames . ' ' . lang('a', context: 'spojka') . ' ' . last($playerNames),
 								$maxDeathsOwn,
 							),
@@ -173,13 +176,16 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 						sprintf(
 							lang(
 								match ($gender1) {
-									Gender::MALE   => '%s zasáhl více spoluhráčů, než protihráčů',
-									Gender::FEMALE => '%s zasáhla více spoluhráčů, než protihráčů',
-									Gender::OTHER  => '%s zasáhlo více spoluhráčů, než protihráčů',
+									Gender::MALE   => '%s zasáhl více spoluhráčů (%d), než protihráčů (%d)',
+									Gender::FEMALE => '%s zasáhla více spoluhráčů (%d), než protihráčů (%d)',
+									Gender::OTHER  => '%s zasáhlo více spoluhráčů (%d), než protihráčů (%d)',
 								},
-								context: 'results.highlights'
+								context: 'hits',
+								domain : 'highlights'
 							),
-							'@' . $name1 . '@'
+							'@' . $name1 . '@',
+							$player->hitsOwn,
+							$player->hitsOther,
 						),
 						GameHighlight::VERY_HIGH_RARITY + 20
 					)
@@ -199,14 +205,16 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 						sprintf(
 							lang(
 								match ($gender1) {
-									Gender::MALE   => '%s zasáhl ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-									Gender::FEMALE => '%s zasáhla ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
-									Gender::OTHER  => '%s zasáhlo ' . $name2Verb . ' %s vícekrát, než kteréhokoliv protihráče',
+									Gender::MALE   => '%s zasáhl ' . $name2Verb . ' %s vícekrát (%d), než kteréhokoliv protihráče',
+									Gender::FEMALE => '%s zasáhla ' . $name2Verb . ' %s vícekrát (%d), než kteréhokoliv protihráče',
+									Gender::OTHER  => '%s zasáhlo ' . $name2Verb . ' %s vícekrát (%d), než kteréhokoliv protihráče',
 								},
-								context: 'results.highlights'
+								context: 'hits',
+								domain : 'highlights'
 							),
 							'@' . $name1 . '@',
-							'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>'
+							'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>',
+							$player->getHitsPlayer($player->getFavouriteTarget()),
 						),
 						GameHighlight::VERY_HIGH_RARITY + 20
 					)
@@ -241,7 +249,8 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 								Gender::FEMALE => '%s zasáhla hráče %s a %s stejněkrát (%d)',
 								Gender::OTHER  => '%s zasáhlo hráče %s a %s stejněkrát (%d)',
 							},
-							context: 'results.highlights'
+							context: 'hits',
+							domain : 'highlights'
 						),
 						'@' . $name1 . '@',
 						implode(', ', $hits),
