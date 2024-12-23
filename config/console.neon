@@ -19,6 +19,7 @@ services:
 	command.translation.compile: App\Cli\Commands\Translation\CompileTranslationsCommand
 	command.translation.removeComments: App\Cli\Commands\Translation\RemoveCommentsCommand
 	command.translation.removeDuplicates: App\Cli\Commands\Translation\RemoveTranslationsDuplicatesCommand
+	command.translation.updateByTemplate: App\Cli\Commands\Translation\UpdateTranslationsByTemplateCommand
 
 	command.logs.archive: App\Cli\Commands\Logs\ArchiveLogsCommand
 	command.logs.clear: App\Cli\Commands\Logs\ClearLogsCommand
