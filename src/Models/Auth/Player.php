@@ -16,6 +16,7 @@ use App\Services\Avatar\AvatarService;
 use App\Services\Avatar\AvatarType;
 use App\Services\GenderService;
 use App\Services\NameInflectionService;
+use DateTimeInterface;
 use Dibi\Row;
 use Lsr\Core\App;
 use Lsr\Core\DB;
@@ -35,7 +36,7 @@ use OpenApi\Attributes as OA;
 class Player extends Model
 {
 
-	public const TABLE = 'players';
+	public const string TABLE = 'players';
 
 
 	#[OA\Property]
@@ -60,6 +61,9 @@ class Player extends Model
 	#[ManyToOne]
 	#[OA\Property]
 	public ?Title $title = null;
+
+	#[OA\Property]
+	public ?DateTimeInterface $birthday = null;
 
 	private Gender $gender;
 

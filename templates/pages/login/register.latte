@@ -105,6 +105,21 @@
                             </div>
                         </div>
                         <input type="text" name="password_confirmation" autocomplete="new-password" class="visually-hidden">
+                        <div class="form-group mb-3 px-4">
+                            <div class="form-check">
+                                <input type="checkbox" name="privacy_policy"
+                                       n:class="'form-check-input', isset($errors['privacy_policy']) ? 'is-invalid'"
+                                       id="loginPrivacyPolicy" required value="1">
+                                <label class="form-check-label text-start" for="loginPrivacyPolicy">
+                                    {_'Souhlasím se <a href="%s" target="_blank">zásadami zpracování osobních údajů</a>.', format: [$app::getLink(['zasady-zpracovani-osobnich-udaju'])]|noescape}
+                                </label>
+                                <div class="invalid-feedback">
+                                    {ifset $errors['privacy_policy']}
+                                        {$errors['privacy_policy']}
+                                    {/ifset}
+                                </div>
+                            </div>
+                        </div>
                         <div class="cf-turnstile mb-3" data-sitekey="{$turnstileKey}"></div>
                         <div class="mb-3">
                             <button type="submit"

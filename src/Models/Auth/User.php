@@ -9,6 +9,7 @@ use DateTimeInterface;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\OneToMany;
 use Lsr\Core\Models\Attributes\OneToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -16,6 +17,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[PrimaryKey('id_user')]
 class User extends \Lsr\Core\Auth\Models\User
 {
+	public const int CURRENT_PRIVACY_VERSION = 1;
 
 	#[ManyToOne('', 'id_parent')]
 	public ?User $parent = null;
@@ -26,7 +28,7 @@ class User extends \Lsr\Core\Auth\Models\User
 	#[OneToMany(class: UserConnection::class)]
 	public array $connections = [];
 
-	#[OneToOne]
+	#[OneToOne, NoDB]
 	public ?LigaPlayer $player = null;
 
 	public DateTimeInterface $createdAt;
@@ -34,6 +36,9 @@ class User extends \Lsr\Core\Auth\Models\User
 	public ?string $emailToken = null;
 	public ?DateTimeInterface $emailTimestamp = null;
 	public bool $isConfirmed = false;
+
+	public ?int $privacyVersion = null;
+	public ?DateTimeInterface $privacyConfirmed = null;
 
 	/** @var int[] */
 	private array $managedArenaIds;

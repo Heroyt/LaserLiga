@@ -108,6 +108,7 @@ class Login extends Controller
 		$password = $request->getPost('password', '');
 		/** @var string $name */
 		$name = $request->getPost('name', '');
+		$privacy = !empty($request->getPost('privacy_policy', ''));
 		$arena = null;
 
 		if (empty($email)) {
@@ -128,6 +129,9 @@ class Login extends Controller
 		else if ($this->containsUrl($name)) {
 			$this->params->errors['name'] = lang('Jméno nesmí obsahovat URL', context: 'errors');
 		}
+		if (!$privacy) {
+			$this->params->errors['privacy_policy'] = lang('Musíte souhlasit s podmínkami', context: 'errors');
+		}
 		try {
 			/** @var numeric|null $arenaId */
 			$arenaId = $request->getPost('arena');
@@ -143,7 +147,7 @@ class Login extends Controller
 		}
 
 		try {
-			$user = $this->userRegistration->registerUser($name, $email, $password, $arena);
+			$user = $this->userRegistration->registerUser($name, $email, $password, $arena, $privacy);
 		} catch (UserRegistrationException|Exception|RandomException $e) {
 			$this->params->arenas = Arena::getAll();
 			$this->params->errors[] = lang('Něco se pokazilo.', context: 'errors');

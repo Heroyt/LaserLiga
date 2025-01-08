@@ -7,11 +7,13 @@ use App\Exceptions\UserRegistrationException;
 use App\Mails\Message;
 use App\Models\Arena;
 use App\Models\Auth\User;
+use DateTimeImmutable;
 use Dibi\Exception;
 use Lsr\Core\Auth\Exceptions\DuplicateEmailException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
+use Nette\Mail\SmtpException;
 use Random\RandomException;
 
 readonly class UserRegistrationService
@@ -30,17 +32,26 @@ readonly class UserRegistrationService
 	 * @param string     $email
 	 * @param string     $password
 	 * @param Arena|null $arena
+	 * @param bool       $privacy
 	 *
 	 * @return User
+	 * @throws DuplicateEmailException
 	 * @throws Exception
 	 * @throws RandomException
 	 * @throws UserRegistrationException
-	 * @throws DuplicateEmailException
 	 */
-	public function registerUser(string $name, string $email, string $password, ?Arena $arena) : User {
+	public function registerUser(string $name, string $email, string $password, ?Arena $arena, bool $privacy = true) : User {
 		$user = $this->auth->register($email, $password, $name);
 		if (!isset($user)) {
 			throw new UserRegistrationException();
+		}
+
+		if ($privacy) {
+			$user->privacyVersion = User::CURRENT_PRIVACY_VERSION;
+			$user->privacyConfirmed = new DateTimeImmutable();
+			if (!$user->save()) {
+				// TODO: Handle or log
+			}
 		}
 
 		try {
@@ -48,7 +59,10 @@ readonly class UserRegistrationService
 		} catch (ValidationException) {
 		}
 
-		$this->sendEmailConfirmation($user);
+		try {
+			$this->sendEmailConfirmation($user);
+		} catch (SmtpException) {
+		}
 
 		return $user;
 	}

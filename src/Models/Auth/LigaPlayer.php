@@ -24,7 +24,7 @@ use OpenApi\Attributes as OA;
 class LigaPlayer extends Player
 {
 
-	public const CACHE_TAGS = ['liga-players'];
+	public const array CACHE_TAGS = ['liga-players'];
 
 	#[OneToOne]
 	#[OA\Property]

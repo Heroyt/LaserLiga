@@ -37,7 +37,7 @@ class Dashboard extends Controller
 		assert($user !== null, 'User not logged in');
 		assert($user->player !== null, 'User is not a player');
 		$this->params->loggedInUser = $this->params->user = $user;
-		$this->params->lastGames = $user->player->queryGames()
+		$this->params->lastGames = $user->createOrGetPlayer()->queryGames()
 		                                        ->limit(10)
 		                                        ->orderBy('start')
 		                                        ->desc()
