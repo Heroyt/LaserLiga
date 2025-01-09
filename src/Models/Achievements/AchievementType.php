@@ -30,5 +30,6 @@ enum AchievementType: string
 	case BONUS_INVISIBILITY   = 'bonus_invisibility';
 	case BONUS_SPY            = 'bonus_spy';
 	case TROPHY               = 'trophy';
+	case BIRTHDAY               = 'birthday';
 
 }

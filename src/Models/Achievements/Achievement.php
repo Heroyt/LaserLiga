@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
 #[PrimaryKey('id_achievement'), OA\Schema]
 class Achievement extends Model
 {
-	public const TABLE = 'achievements';
+	public const string TABLE = 'achievements';
 
 	#[OA\Property]
 	public ?string $icon        = null;
