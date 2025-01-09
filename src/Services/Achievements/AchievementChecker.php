@@ -9,6 +9,7 @@ use App\Models\Achievements\PlayerAchievement;
 use App\Services\Achievements\Checkers\AccuracyChecker;
 use App\Services\Achievements\Checkers\ArenasChecker;
 use App\Services\Achievements\Checkers\AutoChecker;
+use App\Services\Achievements\Checkers\BirthdayChecker;
 use App\Services\Achievements\Checkers\BonusChecker;
 use App\Services\Achievements\Checkers\DeathsChecker;
 use App\Services\Achievements\Checkers\GameCountChecker;
@@ -47,6 +48,7 @@ readonly class AchievementChecker
 		private BonusChecker              $bonusChecker,
 		private TrophyChecker             $trophyChecker,
 		private TournamentChecker         $tournamentChecker,
+		private BirthdayChecker $birthdayChecker,
 	) {
 	}
 
@@ -127,6 +129,7 @@ readonly class AchievementChecker
 			AchievementType::BONUS_INVISIBILITY,
 			AchievementType::BONUS_SPY            => $this->bonusChecker,
 			AchievementType::TROPHY               => $this->trophyChecker,
+			AchievementType::BIRTHDAY             => $this->birthdayChecker,
 		};
 	}
 

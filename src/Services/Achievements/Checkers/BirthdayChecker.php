@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services\Achievements\Checkers;
 
@@ -7,16 +8,17 @@ use App\GameModels\Game\Player;
 use App\Models\Achievements\Achievement;
 use App\Services\Achievements\CheckerInterface;
 
-class AccuracyChecker implements CheckerInterface
+class BirthdayChecker implements CheckerInterface
 {
-	use ClassicModeOnly;
 
-	public const int MIN_SHOTS_PER_MINUTE = 3;
-
+	/**
+	 * @inheritDoc
+	 */
 	public function check(Achievement $achievement, Game $game, Player $player): bool {
-		return $this->checkClassic(
-				$game
-			) && $player->accuracy >= $achievement->value && ($player->shots / $game->getRealGameLength(
-				)) >= $this::MIN_SHOTS_PER_MINUTE;
+		if ($player->user === null || $player->user->birthday === null) {
+			return false;
+		}
+
+		return $game->start->format('m-d') === $player->user->birthday->format('m-d');
 	}
 }
