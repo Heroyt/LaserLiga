@@ -243,6 +243,7 @@
     </script>
 
     <script defer type="module" src="{getUrl}dist/main.js?{$page->app->getCacheVersion()}"></script>
+    <script defer src="https://npmcdn.com/flatpickr/dist/l10n/{$page->app->translations->getLangId()}.js"></script>
     <script n:foreach="$addJs as $js" src="{getUrl}dist/{$js}?v={$page->app->getCacheVersion()}" type="module"
                                       defer></script>
     {include svgSymbols}

@@ -1,5 +1,6 @@
 import flatpickr from "flatpickr";
 import {Options} from "flatpickr/dist/types/options.js";
+import LocaleKey = flatpickr.Options.LocaleKey;
 
 export default function initDatePickers(elem: HTMLElement | HTMLDocument = null) {
     if (!elem) {
@@ -28,6 +29,8 @@ export default function initDatePickers(elem: HTMLElement | HTMLDocument = null)
 				positionElement: input,
 				static: true,
 				appendTo: input.parentElement,
+                allowInput: true,
+                locale: document.documentElement.lang as LocaleKey,
 				wrap,
 			};
 			if (input.dataset.events) {
@@ -58,6 +61,8 @@ export default function initDatePickers(elem: HTMLElement | HTMLDocument = null)
 				enableTime: true,
 				time_24hr: true,
 				appendTo: input.parentElement,
+                allowInput: true,
+                locale: document.documentElement.lang as LocaleKey,
 				wrap: wrap,
 			};
 			if (input.dataset.max) {
@@ -85,6 +90,8 @@ export default function initDatePickers(elem: HTMLElement | HTMLDocument = null)
 				noCalendar: true,
 				time_24hr: true,
 				appendTo: input.parentElement,
+                allowInput: true,
+                locale: document.documentElement.lang as LocaleKey,
 				wrap: wrap,
 				onOpen: (e) => {
 					elem.querySelectorAll('.numInput').forEach((pickerInput: HTMLInputElement) => {
