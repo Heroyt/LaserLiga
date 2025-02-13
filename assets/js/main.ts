@@ -10,7 +10,7 @@ import {
 import route from "./router";
 import initDatePickers from "./datePickers";
 import {initClearButtons} from "./pages/utils";
-import {Tab} from 'bootstrap';
+import {Modal, Tab} from 'bootstrap';
 import {checkPush, registerPush, updatePush} from "./push";
 import {startLoading, stopLoading} from "./loaders";
 import {userSendNewConfirmEmail} from "./api/endpoints/user";
@@ -21,6 +21,9 @@ declare global {
     const assetVersion: number;
     const _mtm: any[];
     const _paq: any[][];
+    interface Window {
+        triggerNotification: typeof triggerNotification;
+    }
 }
 
 if ('serviceWorker' in navigator) {
@@ -254,6 +257,11 @@ window.addEventListener("load", () => {
                 })
         })
     }
+
+    // Modal auto-open
+    document.querySelectorAll<HTMLElement>('.modal[data-bs-auto-open="true"]').forEach(modal => {
+        Modal.getOrCreateInstance(modal).show();
+    });
 
     // Pages
     route(page);
