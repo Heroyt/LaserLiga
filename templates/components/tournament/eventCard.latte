@@ -1,0 +1,54 @@
+{parameters
+    App\Models\Events\Event $event,
+    bool $reverse = false
+}
+<div class="card my-3 w-100 event-card"
+     style="max-width: 50rem;">
+    <script type="application/ld+json">
+        {$event->getSchema()}
+    </script>
+    <div n:class="'row', 'g-0', $reverse ? 'flex-md-row-reverse'">
+        <div class="col-md-4">
+            <img n:ifset="$event->image" src="{$event->getImageUrl()}"
+                                              srcset="{$event->getImageSrcSet()}"
+                                              alt="{$event->name}"
+                                              class="img-fluid">
+        </div>
+        <div class="col-md-8 d-flex align-items-center">
+            <div class="card-body text-center tournament-card">
+                <div>
+                    {$event->arena->getLogoHtml()|noescape}
+                </div>
+                {ifset $event->league}
+                    <h3 class="card-title">{$event->league->name}</h3>
+                    <h4 class="card-subtitle">{$event->name}</h4>
+                {else}
+                    <h3 class="card-title">{$event->name}</h3>
+                {/ifset}
+                <div n:foreach="$event->getDates() as $date" class="text-center">
+                    <time datetime="{$date->start->format('c')}">{$date->start->format('d.m.Y')}</time>
+                </div>
+                <div class="text-center mt-4">
+                    <div class="btn-group">
+                        <a n:ifset="$event->league"
+                                href="{$event->league->getUrl()}"
+                                class="btn btn-primary">
+                            {faSolid 'trophy'}
+                            {_'Liga'}
+                        </a>
+                        <a href="{$event->getUrl()}" class="btn btn-secondary">
+                            {faSolid 'circle-info'}
+                            {_'Informace'}
+                        </a>
+                        <a n:if="$event->isRegistrationActive()"
+                                href="{$event->getRegistrationUrl()}"
+                                class="btn btn-primary">
+                            {faSolid 'user-plus'}
+                            {_'Registrace'}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

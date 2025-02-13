@@ -1,6 +1,6 @@
-{varType App\Models\Tournament\Tournament $tournament}
+{varType App\Models\Tournament\Tournament $league}
 
-{var App\Models\Tournament\Game[] $games = $tournament->getGames()}
+{var App\Models\Tournament\Game[] $games = $league->getGames()}
 <h3>
     {lang 'Hry turnaje'}
 </h3>
@@ -34,7 +34,7 @@
         <tr>
             <th class="text-center">{lang 'Začátek'}</th>
             <th class="text-center">{lang 'Skupina'}</th>
-            {switch $tournament->teamsInGame}
+            {switch $league->teamsInGame}
                 {case 2}
                 <th>{lang 'Domácí'}</th>
                 <th>{lang 'Hosté'}</th>
@@ -58,7 +58,7 @@
             {var bool $played = isset($gameTournament->code)}
             <td class="text-center">{$gameTournament->start->format('H:i')}</td>
             <td class="text-center">{$gameTournament->group?->name}</td>
-            <td n:foreach="$gameTournament->teams as $team" {if $played}class="fw-bold text-{if $team->points <= $tournament->points->loss}danger{elseif $team->points === $tournament->points->second || $team->points === $tournament->points->draw}info{else}success{/if}"{/if}>
+            <td n:foreach="$gameTournament->teams as $team" {if $played}class="fw-bold text-{if $team->points <= $league->points->loss}danger{elseif $team->points === $league->points->second || $team->points === $league->points->draw}info{else}success{/if}"{/if}>
                 {$team->getName()}
                 {if $played}
                     ({if $team->points >= 0}+{/if}{$team->points})

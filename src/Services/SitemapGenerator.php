@@ -35,6 +35,7 @@ class SitemapGenerator
 	public const array  IGNORE_PATHS      = [
 		'logout',
 		'admin',
+		'kiosk',
 		'api',
 		'g',
 		'player',
@@ -90,7 +91,7 @@ class SitemapGenerator
 				continue;
 			}
 			$path = array_values($route->getPath());
-			if ($path[0] !== 'game') {
+			if (($path[0] ?? '') !== 'game') {
 				continue;
 			}
 
@@ -232,7 +233,7 @@ class SitemapGenerator
 	 * @return Iterator<MinimalGameRow>
 	 * @throws Exception
 	 */
-	private static function &getLastGames(): Iterator {
+	private static function getLastGames(): Iterator {
 		return GameFactory::queryGames()
 		                  ->orderBy('start')
 		                  ->desc()

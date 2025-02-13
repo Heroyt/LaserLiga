@@ -1,10 +1,10 @@
 {layout '../../../@layout.latte'}
 
-{varType App\Models\Tournament\Tournament $tournament}
+{varType App\Models\Tournament\Tournament $league}
 {varType App\Models\Tournament\Stats[] $stats}
 
 {block content}
-    <h3>{lang 'Výsledky turnaje'} - {$tournament->name}</h3>
+    <h3>{lang 'Výsledky turnaje'} - {$league->name}</h3>
     <div class="row align-items-start">
         <div class="col-md-6 col-lg-3 my-2 bg-background-1 shadow" n:foreach="$stats as $stat">
             <div class="p-2 collapsed" data-bs-toggle="collapse" data-bs-target="#stat-{$stat->id}">
@@ -30,7 +30,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr n:foreach="$stat->getStats(tournament: $tournament) as ['model' => $model, 'value' => $value]">
+                    <tr n:foreach="$stat->getStats(tournament: $league) as ['model' => $model, 'value' => $value]">
                         <td>{$iterator->counter}.</td>
                         <td>
                             {$stat->type === App\Models\Tournament\StatType::SOLO ? $model->nickname : $model->name}

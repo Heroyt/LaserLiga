@@ -8,8 +8,10 @@ use App\Models\Events\EventPopup;
 use App\Models\Events\EventRegistrationInterface;
 use App\Models\Events\EventRegistrationTrait;
 use App\Models\Events\EventTeamBase;
+use App\Models\Tournament\EventPriceGroup;
 use App\Models\Tournament\RegistrationType;
 use App\Models\Tournament\Tournament;
+use App\Models\WithSchema;
 use Lsr\Core\App;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -21,7 +23,7 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_league'), OA\Schema]
-class League extends Model implements EventRegistrationInterface
+class League extends Model implements EventRegistrationInterface, WithSchema
 {
 	use EventRegistrationTrait;
 
@@ -44,6 +46,9 @@ class League extends Model implements EventRegistrationInterface
 
 	#[OA\Property]
 	public RegistrationType $registrationType = RegistrationType::TOURNAMENT;
+
+	#[OA\Property, ManyToOne]
+	public ?EventPriceGroup $eventPriceGroup = null;
 
 	#[ManyToOne]
 	#[OA\Property]
@@ -167,4 +172,86 @@ class League extends Model implements EventRegistrationInterface
 		return $this->events;
 	}
 
+	public function getSchema(): array {
+		$schema = [
+			'@context' => 'https://schema.org/',
+			'@type' => 'EventSeries',
+			'name' => $this->name,
+			'eventAttendanceMode' => 'OfflineEventAttendanceMode',
+			'identifier' => $this->getUrl(),
+			'url' => $this->getUrl(),
+			'keywords' => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
+			'organizer' => [
+				'@type' => 'Organization',
+				'identifier' => $this->arena->getUrl(),
+				'name' => $this->arena->name,
+				'url' => $this->arena->getUrl(),
+				'logo' => $this->arena->getLogoUrl(),
+			],
+			'offers' => [],
+			'subEvent' => [],
+			'eventStatus' => 'EventScheduled',
+		];
+
+		if ($this->image !== null) {
+			$schema['image'] = $this->getImageUrl();
+		}
+
+		if ($this->shortDescription !== null) {
+			$schema['description'] = $this->shortDescription;
+		}
+
+		if ($this->teamLimit !== null) {
+			$schema['maximumAttendeeCapacity'] = $this->teamLimit;
+		}
+
+		if ($this->arena->address->isFilled()) {
+			$schema['location'] = [
+				'@type' => 'Place',
+				'name' => $this->arena->name,
+				'url' => $this->arena->web,
+				'logo' => $this->arena->getLogoUrl(),
+				'address' => [
+					'@type' => 'PostalAddress',
+					'streetAddress' => $this->arena->address->street,
+					'addressLocality' => $this->arena->address->city,
+					'postalCode' => $this->arena->address->postCode,
+					'addressCountry' => $this->arena->address->country,
+				],
+			];
+			if ($this->arena->lng !== null) {
+				$schema['location']['longitude'] = $this->arena->lng;
+			}
+			if ($this->arena->lat !== null) {
+				$schema['location']['latitude'] = $this->arena->lat;
+			}
+			$schema['organizer']['address'] = $schema['location']['address'];
+		}
+
+		if ($this->eventPriceGroup !== null && count($this->eventPriceGroup->prices) > 0) {
+			foreach ($this->eventPriceGroup->prices as $price) {
+				$schema['offers'][] = [
+					'@type' => 'Offer',
+					'price' => $price->price,
+					'priceCurrency' => 'CZK',
+					'name' => $price->description,
+					'description' => $this->eventPriceGroup->description,
+					'url' => $this->getRegistrationUrl()
+				];
+			}
+		}
+
+		foreach ($this->getTournaments() as $tournament) {
+			$schema['subEvent'][] = $tournament->getSchema();
+		}
+		foreach ($this->getEvents() as $event) {
+			$schema['subEvent'][] = $event->getSchema();
+		}
+
+		return $schema;
+	}
+
+	public function getRegistrationUrl() : string {
+		return $this->getUrl('registration');
+	}
 }

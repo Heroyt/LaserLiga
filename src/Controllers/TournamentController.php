@@ -16,6 +16,7 @@ use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use App\Services\EventRegistrationService;
 use App\Services\Turnstile;
+use App\Templates\Tournament\TournamentIndexParameters;
 use Exception;
 use Lsr\Core\App;
 use Lsr\Core\Controllers\Controller;
@@ -56,13 +57,34 @@ class TournamentController extends Controller
 	}
 
 	public function show(): ResponseInterface {
+		$this->params = new TournamentIndexParameters($this->params);
 		$this->title = 'Plánované turnaje';
-		$this->params['breadcrumbs'] = [
+		$this->params->breadcrumbs = [
 			'Laser Liga'    => [],
 			lang('Turnaje') => ['tournament'],
 		];
 		$this->description = 'Turnaje plánované v laser arénách, které budou probíhat v následujících měsících.';
-		$this->params['tournaments'] = Tournament::query()->where('DATE([start]) > CURDATE()')->orderBy('start')->get();
+		$this->params->tournaments = Tournament::query()
+		                                       ->where('DATE([start]) > CURDATE()')
+		                                       ->orderBy('start')
+		                                       ->get();
+		return $this->view('pages/tournament/index');
+	}
+
+	public function history(): ResponseInterface {
+		$this->params = new TournamentIndexParameters($this->params);
+		$this->title = 'Odehrané turnaje';
+		$this->params->breadcrumbs = [
+			'Laser Liga'             => [],
+			lang('Turnaje')          => ['tournament'],
+			lang('Odehrané turnaje') => ['tournament', 'history'],
+		];
+		$this->description = 'Turnaje odehrané v laser arénách.';
+		$this->params->tournaments = Tournament::query()
+		                                       ->where('DATE([start]) <= CURDATE()')
+		                                       ->orderBy('start')
+		                                       ->desc()
+		                                       ->get();
 		return $this->view('pages/tournament/index');
 	}
 
@@ -79,12 +101,12 @@ class TournamentController extends Controller
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
 			$tournament->arena->name => ['arena', $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
+			lang('Turnaje')          => App::getLink(['arena', (string)$tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
-			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string) $tournament->league->id];
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string)$tournament->league->id];
 		}
-		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string) $tournament->id];
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string)$tournament->id];
 
 		$this->params['tournament'] = $tournament;
 		$this->params['rules'] = $this->latteRules($tournament);
@@ -124,14 +146,14 @@ class TournamentController extends Controller
 	private function setRegisterTitleDescription(Tournament $tournament): void {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
-			$tournament->arena->name => ['arena', (string) $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
+			$tournament->arena->name => ['arena', (string)$tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', (string)$tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
-			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string) $tournament->league->id];
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string)$tournament->league->id];
 		}
-		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string) $tournament->id];
-		$this->params['breadcrumbs'][lang('Registrace')] = ['tournament', (string) $tournament->id, 'register'];
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string)$tournament->id];
+		$this->params['breadcrumbs'][lang('Registrace')] = ['tournament', (string)$tournament->id, 'register'];
 		$this->title = '%s - Registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
 		$this->description = 'Registrace na turnaj %s v %s. Turnaj se odehrává %s od %s.';
@@ -256,7 +278,10 @@ class TournamentController extends Controller
 
 			try {
 				/** @var Team $team */
-				$team = $this->eventRegistrationService->registerTeam($tournament, $data); // @phpstan-ignore argument.templateType
+				$team = $this->eventRegistrationService->registerTeam(
+					$tournament,
+					$data
+				); // @phpstan-ignore argument.templateType
 			} catch (ModelSaveFailedException|ModelNotFoundException|ValidationException $e) {
 				$this->getLogger()->exception($e);
 				$this->params['errors'][] = lang('Nepodařilo se uložit tým. Zkuste to znovu', context: 'errors');
@@ -270,7 +295,7 @@ class TournamentController extends Controller
 				$request->addPassError(lang('Nepodařilo se odeslat e-mail'));
 			}
 			return $this->app->redirect(
-				['tournament', 'registration', (string) $tournament->id, (string) $team->id, 'h' => $team->getHash()],
+				['tournament', 'registration', (string)$tournament->id, (string)$team->id, 'h' => $team->getHash()],
 				$request
 			);
 		}
@@ -303,18 +328,18 @@ class TournamentController extends Controller
 	public function updateRegistration(Tournament $tournament, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
-			$tournament->arena->name => ['arena', (string) $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
+			$tournament->arena->name => ['arena', (string)$tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', (string)$tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
-			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string) $tournament->league->id];
+			$this->params['breadcrumbs'][$tournament->league->name] = ['league', (string)$tournament->league->id];
 		}
-		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string) $tournament->id];
+		$this->params['breadcrumbs'][$tournament->name] = ['tournament', (string)$tournament->id];
 		$this->params['breadcrumbs'][lang('Úprava registrace')] = [
 			'tournament',
 			'registration',
-			(string) $tournament->id,
-			(string) $registration,
+			(string)$tournament->id,
+			(string)$registration,
 		];
 		$this->title = '%s - Úprava registrace na turnaj';
 		$this->titleParams[] = $tournament->name;
@@ -324,14 +349,14 @@ class TournamentController extends Controller
 			);
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string)$tournament->id], $request);
 			}
 			if (!empty($request->params['hash'])) {
 				$_GET['h'] = $_REQUEST['h'] = $request->params['hash'];
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string)$tournament->id], $request);
 			}
 			return $this->updateTeam($team);
 		}
@@ -379,7 +404,7 @@ class TournamentController extends Controller
 			'players'   => [],
 		];
 		foreach ($team->getPlayers() as $player) {
-			/** @phpstan-ignore-next-line  */
+			/** @phpstan-ignore-next-line */
 			$this->params['values']['players'][] = [
 				'id'          => $player->id,
 				'user'        => $player->user?->getCode(),
@@ -401,8 +426,8 @@ class TournamentController extends Controller
 	public function processUpdateRegister(Tournament $tournament, int $registration, Request $request): ResponseInterface {
 		$this->params['breadcrumbs'] = [
 			'Laser Liga'             => [],
-			$tournament->arena->name => ['arena', (string) $tournament->arena->id],
-			lang('Turnaje')          => App::getLink(['arena', (string) $tournament->arena->id]) . '#tournaments-tab',
+			$tournament->arena->name => ['arena', (string)$tournament->arena->id],
+			lang('Turnaje')          => App::getLink(['arena', (string)$tournament->arena->id]) . '#tournaments-tab',
 		];
 		if (isset($tournament->league)) {
 			$this->params['breadcrumbs'][$tournament->league->name] = ['league', $tournament->league->id];
@@ -423,11 +448,11 @@ class TournamentController extends Controller
 			            ->first();
 			if (!isset($team)) {
 				$request->addPassError(lang('Registrace neexistuje'));
-				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string)$tournament->id], $request);
 			}
 			if (!$this->validateRegistrationAccess($team)) {
 				$request->addPassError(lang('K tomuto týmu nemáte přístup'));
-				return $this->app->redirect(['tournament', (string) $tournament->id], $request);
+				return $this->app->redirect(['tournament', (string)$tournament->id], $request);
 			}
 			$this->params['errors'] = $this->eventRegistrationService->validateRegistration($tournament, $request);
 			if (empty($this->params['errors'])) {
@@ -478,7 +503,7 @@ class TournamentController extends Controller
 			if (empty($this->params['errors'])) {
 				DB::getConnection()->commit();
 				$request->addPassNotice(lang('Změny byly úspěšně uloženy.'));
-				$link = ['tournament', 'registration', (string) $tournament->id, (string) $team->id];
+				$link = ['tournament', 'registration', (string)$tournament->id, (string)$team->id];
 				if (isset($_REQUEST['h'])) {
 					$link['h'] = $_REQUEST['h'];
 				}

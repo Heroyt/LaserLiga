@@ -1,0 +1,52 @@
+{parameters
+    App\Models\Tournament\Tournament $tournament,
+    bool $reverse = false
+}
+<div class="card my-3 w-100 event-card"
+     style="max-width: 50rem;">
+    <script type="application/ld+json">
+        {$tournament->getSchema()}
+    </script>
+    <div n:class="'row', 'g-0', $reverse ? 'flex-md-row-reverse'">
+        <div class="col-md-4">
+            <img n:ifset="$tournament->image" src="{$tournament->getImageUrl()}"
+                                          srcset="{$tournament->getImageSrcSet()}"
+                                          alt="{$tournament->name}"
+                                          class="img-fluid">
+        </div>
+        <div class="col-md-8 d-flex align-items-center">
+            <div class="card-body text-center tournament-card">
+                <div>
+                    {$tournament->arena->getLogoHtml()|noescape}
+                </div>
+                {ifset $tournament->league}
+                    <h3 class="card-title">{$tournament->league->name}</h3>
+                    <h4 class="card-subtitle">{$tournament->name}</h4>
+                {else}
+                    <h3 class="card-title">{$tournament->name}</h3>
+                {/ifset}
+                <div class="text-center">{$tournament->start->format('d.m.Y')}</div>
+                <div class="text-center mt-4">
+                    <div class="btn-group">
+                        <a n:ifset="$tournament->league"
+                                href="{$tournament->league->getUrl()}"
+                                class="btn btn-primary">
+                            {faSolid 'trophy'}
+                            {_'Liga'}
+                        </a>
+                        <a href="{$tournament->getUrl()}" class="btn btn-secondary">
+                            {faSolid 'circle-info'}
+                            {_'Informace'}
+                        </a>
+                        <a n:if="$tournament->isRegistrationActive() && !$tournament->isFull()"
+                                href="{$tournament->getRegistrationUrl()}"
+                                class="btn btn-primary">
+                            {faSolid 'user-plus'}
+                            {_'Registrace'}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -18,6 +18,7 @@ use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\Tournament;
 use App\Services\EventRegistrationService;
 use App\Services\Turnstile;
+use App\Templates\Tournament\EventsIndexParameters;
 use Dibi\DriverException;
 use Exception;
 use JsonException;
@@ -62,8 +63,9 @@ class EventController extends Controller
 	 * @throws JsonException
 	 */
 	public function show(): ResponseInterface {
+		$this->params = new EventsIndexParameters($this->params);
 		$this->title = 'Plánované akce';
-		$this->params['breadcrumbs'] = [
+		$this->params->breadcrumbs = [
 			'Laser Liga'           => [],
 			lang('Plánované akce') => ['events'],
 		];
@@ -127,7 +129,87 @@ class EventController extends Controller
 			return 1;
 		});
 
-		$this->params['events'] = $events;
+		$this->params->events = $events;
+		return $this->view('pages/events/index');
+	}
+
+	/**
+	 * @throws ValidationException
+	 * @throws TemplateDoesNotExistException
+	 * @throws JsonException
+	 */
+	public function history(): ResponseInterface {
+		$this->params = new EventsIndexParameters($this->params);
+		$this->title = 'Proběhlé akce';
+		$this->params->breadcrumbs = [
+			'Laser Liga'           => [],
+			lang('Plánované akce') => ['events'],
+			lang('Proběhlé akce') => ['events', 'history'],
+		];
+		$this->description = 'Akce v laser arénách, které už proběhli.';
+		$events = array_merge(
+			Tournament::query()->where('DATE([start]) <= CURDATE()')->orderBy('start')->desc()->get(),
+			Event::query()->where(
+				'id_event IN %sql',
+				DB::select('event_dates', 'id_event')
+				  ->where('DATE([start]) <= CURDATE()')
+					->fluent
+			)->get()
+		);
+		usort($events, static function (Tournament|Event $a, Tournament|Event $b): int {
+			if ($a instanceof Tournament) {
+				$dateA = $a->start;
+			}
+			else {
+				$dateA = null;
+				foreach ($a->getDates() as $date) {
+					$dateA ??= $date->start;
+					if ($date->start < $dateA) {
+						$dateA = $date->start;
+					}
+				}
+			}
+
+
+			if ($b instanceof Tournament) {
+				$dateB = $b->start;
+			}
+			else {
+				$dateB = null;
+				foreach ($b->getDates() as $date) {
+					$dateB ??= $date->start;
+					if ($date->start < $dateB) {
+						$dateB = $date->start;
+					}
+				}
+			}
+
+			if ($dateA === null && $dateB === null) {
+				return 0;
+			}
+
+			if ($dateA === null) {
+				return 1;
+			}
+
+			if ($dateB === null) {
+				return -1;
+			}
+
+			bdump([$dateA, $dateB]);
+
+			if ($dateA->getTimestamp() === $dateB->getTimestamp()) {
+				return 0;
+			}
+			if ($dateA < $dateB) {
+				return 1;
+			}
+
+			return -1;
+		});
+
+		$this->params->events = $events;
+		$this->params->planned = false;
 		return $this->view('pages/events/index');
 	}
 

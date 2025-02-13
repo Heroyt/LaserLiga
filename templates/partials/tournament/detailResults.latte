@@ -1,8 +1,8 @@
-{varType App\Models\Tournament\Tournament $tournament}
+{varType App\Models\Tournament\Tournament $league}
 {varType string $results}
 {varType App\Models\Tournament\Stats[] $stats}
 
-{var App\Models\Tournament\Team[] $teams = $tournament->getSortedTeams()}
+{var App\Models\Tournament\Team[] $teams = $league->getSortedTeams()}
 <h3>
     {lang 'Výsledky turnaje'}
 </h3>
@@ -70,7 +70,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr n:foreach="$stat->getStats(tournament: $tournament) as ['model' => $model, 'value' => $value]">
+            <tr n:foreach="$stat->getStats(tournament: $league) as ['model' => $model, 'value' => $value]">
                 <td>{$iterator->counter}.</td>
                 <td>
                     {$stat->type === App\Models\Tournament\StatType::SOLO ? $model->nickname : $model->name}

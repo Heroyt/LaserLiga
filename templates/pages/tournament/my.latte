@@ -11,27 +11,27 @@
 
 	<h2>{sprintf(lang('Turnaje hráče - %s'), $currPlayer->nickname)}</h2>
 
-	<div class="card my-2" n:foreach="$tournaments as $tournament">
+	<div class="card my-2" n:foreach="$tournaments as $league">
         <div class="card-body text-center">
-			{ifset $tournament->league}
+			{ifset $league->league}
 				<p class="fs-4 mb-3">
-					{lang 'Liga'}: {$tournament->league->name}
+					{lang 'Liga'}: {$league->league->name}
 
-                    <a href="{link 'league', $tournament->league->id}" class="btn btn-secondary">
+                    <a href="{link 'league', $league->league->id}" class="btn btn-secondary">
 						{faSolid 'eye'}
 					</a>
 				</p>
 			{/ifset}
 			<h3 class="card-title">
-				{$tournament->name}
-                <a href="{link 'tournament', $tournament->id}" class="btn btn-secondary">
+				{$league->name}
+                <a href="{link 'tournament', $league->id}" class="btn btn-secondary">
 					{faSolid 'eye'}
 				</a>
 			</h3>
-			<p>{$tournament->start->format('d.m.Y')}</p>
+			<p>{$league->start->format('d.m.Y')}</p>
 
 			{foreach $players as $player}
-				{continueIf $player->tournament->id !== $tournament->id}
+				{continueIf $player->tournament->id !== $league->id}
 				<hr>
 				{ifset $player->team}
 					{ifset $player->team->image}
@@ -42,15 +42,15 @@
 					<h4>
 						{$player->team->name}
 					</h4>
-					{if $tournament->isStarted()}
+					{if $league->isStarted()}
 						<p><strong>{lang 'Umístění'}:</strong> {$player->team->getPosition()}</p>
                     {else}
                         <p>{lang 'Turnaj se ještě nehrál'}</p>
-						{if isset($user) && !$tournament->isStarted() && $player->team->validateAccess($user)}
-                            <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE && isset($player->leaguePlayer->team)}
-{link 'league', 'registration', $tournament->league->id, $player->leaguePlayer->team->id}
+						{if isset($user) && !$league->isStarted() && $player->team->validateAccess($user)}
+                            <a href="{if $league->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE && isset($player->leaguePlayer->team)}
+{link 'league', 'registration', $league->league->id, $player->leaguePlayer->team->id}
 {else}
-{link 'tournament', 'registration', $tournament->id, $player->team->id}
+{link 'tournament', 'registration', $league->id, $player->team->id}
 {/if}"
                                class="btn btn-secondary">
 								{lang 'Upravit přihlášku'}
@@ -58,7 +58,7 @@
 						{/if}
 					{/if}
 				{/ifset}
-				{if $tournament->isStarted()}
+				{if $league->isStarted()}
 					<h5 class="mt-4">{$player->nickname}</h5>
 					<p>{lang 'Statistiky'}:</p>
 					<div class="d-flex flex-wrap justify-content-evenly" style="gap: 1rem;">

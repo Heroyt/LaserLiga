@@ -1,9 +1,9 @@
-{varType App\Models\Tournament\Tournament $tournament}
-{var App\Models\Tournament\Team[] $teams = $tournament->getTeams()}
+{varType App\Models\Tournament\Tournament $league}
+{var App\Models\Tournament\Team[] $teams = $league->getTeams()}
 <h3 class="text-center">
     {lang 'Týmy'}
-    {ifset $tournament->teamLimit}
-        ({count($teams)}/{$tournament->teamLimit})
+    {ifset $league->teamLimit}
+        ({count($teams)}/{$league->teamLimit})
     {/ifset}
 </h3>
 <p class="text-center text-muted">{lang 'Seznam přihlášených týmů na turnaj laser game.'}</p>
@@ -45,7 +45,7 @@
                 </a>
             {/ifset}
             {if isset($user) && $team->validateAccess($user)}
-                <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $tournament->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $tournament->id, $team->id}{/if}"
+                <a href="{if $league->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $league->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $league->id, $team->id}{/if}"
                    class="btn btn-secondary">
                     {faSolid 'pen-to-square'}
                     {lang 'Upravit přihlášku'}

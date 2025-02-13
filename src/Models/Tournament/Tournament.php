@@ -9,8 +9,10 @@ use App\Models\Events\EventTeamBase;
 use App\Models\GameGroup;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueCategory;
+use App\Models\WithSchema;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Lsr\Core\App;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -35,10 +37,10 @@ use OpenApi\Attributes as OA;
 		]
 	)
 ]
-class Tournament extends EventBase implements EventRegistrationInterface
+class Tournament extends EventBase implements EventRegistrationInterface, WithSchema
 {
 
-	public const TABLE = 'tournaments';
+	public const string TABLE = 'tournaments';
 
 	#[OA\Property]
 	public int $teamsInGame = 2;
@@ -210,6 +212,152 @@ class Tournament extends EventBase implements EventRegistrationInterface
 
 	public function isRegistrationActive(): bool {
 		return $this->registrationsActive && !$this->isStarted();
+	}
+
+	public function getUrl(string|int ...$append) : string {
+		return App::getLink($this->getUrlPath(...$append));
+	}
+
+	/**
+	 * @param string|int ...$append
+	 *
+	 * @return list<string>
+	 */
+	public function getUrlPath(string|int ...$append): array {
+		return array_values(
+			array_merge(
+				['tournament', $this->id],
+				array_map(static fn($val) => (string)$val, $append)
+			)
+		);
+	}
+
+	public function getRegistrationUrl() : string {
+		if ($this->league !== null && $this->league?->registrationType === RegistrationType::LEAGUE) {
+			return $this->league->getUrl('register');
+		}
+		return $this->getUrl('register');
+	}
+
+	public function getSchema() : array {
+		$schema = [
+			'@context' => 'https://schema.org/',
+			'@type' => 'SportsEvent',
+			'name' => $this->name,
+			'startDate' => $this->start->format('c'),
+			'eventAttendanceMode' => 'OfflineEventAttendanceMode',
+			'sport' => 'Laser Game',
+			'identifier' => $this->getUrl(),
+			'url' => $this->getUrl(),
+			'keywords' => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
+			'competitor' => [],
+			'organizer' => [
+				'@type' => 'Organization',
+				'identifier' => $this->arena->getUrl(),
+				'name' => $this->arena->name,
+				'url' => $this->arena->getUrl(),
+				'logo' => $this->arena->getLogoUrl(),
+			],
+			'offers' => [],
+			'eventStatus' => 'EventScheduled',
+		];
+
+		if ($this->image !== null) {
+			$schema['image'] = $this->getImageUrl();
+		}
+
+		if ($this->end !== null) {
+			$schema['endDate'] = $this->end->format('c');
+		}
+
+		if ($this->shortDescription !== null) {
+			$schema['description'] = $this->shortDescription;
+		}
+
+		if ($this->teamLimit !== null) {
+			$schema['maximumAttendeeCapacity'] = $this->teamLimit;
+		}
+
+		if ($this->league !== null) {
+			$schema['alternateName'] = $this->league->name.': '.$this->name;
+			$schema['superEvent'] = [
+				'@type' => 'EventSeries',
+				'identifier' => $this->league->getUrl(),
+				'url' => $this->league->getUrl(),
+				'name' => $this->league->name,
+				'keywords' => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
+				'eventAttendanceMode' => 'OfflineEventAttendanceMode',
+			];
+		}
+
+		if ($this->arena->address->isFilled()) {
+			$schema['location'] = [
+				'@type' => 'Place',
+				'name' => $this->arena->name,
+				'url' => $this->arena->web,
+				'logo' => $this->arena->getLogoUrl(),
+				'address' => [
+					'@type' => 'PostalAddress',
+					'streetAddress' => $this->arena->address->street,
+					'addressLocality' => $this->arena->address->city,
+					'postalCode' => $this->arena->address->postCode,
+					'addressCountry' => $this->arena->address->country,
+				],
+			];
+			if ($this->arena->lng !== null) {
+				$schema['location']['longitude'] = $this->arena->lng;
+			}
+			if ($this->arena->lat !== null) {
+				$schema['location']['latitude'] = $this->arena->lat;
+			}
+			$schema['organizer']['address'] = $schema['location']['address'];
+		}
+
+		if ($this->eventPriceGroup !== null && count($this->eventPriceGroup->prices) > 0) {
+			foreach ($this->eventPriceGroup->prices as $price) {
+				$schema['offers'][] = [
+					'@type' => 'Offer',
+					'price' => $price->price,
+					'priceCurrency' => 'CZK',
+					'name' => $price->description,
+					'description' => $this->eventPriceGroup->description,
+					'url' => $this->getRegistrationUrl()
+				];
+			}
+		}
+
+		foreach ($this->getTeams(true) as $team) {
+			$teamData = [
+				'@type' => 'SportsTeam',
+				'name' => $team->name,
+				'sport' => 'Laser Game',
+				'athlete' => [],
+			];
+
+			if ($team->image !== null) {
+				$teamData['logo'] = $team->getImageUrl();
+			}
+
+			if ($team->leagueTeam !== null) {
+				$teamData['url'] = App::getLink(['league', 'team', $team->leagueTeam->id]);
+			}
+
+			foreach ($team->getPlayers() as $player) {
+				$playerData = [
+					'@type' => 'Person',
+					'name' => $player->nickname,
+				];
+				if ($player->user !== null) {
+					$playerData['identifier'] = $player->user->getCode();
+					$playerData['url'] = App::getLink(['user', $player->user->getCode()]);
+				}
+				$teamData['athlete'][] = $playerData;
+			}
+
+			$schema['competitor'][] = $teamData;
+		}
+
+		return $schema;
 	}
 
 }

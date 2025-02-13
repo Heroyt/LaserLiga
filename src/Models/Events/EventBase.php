@@ -4,7 +4,7 @@ namespace App\Models\Events;
 
 use App\Models\Arena;
 use App\Models\DataObjects\Image;
-use DateTimeImmutable;
+use App\Models\Tournament\EventPriceGroup;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Model;
@@ -19,6 +19,8 @@ abstract class EventBase extends Model
 	public Arena  $arena;
 	#[OA\Property]
 	public string $name;
+	#[OA\Property, ManyToOne]
+	public ?EventPriceGroup $eventPriceGroup = null;
 
 	#[OA\Property]
 	public ?string $rules            = null;

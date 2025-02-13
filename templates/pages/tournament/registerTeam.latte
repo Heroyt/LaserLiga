@@ -1,6 +1,6 @@
 {layout '../../@layout.latte'}
 
-{varType App\Models\Tournament\Tournament $tournament}
+{varType App\Models\Tournament\Tournament $league}
 {varType array $_POST}
 {varType array $errors}
 {varType App\Models\Auth\User|null $user}
@@ -8,28 +8,28 @@
 
 {define addHead}
     <meta property="og:title"
-          content="{lang 'Registrace'} {ifset $tournament->league}{$tournament->league->name}: {/ifset}{$tournament->name}"/>
-    <meta property="og:description" content="{$tournament->shortDescription ?? $page->getDescription()}"/>
+          content="{lang 'Registrace'} {ifset $league->league}{$league->league->name}: {/ifset}{$league->name}"/>
+    <meta property="og:description" content="{$league->shortDescription ?? $page->getDescription()}"/>
     <meta property="og:site_name" content="LaserLiga"/>
     <meta property="og:type" content="event"/>
-    <meta property="og:url" content="{link 'tournament', $tournament->id, 'register'}"/>
-    <meta n:ifset="$tournament->image" property="og:image" content="{$tournament->getImageUrl()}"/>
+    <meta property="og:url" content="{link 'tournament', $league->id, 'register'}"/>
+    <meta n:ifset="$league->image" property="og:image" content="{$league->getImageUrl()}"/>
 {/define}
 
 {define content}
 	<p class="text-start">
-		<a href="{link 'tournament', $tournament->id}" class="btn btn-info">
+		<a href="{link 'tournament', $league->id}" class="btn btn-info">
 			{faSolid 'angle-left'}
 			{lang 'Zpět'}
 		</a>
 	</p>
 	<h1>{lang 'Registrace týmu'}</h1>
-	<h2>{$tournament->name}</h2>
-    <div n:ifset="$tournament->registrationText" class="my-3">{$tournament->registrationText|noescape}</div>
-	<form action="{link 'tournament', $tournament->id, 'register'}" method="post" id="tournament-register-team-form"
-		  enctype="multipart/form-data">
+	<h2>{$league->name}</h2>
+    <div n:ifset="$league->registrationText" class="my-3">{$league->registrationText|noescape}</div>
+	<form action="{link 'tournament', $league->id, 'register'}" method="post" id="tournament-register-team-form"
+          enctype="multipart/form-data">
 		{csrfInput 'tournament-register'}
-        {include '../../partials/tournament/registerTeam.latte', $tournament, $errors, $_POST, $user}
+        {include '../../partials/tournament/registerTeam.latte', $league, $errors, $_POST, $user}
 		<div class="d-flex justify-content-center my-3">
 			<div class="form-check">
 				<input class="form-check-input {ifset $errors['gdpr']}is-invalid{/ifset}" type="checkbox" value="1"

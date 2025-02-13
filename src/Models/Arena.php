@@ -368,4 +368,8 @@ class Arena extends Model
 		}
 		return $this->leagues;
 	}
+
+	public function getUrl(): string {
+		return App::getLink(['arena', $this->id]);
+	}
 }

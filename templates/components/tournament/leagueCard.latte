@@ -1,0 +1,41 @@
+{parameters
+    App\Models\Tournament\League\League $league,
+    bool $reverse = false
+}
+<div class="card my-3 w-100 league-card"
+     style="max-width: 50rem;">
+    <script type="application/ld+json">
+        {$league->getSchema()}
+    </script>
+    <div n:class="'row', 'g-0', $reverse ? 'flex-md-row-reverse'">
+        <div class="col-md-4">
+            <img n:ifset="$league->image" src="{$league->getImageUrl()}"
+                                          alt="{$league->name}"
+                                          class="img-fluid" loading="lazy"
+                                          style="aspect-ratio: 1; object-fit:cover;">
+        </div>
+        <div class="col-md-8 d-flex align-items-center">
+            <div class="card-body text-center">
+                <div>
+                    {$league->arena->getLogoHtml()|noescape}
+                </div>
+                <h3 class="card-title">{$league->name}</h3>
+                <p n:ifset="$league->shortDescription">{$league->shortDescription}</p>
+                <div class="text-center mt-4">
+                    <div class="btn-group">
+                        <a href="{$league->getUrl()}" class="btn btn-secondary">
+                            {faSolid 'circle-info'}
+                            {_'Informace'}
+                        </a>
+                        <a n:if="$league->isRegistrationActive() && $league->registrationType !== App\Models\Tournament\RegistrationType::TOURNAMENT"
+                                href="{$league->getRegistrationUrl()}"
+                                class="btn btn-primary">
+                            {faSolid 'user-plus'}
+                            {_'Registrace'}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

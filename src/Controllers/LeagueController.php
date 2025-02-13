@@ -132,7 +132,7 @@ class LeagueController extends Controller
 		];
 		$this->title = 'Ligy laser game';
 		$this->description = 'Organizované laser game ligy - skupiny turnajů, které na sebe navazují.';
-		$this->params['leagues'] = League::getAll();
+		$this->params['leagues'] = League::query()->orderBy('id_league')->desc()->get();
 
 		return $this->view('pages/league/index');
 	}
