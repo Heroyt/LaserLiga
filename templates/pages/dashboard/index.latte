@@ -23,6 +23,9 @@
         {_'E-mail si můžeš změnit v '}
         <a href="{link ['user']}" class="btn btn-outline-danger ms-2">{faSolid 'gear'}{_'Nastavení'}</a>
     </div>
+    {if $user->shouldRevalidatePrivacyPolicy()}
+        {include '../../components/privacyPolicy/modal.latte'}
+    {/if}
 	{embed '../../partials/user/profile.latte', loggedIn: true, user: $user, lastGames: $lastGames, loggedInUser: $loggedInUser, rankOrder: $rankOrder}
 	{/embed}
 {/block}

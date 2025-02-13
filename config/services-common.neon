@@ -43,6 +43,12 @@ orisai.scheduler:
 		gamemodes:
 			expression: 45 23 * * *
 			callback: [@cron.gamemodes, 'run']
+		privacyUpdate:
+			expression: 00 12 * * *
+			callback: [@cron.privacy, 'run']
+		confirmEmail:
+			expression: 30 11 * * *
+			callback: [@cron.confirmEmail, 'run']
 services:
 	# Core
 	app: Lsr\Core\App
@@ -135,6 +141,8 @@ services:
 	cron.playerAchievementCheck: App\Cron\PlayerAchievementCheckJob
 	cron.sitemap: App\Cron\GenerateSitemapJob
 	cron.gamemodes: App\Cron\CheckGameModesJob
+	cron.privacy: App\Cron\PrivacyUpdateNotificationJob
+	cron.confirmEmail: App\Cron\UserConfirmationEmailsJob
 
 	result.parser: App\Tools\ResultParsing\ResultsParser
 	result.parser.evo5: App\Tools\ResultParsing\Evo5\ResultsParser

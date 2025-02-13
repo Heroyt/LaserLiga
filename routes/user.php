@@ -7,6 +7,7 @@ use App\Controllers\User\UserController;
 use App\Controllers\User\UserFindGamesController;
 use App\Controllers\User\UserGameController;
 use App\Controllers\User\UserHistoryController;
+use App\Controllers\User\UserPrivacyController;
 use App\Controllers\User\UserSettingsController;
 use App\Controllers\User\UserTournamentController;
 use App\Core\Middleware\CSRFCheck;
@@ -18,6 +19,9 @@ $loggedIn = new LoggedIn();
 $routes = Route::group()
                ->middlewareAll($loggedIn)
                ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
+
+$privacyGroup = $routes->group('user/privacy')
+                       ->get('agree', [UserPrivacyController::class, 'agree']);
 
 $publicUserRoutes = Route::group('/user')
                          ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')

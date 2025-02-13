@@ -38,6 +38,7 @@ class User extends \Lsr\Core\Auth\Models\User
 	public bool $isConfirmed = false;
 
 	public ?int $privacyVersion = null;
+	public ?int $privacyNotificationVersion = null;
 	public ?DateTimeInterface $privacyConfirmed = null;
 
 	/** @var int[] */
@@ -170,5 +171,9 @@ class User extends \Lsr\Core\Auth\Models\User
 
 	public function managesArena(Arena $arena): bool {
 		return in_array($arena->id, $this->getManagedArenaIds(), true);
+	}
+
+	public function shouldRevalidatePrivacyPolicy() : bool {
+		return $this->privacyVersion === null || self::CURRENT_PRIVACY_VERSION > $this->privacyVersion;
 	}
 }

@@ -1,0 +1,31 @@
+<div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="privacy-policy-changed-modal"
+     tabindex="-1" aria-hidden="true" aria-labelledby="privacy-policy-changed-title" data-bs-focus="true" data-bs-auto-open="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacy-policy-changed-title">
+                    <span class="text-danger">{faSolid 'circle-exclamation'}</span>
+                    {_'Nové zásady zpracování osobních údajů', domain: 'privacy', context: 'change'}
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p>
+                    {_'Aktualizovali jsme zásady zpracování osobních údajů.', domain: 'privacy', context: 'change'}
+                    {_'Ještě než budete pokračovat, potřebujeme váš souhlas.', domain: 'privacy', context: 'change'}
+                </p>
+                <p>
+                    {_'Aktuální zásady zpracování osobních údajů najdete vždy na:', domain: 'privacy', context: 'change'}
+                    <a href="{link ['zasady-zpracovani-osobnich-udaju']}">laserliga.cz/zasady-zpracovani-osobnich-udaju</a>
+                </p>
+                <hr class="my-4">
+                {include 'text.latte'}
+            </div>
+            <div class="modal-footer">
+                <a href="{link ['user', 'privacy', 'agree']}" class="btn btn-success">
+                    {faSolid 'check'}
+                     {_'Souhlasím s aktualizovanými zásadami', domain: 'privacy', context: 'change'}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

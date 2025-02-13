@@ -153,25 +153,15 @@ Route::group()
 Route::get('login/confirm', [Login::class, 'confirm']);
 
 // Tournament
-Route::group('tournament')
-     ->get('', [TournamentController::class, 'show'])
-     ->name('tournaments')
-     ->get(
-	     '{id}',
-	     [
-		     TournamentController::class,
-		     'detail',
-	     ]
-     )
-     ->name('tournament-detail')
-     ->get('{id}/register', [TournamentController::class, 'register'])
-     ->name(
-	     'tournament-register'
-     )
-     ->post('{id}/register', [TournamentController::class, 'processRegister'])
-     ->name('tournament-register-process')
-     ->middleware(new CSRFCheck('tournament-register'))
-     ->get('registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])
+$tournamentGroup = Route::group('tournament');
+$tournamentGroup->get('', [TournamentController::class, 'show'])->name('tournaments');
+$tournamentGroup->get('history', [TournamentController::class, 'history'])->name('tournament-history');
+$tournamentIdGroup = $tournamentGroup->group('{id}');
+$tournamentIdGroup->get('', [TournamentController::class, 'detail'])->name('tournament-detail');
+$tournamentIdGroup->get('register', [TournamentController::class, 'register'])->name('tournament-register');
+$tournamentIdGroup->post('register', [TournamentController::class, 'processRegister'])->name('tournament-register-process')->middleware(new CSRFCheck('tournament-register'));
+
+$tournamentGroup->get('registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])
      ->name('tournament-register-update')
      ->get('registration/{tournamentId}/{registration}/{hash}', [TournamentController::class, 'updateRegistration'])
      ->name('tournament-register-update-2')
@@ -244,18 +234,17 @@ Route::group('liga')
      ->name('league-register-substitute-slug-process')
      ->middleware(new CSRFCheck('league-register-substitute'));
 
-Route::group('events')
-     ->get('', [EventController::class, 'show'])
-     ->name('events')
-     ->group('{id}')
-     ->get('', [EventController::class, 'detail'])
-     ->get('register', [EventController::class, 'register'])
-     ->name('event-register')
+$eventsGroup = Route::group('events');
+$eventsGroup->get('', [EventController::class, 'show'])->name('events');
+$eventsGroup->get('history', [EventController::class, 'history'])->name('events-history');
+$eventsIdGroup = $eventsGroup->group('{id}');
+$eventsIdGroup->get('', [EventController::class, 'detail'])
+     ->get('register', [EventController::class, 'register'])->name('event-register')
      ->post('register', [EventController::class, 'processRegister'])
      ->name('event-register-process')
-     ->middleware(new CSRFCheck('event-register'))
-     ->endGroup()
-     ->get('registration/{eventId}/{registration}', [EventController::class, 'updateRegistration'])
+     ->middleware(new CSRFCheck('event-register'));
+
+$eventsGroup->get('registration/{eventId}/{registration}', [EventController::class, 'updateRegistration'])
      ->name('event-register-update')
      ->get('registration/{eventId}/{registration}/{hash}', [EventController::class, 'updateRegistration'])
      ->name('event-register-update-2')

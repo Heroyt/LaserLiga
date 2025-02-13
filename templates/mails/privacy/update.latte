@@ -1,0 +1,16 @@
+{layout '../@layout.latte'}
+
+{block body}
+    <h1>{_'Aktualizovali jsme zásady zpracování osobních údajů.', domain: 'privacy', context: 'change'}</h1>
+
+    <p>{_'Prosíme, přihlašte se do LaserLigy a vyjádřete souhlas s aktualizovanými podmínkami.', domain: 'privacy', context: 'change'}</p>
+
+    <p class="my-5">
+        <a href="{link ['dashboard']}" class="btn">LaserLiga.cz - {_'Přihlášení', context: 'login'}</a>
+    </p>
+
+    <p>
+        {_'Aktuální zásady zpracování osobních údajů najdete vždy na:', domain: 'privacy', context: 'change'}
+        <a href="{link ['zasady-zpracovani-osobnich-udaju']}">laserliga.cz/zasady-zpracovani-osobnich-udaju</a>
+    </p>
+{/block}
