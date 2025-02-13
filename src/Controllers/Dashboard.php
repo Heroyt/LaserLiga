@@ -37,22 +37,23 @@ class Dashboard extends Controller
 		assert($user !== null, 'User not logged in');
 		assert($user->player !== null, 'User is not a player');
 		$this->params->loggedInUser = $this->params->user = $user;
-		$this->params->lastGames = $user->createOrGetPlayer()->queryGames()
-		                                        ->limit(10)
-		                                        ->orderBy('start')
-		                                        ->desc()
-		                                        ->cacheTags(
-			                                        'user/games',
-			                                        'user/' . $user->id . '/games',
-			                                        'user/' . $user->id . '/lastGames'
-		                                        )
-		                                        ->fetchAllDto(PlayerGamesGame::class);
+		$this->params->lastGames = $user->createOrGetPlayer()
+		                                ->queryGames()
+		                                ->limit(10)
+		                                ->orderBy('start')
+		                                ->desc()
+		                                ->cacheTags(
+			                                'user/games',
+			                                'user/' . $user->id . '/games',
+			                                'user/' . $user->id . '/lastGames'
+		                                )
+		                                ->fetchAllDto(PlayerGamesGame::class);
 		bdump($this->params);
 		$this->title = 'Nástěnka hráče - %s';
 		$this->titleParams[] = $user->name;
 		$this->params->breadcrumbs = [
-			'Laser Liga'                => [],
-			$user->name => ['user', $user->player->getCode()],
+			'Laser Liga' => [],
+			$user->name  => ['user', $user->player->getCode()],
 		];
 		$this->description = 'Profil a statistiky všech laser game her hráče %s';
 		$this->descriptionParams[] = $user->name;

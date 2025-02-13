@@ -81,7 +81,12 @@ class LigaPlayer extends Player
 		}
 	}
 
-	public function jsonSerialize(): array {
+	/**
+	 * @param bool $respectPrivacy
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function getData(bool $respectPrivacy = false) : array {
 		$connections = [];
 		try {
 			foreach ($this->user->getConnections() as $connection) {
@@ -99,7 +104,12 @@ class LigaPlayer extends Player
 			'connections' => $connections,
 			'title'  => $this->getTitle(),
 			'avatar' => $this->getAvatar(),
+			'birthday' => !$respectPrivacy || $this->user->privacyVersion >= 1 ? $this->birthday : null,
 		];
+	}
+
+	public function jsonSerialize(): array {
+		return $this->getData();
 	}
 
 	public function clearCache(): void {

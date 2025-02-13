@@ -89,6 +89,20 @@
             </button>
         </div>
         <div class="form-group mb-3">
+            <label for="birthday">{lang 'Datum narození'}:</label>
+            <input type="text" name="birthday" class="form-control date-picker {ifset $errors['birthday']}is-invalid{/ifset}" data-max="{date('d.m.Y', strtotime('-5 years'))}"
+                   id="birthday" placeholder="{date('d.m.Y')}" autocomplete="bday" value="{$user->player->birthday?->format('d.m.Y')}"
+                   aria-describedby="birthday-description">
+            <div class="invalid-feedback">
+                {ifset $errors['birthday']}
+                    {$errors['birthday']}
+                {/ifset}
+            </div>
+            <div class="form-text" id="birthday-description">
+                {lang 'Pokud vyplníte datum narození, mužete získat narozenové ocenění a některé zapojené arény mohou mít pro oslavence sleciální akce.'}
+            </div>
+        </div>
+        <div class="form-group mb-3">
             <div class="form-floating {ifset $errors['arena']}is-invalid{/ifset}">
                 {* TODO: Replace with searchable select *}
                 <select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"

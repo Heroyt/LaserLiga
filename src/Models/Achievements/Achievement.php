@@ -42,4 +42,7 @@ class Achievement extends Model
 	#[OA\Property]
 	public bool $group = true;
 
+	#[OA\Property]
+	public bool $hidden = false;
+
 }

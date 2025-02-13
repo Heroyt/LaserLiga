@@ -85,6 +85,10 @@ class UserSettingsController extends AbstractUserController
 		$name = $request->getPost('name', '');
 		/** @var string $email */
 		$email = $request->getPost('email', '');
+		$birthday = $request->getPost('birthday');
+		if (!is_string($birthday)) {
+			$birthday = null;
+		}
 		$arena = null;
 
 		if (empty($name)) {
@@ -109,6 +113,18 @@ class UserSettingsController extends AbstractUserController
 			}
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			$request->passErrors['arena'] = lang('Aréna neexistuje', context: 'errors');
+		}
+		if ($birthday !== null) {
+			try {
+				$birthday = new \DateTimeImmutable($birthday);
+				// Do not allow dates smaller than 5 years ago
+				if ((int) $birthday->format('Y') > (((int) date('Y')) - 5)) {
+					$birthday = null;
+				}
+			} catch (\DateMalformedStringException $e) {
+				$request->passErrors['birthday'] = lang('Datum narození nemá správný formát', context: 'errors');
+				$birthday = null;
+			}
 		}
 
 		$player = $user->createOrGetPlayer($arena);
@@ -167,6 +183,7 @@ class UserSettingsController extends AbstractUserController
 		$user->email = $email;
 		$player->email = $email;
 		$player->nickname = $name;
+		$player->birthday = $birthday;
 		if (isset($arena)) {
 			$player->arena = $arena;
 		}
@@ -179,7 +196,7 @@ class UserSettingsController extends AbstractUserController
 			$user->emailTimestamp = null;
 		}
 
-		if (!$user->save()) {
+		if (!$user->save() || !$player->save()) {
 			$request->addPassError(lang('Profil se nepodařilo uložit'));
 			return $this->respondForm($request, statusCode: 500);
 		}

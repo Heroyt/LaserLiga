@@ -189,7 +189,7 @@ class Players extends ApiController
 
 		$data = [];
 		foreach ($players as $player) {
-			$playerData = $player->jsonSerialize();
+			$playerData = $player->getData(true);
 			$playerData['codeHistory'] = array_map(static fn($row) => $row->code, $history[$player->id] ?? []);
 			$data[] = $playerData;
 		}
@@ -248,7 +248,7 @@ class Players extends ApiController
 				404
 			);
 		}
-		return $this->respond($player);
+		return $this->respond($player->getData(true));
 	}
 
 	/**
@@ -356,7 +356,7 @@ class Players extends ApiController
 
 		$data = [];
 		foreach ($players as $player) {
-			$playerData = $player->jsonSerialize();
+			$playerData = $player->getData(true);
 			$playerData['codeHistory'] = array_map(static fn($row) => $row->code, $history[$player->id] ?? []);
 			$data[] = $playerData;
 		}

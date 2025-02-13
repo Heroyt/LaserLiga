@@ -89,10 +89,11 @@ class AchievementProvider
 	public function getAllClaimedUnclaimed(Player $player): array {
 		$allAchievements = Achievement::query()->orderBy('type')->get();
 		/** @var array<int,object{id_achievement:int,id_user:int,datetime:\DateTimeInterface,code:string}|null> $playerAchievements */
-		$playerAchievements = $this->queryAchievementsForUser($player)->fetchAssocDto(
-			PlayerAchievementRow::class,
-			'id_achievement'
-		);
+		$playerAchievements = $this->queryAchievementsForUser($player)
+		                           ->fetchAssocDto(
+			                           PlayerAchievementRow::class,
+			                           'id_achievement'
+		                           );
 		$counts = $this->getClaimedCounts();
 		$achievements = [];
 		foreach ($allAchievements as $achievement) {
@@ -157,6 +158,15 @@ class AchievementProvider
 		return $achievements;
 	}
 
+	private function removePlayerAchievement(int $idUser, int $idAchievement): void {
+		DB::delete('player_achievements', ['id_user = %i AND id_achievement = %i', $idUser, $idAchievement]);
+		$this->cache->clean([
+			                    $this->cache::Tags => [
+				                    'user/' . $idUser . '/achievements',
+			                    ],
+		                    ]);
+	}
+
 	/**
 	 * @param Player $player
 	 *
@@ -215,15 +225,6 @@ class AchievementProvider
 		foreach ($insertedAchievements as $userAchievements) {
 			$this->pushService->sendAchievementNotification(...$userAchievements);
 		}
-	}
-
-	private function removePlayerAchievement(int $idUser, int $idAchievement): void {
-		DB::delete('player_achievements', ['id_user = %i AND id_achievement = %i', $idUser, $idAchievement]);
-		$this->cache->clean([
-			                    $this->cache::Tags => [
-				                    'user/' . $idUser . '/achievements',
-			                    ],
-		                    ]);
 	}
 
 }
