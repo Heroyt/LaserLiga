@@ -1354,16 +1354,16 @@
         },
         {
             "name": "lsr/laser-liga-api",
-            "version": "0.1.3",
+            "version": "0.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-laserliga-api.git",
-                "reference": "c29cf3469c010d9f22af9b4a4e728f5616ecf8da"
+                "reference": "9c8de7685c021ab491fc77d2cdaac03a4d4fdcb3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-laserliga-api/zipball/c29cf3469c010d9f22af9b4a4e728f5616ecf8da",
-                "reference": "c29cf3469c010d9f22af9b4a4e728f5616ecf8da",
+                "url": "https://api.github.com/repos/Heroyt/lsr-laserliga-api/zipball/9c8de7685c021ab491fc77d2cdaac03a4d4fdcb3",
+                "reference": "9c8de7685c021ab491fc77d2cdaac03a4d4fdcb3",
                 "shasum": ""
             },
             "require": {
@@ -1402,10 +1402,10 @@
             ],
             "description": "Connection to the Laser Liga API",
             "support": {
-                "source": "https://github.com/Heroyt/lsr-laserliga-api/tree/v0.1.3",
+                "source": "https://github.com/Heroyt/lsr-laserliga-api/tree/v0.1.4",
                 "issues": "https://github.com/Heroyt/lsr-laserliga-api/issues"
             },
-            "time": "2025-02-13T15:35:25+00:00"
+            "time": "2025-03-16T15:17:08+00:00"
         },
         {
             "name": "lsr/lg-result-parsing",
