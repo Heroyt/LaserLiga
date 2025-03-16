@@ -190,7 +190,7 @@ class Login extends Controller
 		$password = $request->getPost('password', '');
 		$rememberMe = !empty($request->getPost('remember'));
 
-//		$this->validateCaptcha($request);
+		$this->validateCaptcha($request);
 
 		if (empty($email)) {
 			$this->params->errors['email'] = lang('E-mail je povinný', context: 'errors');
