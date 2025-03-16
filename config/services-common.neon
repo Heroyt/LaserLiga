@@ -12,7 +12,7 @@ parameters:
 		lazy: true
 		host: db
 		port: 3306
-		collate: utf8mb4
+		charset: utf8mb4
 		database: lac
 		user: root
 		password: 'laser-arena-control'
