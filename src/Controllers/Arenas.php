@@ -93,7 +93,7 @@ class Arenas extends Controller
 
 		$this->params->music = [];
 		foreach (MusicMode::getAll($arena) as $music) {
-			$group = $music->group ?? $music->name;
+			$group = $music->getGroupName();
 			$this->params->music[$group] ??= new MusicGroup($group);
 			$this->params->music[$group]->music[] = $music;
 		}

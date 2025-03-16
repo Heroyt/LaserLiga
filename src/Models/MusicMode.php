@@ -75,4 +75,11 @@ class MusicMode extends BaseModel implements MusicModeInterface
 		}
 		return $this->iconObject;
 	}
+
+	public function getGroupName() : string {
+		if (empty($this->group)) {
+			return $this->name;
+		}
+		return $this->group;
+	}
 }

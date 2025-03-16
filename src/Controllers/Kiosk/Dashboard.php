@@ -62,7 +62,7 @@ class Dashboard extends Controller
 				break;
 			case DashboardType::MUSIC:
 				foreach (MusicMode::getAll($arena) as $music) {
-					$group = $music->group ?? $music->name;
+					$group = $music->getGroupName();
 					$this->params->music[$group] ??= new MusicGroup($group);
 					$this->params->music[$group]->music[] = $music;
 				}
