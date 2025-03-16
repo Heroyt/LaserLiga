@@ -9,8 +9,8 @@ class PlayerRankDiffResult
 {
 
 
-	public float $result = 0.0;
-	public float $expectedResult = 0.0;
+	public float $result          = 0.0;
+	public float $expectedResult  = 0.0;
 	public float $marginOfVictory = 0.0;
 
 	public float $diff = 0.0;
@@ -18,9 +18,9 @@ class PlayerRankDiffResult
 	public float $ratingDiff = 0.0;
 
 	public function __construct(
-		public PlayerType $type,
+		public PlayerType    $type,
 		public RankingPlayer $player,
-		public float $normalizedSkill,
+		public float         $normalizedSkill,
 	) {
 	}
 }

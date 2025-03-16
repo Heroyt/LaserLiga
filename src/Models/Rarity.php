@@ -29,8 +29,8 @@ enum Rarity: string
 		);
 	}
 
-	public function getOrder() : int {
-		return match($this) {
+	public function getOrder(): int {
+		return match ($this) {
 			self::COMMON    => 5,
 			self::UNCOMMON  => 4,
 			self::RARE      => 3,

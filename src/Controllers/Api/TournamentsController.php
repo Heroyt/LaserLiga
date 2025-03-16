@@ -15,12 +15,12 @@ use App\Models\Tournament\Tournament;
 use DateTimeImmutable;
 use Exception;
 use Lsr\Core\Controllers\ApiController;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 
@@ -57,9 +57,8 @@ class TournamentsController extends ApiController
 		),
 	)]
 	public function getAll(): ResponseInterface {
-		return $this->respond(
-			Tournament::query()->where('id_arena = %i', $this->arena->id)->get()
-		);
+		/** @phpstan-ignore argument.type */
+		return $this->respond(Tournament::query()->where('id_arena = %i', $this->arena->id)->get());
 	}
 
 	#[OA\Get(
@@ -240,7 +239,7 @@ class TournamentsController extends ApiController
 			];
 
 			if ($withPlayers) {
-				$players = $team->getPlayers();
+				$players = $team->players;
 				$teamData['players'] = [];
 				foreach ($players as $player) {
 					$teamData['players'][] = [

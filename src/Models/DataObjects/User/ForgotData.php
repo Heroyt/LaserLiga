@@ -7,6 +7,6 @@ use DateTimeInterface;
 
 class ForgotData
 {
-	public ?string $token = null;
+	public ?string            $token     = null;
 	public ?DateTimeInterface $timestamp = null;
 }

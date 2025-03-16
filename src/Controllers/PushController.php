@@ -8,8 +8,8 @@ use App\Models\Push\Subscription;
 use App\Services\PushService;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
+use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Utils\Validators;
 use Psr\Http\Message\ResponseInterface;
 

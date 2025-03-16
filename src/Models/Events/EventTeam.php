@@ -4,11 +4,11 @@ namespace App\Models\Events;
 
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueTeam;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToMany;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Db\DB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToMany;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ValidationException;
 
 /**
  * @extends EventTeamBase<EventPlayer>
@@ -18,7 +18,7 @@ class EventTeam extends EventTeamBase
 {
 	use WithLeagueTeam;
 
-	public const TABLE        = 'event_teams';
+	public const string TABLE        = 'event_teams';
 	public const TOKEN_KEY    = 'event-team';
 	public const PLAYER_CLASS = EventPlayer::class;
 

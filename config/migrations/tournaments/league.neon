@@ -1,0 +1,126 @@
+tables:
+	App\Models\Tournament\League\League:
+		order: 3
+		definition: '''
+		(
+          `id_league` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_arena` int(11) unsigned NOT NULL,
+          `name` varchar(100) NOT NULL,
+          `description` text,
+          `image` varchar(200) DEFAULT NULL,
+          PRIMARY KEY (`id_league`),
+          KEY `id_arena` (`id_arena`),
+          CONSTRAINT `leagues_ibfk_1` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Tournament\League\LeagueCategory:
+		order: 4
+		definition: '''
+		(
+          `id_category` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_league` int(11) unsigned NOT NULL,
+          `name` varchar(100) NOT NULL,
+          PRIMARY KEY (`id_category`),
+          KEY `id_league` (`id_league`),
+          CONSTRAINT `league_category_ibfk_1` FOREIGN KEY (`id_league`) REFERENCES `leagues` (`id_league`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_league
+				refTable: App\Models\Tournament\League\League
+				refColumn: id_league
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Tournament\League\LeagueTeam:
+		order: 5
+		definition: '''
+		(
+          `id_team` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_league` int(11) unsigned NOT NULL,
+          `id_category` int(11) unsigned DEFAULT NULL,
+          `name` varchar(100) NOT NULL,
+          `points` int(10) unsigned NOT NULL DEFAULT 0,
+          `image` varchar(200) DEFAULT NULL,
+          `hash` varchar(200) NOT NULL,
+          `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+          `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+          `disqualified` tinyint(1) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id_team`),
+          KEY `id_category` (`id_category`),
+          KEY `id_league` (`id_league`),
+          CONSTRAINT `league_teams_ibfk_1` FOREIGN KEY (`id_category`) REFERENCES `league_category` (`id_category`) ON DELETE SET NULL ON UPDATE CASCADE,
+          CONSTRAINT `league_teams_ibfk_2` FOREIGN KEY (`id_league`) REFERENCES `leagues` (`id_league`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_category
+				refTable: App\Models\Tournament\League\LeagueCategory
+				refColumn: id_category
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+			-
+				column: id_league
+				refTable: App\Models\Tournament\League\League
+				refColumn: id_league
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Tournament\League\Player:
+		order: 6
+		definition: '''
+		(
+          `id_player` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_league` int(11) unsigned NOT NULL,
+          `id_team` int(11) unsigned DEFAULT NULL,
+          `id_user` int(11) unsigned DEFAULT NULL,
+          `nickname` varchar(50) DEFAULT NULL,
+          `image` varchar(200) DEFAULT NULL,
+          `captain` tinyint(1) NOT NULL DEFAULT 0,
+          `sub` tinyint(1) NOT NULL DEFAULT 0,
+          `email` varchar(50) DEFAULT NULL,
+          `parent_email` varchar(50) DEFAULT NULL,
+          `phone` varchar(20) DEFAULT NULL,
+          `parent_phone` varchar(20) DEFAULT NULL,
+          `name` varchar(50) DEFAULT NULL,
+          `surname` varchar(50) DEFAULT NULL,
+          `skill` enum('BEGINNER','SOMEWHAT_ADVANCED','ADVANCED','PRO') NOT NULL DEFAULT 'BEGINNER',
+          `birth_year` tinyint(4) DEFAULT NULL,
+          `hash` varchar(200) NOT NULL,
+          `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+          `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+          PRIMARY KEY (`id_player`),
+          KEY `id_league` (`id_league`),
+          KEY `id_team` (`id_team`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `league_players_ibfk_1` FOREIGN KEY (`id_league`) REFERENCES `leagues` (`id_league`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `league_players_ibfk_2` FOREIGN KEY (`id_team`) REFERENCES `league_teams` (`id_team`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `league_players_ibfk_3` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_league
+				refTable: App\Models\Tournament\League\League
+				refColumn: id_league
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_team
+				refTable: App\Models\Tournament\League\LeagueTeam
+				refColumn: id_team
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_user
+				refTable: App\Models\Auth\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'

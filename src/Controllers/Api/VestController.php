@@ -4,16 +4,18 @@ namespace App\Controllers\Api;
 
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
-use App\GameModels\Factory\GameFactory;
-use App\GameModels\Game\Enums\VestStatus;
 use App\GameModels\Vest;
 use App\Models\Arena;
+use App\Models\System;
+use App\Models\SystemType;
 use Lsr\Core\Controllers\ApiController;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
+use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\LaserLiga\Enums\VestStatus;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 
@@ -125,7 +127,6 @@ class VestController extends ApiController
 		}
 
 		$errors = [];
-		$supportedSystems = GameFactory::getSupportedSystems();
 
 		/** @var array{vestNum:string,system:string,status:string,info:string|null}|mixed $vestData */
 		foreach ($vests as $key => $vestData) {
@@ -142,10 +143,17 @@ class VestController extends ApiController
 				$errors[] = 'Vest [' . $key . '].system cannot be empty.';
 				continue;
 			}
-			if (!in_array($vestData['system'], $supportedSystems, true)) {
+			$system = SystemType::tryFrom($vestData['system']);
+			if ($system === null) {
 				$errors[] = 'Vest [' . $key . '].system is invalid.';
 				continue;
 			}
+			$systems = System::getForType($system, $this->arena);
+			if (count($systems) === 0) {
+				$errors[] = 'Vest [' . $key . '].system is not supported in this arena.';
+				continue;
+			}
+			$system = first($systems);
 
 			if (empty($vestData['status'])) {
 				$errors[] = 'Vest [' . $key . '].status cannot be empty.';
@@ -167,7 +175,7 @@ class VestController extends ApiController
 			// Update vest data
 			$vest->arena = $this->arena;
 			$vest->vestNum = $vestData['vestNum'];
-			$vest->system = $vestData['system'];
+			$vest->system = $system;
 			$vest->status = $status;
 			$vest->info = empty($vestData['info']) ? null : ((string)$vestData['info']);
 
@@ -175,7 +183,7 @@ class VestController extends ApiController
 		}
 
 		if (count($errors) > 0) {
-			return $this->respond(new ErrorResponse('Validation error', ErrorType::VALIDATION, values: $errors), 400);
+			return $this->respond(new ErrorResponse('Validation error', ErrorType::VALIDATION, values: ['errors' => $errors]), 400);
 		}
 
 		// Save all new and updated vests
@@ -192,9 +200,9 @@ class VestController extends ApiController
 		}
 
 		if (count($errors) > 0) {
-			return $this->respond(new ErrorResponse('Save error', ErrorType::DATABASE, values: $errors), 500);
+			return $this->respond(new ErrorResponse('Save error', ErrorType::DATABASE, values: ['errory' => $errors]), 500);
 		}
-		return $this->respond(['vests' => $newVests]);
+		return $this->respond(new SuccessResponse(values:['vests' => $newVests]));
 	}
 
 	/**

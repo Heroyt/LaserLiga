@@ -14,16 +14,16 @@ use Dibi\Exception;
 use Lsr\Core\Auth\Exceptions\DuplicateEmailException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
 use Lsr\Core\Session;
+use Lsr\Db\DB;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Security\Passwords;
 use Nette\Utils\Validators;
 use Psr\Http\Message\ResponseInterface;
@@ -190,7 +190,7 @@ class Login extends Controller
 		$password = $request->getPost('password', '');
 		$rememberMe = !empty($request->getPost('remember'));
 
-		$this->validateCaptcha($request);
+//		$this->validateCaptcha($request);
 
 		if (empty($email)) {
 			$this->params->errors['email'] = lang('E-mail je povinný', context: 'errors');

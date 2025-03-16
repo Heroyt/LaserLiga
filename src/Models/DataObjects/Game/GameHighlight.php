@@ -12,10 +12,11 @@ class GameHighlight
 {
 	public function __construct(
 		#[Property]
-		public int $rarity,
+		public int    $rarity,
 		#[Property]
 		public string $description,
 		#[Property]
 		public string $html,
-	){}
+	) {
+	}
 }

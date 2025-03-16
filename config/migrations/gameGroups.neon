@@ -1,0 +1,23 @@
+tables:
+	App\Models\GameGroup:
+		order: 3
+		definition: '''
+		(
+			`id_group` int(11) unsigned NOT NULL AUTO_INCREMENT,
+		    `id_arena` int(11) unsigned NOT NULL,
+		    `id_local` int(11) unsigned NOT NULL,
+			`name` varchar(100) NOT NULL DEFAULT '',
+			`created_at` datetime NOT NULL DEFAULT current_timestamp(),
+			PRIMARY KEY (`id_group`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		modifications:
+			0.1:
+				- 'ADD `created_at` datetime NOT NULL DEFAULT current_timestamp()'
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'

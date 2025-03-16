@@ -3,7 +3,7 @@
 namespace App\Models\Events;
 
 use App\Models\Tournament\League\LeagueTeam;
-use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
 trait WithLeagueTeam
 {

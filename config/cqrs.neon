@@ -1,0 +1,20 @@
+extensions:
+	cqrs: Lsr\CQRS\DI\CqrsExtension
+	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
+cqrs:
+services:
+search:
+	cqrs.queries:
+		in: '%constants.appDir%src/CQRS/Queries'
+		implements:
+			- Lsr\CQRS\QueryInterface
+		tags:
+			- cqrs
+			- cqrs.query
+	cqrs.command.handlers:
+		in: '%constants.appDir%src/CQRS/CommandHandlers'
+		implements:
+			- Lsr\CQRS\CommandHandlerInterface
+		tags:
+			- cqrs
+			- cqrs.commandHandler

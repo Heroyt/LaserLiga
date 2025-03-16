@@ -11,6 +11,7 @@ use App\Models\DataObjects\Highlights\HighlightCollection;
 use App\Services\GameHighlight\PlayerHighlightChecker;
 use App\Services\GenderService;
 use App\Services\NameInflectionService;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 
 class DeathsHighlightChecker implements PlayerHighlightChecker
 {
@@ -18,10 +19,11 @@ class DeathsHighlightChecker implements PlayerHighlightChecker
 	/**
 	 * @inheritDoc
 	 */
-	public function checkPlayer(Player $player, HighlightCollection $highlights): void {
+	public function checkPlayer(PlayerInterface $player, HighlightCollection $highlights): void {
+		assert($player instanceof Player);
 		$name = $player->name;
 		$gender = GenderService::rankWord($name);
-		if ($player->getGame()->getMode()?->isTeam() && $player->deathsOwn > $player->deathsOther) {
+		if ($player->game->mode?->isTeam() && $player->deathsOwn > $player->deathsOther) {
 			$highlights->add(
 				new GameHighlight(
 					GameHighlightType::DEATHS,
@@ -44,7 +46,7 @@ class DeathsHighlightChecker implements PlayerHighlightChecker
 			);
 		}
 
-		if (($game = $player->getGame()) instanceof LaserMaxxGame) {
+		if (($game = $player->game) instanceof LaserMaxxGame) {
 			$secondsTotal = $player->deaths * $game->respawn;
 			$minutes = $secondsTotal / 60;
 			$seconds = $secondsTotal % 60;

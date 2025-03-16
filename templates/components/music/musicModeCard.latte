@@ -2,7 +2,7 @@
 
 <div class="music-mode" data-value="{$musicGroup->getValue()}">
     {if $musicGroup->getBackgroundImage() !== null}
-        {var string[] $paths = $musicGroup->getBackgroundImage()?->getOptimized()}
+        {var string[] $paths = $musicGroup->getBackgroundImage()?->optimized}
         <picture>
             <source n:ifset="$paths['300-webp']" srcset="{$paths['300-webp']}" type="image/webp">
             <source n:if="!isset($paths['300-webp']) && isset($paths['webp'])" srcset="{$paths['webp']}" type="image/webp">
@@ -12,10 +12,10 @@
 
     <div n:if="$musicGroup->getIcon() !== null" class="icon">
             {var App\Models\DataObjects\Image $icon = $musicGroup->getIcon()}
-        {if $icon->getType() === 'svg'}
+        {if $icon->type === 'svg'}
                 {file_get_contents($icon->getPath())|noescape}
             {else}
-                {var string[] $paths = $icon->getOptimized()}
+                {var string[] $paths = $icon->optimized}
                 <picture>
                     <source n:ifset="$paths['150-webp']" srcset="{$paths['150-webp']}" type="image/webp">
                     <source n:if="!isset($paths['150-webp']) && isset($paths['webp'])" srcset="{$paths['webp']}" type="image/webp">

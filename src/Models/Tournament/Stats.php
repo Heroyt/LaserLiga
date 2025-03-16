@@ -4,21 +4,22 @@ namespace App\Models\Tournament;
 
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Evo5\Team;
+use App\Models\BaseModel;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueCategory;
 use App\Models\Tournament\Player as TournamentPlayer;
 use App\Models\Tournament\Team as TournamentTeam;
+use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Db\DB;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 
 #[PrimaryKey('id_stat')]
-class Stats extends Model
+class Stats extends BaseModel
 {
 
 	public const string TABLE = 'tournament_stats';
@@ -103,8 +104,10 @@ class Stats extends Model
 	}
 
 	public function getFieldIcon(): string {
+		$fa = App::getService('fontawesome');
+		assert($fa instanceof FontAwesomeManager);
 		return match ($this->field) {
-			'skill'    => '<i class="'.App::getService('fontawesome')->solid('medal').'"></i>', // @phpstan-ignore-line
+			'skill'    => '<i class="' . $fa->solid('medal') . '"></i>',
 			'accuracy' => '%',
 			default    => '',
 		};

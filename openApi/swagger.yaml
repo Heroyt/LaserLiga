@@ -1497,13 +1497,6 @@ components:
             type: string
           -
             type: string
-    GameModeType:
-      description: 'Types of game modes'
-      type: string
-      enum:
-        - TEAM
-        - SOLO
-      example: TEAM
     VestStatus:
       description: 'Statuses for vests'
       type: string
@@ -1511,95 +1504,103 @@ components:
         - ok
         - playable
         - broken
-    BonusCounts:
-      description: "Structure containing player's bonuses"
-      properties:
-        agent:
-          type: integer
-        invisibility:
-          type: integer
-        machineGun:
-          type: integer
-        shield:
-          type: integer
-      type: object
     GameEvo5:
       description: 'LaserMaxx Evo5 game model'
       type: object
       allOf:
         -
-          $ref: '#/components/schemas/Game'
+          $ref: '#/components/schemas/GameLmx'
         -
           properties:
-            scoring:
-              $ref: '#/components/schemas/ScoringEvo5'
+            scoring: {  }
           type: object
-    ScoringEvo5:
-      title: 'Scoring Evo5'
-      description: "Structure containing game's scoring settings\n\nScoring = how many points does a player get for an action."
+    PlayerEvo5:
+      description: 'LaserMaxx Evo5 player model'
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/LasermaxxPlayer'
+        -
+          properties:
+            bonus: {  }
+            game:
+              $ref: '#/components/schemas/GameEvo5'
+            team:
+              $ref: '#/components/schemas/TeamEvo5'
+          type: object
+    TeamEvo5:
+      description: 'LaserMaxx Evo5 team model'
       properties:
-        deathOther:
-          type: integer
-        hitOther:
-          type: integer
-        deathOwn:
-          type: integer
-        hitOwn:
-          type: integer
-        hitPod:
-          type: integer
-        shot:
-          type: integer
-        machineGun:
-          type: integer
-        invisibility:
-          type: integer
-        agent:
-          type: integer
-        shield:
-          type: integer
+        playerClass:
+          type: string
+        game:
+          $ref: '#/components/schemas/GameEvo5'
       type: object
     GameEvo6:
       description: 'LaserMaxx Evo6 game model'
       type: object
       allOf:
         -
-          $ref: '#/components/schemas/Game'
+          $ref: '#/components/schemas/GameLmx'
         -
           properties:
-            scoring:
-              $ref: '#/components/schemas/ScoringEvo6'
+            scoring: {  }
+            triggerSpeed: {  }
+            gameStyleType: {  }
           type: object
-    ScoringEvo6:
-      title: 'Scoring Evo6'
-      description: "Structure containing game's scoring settings\n\nScoring = how many points does a player get for an action."
+    PlayerEvo6:
+      description: 'LaserMaxx Evo6 player model'
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/LasermaxxPlayer'
+        -
+          properties:
+            bonuses:
+              type: integer
+            activity:
+              type: integer
+            calories:
+              type: integer
+            scoreVip:
+              type: integer
+            scoreActivity:
+              type: integer
+            scoreEncouragement:
+              type: integer
+            scoreKnockout:
+              type: integer
+            scorePenalty:
+              type: integer
+            scoreReality:
+              type: integer
+            penaltyCount:
+              type: integer
+            birthday:
+              type: boolean
+            respawns:
+              type: integer
+            game:
+              $ref: '#/components/schemas/GameEvo6'
+            team:
+              $ref: '#/components/schemas/TeamEvo6'
+          type: object
+    TeamEvo6:
+      description: 'LaserMaxx Evo6 team model'
       properties:
-        deathOther:
-          type: integer
-        hitOther:
-          type: integer
-        deathOwn:
-          type: integer
-        hitOwn:
-          type: integer
-        hitPod:
-          type: integer
-        shot:
-          type: integer
-        machineGun:
-          type: integer
-        invisibility:
-          type: integer
-        agent:
-          type: integer
-        shield:
-          type: integer
-        highscore:
-          type: integer
+        playerClass:
+          type: string
+        game:
+          $ref: '#/components/schemas/GameEvo6'
       type: object
     Game:
       description: 'Base class for game models'
       properties:
+        resultsFile:
+          type: string
+          nullable: true
+        modeName:
+          type: string
         fileTime:
           type: string
           format: date-time
@@ -1618,30 +1619,34 @@ components:
           nullable: true
         timing:
           nullable: true
-          oneOf:
-            -
-              $ref: '#/components/schemas/Timing'
         code:
           type: string
         mode:
-          nullable: true
           oneOf:
             -
               $ref: '#/components/schemas/AbstractMode'
-        gameType:
-          $ref: '#/components/schemas/GameModeType'
-        arena:
           nullable: true
+          description: $mode
+        gameType: {  }
+        arena:
           oneOf:
             -
               $ref: '#/components/schemas/Arena'
-        music:
           nullable: true
+        music:
           oneOf:
             -
               $ref: '#/components/schemas/MusicMode'
-        group:
           nullable: true
+        group:
+          description: ''
+          nullable: true
+        started:
+          type: boolean
+        finished:
+          type: boolean
+        visited:
+          type: boolean
       type: object
     AbstractMode:
       description: 'Base class for all game mode models'
@@ -1651,9 +1656,11 @@ components:
         description:
           type: string
           nullable: true
-        type:
-          $ref: '#/components/schemas/GameModeType'
+        type: {  }
         loadName:
+          type: string
+          nullable: true
+        systems:
           type: string
           nullable: true
         teams:
@@ -1662,6 +1669,55 @@ components:
           $ref: '#/components/schemas/ModeSettings'
         rankable:
           type: boolean
+      type: object
+    GameLmx:
+      description: 'LaserMaxx game model'
+      type: object
+      allOf:
+        -
+          $ref: '#/components/schemas/Game'
+        -
+          properties:
+            fileNumber:
+              type: integer
+            lives:
+              description: 'Initial lives'
+              type: integer
+            ammo:
+              description: 'Initial ammo count'
+              type: integer
+            respawn:
+              description: 'Respawn time in seconds'
+              type: integer
+            reloadClips:
+              type: integer
+            allowFriendlyFire:
+              type: boolean
+            antiStalking:
+              type: boolean
+          type: object
+    LasermaxxPlayer:
+      description: 'LaserMaxx player model'
+      properties:
+        shotPoints:
+          type: integer
+        scoreBonus:
+          type: integer
+        scorePowers:
+          type: integer
+        scoreMines:
+          type: integer
+        scoreAccuracy:
+          type: integer
+        ammoRest:
+          type: integer
+        minesHits:
+          type: integer
+        vip:
+          type: boolean
+        myLasermaxx:
+          type: string
+          format: url
       type: object
     ModeSettings:
       description: 'Data-model for all game mode settings'
@@ -1731,16 +1787,6 @@ components:
         bestMines:
           type: boolean
       type: object
-    Timing:
-      description: "Game's timing settings"
-      properties:
-        before:
-          type: integer
-        gameLength:
-          type: integer
-        after:
-          type: integer
-      type: object
     Vest:
       properties:
         arena:
@@ -1748,11 +1794,7 @@ components:
         vestNum:
           type: string
           example: '1'
-        system:
-          type: string
-          example: evo5
-        status:
-          $ref: '#/components/schemas/VestStatus'
+        status: {  }
         info:
           type: string
           example: 'Zbraň vynechává'
@@ -1794,11 +1836,13 @@ components:
         getAvatar:
           type: boolean
         title:
-          nullable: true
           oneOf:
             -
               $ref: '#/components/schemas/Title'
+          nullable: true
         group:
+          type: boolean
+        hidden:
           type: boolean
       type: object
     AchievementType:
@@ -1826,6 +1870,7 @@ components:
         - bonus_invisibility
         - bonus_spy
         - trophy
+        - birthday
     PlayerAchievement:
       properties:
         icon:
@@ -1915,10 +1960,10 @@ components:
           properties:
             user: {  }
             arena:
-              nullable: true
               oneOf:
                 -
                   $ref: '#/components/schemas/Arena'
+              nullable: true
           type: object
     LigaPlayerBase:
       properties:
@@ -1941,10 +1986,14 @@ components:
           type: string
           nullable: true
         title:
-          nullable: true
           oneOf:
             -
               $ref: '#/components/schemas/Title'
+          nullable: true
+        birthday:
+          type: string
+          format: date-time
+          nullable: true
       type: object
     GameHighlightDto:
       properties:
@@ -1982,11 +2031,16 @@ components:
           $ref: '#/components/schemas/GameImport'
         -
           properties:
+            blastShots:
+              type: boolean
+            reloadClips:
+              type: integer
+            allowFriendlyFire:
+              type: boolean
+            antiStalking:
+              type: boolean
             scoring:
               nullable: true
-              oneOf:
-                -
-                  $ref: '#/components/schemas/ScoringEvo5'
             players:
               type: array
               items:
@@ -1999,11 +2053,20 @@ components:
           $ref: '#/components/schemas/PlayerImport'
         -
           properties:
+            scoreAccuracy:
+              type: integer
+              example: 128
+              nullable: true
+            scoreVip:
+              type: integer
+              example: 500
+              nullable: true
+            minesHits:
+              type: integer
+              example: 2
+              nullable: true
             bonus:
               nullable: true
-              oneOf:
-                -
-                  $ref: '#/components/schemas/BonusCounts'
           type: object
     Evo6GameImport:
       type: object
@@ -2012,15 +2075,30 @@ components:
           $ref: '#/components/schemas/GameImport'
         -
           properties:
+            blastShots:
+              type: boolean
+            reloadClips:
+              type: integer
+            allowFriendlyFire:
+              type: boolean
+            antiStalking:
+              type: boolean
             scoring:
               nullable: true
-              oneOf:
-                -
-                  $ref: '#/components/schemas/ScoringEvo6'
             players:
               type: array
               items:
                 $ref: '#/components/schemas/Evo6PlayerImport'
+            triggerSpeed: {  }
+            gameStyleType: {  }
+            vipSettings:
+              nullable: true
+            zombieSettings:
+              nullable: true
+            hitGainSettings:
+              nullable: true
+            respawnSettings:
+              nullable: true
           type: object
     Evo6PlayerImport:
       type: object
@@ -2029,6 +2107,18 @@ components:
           $ref: '#/components/schemas/PlayerImport'
         -
           properties:
+            scoreAccuracy:
+              type: integer
+              example: 128
+              nullable: true
+            scoreVip:
+              type: integer
+              example: 500
+              nullable: true
+            minesHits:
+              type: integer
+              example: 2
+              nullable: true
             bonuses:
               type: integer
               example: 10
@@ -2037,13 +2127,38 @@ components:
               type: integer
               example: 200
               nullable: true
+            activity:
+              type: integer
+              example: 200
+              nullable: true
+            penaltyCount:
+              type: integer
+              example: 5
+              nullable: true
+            scorePenalty:
+              type: integer
+              example: -500
+              nullable: true
+            scoreEncouragement:
+              type: integer
+              example: 1000
+              nullable: true
+            scoreActivity:
+              type: integer
+              example: 1000
+              nullable: true
+            scoreKnockout:
+              type: integer
+              example: 1000
+              nullable: true
+            scoreReality:
+              type: integer
+              example: 1000
+              nullable: true
           type: object
     GameImport:
       properties:
         gameType:
-          oneOf:
-            -
-              $ref: '#/components/schemas/GameModeType'
           nullable: true
         lives:
           type: integer
@@ -2058,7 +2173,6 @@ components:
           example: 'Team deathmach'
           nullable: true
         fileNumber:
-          description: ''
           example: '0123'
           nullable: true
         code:
@@ -2087,14 +2201,11 @@ components:
           format: date-time
         timing:
           nullable: true
-          oneOf:
-            -
-              $ref: '#/components/schemas/Timing'
         mode:
-          nullable: true
           oneOf:
             -
               $ref: '#/components/schemas/ModeImport'
+          nullable: true
         players:
           type: array
           items:
@@ -2104,15 +2215,15 @@ components:
           items:
             $ref: '#/components/schemas/TeamImport'
         music:
-          nullable: true
           oneOf:
             -
               $ref: '#/components/schemas/MusicImport'
-        group:
           nullable: true
+        group:
           oneOf:
             -
               $ref: '#/components/schemas/GroupImport'
+          nullable: true
       type: object
     GroupImport:
       properties:
@@ -2127,13 +2238,21 @@ components:
     ModeImport:
       properties:
         type:
-          oneOf:
-            -
-              $ref: '#/components/schemas/GameModeType'
           nullable: true
         name:
           type: string
           example: 'Team deathmach'
+        description:
+          type: string
+        settings:
+          oneOf:
+            -
+              $ref: '#/components/schemas/ModeSettings'
+          nullable: true
+        rankable:
+          type: boolean
+        order:
+          type: integer
       type: object
     MusicImport:
       properties:
@@ -2227,6 +2346,10 @@ components:
           type: boolean
           example: false
           nullable: true
+        birthday:
+          type: boolean
+          example: false
+          nullable: true
         myLasermaxx:
           type: string
           format: url
@@ -2300,6 +2423,10 @@ components:
         tournamentTeam:
           type: integer
           example: 1
+          nullable: true
+        bonus:
+          type: integer
+          example: 500
           nullable: true
       type: object
     PlayerRadarData:
@@ -2411,10 +2538,10 @@ components:
         fileName:
           type: string
         arena:
-          nullable: true
           oneOf:
             -
               $ref: '#/components/schemas/Arena'
+          nullable: true
         idLocal:
           type: integer
         previewStart:
@@ -2429,10 +2556,16 @@ components:
         - epic
         - legendary
         - mythic
+    EventPriceGroup:
+      properties:
+        description:
+          type: string
+          nullable: true
+        prices: {  }
+      type: object
     League:
       properties:
-        format:
-          $ref: '#/components/schemas/GameModeType'
+        format: {  }
         teamLimit:
           type: integer
           nullable: true
@@ -2470,6 +2603,11 @@ components:
           $ref: '#/components/schemas/EventPopup'
         registrationType:
           $ref: '#/components/schemas/RegistrationType'
+        eventPriceGroup:
+          oneOf:
+            -
+              $ref: '#/components/schemas/EventPriceGroup'
+          nullable: true
         arena:
           $ref: '#/components/schemas/Arena'
       type: object
@@ -2519,6 +2657,11 @@ components:
           $ref: '#/components/schemas/Arena'
         name:
           type: string
+        eventPriceGroup:
+          oneOf:
+            -
+              $ref: '#/components/schemas/EventPriceGroup'
+          nullable: true
         rules:
           type: string
           nullable: true
@@ -2543,8 +2686,7 @@ components:
           type: boolean
         finished:
           type: boolean
-        format:
-          $ref: '#/components/schemas/GameModeType'
+        format: {  }
         teamLimit:
           type: integer
           nullable: true

@@ -24,19 +24,27 @@ use App\Controllers\Questionnaire;
 use App\Controllers\TournamentController;
 use App\Controllers\WellKnownController;
 use App\Core\Middleware\CSRFCheck;
+use Lsr\Core\App;
 use Lsr\Core\Auth\Middleware\LoggedOut;
-use Lsr\Core\Routing\Route;
+use Lsr\Core\Auth\Services\Auth;
+use Lsr\Core\Routing\Router;
+
+
+$auth = App::getService('auth');
+assert($auth instanceof Auth);
+
+/** @var Router $this */
 
 // TODO: Remove test route
-Route::get('mailtest/123', [MailTestController::class, 'sendTestMail']);
-Route::get('mailtest/123/show', [MailTestController::class, 'showTestMail']);
+$this->get('mailtest/123', [MailTestController::class, 'sendTestMail']);
+$this->get('mailtest/123/show', [MailTestController::class, 'showTestMail']);
 
-Route::get('', [Index::class, 'show'])->name('index');
+$this->get('', [Index::class, 'show'])->name('index');
 
-Route::get('zasady-zpracovani-osobnich-udaju', [PrivacyController::class, 'index'])->name('privacy-policy');
-Route::get('privacy-policy', [PrivacyController::class, 'index']);
+$this->get('zasady-zpracovani-osobnich-udaju', [PrivacyController::class, 'index'])->name('privacy-policy');
+$this->get('privacy-policy', [PrivacyController::class, 'index']);
 
-$gameGroup = Route::group('game');
+$gameGroup = $this->group('game');
 
 $gameGroup->get('', [GameController::class, 'show'])->name('game-empty');    // This will result in HTTP 404 error
 
@@ -63,13 +71,13 @@ $gameGroupIdGroup->get('', [GroupController::class, 'group'])->name('group-resul
 $gameGroupIdGroup->get('thumb', [GroupController::class, 'thumbGroup']);
 
 // Alias to 'game' group
-Route::group('g')
+$this->group('g')
      ->get('', [GameController::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
      ->get('abcdefghij', [Dashboard::class, 'bp'])
      ->get('{code}', [GameController::class, 'show'])->name('game-alias')
      ->get('{code}/thumb', [GameController::class, 'thumb']);
 
-Route::group('players')
+$this->group('players')
      ->get('find', [Players::class, 'find'])
      ->get('leaderboard', [GameTodayLeaderboardController::class, 'show'])
      ->get('leaderboard/{system}', [GameTodayLeaderboardController::class, 'show'])
@@ -77,10 +85,10 @@ Route::group('players')
      ->get('leaderboard/{system}/{date}/{property}', [GameTodayLeaderboardController::class, 'show'])
      ->name('today-leaderboard');
 
-Route::get('lang/{lang}', [Lang::class, 'setLang']);
+$this->get('lang/{lang}', [Lang::class, 'setLang']);
 
 // Questionnaire
-Route::group('questionnaire')
+$this->group('questionnaire')
      ->group('results')
      ->get('', [Questionnaire::class, 'resultsList'])
      ->name(
@@ -112,7 +120,7 @@ Route::group('questionnaire')
      ->post('dont_show', [Questionnaire::class, 'dontShowAgain']);
 
 // Arena
-Route::group('arena')
+$this->group('arena')
      ->get('', [Arenas::class, 'list'])
      ->name('arenas-list')
      ->group('{id}')
@@ -133,8 +141,8 @@ Route::group('arena')
      ->endGroup();
 
 // Login
-Route::group()
-     ->middlewareAll(new LoggedOut('dashboard'))
+$this->group()
+     ->middlewareAll(new LoggedOut($auth, 'dashboard'))
      ->get('login', [Login::class, 'show'])
      ->name('login')
      ->post('login', [Login::class, 'process'])
@@ -150,10 +158,10 @@ Route::group()
      ->name('register')
      ->post('register', [Login::class, 'processRegister']);
 
-Route::get('login/confirm', [Login::class, 'confirm']);
+$this->get('login/confirm', [Login::class, 'confirm']);
 
 // Tournament
-$tournamentGroup = Route::group('tournament');
+$tournamentGroup = $this->group('tournament');
 $tournamentGroup->get('', [TournamentController::class, 'show'])->name('tournaments');
 $tournamentGroup->get('history', [TournamentController::class, 'history'])->name('tournament-history');
 $tournamentIdGroup = $tournamentGroup->group('{id}');
@@ -169,7 +177,7 @@ $tournamentGroup->get('registration/{tournamentId}/{registration}', [TournamentC
      ->name('tournament-register-update-process')
      ->middleware(new CSRFCheck('tournament-update-register'));
 
-Route::group('league')
+$this->group('league')
      ->get('', [LeagueController::class, 'show'])
      ->name('leagues')
      ->get(
@@ -220,7 +228,7 @@ Route::group('league')
      ->middleware(new CSRFCheck('league-register-substitute'));
 
 // League - alias
-Route::group('liga')
+$this->group('liga')
      ->get('', [LeagueController::class, 'show'])
      ->get('{slug}', [LeagueController::class, 'detailSlug'])
      ->get('{slug}/register', [LeagueController::class, 'registerSlug'])
@@ -234,7 +242,7 @@ Route::group('liga')
      ->name('league-register-substitute-slug-process')
      ->middleware(new CSRFCheck('league-register-substitute'));
 
-$eventsGroup = Route::group('events');
+$eventsGroup = $this->group('events');
 $eventsGroup->get('', [EventController::class, 'show'])->name('events');
 $eventsGroup->get('history', [EventController::class, 'history'])->name('events-history');
 $eventsIdGroup = $eventsGroup->group('{id}');
@@ -253,7 +261,7 @@ $eventsGroup->get('registration/{eventId}/{registration}', [EventController::cla
      ->middleware(new CSRFCheck('event-update-register'));
 
 // Push
-Route::group('push')
+$this->group('push')
      ->get('test', [PushController::class, 'sendTest'])
      ->get(
 	     'subscribed',
@@ -264,5 +272,5 @@ Route::group('push')
      ->post('unsubscribe', [PushController::class, 'unsubscribe']);
 
 // Well-known
-Route::group('.well-known')
+$this->group('.well-known')
 	->get('change-password', [WellKnownController::class, 'changePassword']);

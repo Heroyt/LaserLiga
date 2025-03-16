@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Controllers\Games;
 
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\Player;
+use App\GameModels\Game\Team;
 use App\GameModels\Game\Today;
 use App\Models\Auth\User;
 use App\Services\Achievements\AchievementProvider;
@@ -45,7 +47,8 @@ class GamePlayerController extends Controller
 		}
 		$this->params->game = $game;
 
-		$player = $game->getPlayers()->query()->filter('id', $id)->first();
+		/** @var Player|null $player */
+		$player = $game->players->query()->filter('id', $id)->first();
 		if ($player === null) {
 			$this->title = 'Hráč nenalezen';
 			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
@@ -55,11 +58,13 @@ class GamePlayerController extends Controller
 		}
 		$this->params->player = $player;
 
-		$this->params->maxShots = $game->getPlayers()->query()->sortBy('shots')->desc()->first()->shots ?? 1000;
+		$this->params->maxShots = $game->players->query()->sortBy('shots')->desc()->first()->shots ?? 1000;
+		/** @var Team $team */
+		$team = new ($game->teamClass);
 		$this->params->today = new Today(
 			$game,
 			$player,
-			new ($game->teamClass)
+			$team
 		);
 
 		$this->params->achievements = $this->achievementProvider->getForGamePlayer($player);

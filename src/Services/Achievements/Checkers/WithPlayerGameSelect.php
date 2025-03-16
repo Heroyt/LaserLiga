@@ -4,8 +4,8 @@ namespace App\Services\Achievements\Checkers;
 
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
 
 trait WithPlayerGameSelect
 {

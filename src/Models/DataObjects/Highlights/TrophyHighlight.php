@@ -2,30 +2,22 @@
 
 namespace App\Models\DataObjects\Highlights;
 
-use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
-use App\GameModels\Game\Team;
 use App\Helpers\Gender;
 use App\Services\GenderService;
 use App\Services\NameInflectionService;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Throwable;
 
 class TrophyHighlight extends GameHighlight
 {
-	/**
-	 * @template T of Team
-	 * @template G of Game
-	 * @param string      $value
-	 * @param Player<G,T> $player
-	 * @param int         $rarityScore
-	 */
 	public function __construct(
-		string                 $value,
-		public readonly Player $player,
-		int                    $rarityScore = GameHighlight::LOW_RARITY,
+		string                          $value,
+		public readonly PlayerInterface $player,
+		int                             $rarityScore = GameHighlight::LOW_RARITY,
 	) {
 		parent::__construct(GameHighlightType::TROPHY, $value, $rarityScore);
 	}
@@ -47,10 +39,11 @@ class TrophyHighlight extends GameHighlight
 	 * @throws Throwable
 	 */
 	public function getDescription(): string {
+		assert($this->player instanceof Player);
 		$fields = $this->player->getTrophy()::getFields();
 		$name = $this->player->name;
 		if ($this->value === 'favouriteTarget') {
-			$name2 = $this->player->getFavouriteTarget()->name ?? '';
+			$name2 = $this->player->favouriteTarget->name ?? '';
 			$gender = GenderService::rankWord($name);
 			return sprintf(
 				lang(
@@ -67,7 +60,7 @@ class TrophyHighlight extends GameHighlight
 			);
 		}
 		if ($this->value === 'favouriteTargetOf') {
-			$name2 = $this->player->getFavouriteTargetOf()->name ?? '';
+			$name2 = $this->player->favouriteTargetOf->name ?? '';
 			$gender = GenderService::rankWord($name);
 			return sprintf(
 				lang(

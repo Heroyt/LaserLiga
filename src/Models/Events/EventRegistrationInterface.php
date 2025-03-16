@@ -2,8 +2,8 @@
 
 namespace App\Models\Events;
 
-use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Tournament\Requirements;
+use Lsr\Lg\Results\Enums\GameModeType;
 
 interface EventRegistrationInterface
 {

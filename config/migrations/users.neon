@@ -1,0 +1,400 @@
+tables:
+	Lsr\Core\Auth\Models\UserType:
+		order: 0
+		definition: '''
+		(
+          `id_user_type` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `name` varchar(100) DEFAULT NULL,
+          `super_admin` tinyint(1) NOT NULL DEFAULT 0,
+          `host` tinyint(1) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id_user_type`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+	rights:
+		order: 0
+		definition: '''
+		(
+			`right` varchar(20) NOT NULL DEFAULT '',
+			`description` text,
+			PRIMARY KEY (`right`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+	user_type_rights:
+		order: 1
+		definition: '''
+		(
+			`id_user_type` int(11) unsigned NOT NULL,
+			`right` varchar(20) NOT NULL DEFAULT '',
+			PRIMARY KEY (`id_user_type`,`right`),
+			KEY `right` (`right`),
+			KEY `id_user_type` (`id_user_type`),
+			CONSTRAINT `user_type_rights_ibfk_1` FOREIGN KEY (`id_user_type`) REFERENCES `user_types` (`id_user_type`) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT `user_type_rights_ibfk_2` FOREIGN KEY (`right`) REFERENCES `rights` (`right`) ON DELETE CASCADE ON UPDATE CASCADE
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_user_type
+				refTable: Lsr\Core\Auth\Models\UserType
+				refColumn: id_user_type
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: right
+				refTable: 'rights'
+				refColumn: right
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	Lsr\Core\Auth\Models\User:
+		order: 1
+		definition: '''
+		(
+			`id_user` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_user_type` int(11) unsigned NOT NULL,
+			`id_parent` int(11) unsigned DEFAULT NULL,
+			`name` varchar(20) NOT NULL DEFAULT '',
+			`email` varchar(50) NOT NULL,
+			`password` varchar(100) NOT NULL,
+			`created_at` datetime NOT NULL DEFAULT current_timestamp(),
+            `forgot_token` varchar(100) DEFAULT NULL,
+            `forgot_timestamp` datetime DEFAULT NULL,
+            `email_token` varchar(100) DEFAULT NULL,
+            `email_timestamp` datetime DEFAULT NULL,
+            `is_confirmed` tinyint(1) NOT NULL DEFAULT 0,
+            `privacy_version` tinyint(5) unsigned DEFAULT NULL,
+            `privacy_confirmed` datetime DEFAULT NULL,
+            `privacy_notification_version` tinyint(5) DEFAULT NULL,
+			PRIMARY KEY (`id_user`),
+			UNIQUE KEY `email` (`email`),
+			KEY `id_user_type` (`id_user_type`),
+			KEY `id_parent` (`id_parent`),
+			CONSTRAINT `users_ibfk_1` FOREIGN KEY (`id_user_type`) REFERENCES `user_types` (`id_user_type`) ON UPDATE CASCADE,
+			CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id_parent`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		modifications:
+			0.1:
+				- 'ADD `id_parent` int(11) unsigned DEFAULT NULL AFTER `id_user_type`'
+			0.2:
+				- 'ADD `created_at` datetime NOT NULL DEFAULT current_timestamp()'
+				- 'ADD `forgot_token` varchar(100) DEFAULT NULL'
+				- 'ADD `forgot_timestamp` datetime DEFAULT NULL'
+				- 'ADD `email_token` varchar(100) DEFAULT NULL'
+				- 'ADD `email_timestamp` datetime DEFAULT NULL'
+				- 'ADD `is_confirmed` tinyint(1) NOT NULL DEFAULT 0'
+				- 'ADD `privacy_version` tinyint(5) unsigned DEFAULT NULL'
+				- 'ADD `privacy_confirmed` datetime DEFAULT NULL'
+				- 'ADD `privacy_notification_version` tinyint(5) DEFAULT NULL'
+		indexes:
+			-
+				name: 'email'
+				columns: ['email']
+				unique: true
+		foreignKeys:
+			-
+				column: id_user_type
+				refTable: Lsr\Core\Auth\Models\UserType
+				refColumn: id_user_type
+				onUpdate: 'CASCADE'
+			-
+				column: id_parent
+				refTable: Lsr\Core\Auth\Models\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	App\Models\Auth\UserConnection:
+		order: 2
+		definition: '''
+		(
+        	`id_connection` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        	`id_user` int(11) unsigned NOT NULL,
+        	`type` enum('rfid','laserforce','mylasermaxx','other') NOT NULL DEFAULT 'other',
+        	`identifier` tinytext NOT NULL,
+        	PRIMARY KEY (`id_connection`),
+        	KEY `id_user` (`id_user`),
+        	CONSTRAINT `user_connected_accounts_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		modifications:
+			0.1:
+				- 'MODIFY `type` enum(''rfid'',''laserforce'',''mylasermaxx'',''other'') NOT NULL DEFAULT ''other'''
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Auth\LigaPlayer:
+		order: 2
+		definition: '''
+		(
+        	`id_user` int(11) unsigned NOT NULL,
+        	`id_arena` int(11) unsigned DEFAULT NULL,
+        	`code` varchar(5) NOT NULL,
+		    `id_title` int(11) unsigned DEFAULT NULL,
+        	`nickname` varchar(20) NOT NULL,
+        	`email` varchar(50) NOT NULL,
+        	`birthday` date DEFAULT NULL,
+            `games_played` int(10) unsigned NOT NULL DEFAULT 0,
+            `arenas_played` int(10) unsigned NOT NULL DEFAULT 0,
+            `rank` int(11) NOT NULL DEFAULT 100,
+            `average_accuracy` decimal(4,2) NOT NULL DEFAULT 0.00,
+            `average_position` decimal(4,2) NOT NULL DEFAULT 0.00,
+            `max_accuracy` int(3) NOT NULL DEFAULT 0,
+            `max_score` int(11) NOT NULL DEFAULT 0,
+            `max_skill` int(11) NOT NULL DEFAULT 0,
+            `total_minutes` int(11) NOT NULL DEFAULT 0,
+            `shots` int(11) NOT NULL DEFAULT 0,
+            `average_shots` decimal(11,2) NOT NULL DEFAULT 0.00,
+            `average_shots_per_minute` decimal(4,2) NOT NULL DEFAULT 0.00,
+            `hits` int(11) NOT NULL DEFAULT 0,
+            `deaths` int(11) NOT NULL DEFAULT 0,
+            `kd` decimal(6,2) NOT NULL DEFAULT 0.00,
+            `avatar` text DEFAULT NULL,
+            `avatar_style` varchar(100) DEFAULT NULL,
+            `avatar_seed` varchar(100) DEFAULT NULL,
+            `full_code` varchar(10) GENERATED ALWAYS AS (concat(ifnull(`id_arena`,'0'),'-',`code`)) VIRTUAL,
+            `last_achievement_check` datetime DEFAULT NULL,
+        	PRIMARY KEY (`id_user`),
+        	KEY `id_arena` (`id_arena`),
+        	UNIQUE KEY `email` (`email`),
+            UNIQUE KEY `code` (`code`,`id_arena`),
+            UNIQUE KEY `full_code` (`full_code`),
+        	CONSTRAINT `players_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
+        	CONSTRAINT `players_ibfk_2` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE,
+        	CONSTRAINT `players_ibfk_3` FOREIGN KEY (`id_title`) REFERENCES `titles` (`id_title`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		modifications:
+			0.2:
+				- 'ADD `email` VARCHAR(50) NOT NULL AFTER `nickname`'
+			0.3:
+				- 'ADD `id_title` int(11) unsigned DEFAULT NULL AFTER `code`'
+				- 'ADD `birthday` DATE DEFAULT NULL AFTER `email`'
+				- 'ADD `games_played` int(10) unsigned NOT NULL DEFAULT 0 AFTER `birthday`'
+				- 'ADD `arenas_played` int(10) unsigned NOT NULL DEFAULT 0 AFTER `games_played`'
+				- 'ADD `rank` int(11) NOT NULL DEFAULT 100 AFTER `arenas_played`'
+				- 'ADD `average_accuracy` DECIMAL(4,2) NOT NULL DEFAULT 0.00 AFTER `rank`'
+				- 'ADD `average_position` DECIMAL(4,2) NOT NULL DEFAULT 0.00 AFTER `average_accuracy`'
+				- 'ADD `max_accuracy` int(3) NOT NULL DEFAULT 0 AFTER `average_position`'
+				- 'ADD `max_score` int(11) NOT NULL DEFAULT 0 AFTER `max_accuracy`'
+				- 'ADD `max_skill` int(11) NOT NULL DEFAULT 0 AFTER `max_score`'
+				- 'ADD `total_minutes` int(11) NOT NULL DEFAULT 0 AFTER `max_skill`'
+				- 'ADD `shots` int(11) NOT NULL DEFAULT 0 AFTER `total_minutes`'
+				- 'ADD `average_shots` DECIMAL(11,2) NOT NULL DEFAULT 0.00 AFTER `shots`'
+				- 'ADD `average_shots_per_minute` DECIMAL(4,2) NOT NULL DEFAULT 0.00 AFTER `average_shots`'
+				- 'ADD `hits` int(11) NOT NULL DEFAULT 0 AFTER `average_shots_per_minute`'
+				- 'ADD `deaths` int(11) NOT NULL DEFAULT 0 AFTER `hits`'
+				- 'ADD `kd` DECIMAL(6,2) NOT NULL DEFAULT 0.00 AFTER `deaths`'
+				- 'ADD `avatar` TEXT DEFAULT NULL AFTER `kd`'
+				- 'ADD `avatar_style` VARCHAR(100) DEFAULT NULL AFTER `avatar`'
+				- 'ADD `avatar_seed` VARCHAR(100) DEFAULT NULL AFTER `avatar_style`'
+				- 'ADD `full_code` VARCHAR(10) GENERATED ALWAYS AS (concat(ifnull(`id_arena`,''0''),''-'',`code`)) VIRTUAL AFTER `avatar_seed`'
+				- 'ADD `last_achievement_check` DATETIME DEFAULT NULL AFTER `avatar_seed`'
+		indexes:
+			-
+				name: 'email'
+				columns: ['email']
+				unique: true
+			-
+				name: 'code'
+				columns: ['code', 'id_arena']
+				unique: true
+			-
+				name: 'full_code'
+				columns: ['full_code']
+				unique: true
+		foreignKeys:
+			-
+				column: id_user
+				refTable: Lsr\Core\Auth\Models\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_title
+				refTable: App\Models\Achievements\Title
+				refColumn: id_title
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	player_code_history:
+		order: 3
+		definition: '''
+		(
+          `id_history` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_user` int(11) unsigned NOT NULL,
+          `code` varchar(10) NOT NULL,
+          `datetime` datetime NOT NULL DEFAULT current_timestamp(),
+          PRIMARY KEY (`id_history`),
+          KEY `code` (`code`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `player_code_history_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `players` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'code'
+				columns: ['code']
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\LigaPlayer
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	user_tokens:
+		order: 2
+		definition: '''
+		(
+          `id_token` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_user` int(11) unsigned NOT NULL,
+          `expire` datetime NOT NULL,
+          `token` varchar(255) NOT NULL,
+          `validator` varchar(255) NOT NULL,
+          PRIMARY KEY (`id_token`),
+          KEY `id_user` (`id_user`),
+          KEY `token` (`token`(191)),
+          CONSTRAINT `user_tokens_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'token'
+				columns: ['token']
+		foreignKeys:
+			-
+				column: id_user
+				refTable: Lsr\Core\Auth\Models\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	player_date_rank:
+		order: 4
+		definition: '''
+		(
+          `id_user` int(11) unsigned NOT NULL,
+          `date` date NOT NULL,
+          `rank` int(11) NOT NULL,
+          `position` int(11) unsigned NOT NULL,
+          `position_text` varchar(20) NOT NULL,
+          PRIMARY KEY (`id_user`,`date`),
+          KEY `date` (`date`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `player_date_rank_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `players` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\LigaPlayer
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	player_game_rating:
+		order: 4
+		definition: '''
+		(
+          `code` varchar(50) NOT NULL,
+          `id_user` int(11) unsigned NOT NULL,
+          `date` datetime NOT NULL DEFAULT current_timestamp(),
+          `difference` decimal(10,3) NOT NULL,
+          `expected_results` text DEFAULT NULL,
+          `normalized_skill` decimal(10,3) DEFAULT NULL,
+          `max_skill` int(11) DEFAULT NULL,
+          `min_skill` int(11) DEFAULT NULL,
+          PRIMARY KEY (`code`,`id_user`),
+          KEY `id_user` (`id_user`),
+          KEY `code` (`code`),
+          CONSTRAINT `player_game_rating_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `players` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'code'
+				columns: ['code']
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\LigaPlayer
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	player_trophies_count:
+		order: 4
+		definition: '''
+		(
+          `id_user` int(11) unsigned NOT NULL,
+          `name` varchar(50) NOT NULL,
+          `game` varchar(50) NOT NULL,
+          `rankable` tinyint(1) NOT NULL DEFAULT 0,
+          `datetime` datetime DEFAULT NULL,
+          PRIMARY KEY (`id_user`,`name`,`game`),
+          KEY `name` (`name`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `player_trophies_count_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `players` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'name'
+				columns: ['name']
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\LigaPlayer
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Push\Notification:
+		order: 2
+		definition: '''
+		(
+          `id_notification` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_user` int(11) unsigned NOT NULL,
+          `title` varchar(200) NOT NULL,
+          `body` text NOT NULL,
+          `action` varchar(300) DEFAULT NULL,
+          PRIMARY KEY (`id_notification`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_user
+				refTable: Lsr\Core\Auth\Models\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	notification_subscriptions:
+		order: 2
+		definition: '''
+		(
+          `id_subscription` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_user` int(11) unsigned DEFAULT NULL,
+          `endpoint` text NOT NULL,
+          `p256dh` varchar(500) DEFAULT NULL,
+          `auth` varchar(500) DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+          `setting_game` tinyint(1) NOT NULL DEFAULT 1,
+          `setting_rank` tinyint(1) NOT NULL DEFAULT 1,
+          `setting_achievement` tinyint(1) NOT NULL DEFAULT 1,
+          PRIMARY KEY (`id_subscription`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `notification_subscriptions_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_user
+				refTable: Lsr\Core\Auth\Models\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'

@@ -1,5 +1,5 @@
 FROM node:slim AS node_base
-FROM php:8.3-fpm-bullseye AS setup
+FROM php:8.4-fpm-bullseye AS setup
 LABEL authors="heroyt"
 
 #COPY --from=node_base / /

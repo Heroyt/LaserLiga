@@ -4,9 +4,11 @@ namespace App\Models\Group;
 
 trait PlayerAggregate
 {
-	/** @var string[] */
+	/** @var string[] $gameCodes */
+	/** @phpstan-ignore-next-line  */
 	public array $gameCodes = [];
 
+	/** @phpstan-ignore-next-line  */
 	public int $playCount = 0;
 
 	/** @var int[] $hits */
@@ -56,7 +58,7 @@ trait PlayerAggregate
 
 	protected int|string $favouriteVest;
 
-	public function getSumShots() : int {
+	public function getSumShots(): int {
 		if (isset($this->shotsSum)) {
 			return $this->shotsSum;
 		}
@@ -64,7 +66,7 @@ trait PlayerAggregate
 		return $this->shotsSum;
 	}
 
-	public function getAverageShots() : float {
+	public function getAverageShots(): float {
 		if (isset($this->shotsAvg)) {
 			return $this->shotsAvg;
 		}
@@ -75,18 +77,18 @@ trait PlayerAggregate
 		return $this->shotsAvg;
 	}
 
-	public function getAverageAccuracy() : float {
+	public function getAverageAccuracy(): float {
 		if (isset($this->accuracyAvg)) {
 			return $this->accuracyAvg;
 		}
 		if (count($this->accuracies) === 0) {
 			return 0;
 		}
-		$this->accuracyAvg = (int) round(array_sum($this->accuracies) / count($this->accuracies));
+		$this->accuracyAvg = (int)round(array_sum($this->accuracies) / count($this->accuracies));
 		return $this->accuracyAvg;
 	}
 
-	public function getAverageHits() : float {
+	public function getAverageHits(): float {
 		if (isset($this->hitsAvg)) {
 			return $this->hitsAvg;
 		}
@@ -97,7 +99,7 @@ trait PlayerAggregate
 		return $this->hitsAvg;
 	}
 
-	public function getAverageDeaths() : float {
+	public function getAverageDeaths(): float {
 		if (isset($this->deathsAvg)) {
 			return $this->deathsAvg;
 		}
@@ -108,7 +110,7 @@ trait PlayerAggregate
 		return $this->deathsAvg;
 	}
 
-	public function getSumScore() : int {
+	public function getSumScore(): int {
 		if (isset($this->scoreSum)) {
 			return $this->scoreSum;
 		}
@@ -116,7 +118,7 @@ trait PlayerAggregate
 		return $this->scoreSum;
 	}
 
-	public function getAverageScore() : float {
+	public function getAverageScore(): float {
 		if (isset($this->scoreAvg)) {
 			return $this->scoreAvg;
 		}
@@ -130,27 +132,27 @@ trait PlayerAggregate
 	/**
 	 * @return int
 	 */
-	public function getSkill() : int {
+	public function getSkill(): int {
 		if (isset($this->skillAvg)) {
 			return $this->skillAvg;
 		}
 		if (count($this->skills) === 0) {
 			return 0;
 		}
-		$this->skillAvg = (int) round(array_sum($this->skills) / count($this->skills));
+		$this->skillAvg = (int)round(array_sum($this->skills) / count($this->skills));
 		return $this->skillAvg;
 	}
 
-	public function getFavouriteVest() : int|string {
+	public function getFavouriteVest(): int {
 		if (isset($this->favouriteVest)) {
-			return $this->favouriteVest;
+			return (int) $this->favouriteVest;
 		}
 		arsort($this->vests);
 		$this->favouriteVest = array_key_first($this->vests) ?? 1;
-		return $this->favouriteVest;
+		return (int) $this->favouriteVest;
 	}
 
-	public function getKd() : float {
+	public function getKd(): float {
 		if (isset($this->kdAvg)) {
 			return $this->kdAvg;
 		}
@@ -158,7 +160,7 @@ trait PlayerAggregate
 		return $this->kdAvg;
 	}
 
-	public function getSumHits() : int {
+	public function getSumHits(): int {
 		if (isset($this->hitsSum)) {
 			return $this->hitsSum;
 		}
@@ -166,15 +168,15 @@ trait PlayerAggregate
 		return $this->hitsSum;
 	}
 
-	public function getSumOwnHits() : int {
-		if (isset($this->hitsTeamSum)) {
-			return $this->hitsTeamSum;
+	public function getSumDeaths(): int {
+		if (isset($this->deathsSum)) {
+			return $this->deathsSum;
 		}
-		$this->hitsTeamSum = array_sum($this->hitsOwn);
-		return $this->hitsTeamSum;
+		$this->deathsSum = array_sum($this->deaths);
+		return $this->deathsSum;
 	}
 
-	public function getAverageOwnHits() : float {
+	public function getAverageOwnHits(): float {
 		if (isset($this->hitsTeamAvg)) {
 			return $this->hitsTeamAvg;
 		}
@@ -186,23 +188,15 @@ trait PlayerAggregate
 		return $this->hitsTeamAvg;
 	}
 
-	public function getSumDeaths() : int {
-		if (isset($this->deathsSum)) {
-			return $this->deathsSum;
+	public function getSumOwnHits(): int {
+		if (isset($this->hitsTeamSum)) {
+			return $this->hitsTeamSum;
 		}
-		$this->deathsSum = array_sum($this->deaths);
-		return $this->deathsSum;
+		$this->hitsTeamSum = array_sum($this->hitsOwn);
+		return $this->hitsTeamSum;
 	}
 
-	public function getSumOwnDeaths() : int {
-		if (isset($this->deathsTeamSum)) {
-			return $this->deathsTeamSum;
-		}
-		$this->deathsTeamSum = array_sum($this->deathsOwn);
-		return $this->deathsTeamSum;
-	}
-
-	public function getAverageOwnDeaths() : float {
+	public function getAverageOwnDeaths(): float {
 		if (isset($this->deathsTeamAvg)) {
 			return $this->deathsTeamAvg;
 		}
@@ -214,15 +208,15 @@ trait PlayerAggregate
 		return $this->deathsTeamAvg;
 	}
 
-	public function getSumMisses() : int {
-		if (isset($this->missSum)) {
-			return $this->missSum;
+	public function getSumOwnDeaths(): int {
+		if (isset($this->deathsTeamSum)) {
+			return $this->deathsTeamSum;
 		}
-		$this->missSum = array_sum($this->getMisses());
-		return $this->missSum;
+		$this->deathsTeamSum = array_sum($this->deathsOwn);
+		return $this->deathsTeamSum;
 	}
 
-	public function getAverageMisses() : float {
+	public function getAverageMisses(): float {
 		if (isset($this->missAvg)) {
 			return $this->missAvg;
 		}
@@ -238,7 +232,7 @@ trait PlayerAggregate
 	/**
 	 * @return int[]
 	 */
-	public function getMisses() : array {
+	public function getMisses(): array {
 		if (!empty($this->misses)) {
 			return $this->misses;
 		}
@@ -246,5 +240,13 @@ trait PlayerAggregate
 			$this->misses[$key] = $count - ($this->hits[$key] ?? 0);
 		}
 		return $this->misses;
+	}
+
+	public function getSumMisses(): int {
+		if (isset($this->missSum)) {
+			return $this->missSum;
+		}
+		$this->missSum = array_sum($this->getMisses());
+		return $this->missSum;
 	}
 }

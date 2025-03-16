@@ -12,7 +12,7 @@ use App\Models\Push\Notification;
 use App\Models\Push\Subscription;
 use Lsr\Core\App;
 use Lsr\Core\Config;
-use Lsr\Core\DB;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Logger;
 use Minishlink\WebPush\MessageSentReport;
@@ -42,7 +42,7 @@ class PushService
 
 			$notification->user = $this->getUser($user);
 			$notification->title = lang('Výsledky ze hry');
-			$notification->action = App::getLink(['g', $player->getGame()->code, 'refer' => 'push']);
+			$notification->action = App::getLink(['g', $player->game->code, 'refer' => 'push']);
 			$notification->body = sprintf(lang('%d místo', '%d místo', $player->position), $player->position) . ' ' . sprintf(lang('%d skóre'), $player->score);
 
 			$diff = $player->getRankDifference();

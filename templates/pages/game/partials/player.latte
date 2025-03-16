@@ -34,7 +34,7 @@
     {include playerHits, $player, $game}
     {include playerFavourites, $player, $game}
     {include playerHitsPlayers, $player, $game}
-    {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->getMode()?->settings->playerMines && isset($player->bonus) && $player->bonus->getSum() > 0}
+    {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode?->settings->playerMines && isset($player->bonus) && $player->bonus->getSum() > 0}
         {include playerMines, $player}
     {/if}
     {include playerToday, $player, $game, $today}
@@ -89,13 +89,13 @@
                     {lang 'Skóre'}: {$player->score|number:0,',','&nbsp;'|noescape}
                     {faSolid 'star'}
                 </h5>
-                {var int $hitScore = ($game->getMode()->isSolo() || !isset($player->hitsOther) ? $player->hits : $player->hitsOther) * $game->scoring->hitOther}
+                {var int $hitScore = ($game->mode->isSolo() || !isset($player->hitsOther) ? $player->hits : $player->hitsOther) * $game->scoring->hitOther}
                 {include playerScoreDetailPart 'Zásahy', $hitScore}
                 {var int $deathScore =
-                (($game->getMode()->isSolo() || !isset($player->deathsOther) ? $player->deaths : $player->deathsOther) * $game->scoring->deathOther) +
-                ($game->getMode()->isSolo() || !isset($player->deathsOther) ? 0 : $player->deathsOwn) * $game->scoring->deathOwn}
+                (($game->mode->isSolo() || !isset($player->deathsOther) ? $player->deaths : $player->deathsOther) * $game->scoring->deathOther) +
+                ($game->mode->isSolo() || !isset($player->deathsOther) ? 0 : $player->deathsOwn) * $game->scoring->deathOwn}
                 {include playerScoreDetailPart 'Smrti', $deathScore}
-                {if $game->getMode()->isTeam() && isset($player->hitsOwn) && $player->hitsOwn > 0}
+                {if $game->mode->isTeam() && isset($player->hitsOwn) && $player->hitsOwn > 0}
                     {var int $hitOwnScore = $player->hitsOwn * $game->scoring->hitOwn}
                     {include playerScoreDetailPart 'Zásahy spoluhráčů', $hitOwnScore}
                 {/if}
@@ -108,6 +108,9 @@
                 {/if}
                 {if isset($player->shotPoints) && $player->shotPoints !== 0}
                     {include playerScoreDetailPart 'Výstřely', $player->shotPoints}
+                {/if}
+                {if isset($player->scoreBonus) && $player->scoreBonus !== 0}
+                    {include playerScoreDetailPart 'Bonusové skóre', $player->scoreBonus}
                 {/if}
             </div>
             <div class="col-12 col-md-6">
@@ -163,10 +166,10 @@
 {/define}
 
 {define playerAccuracy, App\GameModels\Game\Player $player, App\GameModels\Game\Game $game}
-    <svg n:if="$game->getMode()?->settings->playerAccuracy" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
+    <svg n:if="$game->mode?->settings->playerAccuracy" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
                                                       class="accuracy" xml:space="preserve"
                                                       data-content-piece="Accuracy"
-                                                      style="--color:var(--team-{$player->getTeamColor()});fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                                                      style="--color:var(--team-{$player->color});fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
 					{var int $circleRadius = 98}
         <circle class="fill-circle" r="{$circleRadius}" cx="250" cy="250" fill="transparent" stroke="tomato"
                 stroke-width="{2*$circleRadius}"
@@ -195,7 +198,7 @@
 {/define}
 
 {define playerShots, App\GameModels\Game\Player $player, App\GameModels\Game\Game $game, int $maxShots}
-    <div n:if="$game->getMode()?->settings->playerShots" class="player-shots" data-content-piece="Shots">
+    <div n:if="$game->mode?->settings->playerShots" class="player-shots" data-content-piece="Shots">
         {var int $step = ceil($maxShots / 10)}
         {var int $count = ceil($player->shots / $step)}
         <svg viewBox="0 0 1720 504" class="mb-1">
@@ -219,21 +222,21 @@
         <div class="number">{lang 'Výstřely', context: 'results'}
             : {svgIcon 'bullets', '', '1em'} {$player->shots|number:0,',','&nbsp;'|noescape}</div>
         <div class="number">{lang 'Střely do prázdna', context: 'results'}
-            : {svgIcon 'bullet_2', '', '1em'} {$player->getMiss()|number:0,',','&nbsp;'|noescape}</div>
+            : {svgIcon 'bullet_2', '', '1em'} {$player->miss|number:0,',','&nbsp;'|noescape}</div>
     </div>
 {/define}
 
 {define playerHits, App\GameModels\Game\Lasermaxx\Player $player, App\GameModels\Game\Game $game}
     <div class="player-hits" data-content-piece="Hits">
         {var int $total = $player->hits + $player->deaths + $player->minesHits}
-        <div n:if="$game->getMode()?->settings->playerPlayers" class="hits mt-1 mb-2">
+        <div n:if="$game->mode?->settings->playerPlayers" class="hits mt-1 mb-2">
             <div class="kills-row">
                 <div class="label">
                     {lang 'Zásahy', context:'results.player'}:
                 </div>
                 <div class="graph text-black-forced">
-                    {var int $hits = $game->getMode()?->isTeam() ? $player->hitsOther : $player->hits}
-                    {var int $deaths = $game->getMode()?->isTeam() ? $player->deathsOther : $player->deaths}
+                    {var int $hits = $game->mode?->isTeam() ? $player->hitsOther : $player->hits}
+                    {var int $deaths = $game->mode?->isTeam() ? $player->deathsOther : $player->deaths}
                     <div class="kills" style="width:{100*$hits / ($total > 0 ? $total : 1)|noescape}%"
                          data-toggle="tooltip" title="{lang 'Zásahy protihráčů'}">
                         <div class="main">
@@ -245,7 +248,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="kills-own" n:if="$game->getMode()?->settings->playerPlayersTeams && $game->getMode()?->isTeam()"
+                    <div class="kills-own" n:if="$game->mode?->settings->playerPlayersTeams && $game->mode?->isTeam()"
                          data-toggle="tooltip" title="{lang 'Zásahy spoluhráčů'}"
                          style="width: {100*($player->hitsOwn / ($total > 0 ? $total : 1))|noescape}%;">
                         <div class="main">
@@ -275,7 +278,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="deaths-own" n:if="$game->getMode()?->settings->playerPlayersTeams && $game->getMode()?->isTeam()"
+                    <div class="deaths-own" n:if="$game->mode?->settings->playerPlayersTeams && $game->mode?->isTeam()"
                          data-toggle="tooltip" title="{lang 'Smrti od spoluhráčů'}"
                          style="width: {100*($player->deathsOwn / ($total > 0 ? $total : 1))|noescape}%;">
                         <div class="main">
@@ -287,7 +290,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="deaths-pods" n:if="$game->getMode()?->settings->playerMines && $game->isMinesOn()"
+                    <div class="deaths-pods" n:if="$game->mode?->settings->playerMines && $game->isMinesOn()"
                          data-toggle="tooltip" title="{lang 'Smrti od min'}"
                          style="width: {100*($player->minesHits / ($total > 0 ? $total : 1))|noescape}%;">
                         <div class="main">
@@ -307,7 +310,7 @@
                 {lang 'K:D', context: 'results.player'}
                 ({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'})
             </strong>
-            {if $game->getMode()?->isSolo()}
+            {if $game->mode?->isSolo()}
                 {ratio($player->hits, $player->deaths, 0)}:{ratio($player->hits, $player->deaths, 1)}
                 ({($player->hits / ($player->deaths === 0 ? 1 : $player->deaths))|number:2,',',''})
             {else}
@@ -327,13 +330,13 @@
 {/define}
 
 {define playerFavourites, App\GameModels\Game\Player $player, App\GameModels\Game\Game $game}
-    {var App\GameModels\Game\Player|null $favourite = $player->getFavouriteTarget()}
-    {var App\GameModels\Game\Player|null $favouriteOf = $player->getFavouriteTargetOf()}
-    <div n:if="$game->getMode()?->settings->playerFavourites" class="player-favourites text-center"
+    {var App\GameModels\Game\Player|null $favourite = $player->favouriteTarget}
+    {var App\GameModels\Game\Player|null $favouriteOf = $player->favouriteTargetOf}
+    <div n:if="$game->mode?->settings->playerFavourites" class="player-favourites text-center"
                                                         data-content-piece="Favourites">
         <div n:if="isset($favourite)" class="favourite-target">
             <strong>{lang 'Nejoblíbenější cíl', context: 'results.player'}:</strong>
-            <div class="text-uppercase text-team-{$game->getMode()?->isSolo() ? 2 : $favourite->getTeamColor()}">
+            <div class="text-uppercase text-team-{$game->mode?->isSolo() ? 2 : $favourite->color}">
                 {$favourite->name}
             </div>
             <div class="number">
@@ -343,7 +346,7 @@
         </div>
         <div n:if="isset($favouriteOf)" class="favourite-target-of">
             <strong>{lang 'Největší zabiják', context: 'results.player'}:</strong>
-            <div class="text-uppercase text-team-{$game->getMode()?->isSolo() ? 2 : $favouriteOf->getTeamColor()}">
+            <div class="text-uppercase text-team-{$game->mode?->isSolo() ? 2 : $favouriteOf->color}">
                 {$favouriteOf->name}
             </div>
             <div class="number">
@@ -355,7 +358,7 @@
 {/define}
 
 {define playerHitsPlayers, App\GameModels\Game\Player $player, App\GameModels\Game\Game $game}
-    <div n:if="$game->getMode()?->settings->partHits" data-content-piece="Hits players"
+    <div n:if="$game->mode?->settings->partHits" data-content-piece="Hits players"
                                                 class="player-hits-player text-center d-md-none d-flex flex-wrap justify-content-center align-items-start">
         <div class="hits-my col-12 col-sm-5">
             <h4 class="caption mt-3">
@@ -363,12 +366,12 @@
                 {lang 'Zásahy do hráčů', context: 'results.hits'}
             </h4>
             <div class="row g-1">
-                {foreach $game->getPlayersSorted()->getAll() as $player2}
+                {foreach $game->playersSorted->getAll() as $player2}
                     {varType App\GameModels\Game\Player $player2}
                     {continueIf $player->id === $player2->id}
-                    <div class="col-6 text-center {if $player->getFavouriteTarget()?->id === $player2->id}fw-bold text-print-primary{/if}">
+                    <div class="col-6 text-center {if $player->favouriteTarget?->id === $player2->id}fw-bold text-print-primary{/if}">
                         <div class="rounded border">
-                            <div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if}">
+                            <div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->color}{/if}">
                                 {$player2->name}
                             </div>
                             <div class="">
@@ -386,12 +389,12 @@
                 {lang 'Smrti od hráčů', context: 'results.hits'}
             </h4>
             <div class="row g-1">
-                {foreach $game->getPlayersSorted()->getAll() as $player2}
+                {foreach $game->playersSorted->getAll() as $player2}
                     {varType App\GameModels\Game\Player $player2}
                     {continueIf $player->id === $player2->id}
-                    <div class="col-6 text-center {if $player2->getFavouriteTarget()?->id === $player->id}fw-bold text-print-primary{/if}">
+                    <div class="col-6 text-center {if $player2->favouriteTarget?->id === $player->id}fw-bold text-print-primary{/if}">
                         <div class="rounded border">
-                            <div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if}">
+                            <div class="text-uppercase fw-bold {if $player->id !== $player2->id}text-team-{$player2->color}{/if}">
                                 {$player2->name}
                             </div>
                             <div class="">

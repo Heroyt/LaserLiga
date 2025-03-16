@@ -2,23 +2,25 @@
 
 namespace App\Models\Achievements;
 
-use App\GameModels\Game\Game;
 use App\Models\Auth\Player;
+use DateTimeInterface;
+use JsonSerializable;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(properties: [new OA\Property('icon', description: 'SVG', type: 'string')])]
-class PlayerAchievement implements \JsonSerializable
+class PlayerAchievement implements JsonSerializable
 {
 
 	public function __construct(
 		#[OA\Property]
-		public Achievement $achievement,
+		public Achievement       $achievement,
 		#[OA\Property]
-		public Player $player,
-		#[OA\Property]
-		public Game $game,
+		public Player            $player,
+		#[OA\Property(ref: '#/components/schemas/Game')]
+		public GameInterface     $game,
 		#[OA\Property(type: 'string', format: 'date-time')]
-		public \DateTimeInterface $datetime,
+		public DateTimeInterface $datetime,
 	) {
 	}
 

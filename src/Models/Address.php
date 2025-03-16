@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Dibi\Row;
-use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use Lsr\Orm\Interfaces\InsertExtendInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema()]
@@ -26,7 +26,7 @@ class Address implements InsertExtendInterface
 	 * @inheritDoc
 	 */
 	public static function parseRow(Row $row): ?static {
-		/** @phpstan-ignore-next-line  */
+		/** @phpstan-ignore-next-line */
 		return new self(
 			$row->address_street ?? null,
 			$row->address_city ?? null,

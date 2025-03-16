@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Exceptions\ModelSaveFailedException;
-use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Event\PlayerRegistrationDTO;
@@ -20,16 +19,18 @@ use App\Templates\Tournament\TournamentIndexParameters;
 use Exception;
 use Lsr\Core\App;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Request;
-use Lsr\Helpers\Files\UploadedFile;
+use Lsr\Db\DB;
 use Lsr\Interfaces\AuthInterface;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Logging\Logger;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
+use Nyholm\Psr7\UploadedFile;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UploadedFileInterface;
 
 class TournamentController extends Controller
 {
@@ -221,13 +222,13 @@ class TournamentController extends Controller
 			/** @var string|null $teamName */
 			$teamName = $request->getPost('team-name');
 			$data = new TeamRegistrationDTO($previousTeam->name ?? $teamName);
-			$data->image = $this->processLogoUpload();
+			$data->image = $this->processLogoUpload($request->getUploadedFiles());
 			if (isset($previousTeam)) {
 				if ($previousTeam->tournament->league?->id === $tournament->league?->id) {
 					$data->leagueTeam = $previousTeam->leagueTeam?->id;
 				}
 				$data->image = isset($previousTeam->image) ? new Image($previousTeam->image) : null;
-				foreach ($previousTeam->getPlayers() as $previousPlayer) {
+				foreach ($previousTeam->players as $previousPlayer) {
 					$player = new PlayerRegistrationDTO(
 						$previousPlayer->nickname,
 						$previousPlayer->name ?? '',
@@ -278,10 +279,8 @@ class TournamentController extends Controller
 
 			try {
 				/** @var Team $team */
-				$team = $this->eventRegistrationService->registerTeam(
-					$tournament,
-					$data
-				); // @phpstan-ignore argument.templateType
+				// @phpstan-ignore argument.templateType
+				$team = $this->eventRegistrationService->registerTeam($tournament, $data);
 			} catch (ModelSaveFailedException|ModelNotFoundException|ValidationException $e) {
 				$this->getLogger()->exception($e);
 				$this->params['errors'][] = lang('Nepodařilo se uložit tým. Zkuste to znovu', context: 'errors');
@@ -305,16 +304,28 @@ class TournamentController extends Controller
 		return $this->view('pages/tournament/registerTeam');
 	}
 
-	private function processLogoUpload(): ?UploadedFile {
-		if (!isset($_FILES['team-image'])) {
+	/**
+	 * @param UploadedFileInterface[]|UploadedFileInterface[][] $uploadedFiles
+	 *
+	 * @return UploadedFile|null
+	 */
+	private function processLogoUpload(array $uploadedFiles): ?UploadedFile {
+		if (!isset($uploadedFiles['team-image'])) {
 			return null;
 		}
-		$image = UploadedFile::parseUploaded('team-image');
-		if (!isset($image) || $image->getError() === UPLOAD_ERR_NO_FILE) {
+		$image = $uploadedFiles['team-image'];
+		assert($image instanceof UploadedFile);
+		if ($image->getError() === UPLOAD_ERR_NO_FILE) {
 			return null;
 		}
 		if ($image->getError() !== UPLOAD_ERR_OK) {
-			$this->params['errors'][] = $image->getErrorMessage();
+			$this->params['errors'][] = match ($image->getError()) {
+				UPLOAD_ERR_INI_SIZE   => lang('Uploaded file is too large', context: 'errors'),
+				UPLOAD_ERR_FORM_SIZE  => lang('Form size is to large', context: 'errors'),
+				UPLOAD_ERR_PARTIAL    => lang('The uploaded file was only partially uploaded.', context: 'errors'),
+				UPLOAD_ERR_CANT_WRITE => lang('Failed to write file to disk.', context: 'errors'),
+				default               => lang('Error while uploading a file.', context: 'errors'),
+			};
 			return null;
 		}
 		return $image;
@@ -376,7 +387,7 @@ class TournamentController extends Controller
 			}
 			if ($registration instanceof Team) {
 				// Check if team contains currently registered player
-				foreach ($registration->getPlayers() as $player) {
+				foreach ($registration->players as $player) {
 					if ($player->user?->id === $this->params['user']->id) {
 						return true;
 					}
@@ -403,7 +414,7 @@ class TournamentController extends Controller
 			'team-name' => $team->name,
 			'players'   => [],
 		];
-		foreach ($team->getPlayers() as $player) {
+		foreach ($team->players as $player) {
 			/** @phpstan-ignore-next-line */
 			$this->params['values']['players'][] = [
 				'id'          => $player->id,
@@ -461,7 +472,7 @@ class TournamentController extends Controller
 				assert(is_string($teamName));
 				$data = new TeamRegistrationDTO($teamName);
 				$data->leagueTeam = $team->leagueTeam->id;
-				$data->image = $this->processLogoUpload() ?? $team->getImageObj();
+				$data->image = $this->processLogoUpload($request->getUploadedFiles()) ?? $team->getImageObj();
 
 				/** @var array{id?:numeric-string,registered?:string,captain?:string,sub?:string,name:string,surname:string,nickname:string,phone?:string,parentEmail?:string,parentPhone?:string,birthYear?:numeric-string,user?:string,email:string,skill:string}[] $players */
 				$players = $request->getPost('players', []);

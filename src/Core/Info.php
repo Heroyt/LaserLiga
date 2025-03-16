@@ -3,7 +3,7 @@
 namespace App\Core;
 
 use Dibi\Exception;
-use Lsr\Core\DB;
+use Lsr\Db\DB;
 
 class Info
 {

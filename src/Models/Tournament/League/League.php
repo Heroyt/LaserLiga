@@ -3,6 +3,7 @@
 namespace App\Models\Tournament\League;
 
 use App\Models\Arena;
+use App\Models\BaseModel;
 use App\Models\Events\Event;
 use App\Models\Events\EventPopup;
 use App\Models\Events\EventRegistrationInterface;
@@ -13,21 +14,20 @@ use App\Models\Tournament\RegistrationType;
 use App\Models\Tournament\Tournament;
 use App\Models\WithSchema;
 use Lsr\Core\App;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_league'), OA\Schema]
-class League extends Model implements EventRegistrationInterface, WithSchema
+class League extends BaseModel implements EventRegistrationInterface, WithSchema
 {
 	use EventRegistrationTrait;
 
-	public const TABLE = 'leagues';
+	public const string TABLE = 'leagues';
 
 	#[OA\Property]
 	public string     $name;
@@ -69,31 +69,6 @@ class League extends Model implements EventRegistrationInterface, WithSchema
 		return self::query()->where('slug = %s', $slug)->first();
 	}
 
-	public function getImageUrl(): ?string {
-		if (!isset($this->image)) {
-			return null;
-		}
-		return App::getInstance()->getBaseUrl() . $this->image;
-	}
-
-	public function getUrl(string|int ...$append): string {
-		return App::getLink($this->getUrlPath(...$append));
-	}
-
-	/**
-	 * @param string|int ...$append
-	 *
-	 * @return list<string>
-	 */
-	public function getUrlPath(string|int ...$append): array {
-		return array_values(
-			array_merge(
-				!empty($this->slug) ? ['liga', (string)$this->slug] : ['league', (string)$this->id],
-				array_map(static fn($val) => (string)$val, $append)
-			)
-		);
-	}
-
 	/**
 	 * @return LeagueCategory[]
 	 * @throws ValidationException
@@ -118,7 +93,7 @@ class League extends Model implements EventRegistrationInterface, WithSchema
 			if (!$tournament->isFinished()) {
 				continue;
 			}
-			$teams = $tournament->getSortedTeams();
+			$teams = $tournament->sortedTeams;
 			$teamCount = count($teams);
 			foreach (array_reverse($teams) as $key => $team) {
 				if (!isset($team->leagueTeam)) {
@@ -163,34 +138,25 @@ class League extends Model implements EventRegistrationInterface, WithSchema
 		return $this->teams;
 	}
 
-	/**
-	 * @return Event[]
-	 * @throws ValidationException
-	 */
-	public function getEvents(): array {
-		$this->events ??= Event::query()->where('id_league = %i', $this->id)->get();
-		return $this->events;
-	}
-
 	public function getSchema(): array {
 		$schema = [
-			'@context' => 'https://schema.org/',
-			'@type' => 'EventSeries',
-			'name' => $this->name,
+			'@context'            => 'https://schema.org/',
+			'@type'               => 'EventSeries',
+			'name'                => $this->name,
 			'eventAttendanceMode' => 'OfflineEventAttendanceMode',
-			'identifier' => $this->getUrl(),
-			'url' => $this->getUrl(),
-			'keywords' => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
-			'organizer' => [
-				'@type' => 'Organization',
+			'identifier'          => $this->getUrl(),
+			'url'                 => $this->getUrl(),
+			'keywords'            => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
+			'organizer'           => [
+				'@type'      => 'Organization',
 				'identifier' => $this->arena->getUrl(),
-				'name' => $this->arena->name,
-				'url' => $this->arena->getUrl(),
-				'logo' => $this->arena->getLogoUrl(),
+				'name'       => $this->arena->name,
+				'url'        => $this->arena->getUrl(),
+				'logo'       => $this->arena->getLogoUrl(),
 			],
-			'offers' => [],
-			'subEvent' => [],
-			'eventStatus' => 'EventScheduled',
+			'offers'              => [],
+			'subEvent'            => [],
+			'eventStatus'         => 'EventScheduled',
 		];
 
 		if ($this->image !== null) {
@@ -207,16 +173,16 @@ class League extends Model implements EventRegistrationInterface, WithSchema
 
 		if ($this->arena->address->isFilled()) {
 			$schema['location'] = [
-				'@type' => 'Place',
-				'name' => $this->arena->name,
-				'url' => $this->arena->web,
-				'logo' => $this->arena->getLogoUrl(),
+				'@type'   => 'Place',
+				'name'    => $this->arena->name,
+				'url'     => $this->arena->web,
+				'logo'    => $this->arena->getLogoUrl(),
 				'address' => [
-					'@type' => 'PostalAddress',
-					'streetAddress' => $this->arena->address->street,
+					'@type'           => 'PostalAddress',
+					'streetAddress'   => $this->arena->address->street,
 					'addressLocality' => $this->arena->address->city,
-					'postalCode' => $this->arena->address->postCode,
-					'addressCountry' => $this->arena->address->country,
+					'postalCode'      => $this->arena->address->postCode,
+					'addressCountry'  => $this->arena->address->country,
 				],
 			];
 			if ($this->arena->lng !== null) {
@@ -231,12 +197,12 @@ class League extends Model implements EventRegistrationInterface, WithSchema
 		if ($this->eventPriceGroup !== null && count($this->eventPriceGroup->prices) > 0) {
 			foreach ($this->eventPriceGroup->prices as $price) {
 				$schema['offers'][] = [
-					'@type' => 'Offer',
-					'price' => $price->price,
+					'@type'         => 'Offer',
+					'price'         => $price->price,
 					'priceCurrency' => 'CZK',
-					'name' => $price->description,
-					'description' => $this->eventPriceGroup->description,
-					'url' => $this->getRegistrationUrl()
+					'name'          => $price->description,
+					'description'   => $this->eventPriceGroup->description,
+					'url'           => $this->getRegistrationUrl(),
 				];
 			}
 		}
@@ -251,7 +217,41 @@ class League extends Model implements EventRegistrationInterface, WithSchema
 		return $schema;
 	}
 
-	public function getRegistrationUrl() : string {
+	public function getUrl(string|int ...$append): string {
+		return App::getLink($this->getUrlPath(...$append));
+	}
+
+	/**
+	 * @param string|int ...$append
+	 *
+	 * @return list<string>
+	 */
+	public function getUrlPath(string|int ...$append): array {
+		return array_values(
+			array_merge(
+				!empty($this->slug) ? ['liga', (string)$this->slug] : ['league', (string)$this->id],
+				array_map(static fn($val) => (string)$val, $append)
+			)
+		);
+	}
+
+	public function getImageUrl(): ?string {
+		if (!isset($this->image)) {
+			return null;
+		}
+		return App::getInstance()->getBaseUrl() . $this->image;
+	}
+
+	public function getRegistrationUrl(): string {
 		return $this->getUrl('registration');
+	}
+
+	/**
+	 * @return Event[]
+	 * @throws ValidationException
+	 */
+	public function getEvents(): array {
+		$this->events ??= Event::query()->where('id_league = %i', $this->id)->get();
+		return $this->events;
 	}
 }

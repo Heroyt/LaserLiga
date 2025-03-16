@@ -5,6 +5,6 @@ namespace App\Models\Achievements;
 
 class PlayerAchievementCheckDto
 {
-	public int $checkedGames = 0;
+	public int $checkedGames      = 0;
 	public int $foundAchievements = 0;
 }

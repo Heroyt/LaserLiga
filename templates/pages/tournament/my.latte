@@ -43,7 +43,7 @@
 						{$player->team->name}
 					</h4>
 					{if $league->isStarted()}
-						<p><strong>{lang 'Umístění'}:</strong> {$player->team->getPosition()}</p>
+						<p><strong>{lang 'Umístění'}:</strong> {$player->team->position}</p>
                     {else}
                         <p>{lang 'Turnaj se ještě nehrál'}</p>
 						{if isset($user) && !$league->isStarted() && $player->team->validateAccess($user)}

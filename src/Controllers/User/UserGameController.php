@@ -14,14 +14,14 @@ use App\Services\Player\PlayerUserService;
 use DateInterval;
 use DateTimeImmutable;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 
@@ -58,7 +58,7 @@ class UserGameController extends AbstractUserController
 
 		$player = null;
 		/** @var Player $gamePlayer */
-		foreach ($game->getPlayers() as $gamePlayer) {
+		foreach ($game->players as $gamePlayer) {
 			if (isset($gamePlayer->user) && $gamePlayer->user->id === $this->user->id) {
 				$player = $gamePlayer;
 				break;
@@ -130,10 +130,11 @@ class UserGameController extends AbstractUserController
 				continue;
 			}
 
-			$game = $match->getGame();
+			$game = $match->game;
 
 			// Find player object
-			foreach ($game->getPlayers() as $player) {
+			/** @var Player $player */
+			foreach ($game->players as $player) {
 				if (comparePlayerNames($player->name, $this->user->name)) {
 					$this->playerUserService->setPlayerUser($this->user, $player);
 					break;
@@ -175,7 +176,8 @@ class UserGameController extends AbstractUserController
 			}
 
 			// Find player object in the game
-			foreach ($game->getPlayers() as $player) {
+			/** @var Player $player */
+			foreach ($game->players as $player) {
 				if (comparePlayerNames($normalizedName, $player->name)) {
 					if (!$this->playerUserService->setPlayerUser($this->user, $player)) {
 						$errors[] = 'Failed to save player ' . $player::SYSTEM . ' #' . $player->id;

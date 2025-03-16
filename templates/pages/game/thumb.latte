@@ -1,6 +1,6 @@
 {contentType image/svg+xml}
 {varType App\GameModels\Game\Game $game}
-{var int $playerCount = $game->getPlayerCount()}
+{var int $playerCount = $game->playerCount}
 {var array $colors = $game::getTeamColors()}
 {var int $padding = 50}
 {var int $playerMargin = 20}
@@ -66,7 +66,7 @@
 			{lang $game->getMode()?->name, context: 'gameModes'}
 		</text>
 	</g>
-	{foreach $game->getPlayersSorted() as $player}
+	{foreach $game->playersSorted as $player}
 		<g class="player">
 			{varType App\GameModels\Game\Player $player}
 			{var array $trophy = $player->getBestAt()}
@@ -74,9 +74,9 @@
 			{var int $row = floor($iterator->counter0 / $playerColumns)}
 			{var int $x = $padding + ($col * ($playerWidth + $playerMargin))}
 			{var int $y = $padding + $playerMargin + $headerHeight + ($row * ($playerHeight + $playerMargin))}
-			{var string $textColor = \App\Tools\Color::getFontColor($colors[$player->getColor()])}
+			{var string $textColor = \App\Tools\Color::getFontColor($colors[$player->color])}
 			<rect x="{$x}" y="{$y}" rx="10" ry="10" width="{$playerWidth}" height="{$playerHeight}"
-				  fill="{$colors[$player->getColor()]}"/>
+				  fill="{$colors[$player->color]}"/>
 			<text x="{$x + ($playerWidth / 2)}" y="{$y + ($playerHeight / 2) - 28}" text-anchor="middle" font-size="20"
 				  font-family="sans-serif" fill="{$textColor}">
 				{$iterator->counter}.

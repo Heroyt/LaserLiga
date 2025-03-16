@@ -74,7 +74,7 @@ class GroupController extends Controller
 
 		$this->params->group = $group;
 		$modes = $request->getGet('modes', []);
-		$this->params->modes = isset($modes) && is_array($modes) ?
+		$this->params->modes = is_array($modes) ?
 			array_map(static fn($id) => (int)$id, $modes) :
 			[];
 

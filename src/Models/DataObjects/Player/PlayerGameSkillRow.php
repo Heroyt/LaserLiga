@@ -7,9 +7,9 @@ use DateTimeInterface;
 
 class PlayerGameSkillRow
 {
-	public string $code;
-	public string $system;
-	public int $id_game;
-	public int $skill;
+	public string            $code;
+	public string            $system;
+	public int               $id_game;
+	public int               $skill;
 	public DateTimeInterface $start;
 }

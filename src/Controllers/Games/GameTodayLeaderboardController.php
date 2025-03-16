@@ -10,10 +10,10 @@ use App\GameModels\Game\Player;
 use App\Models\DataObjects\Game\LeaderboardPlayer;
 use App\Templates\Games\GameTodayLeaderboardParameters;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
 use Psr\Http\Message\ResponseInterface;
 
@@ -65,7 +65,7 @@ class GameTodayLeaderboardController extends Controller
 			[g].[start] as [date],
 			[m].[name] as [mode],
 			[p].[name],
-			[p].' . DB::getConnection()->getDriver()->escapeIdentifier($property) . ' as [value],
+			[p].' . DB::getConnection()->connection->getDriver()->escapeIdentifier($property) . ' as [value],
 			((' . DB::select([$playerClass::TABLE, 'pp1'], 'COUNT(*) as [count]')
 			        ->where('[pp1].%n IN %in', $gameClass::getPrimaryKey(), $gameIds)
 			        ->where('[pp1].%n > [p].%n', $property, $property) . ')+1) as [better],

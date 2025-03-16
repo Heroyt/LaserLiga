@@ -2,8 +2,8 @@
 
 {varType App\Models\Auth\User|null $user}
 {varType App\Models\Tournament\League\LeagueTeam $currTeam}
-{var App\Models\Tournament\Team[] $teams = $currTeam->getTeams()}
-{var App\Models\Tournament\Game[] $games = $currTeam->getGames()}
+{var App\Models\Tournament\Team[] $teams = $currTeam->teams}
+{var App\Models\Tournament\Game[] $games = $currTeam->games}
 
 {define content}
 
@@ -135,7 +135,7 @@
 
 						<hr>
 
-						{foreach $team->getPlayers() as $player}
+						{foreach $team->players as $player}
 							{include playerStats, $player, $team}
 						{/foreach}
 					</div>

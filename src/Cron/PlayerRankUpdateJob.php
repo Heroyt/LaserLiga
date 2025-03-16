@@ -6,9 +6,9 @@ namespace App\Cron;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\Services\Player\RankCalculator;
-use Lsr\Core\DB;
-use Lsr\Core\Models\ModelRepository;
+use Lsr\Db\DB;
 use Lsr\Logging\Logger;
+use Lsr\Orm\ModelRepository;
 use Orisai\Scheduler\Job\Job;
 use Orisai\Scheduler\Job\JobLock;
 

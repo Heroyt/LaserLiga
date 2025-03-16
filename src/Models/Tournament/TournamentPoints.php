@@ -4,7 +4,7 @@ namespace App\Models\Tournament;
 
 use Dibi\Row;
 use JsonException;
-use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use Lsr\Orm\Interfaces\InsertExtendInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema]
@@ -12,11 +12,11 @@ class TournamentPoints implements InsertExtendInterface
 {
 
 	/**
-	 * @param int $win
-	 * @param int $draw
-	 * @param int $loss
-	 * @param int $second
-	 * @param int $third
+	 * @param int   $win
+	 * @param int   $draw
+	 * @param int   $loss
+	 * @param int   $second
+	 * @param int   $third
 	 * @param int[] $other
 	 */
 	public function __construct(
@@ -44,7 +44,7 @@ class TournamentPoints implements InsertExtendInterface
 			$pointsOther = json_decode($row->points_other, false, 512, JSON_THROW_ON_ERROR);
 		} catch (JsonException) {
 		}
-		/** @phpstan-ignore-next-line  */
+		/** @phpstan-ignore-next-line */
 		return new static(
 			$row->points_win,
 			$row->points_draw,

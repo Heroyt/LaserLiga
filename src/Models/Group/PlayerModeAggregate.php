@@ -15,9 +15,9 @@ class PlayerModeAggregate
 	) {
 	}
 
-	public function addGame(GamePlayer $player, ?Game $game = null) : void {
+	public function addGame(GamePlayer $player, ?Game $game = null): void {
 		if (!isset($game)) {
-			$game = $player->getGame();
+			$game = $player->game;
 		}
 
 		// Prevent duplicate adding

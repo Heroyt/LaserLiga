@@ -7,22 +7,21 @@ use App\Exceptions\AuthHeaderException;
 use App\Exceptions\FileException;
 use App\Models\Arena;
 use App\Models\MusicMode;
-use Dibi\Exception;
 use Lsr\Core\Controllers\ApiController;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use RuntimeException;
 
 class Music extends ApiController
 {
 
-	private const array VALID_IMG_TYPES = ['jpg', 'jpeg', 'png'];
+	private const array VALID_IMG_TYPES  = ['jpg', 'jpeg', 'png'];
 	private const array VALID_ICON_TYPES = ['svg', 'jpg', 'jpeg', 'png'];
 
 	public ?Arena $arena;
@@ -89,7 +88,8 @@ class Music extends ApiController
 
 	private function customRespond(Request $request): ResponseInterface {
 		if (!empty($request->passErrors)) {
-			return $this->respond(new ErrorResponse('An error has occured', values: ['errors' => $request->passErrors]), 500);
+			return $this->respond(new ErrorResponse('An error has occured', values: ['errors' => $request->passErrors]),
+			                      500);
 		}
 		return $this->respond(new SuccessResponse(values: $request->getPassNotices()));
 	}
@@ -150,7 +150,10 @@ class Music extends ApiController
 					'content' => lang('Saved successfully', context: 'form'),
 				];
 			} catch (ValidationException $e) {
-				$request->passErrors[] = lang('Failed to validate data before saving', context: 'errors') . ': ' . $e->getMessage();
+				$request->passErrors[] = lang(
+						         'Failed to validate data before saving',
+						context: 'errors'
+					) . ': ' . $e->getMessage();
 			}
 		}
 		else {
@@ -158,82 +161,6 @@ class Music extends ApiController
 		}
 
 		return $this->customRespond($request);
-	}
-
-	public function removeMode(int $id): ResponseInterface {
-		if (!isset($this->arena)) {
-			return $this->respond(new ErrorResponse('Invalid arena', ErrorType::ACCESS), 403);
-		}
-		if ($id <= 0) {
-			return $this->respond(new ErrorResponse('Invalid music mode ID', ErrorType::VALIDATION), 400);
-		}
-		/** @var MusicMode|null $mode */
-		$mode = MusicMode::query()->where('`id_local` = %i AND `id_arena` = %i', $id, $this->arena->id)->first();
-		if (!isset($mode)) {
-			return $this->respond(new ErrorResponse('Music mode does not exist', ErrorType::NOT_FOUND), 404);
-		}
-		if (!empty($mode->fileName) && file_exists($mode->fileName)) {
-			unlink($mode->fileName);
-		}
-		if (!empty($mode->backgroundImage) && file_exists($mode->backgroundImage)) {
-			unlink($mode->backgroundImage);
-		}
-		if (!empty($mode->icon) && file_exists($mode->icon)) {
-			unlink($mode->icon);
-		}
-		if (!$mode->delete()) {
-			return $this->respond(new ErrorResponse('Delete failed', ErrorType::DATABASE), 500);
-		}
-		return $this->respond(new SuccessResponse('Removed successfully'));
-	}
-
-	public function removeModes(Request $request) : ResponseInterface {
-		if (!isset($this->arena)) {
-			return $this->respond(new ErrorResponse('Invalid arena', ErrorType::ACCESS), 403);
-		}
-
-		$removedIds = [];
-
-		/** @var numeric[]|numeric $ids */
-		$ids = $request->getPost('id', []);
-		if (!is_array($ids)) {
-			$ids = [$ids];
-		}
-
-		/** @var numeric[]|numeric $whiteList */
-		$whiteList = $request->getPost('whitelist', []);
-		if (!is_array($whiteList)) {
-			$whiteList = [$whiteList];
-		}
-
-		if (count($ids) > 0) {
-			foreach ($ids as $id) {
-				$response = $this->removeMode((int) $id);
-				if ($response->getStatusCode() !== 200 && $response->getStatusCode() !== 404) {
-					return $response;
-				}
-				$removedIds[] = $id;
-			}
-
-			return $this->respond(new SuccessResponse('Removed successfully', values: ['removed' => $removedIds, 'id' => $ids, 'whiteList' => $whiteList]));
-		}
-
-		$whiteList = array_map(static fn($val) => (int) $val, $whiteList);
-		$where = [['id_arena = %i', $this->arena->id]];
-		if (count($whiteList) > 0) {
-			$where[] = ['id_local NOT IN %in', $whiteList];
-		}
-		$modes = MusicMode::query()->where('%and', $where)->get();
-		foreach ($modes as $mode) {
-			$response = $this->removeMode($mode->idLocal);
-			if ($response->getStatusCode() !== 200 && $response->getStatusCode() !== 404) {
-				return $response;
-			}
-			$removedIds[] = $mode->idLocal;
-		}
-		MusicMode::clearQueryCache();
-
-		return $this->respond(new SuccessResponse('Removed successfully using whitelist', values: ['removed' => $removedIds, 'id' => $ids, 'whiteList' => $whiteList]));
 	}
 
 	private function processMediaUpload(UploadedFileInterface $file, Request $request, MusicMode $mode): ?ResponseInterface {
@@ -270,14 +197,14 @@ class Music extends ApiController
 		// Upload file
 		try {
 			$file->moveTo(UPLOAD_DIR . $name);
-		} catch (\RuntimeException $e) {
+		} catch (RuntimeException $e) {
 			$request->passErrors[] = lang('File upload failed.', context: 'errors') . ' ' . $e->getMessage();
 			return $this->customRespond($request);
 		}
 
 		// Save the model
 		$mode->fileName = UPLOAD_DIR . $name;
-		$request->addPassNotice('Processed music preview - '.$mode->fileName);
+		$request->addPassNotice('Processed music preview - ' . $mode->fileName);
 		return null;
 	}
 
@@ -315,7 +242,7 @@ class Music extends ApiController
 		// Upload file
 		try {
 			$file->moveTo(UPLOAD_DIR . $name);
-		} catch (\RuntimeException $e) {
+		} catch (RuntimeException $e) {
 			$request->passErrors[] = lang('File upload failed.', context: 'errors') . ' ' . $e->getMessage();
 			return $this->customRespond($request);
 		}
@@ -324,8 +251,9 @@ class Music extends ApiController
 		$mode->icon = UPLOAD_DIR . $name;
 		try {
 			$mode->getIcon()?->optimize();
-		} catch (FileException) {}
-		$request->addPassNotice('Processed music icon - '.$mode->icon);
+		} catch (FileException) {
+		}
+		$request->addPassNotice('Processed music icon - ' . $mode->icon);
 		return null;
 	}
 
@@ -363,7 +291,7 @@ class Music extends ApiController
 		// Upload file
 		try {
 			$file->moveTo(UPLOAD_DIR . $name);
-		} catch (\RuntimeException $e) {
+		} catch (RuntimeException $e) {
 			$request->passErrors[] = lang('File upload failed.', context: 'errors') . ' ' . $e->getMessage();
 			return $this->customRespond($request);
 		}
@@ -372,9 +300,98 @@ class Music extends ApiController
 		$mode->backgroundImage = UPLOAD_DIR . $name;
 		try {
 			$mode->getBackgroundImage()?->optimize();
-		} catch (FileException) {}
-		$request->addPassNotice('Processed music background image - '.$mode->backgroundImage);
+		} catch (FileException) {
+		}
+		$request->addPassNotice('Processed music background image - ' . $mode->backgroundImage);
 		return null;
+	}
+
+	public function removeModes(Request $request): ResponseInterface {
+		if (!isset($this->arena)) {
+			return $this->respond(new ErrorResponse('Invalid arena', ErrorType::ACCESS), 403);
+		}
+
+		$removedIds = [];
+
+		/** @var numeric[]|numeric $ids */
+		$ids = $request->getPost('id', []);
+		if (!is_array($ids)) {
+			$ids = [$ids];
+		}
+
+		/** @var numeric[]|numeric $whiteList */
+		$whiteList = $request->getPost('whitelist', []);
+		if (!is_array($whiteList)) {
+			$whiteList = [$whiteList];
+		}
+
+		if (count($ids) > 0) {
+			foreach ($ids as $id) {
+				$response = $this->removeMode((int)$id);
+				if ($response->getStatusCode() !== 200 && $response->getStatusCode() !== 404) {
+					return $response;
+				}
+				$removedIds[] = $id;
+			}
+
+			return $this->respond(
+				new SuccessResponse('Removed successfully', values: [
+					'removed'   => $removedIds,
+					'id'        => $ids,
+					'whiteList' => $whiteList,
+				])
+			);
+		}
+
+		$whiteList = array_map(static fn($val) => (int)$val, $whiteList);
+		$where = [['id_arena = %i', $this->arena->id]];
+		if (count($whiteList) > 0) {
+			$where[] = ['id_local NOT IN %in', $whiteList];
+		}
+		$modes = MusicMode::query()->where('%and', $where)->get();
+		foreach ($modes as $mode) {
+			$response = $this->removeMode($mode->idLocal);
+			if ($response->getStatusCode() !== 200 && $response->getStatusCode() !== 404) {
+				return $response;
+			}
+			$removedIds[] = $mode->idLocal;
+		}
+		MusicMode::clearQueryCache();
+
+		return $this->respond(
+			new SuccessResponse('Removed successfully using whitelist', values: [
+				'removed'   => $removedIds,
+				'id'        => $ids,
+				'whiteList' => $whiteList,
+			])
+		);
+	}
+
+	public function removeMode(int $id): ResponseInterface {
+		if (!isset($this->arena)) {
+			return $this->respond(new ErrorResponse('Invalid arena', ErrorType::ACCESS), 403);
+		}
+		if ($id <= 0) {
+			return $this->respond(new ErrorResponse('Invalid music mode ID', ErrorType::VALIDATION), 400);
+		}
+		/** @var MusicMode|null $mode */
+		$mode = MusicMode::query()->where('`id_local` = %i AND `id_arena` = %i', $id, $this->arena->id)->first();
+		if (!isset($mode)) {
+			return $this->respond(new ErrorResponse('Music mode does not exist', ErrorType::NOT_FOUND), 404);
+		}
+		if (!empty($mode->fileName) && file_exists($mode->fileName)) {
+			unlink($mode->fileName);
+		}
+		if (!empty($mode->backgroundImage) && file_exists($mode->backgroundImage)) {
+			unlink($mode->backgroundImage);
+		}
+		if (!empty($mode->icon) && file_exists($mode->icon)) {
+			unlink($mode->icon);
+		}
+		if (!$mode->delete()) {
+			return $this->respond(new ErrorResponse('Delete failed', ErrorType::DATABASE), 500);
+		}
+		return $this->respond(new SuccessResponse('Removed successfully'));
 	}
 
 }

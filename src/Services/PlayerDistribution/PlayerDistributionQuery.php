@@ -10,7 +10,7 @@ use App\Models\Auth\Player as LigaPlayer;
 use App\Models\DataObjects\Distribution\MinMaxRow;
 use DateTimeInterface;
 use Dibi\Exception;
-use Lsr\Core\DB;
+use Lsr\Db\DB;
 use Lsr\Logging\Logger;
 
 class PlayerDistributionQuery

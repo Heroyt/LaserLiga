@@ -3,20 +3,20 @@
 namespace App\Models\Push;
 
 use App\Models\Auth\User;
+use App\Models\BaseModel;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
 #[PrimaryKey('id_subscription')]
-class Subscription extends Model
+class Subscription extends BaseModel
 {
 
-	public const TABLE = 'notification_subscriptions';
+	public const string TABLE = 'notification_subscriptions';
 
 	#[ManyToOne]
-	public ?User $user = null;
+	public ?User  $user = null;
 	public string $endpoint;
 	public string $p256dh;
 	public string $auth;
@@ -35,10 +35,10 @@ class Subscription extends Model
 
 	public function getObject(): \Minishlink\WebPush\Subscription {
 		$subData = [
-			'endpoint' => $this->endpoint,
-			'keys' => [
+			'endpoint'        => $this->endpoint,
+			'keys'            => [
 				'p256dh' => $this->p256dh,
-				'auth' => $this->auth,
+				'auth'   => $this->auth,
 			],
 			'contentEncoding' => 'aesgcm',
 		];

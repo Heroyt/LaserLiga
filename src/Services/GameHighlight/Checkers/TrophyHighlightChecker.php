@@ -8,14 +8,16 @@ use App\Models\DataObjects\Highlights\GameHighlight;
 use App\Models\DataObjects\Highlights\HighlightCollection;
 use App\Models\DataObjects\Highlights\TrophyHighlight;
 use App\Services\GameHighlight\PlayerHighlightChecker;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 
 class TrophyHighlightChecker implements PlayerHighlightChecker
 {
 
-	public function checkPlayer(Player $player, HighlightCollection $highlights): void {
+	public function checkPlayer(PlayerInterface $player, HighlightCollection $highlights): void {
+		assert($player instanceof Player);
 		foreach (PlayerTrophy::SPECIAL_TROPHIES as $trophy) {
 			try {
 				if ($player->getTrophy()->check($trophy)) {

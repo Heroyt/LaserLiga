@@ -5,14 +5,15 @@ namespace App\Models\Tournament;
 use App\Models\Events\EventBase;
 use App\Models\Events\EventPlayerBase;
 use App\Models\Tournament\League\League;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use RuntimeException;
 
 #[PrimaryKey('id_substitute')]
 class Substitute extends EventPlayerBase
 {
 
-	public const TABLE = 'substitutes';
+	public const string TABLE = 'substitutes';
 
 	#[ManyToOne]
 	public ?Tournament $tournament = null;
@@ -21,7 +22,7 @@ class Substitute extends EventPlayerBase
 
 	public function getEvent(): EventBase|League {
 		if (!isset($this->tournament) && !isset($this->league)) {
-			throw new \RuntimeException('Substitute does not have either a tournament or a league');
+			throw new RuntimeException('Substitute does not have either a tournament or a league');
 		}
 		return $this->tournament ?? $this->league;
 	}

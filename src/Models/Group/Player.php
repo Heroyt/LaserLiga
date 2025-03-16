@@ -6,6 +6,7 @@ use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player as GamePlayer;
 use App\GameModels\Game\Team;
+use Lsr\Lg\Results\Interface\Models\GroupPlayerInterface;
 
 /**
  * Wrapper class to aggregate values from multiple player instances
@@ -15,7 +16,7 @@ use App\GameModels\Game\Team;
  * @method Team getTeam()
  * @method Game getGame()
  */
-class Player
+class Player implements GroupPlayerInterface
 {
 	use PlayerAggregate;
 
@@ -31,7 +32,7 @@ class Player
 	public array $deathPlayers = [];
 
 	public function __construct(
-		public readonly string     $asciiName,
+		public string              $asciiName,
 		public readonly GamePlayer $player,
 	) {
 	}
@@ -52,9 +53,9 @@ class Player
 		return $this->deathPlayers;
 	}
 
-	public function addGame(GamePlayer $player, ?Game $game = null) : void {
+	public function addGame(GamePlayer $player, ?Game $game = null): void {
 		if (!isset($game)) {
-			$game = $player->getGame();
+			$game = $player->game;
 		}
 
 		// Prevent duplicate adding
@@ -78,10 +79,10 @@ class Player
 		$this->accuracies[] = $player->accuracy;
 		$this->shots[] = $player->shots;
 
-		if (isset($player->hitsOwn) && $game->getMode()?->isTeam()) {
+		if (isset($player->hitsOwn) && $game->mode?->isTeam()) {
 			$this->hitsOwn[] = $player->hitsOwn;
 		}
-		if (isset($player->deathsOwn) && $game->getMode()?->isTeam()) {
+		if (isset($player->deathsOwn) && $game->mode?->isTeam()) {
 			$this->deathsOwn[] = $player->deathsOwn;
 		}
 
@@ -93,11 +94,11 @@ class Player
 
 		// Add aggregate values for game mode
 		try {
-			if (isset($game->getMode()->id)) {
-				if (!isset($this->gameModes[$game->getMode()->id])) {
-					$this->gameModes[$game->getMode()->id] = new PlayerModeAggregate($game->getMode());
+			if (isset($game->mode->id)) {
+				if (!isset($this->gameModes[$game->mode->id])) {
+					$this->gameModes[$game->mode->id] = new PlayerModeAggregate($game->mode);
 				}
-				$this->gameModes[$game->getMode()->id]->addGame($player, $game);
+				$this->gameModes[$game->mode->id]->addGame($player, $game);
 			}
 		} catch (GameModeNotFoundException) {
 		}
@@ -107,12 +108,12 @@ class Player
 	}
 
 	/**
-	 * @param string $name
-	 * @param array<int,mixed>  $arguments
+	 * @param string           $name
+	 * @param array<int,mixed> $arguments
 	 *
 	 * @return mixed
 	 */
-	public function __call(string $name, array $arguments) : mixed {
+	public function __call(string $name, array $arguments): mixed {
 		return $this->player->$name(...$arguments);
 	}
 
@@ -121,7 +122,7 @@ class Player
 	 *
 	 * @return mixed
 	 */
-	public function __get($name) : mixed {
+	public function __get($name): mixed {
 		return $this->player->$name;
 	}
 
@@ -131,7 +132,7 @@ class Player
 	 *
 	 * @return void
 	 */
-	public function __set($name, $value) : void {
+	public function __set($name, $value): void {
 		$this->player->$name = $value;
 	}
 
@@ -140,7 +141,7 @@ class Player
 	 *
 	 * @return bool
 	 */
-	public function __isset($name) : bool {
+	public function __isset($name): bool {
 		return isset($this->player->$name);
 	}
 
@@ -149,7 +150,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSumShots(array $modeIds) : int {
+	public function getModesSumShots(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -164,7 +165,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageShots(array $modeIds) : float {
+	public function getModesAverageShots(array $modeIds): float {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -184,7 +185,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageMisses(array $modeIds) : float {
+	public function getModesAverageMisses(array $modeIds): float {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -204,7 +205,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageAccuracy(array $modeIds) : float {
+	public function getModesAverageAccuracy(array $modeIds): float {
 		$sumHits = 0;
 		$sumShots = 0;
 		foreach ($modeIds as $id) {
@@ -224,7 +225,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageHits(array $modeIds) : float {
+	public function getModesAverageHits(array $modeIds): float {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -244,7 +245,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageOwnHits(array $modeIds) : float {
+	public function getModesAverageOwnHits(array $modeIds): float {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -264,7 +265,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageDeaths(array $modeIds) : float {
+	public function getModesAverageDeaths(array $modeIds): float {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -284,7 +285,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageOwnDeaths(array $modeIds) : float {
+	public function getModesAverageOwnDeaths(array $modeIds): float {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -304,7 +305,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSumScore(array $modeIds) : int {
+	public function getModesSumScore(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -319,7 +320,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesAverageScore(array $modeIds) : float {
+	public function getModesAverageScore(array $modeIds): float {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -339,7 +340,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSkill(array $modeIds) : int {
+	public function getModesSkill(array $modeIds): int {
 		$sum = 0;
 		$count = 0;
 		foreach ($modeIds as $id) {
@@ -351,7 +352,7 @@ class Player
 		if ($count === 0) {
 			return 0;
 		}
-		return (int) round($sum / $count);
+		return (int)round($sum / $count);
 	}
 
 	/**
@@ -359,7 +360,7 @@ class Player
 	 *
 	 * @return int|string
 	 */
-	public function getModesFavouriteVest(array $modeIds) : int|string {
+	public function getModesFavouriteVest(array $modeIds): int|string {
 		$vests = [];
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -381,7 +382,7 @@ class Player
 	 *
 	 * @return float
 	 */
-	public function getModesKd(array $modeIds) : float {
+	public function getModesKd(array $modeIds): float {
 		$sum = 0;
 		$sumDeath = 0;
 		foreach ($modeIds as $id) {
@@ -398,7 +399,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSumHits(array $modeIds) : int {
+	public function getModesSumHits(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -413,7 +414,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSumDeaths(array $modeIds) : int {
+	public function getModesSumDeaths(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -428,7 +429,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSumOwnDeaths(array $modeIds) : int {
+	public function getModesSumOwnDeaths(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -443,7 +444,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSumOwnHits(array $modeIds) : int {
+	public function getModesSumOwnHits(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -458,7 +459,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesSumMisses(array $modeIds) : int {
+	public function getModesSumMisses(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {
@@ -473,7 +474,7 @@ class Player
 	 *
 	 * @return int
 	 */
-	public function getModesPlayCount(array $modeIds) : int {
+	public function getModesPlayCount(array $modeIds): int {
 		$sum = 0;
 		foreach ($modeIds as $id) {
 			if (isset($this->gameModes[$id])) {

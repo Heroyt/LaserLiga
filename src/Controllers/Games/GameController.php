@@ -6,6 +6,7 @@ namespace App\Controllers\Games;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
+use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\Today;
 use App\Helpers\Gender;
@@ -105,7 +106,7 @@ class GameController extends Controller
 			$player = LigaPlayer::getByCode($user);
 		}
 		else if (isset($this->params->user)) {
-			foreach ($game->getPlayers() as $gamePlayer) {
+			foreach ($game->players as $gamePlayer) {
 				if ($gamePlayer->user?->id === $this->params->user->id) {
 					$player = $this->params->user->player;
 					break;
@@ -132,11 +133,11 @@ class GameController extends Controller
 			}
 		}
 
-		$this->params->today = new Today(
-			$game,
-			new ($game->playerClass),
-			new ($game->teamClass)
-		);
+		/** @var Player $player */
+		$player = new ($game->playerClass);
+		/** @var Team $team */
+		$team = new ($game->teamClass);
+		$this->params->today = new Today($game, $player, $team);
 		return $this->view('pages/game/index')
 		            ->withAddedHeader('Cache-Control', 'max-age=2592000,public');
 	}
@@ -149,9 +150,9 @@ class GameController extends Controller
 			$game->start->format('d.m.Y H:i'),
 			$game->getMode()->name ?? 'Team deathmach'
 		);
-		$players = $game->getPlayersSorted();
+		$players = $game->playersSorted;
 		if ($game->getMode()?->isTeam()) {
-			$teams = $game->getTeamsSorted();
+			$teams = $game->teamsSorted;
 			$teamCount = count($teams);
 			$teamNames = [];
 			/** @var Team $team */
@@ -255,7 +256,7 @@ class GameController extends Controller
 			$schema['provider']['telephone'] = $game->arena->contactPhone;
 		}
 
-		foreach ($game->getPlayers() as $player) {
+		foreach ($game->players as $player) {
 			$person = [
 				'@type' => 'Person',
 				'name'  => $player->name,

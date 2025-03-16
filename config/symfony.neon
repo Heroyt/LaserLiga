@@ -28,4 +28,4 @@ services:
 		[@symfony.encoder.json, @symfony.encoder.xml, @symfony.encoder.csv]
 	)
 
-	mapper: Lsr\Core\Mapper(@symfony.serializer)
+	mapper: Lsr\Serializer\Mapper(@symfony.serializer)

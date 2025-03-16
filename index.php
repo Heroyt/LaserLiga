@@ -17,11 +17,11 @@ use App\Controllers\E404;
 use App\Exceptions\DispatchBreakException;
 use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
-use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Requests\Exceptions\RouteNotFoundException;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Exceptions\MethodNotAllowedException;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Nyholm\Psr7\ServerRequest;
 
 const ROOT = __DIR__ . '/';

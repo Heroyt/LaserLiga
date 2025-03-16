@@ -3,8 +3,9 @@
 namespace App\Models\DataObjects;
 
 use App\Models\Auth\Player;
+use JsonSerializable;
 
-class GamesTogether implements \JsonSerializable
+class GamesTogether implements JsonSerializable
 {
 
 	public int $gameCount = 0;
@@ -28,8 +29,8 @@ class GamesTogether implements \JsonSerializable
 	public int   $hitsEnemy          = 0;
 	public int   $deathsTogether     = 0;
 	public int   $deathsEnemy        = 0;
-	private int $player1Id;
-	private int $player2Id;
+	private int  $player1Id;
+	private int  $player2Id;
 
 	public function __construct(
 		Player $player1,

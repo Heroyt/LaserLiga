@@ -7,12 +7,12 @@ use DateTimeInterface;
 
 class PlayerGameRating
 {
-	public string $code;
-	public int $id_user;
+	public string            $code;
+	public int               $id_user;
 	public DateTimeInterface $date;
-	public float $difference;
-	public ?string $expected_results;
-	public ?float $normalized_skill;
-	public ?int $max_skill;
-	public ?int $min_skill;
+	public float             $difference;
+	public ?string           $expected_results;
+	public ?float            $normalized_skill;
+	public ?int              $max_skill;
+	public ?int              $min_skill;
 }

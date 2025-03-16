@@ -7,6 +7,7 @@ use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player as GamePlayer;
 use App\GameModels\Game\Team;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\Player;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Ranking\PlayerGameRating;
@@ -16,9 +17,10 @@ use App\Models\DataObjects\Ranking\RankingPlayer;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Dibi\Exception;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Caching\Cache;
+use Lsr\Db\DB;
+use Lsr\LaserLiga\PlayerInterface;
+use Lsr\Orm\Exceptions\ValidationException;
 use Symfony\Component\Serializer\Serializer;
 use Throwable;
 
@@ -183,18 +185,18 @@ class RankCalculator
 	 * @param RankingPlayer[]   $teammates
 	 * @param RankingPlayer[]   $enemies
 	 * @param string            $code
-	 * @param User|Player       $user
+	 * @param User|PlayerInterface       $user
 	 * @param DateTimeInterface $date
 	 *
 	 * @return int Current player's rank after the difference
-	 * @throws Exception
 	 * @throws ValidationException
 	 * @post The difference is logged in the DB.
 	 *
 	 * @link https://en.wikipedia.org/wiki/Elo_rating_system
 	 * @link https://ryanmadden.net/adapting-elo/
 	 */
-	public function calculateRankForGamePlayer(int $skill, int|float $minSkill, int|float $maxSkill, array $teammates, array $enemies, string $code, User|Player $user, DateTimeInterface $date): int {
+	public function calculateRankForGamePlayer(int $skill, int|float $minSkill, int|float $maxSkill, array $teammates, array $enemies, string $code, User|PlayerInterface $user, DateTimeInterface $date): int {
+		assert($user instanceof Player || $user instanceof User);
 		$ratingDiff = 0.0;
 		$count = 0;
 
@@ -418,15 +420,15 @@ class RankCalculator
 		/** @var DateTimeInterface $date */
 		$date = $game->start;
 
-		$players = $game->getPlayers()->getAll();
+		$players = $game->players->getAll();
 		$users = [];
 		$teams = [];
 		$maxSkill = 0;
 		$minSkill = 99999;
 		foreach ($players as $player) {
 			/** @var Team $team */
-			$team = $player->getTeam();
-			$skill = $player->getSkill();
+			$team = $player->team;
+			$skill = $player->skill;
 			if ($skill > $maxSkill) {
 				$maxSkill = $skill;
 			}
@@ -526,16 +528,17 @@ class RankCalculator
 	 * @throws Throwable
 	 */
 	public function recalculatePlayerGameRating(GamePlayer $player): int {
+		/** @var LigaPlayer|null $user */
 		$user = $player->user;
 		if (!isset($user)) {
 			return -1;
 		}
 
-		if (!$player->getGame()->getMode()?->rankable) {
+		if (!$player->game->mode?->rankable) {
 			return $user->stats->rank;
 		}
 
-		$game = $player->getGame();
+		$game = $player->game;
 
 		$rating = DB::select('player_game_rating', '*')
 		            ->where('[code] = %s AND [id_user] = %i', $game->code, $user->id)
@@ -554,7 +557,7 @@ class RankCalculator
 
 		$maxSkill = 0;
 		$minSkill = 99999;
-		foreach ($game->getPlayers()->getAll() as $gamePlayer) {
+		foreach ($game->players->getAll() as $gamePlayer) {
 			$skill = $gamePlayer->skill;
 			if ($skill > $maxSkill) {
 				$maxSkill = $skill;
@@ -565,10 +568,10 @@ class RankCalculator
 
 			$playerData = RankingPlayer::fromGamePlayer($gamePlayer);
 
-			if (!isset($playerData->id_user) && $game->getGroup() !== null) {
-				$playerData->rank = $game->getGroup()->getPlayerByName($playerData->name)?->getSkill();
+			if (!isset($playerData->id_user) && $game->group !== null) {
+				$playerData->rank = $game->group->getPlayerByName($playerData->name)?->getSkill();
 			}
-			if ($gamePlayer->team->id !== $player->team->id || $game->getMode()?->isSolo()) {
+			if ($gamePlayer->team->id !== $player->team->id || $game->mode?->isSolo()) {
 				$enemies[] = $playerData;
 			}
 			else {

@@ -22,12 +22,13 @@ use Dibi\Exception;
 use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Session;
+use Lsr\Db\Connection;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Security\Passwords;
 use ReflectionException;
 use RuntimeException;
@@ -115,15 +116,17 @@ class Loader
 			return;
 		}
 		try {
-			DB::init();
+			$connection = App::getService('db.connection');
+			assert($connection instanceof Connection);
+			DB::init($connection);
 		} catch (Exception | DriverException $e) {
 			App::getInstance()->getLogger()->error(
-				'Cannot connect to the database! (' . $e->getCode() . ') ' . $e->getMessage()
+				'Cannot connect to the database! ('.$e->getCode().') '.$e->getMessage()
 			);
 			throw new RuntimeException(
-				'Cannot connect to the database!' . PHP_EOL .
-				$e->getMessage() . PHP_EOL .
-				$e->getTraceAsString() . PHP_EOL .
+				'Cannot connect to the database!'.PHP_EOL.
+				$e->getMessage().PHP_EOL.
+				$e->getTraceAsString().PHP_EOL.
 				json_encode(App::getInstance()->config->getConfig(), JSON_THROW_ON_ERROR),
 				$e->getCode(),
 				$e

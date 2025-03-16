@@ -3,7 +3,7 @@
 namespace App\Models\Tournament;
 
 use Dibi\Row;
-use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use Lsr\Orm\Interfaces\InsertExtendInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema]
@@ -33,8 +33,8 @@ class Requirements implements InsertExtendInterface
 	/**
 	 * @inheritDoc
 	 */
-	public static function parseRow(Row $row) : ?static {
-		/** @phpstan-ignore-next-line  */
+	public static function parseRow(Row $row): ?static {
+		/** @phpstan-ignore-next-line */
 		return new self(
 			Requirement::from($row->player_name),
 			Requirement::from($row->player_surname),
@@ -50,7 +50,7 @@ class Requirements implements InsertExtendInterface
 	/**
 	 * @inheritDoc
 	 */
-	public function addQueryData(array &$data) : void {
+	public function addQueryData(array &$data): void {
 		$data['player_name'] = $this->playerName->value;
 		$data['player_surname'] = $this->playerSurname->value;
 		$data['player_email'] = $this->playerEmail->value;

@@ -2,16 +2,16 @@
 
 namespace App\Models\Questionnaire;
 
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\OneToMany;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use App\Models\BaseModel;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\OneToMany;
+use Lsr\Orm\Exceptions\ValidationException;
 
 #[PrimaryKey('id_question')]
-class Question extends Model
+class Question extends BaseModel
 {
 
-	public const TABLE = 'question';
+	public const string TABLE = 'question';
 
 	public ?string      $text           = null;
 	public QuestionType $type           = QuestionType::ABC;
@@ -32,7 +32,7 @@ class Question extends Model
 	 * @return Question[]
 	 * @throws ValidationException
 	 */
-	public function getSubQuestions() : array {
+	public function getSubQuestions(): array {
 		if (empty($this->subQuestions)) {
 			$this->subQuestions = self::query()->where('parent_question = %i', $this->id)->get();
 		}
@@ -44,15 +44,15 @@ class Question extends Model
 	 *
 	 * @return string
 	 */
-	public function getTemplate() : string {
-		return 'types/'.($this->customTemplate ?? $this->type->value).'.latte';
+	public function getTemplate(): string {
+		return 'types/' . ($this->customTemplate ?? $this->type->value) . '.latte';
 	}
 
 	/**
 	 * @return Value[]
 	 * @throws ValidationException
 	 */
-	public function getValues() : array {
+	public function getValues(): array {
 		if (empty($this->values)) {
 			$this->values = Value::query()->where('id_question = %i', $this->id)->get();
 		}

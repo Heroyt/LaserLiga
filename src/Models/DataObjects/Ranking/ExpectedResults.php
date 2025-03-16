@@ -13,13 +13,14 @@ class ExpectedResults
 
 	public function __construct(
 		public string $user,
-		public int $currentRank,
-		public float $teamRank,
-		public float $teamSkill,
-		public float $enemiesRank,
-		public float $enemiesSkill,
-		public float $Q,
-	) {}
+		public int    $currentRank,
+		public float  $teamRank,
+		public float  $teamSkill,
+		public float  $enemiesRank,
+		public float  $enemiesSkill,
+		public float  $Q,
+	) {
+	}
 
 	public function addPlayer(PlayerRankDiffResult $player): void {
 		$this->players[] = $player;

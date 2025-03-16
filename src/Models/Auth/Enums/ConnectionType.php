@@ -2,6 +2,8 @@
 
 namespace App\Models\Auth\Enums;
 
+use Exception;
+
 /**
  * @property string $value
  * @method static ConnectionType from(string $value)
@@ -26,10 +28,10 @@ enum ConnectionType: string
 
 	public function getIcon(): string {
 		return match ($this) {
-			self::RFID         => throw new \Exception('To be implemented'),
+			self::RFID         => throw new Exception('To be implemented'),
 			self::LASER_FORCE  => 'laserforce',
 			self::MY_LASERMAXX => 'lasermaxx',
-			self::OTHER        => throw new \Exception('To be implemented'),
+			self::OTHER        => throw new Exception('To be implemented'),
 
 		};
 	}

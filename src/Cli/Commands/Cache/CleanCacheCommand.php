@@ -6,7 +6,7 @@ use App\Cli\Colors;
 use App\Cli\Enums\ForegroundColors;
 use App\Core\Info;
 use App\GameModels\Factory\GameFactory;
-use Lsr\Core\Caching\Cache;
+use Lsr\Caching\Cache;
 use Lsr\Core\Config;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

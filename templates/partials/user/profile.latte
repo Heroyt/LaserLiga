@@ -6,7 +6,7 @@
 
 {capture $abstract}
     {var App\GameModels\Game\Game|null $firstGame = $user->player->getFirstGame()}
-    {var App\Helpers\Gender $gender = $user->player->getGender()}
+    {var App\Helpers\Gender $gender = $user->player->gender}
     {ifset $firstGame}
         {switch $gender}
             {case App\Helpers\Gender::MALE}

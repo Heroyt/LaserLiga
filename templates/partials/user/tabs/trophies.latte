@@ -8,7 +8,7 @@
 <div id="trophies-stats" class="d-none py-3 text-center" data-track-content="" data-content-name="Trophies">
 	<h3>{lang 'Trofeje'}</h3>
     <p class="text-muted">
-        {switch $user->player->getGender()}
+        {switch $user->player->gender}
             {case App\Helpers\Gender::MALE}
             {sprintf(lang('Trofeje, které %s získal ve svých hrách. Trofeje jsou speciální ohodnocení, které vyjadřují úspěchy, kterých %s během hry dosáhl.'), $user->name, $user->name)}
             {case App\Helpers\Gender::FEMALE}

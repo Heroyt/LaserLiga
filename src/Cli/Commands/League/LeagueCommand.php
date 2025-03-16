@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Cli\Commands\League;
 
 use App\Models\Tournament\League\League;
-use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 
 trait LeagueCommand
 {

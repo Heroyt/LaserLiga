@@ -3,7 +3,7 @@
 namespace App\Models\DataObjects\Event;
 
 use App\Models\DataObjects\Image;
-use Lsr\Helpers\Files\UploadedFile;
+use Nyholm\Psr7\UploadedFile;
 
 class TeamRegistrationDTO
 {

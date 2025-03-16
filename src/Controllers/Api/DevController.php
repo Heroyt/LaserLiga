@@ -23,13 +23,13 @@ use Dibi\Exception;
 use Dibi\Result;
 use Lsr\Core\App;
 use Lsr\Core\Controllers\ApiController;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use RecursiveDirectoryIterator;
@@ -198,7 +198,7 @@ class DevController extends ApiController
 				$date = $game->start->format('d.m.Y');
 				$achievements[$date] ??= [];
 				$gamePlayer = null;
-				foreach ($game->getPlayers() as $gPlayer) {
+				foreach ($game->players as $gPlayer) {
 					if ($gPlayer->user?->id === $player->id) {
 						$gamePlayer = $gPlayer;
 						break;
@@ -420,12 +420,13 @@ class DevController extends ApiController
 		$limit = (int)$request->getGet('limit', 50);
 		$offset = (int)$request->getGet('offset', 0);
 		$players = Player::query()->limit($limit)->offset($offset)->get();
+		$hits = [];
 		foreach ($players as $player) {
 			$player->relativeHits = null;
-			$player->getRelativeHits();
+			$hits[$player->name] = $player->relativeHits;
 			$player->save();
 		}
-		return $this->respond(new SuccessResponse());
+		return $this->respond(new SuccessResponse(values: $hits));
 	}
 
 	/**

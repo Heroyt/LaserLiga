@@ -43,7 +43,7 @@ class DistributionController extends Controller
 			return $this->respond(new ErrorResponse(lang('Hra neexistuje'), ErrorType::VALIDATION), 400);
 		}
 		/** @var Player|null $player */
-		$player = $game->getPlayers()->query()->filter('id', $id)->first();
+		$player = $game->players->query()->filter('id', $id)->first();
 		if (!isset($player)) {
 			return $this->respond(new ErrorResponse(lang('Hráč neexistuje'), ErrorType::VALIDATION), 400);
 		}

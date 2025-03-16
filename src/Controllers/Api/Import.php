@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 use App\Core\Middleware\ApiToken;
 use App\Exceptions\AuthHeaderException;
 use App\Exceptions\ResultsParseException;
+use App\GameModels\Game\Game;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\GameGroup;
@@ -12,16 +13,16 @@ use App\Services\Achievements\AchievementChecker;
 use App\Services\Player\PlayerRankOrderService;
 use App\Services\Player\PlayerUserService;
 use App\Services\PushService;
-use App\Tools\ResultParsing\ResultsParser;
 use DateTimeImmutable;
 use Exception;
 use Lsr\Core\Controllers\ApiController;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Lg\Results\ResultsParser;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -120,6 +121,7 @@ class Import extends ApiController
 
 		try {
 			$game = $this->parser->setContents($content)->parse();
+			assert($game instanceof Game);
 		} catch (ResultsParseException $e) {
 			return $this->respond(
 				new ErrorResponse('Result parsing error', ErrorType::INTERNAL, exception: $e),
@@ -151,11 +153,12 @@ class Import extends ApiController
 			try {
 				$group = GameGroup::get((int)$groupId);
 				$game->group = $group;
-			} catch (ModelNotFoundException) {}
+			} catch (ModelNotFoundException) {
+			}
 		}
 
 		$users = [];
-		foreach ($game->getPlayers() as $player) {
+		foreach ($game->players as $player) {
 			if (isset($player->user)) {
 				$users[] = $player;
 			}
@@ -178,6 +181,7 @@ class Import extends ApiController
 				$ranksBefore = $this->rankOrderService->getTodayRanks();
 				$now = new DateTimeImmutable();
 				foreach ($users as $player) {
+					assert($player->user instanceof LigaPlayer);
 					$player->user->clearCache();
 					$this->playerUserService->updatePlayerStats($player->user->user);
 					$this->pushService->sendNewGameNotification($player, $player->user);

@@ -9,7 +9,7 @@ use App\GameModels\Game\Evo5\Game;
 use App\Models\DataObjects\Game\DuplicateGameCheckRow;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
-use Lsr\Core\DB;
+use Lsr\Db\DB;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace App\Models\DataObjects\Import\Evo5;
 
-use App\GameModels\Game\Evo5\Scoring;
+use Lsr\Lg\Results\LaserMaxx\Evo5\Scoring;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'Evo5GameImport')]
-class GameImportDto extends \App\Models\DataObjects\Import\GameImportDto
+class GameImportDto extends \App\Models\DataObjects\Import\Lasermaxx\GameImportDto
 {
 	#[OA\Property]
 	public ?Scoring $scoring = null;

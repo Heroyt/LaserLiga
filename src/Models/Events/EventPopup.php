@@ -4,7 +4,7 @@ namespace App\Models\Events;
 
 use App\Models\DataObjects\Image;
 use Dibi\Row;
-use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use Lsr\Orm\Interfaces\InsertExtendInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema]
@@ -23,7 +23,7 @@ class EventPopup implements InsertExtendInterface
 		#[OA\Property]
 		public ?string $link = null,
 		#[OA\Property]
-		public bool $active = true,
+		public bool    $active = true,
 	) {
 	}
 
@@ -31,7 +31,7 @@ class EventPopup implements InsertExtendInterface
 	 * @inheritDoc
 	 */
 	public static function parseRow(Row $row): ?static {
-		/** @phpstan-ignore-next-line  */
+		/** @phpstan-ignore-next-line */
 		return new self(
 			$row->popup_title,
 			$row->popup_description,

@@ -7,6 +7,7 @@ readonly class LeaderboardRank
 {
 	public function __construct(
 		public string $rank,
-		public int $difference,
-	){}
+		public int    $difference,
+	) {
+	}
 }

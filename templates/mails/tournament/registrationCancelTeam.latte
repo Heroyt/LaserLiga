@@ -7,7 +7,7 @@
 
     <h2>{$team->tournament->name} - {$team->tournament->start->format('d.m.Y')}</h2>
 
-    <div class="card" n:foreach="$team->getPlayers() as $player">
+    <div class="card" n:foreach="$team->players as $player">
         <h3>
             {$player->name} <i>{$player->nickname}</i> {$player->surname}
         </h3>

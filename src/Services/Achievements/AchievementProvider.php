@@ -12,12 +12,12 @@ use App\Models\Auth\Player;
 use App\Models\DataObjects\Player\PlayerAchievementRow;
 use App\Services\PushService;
 use Dibi\Exception;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Caching\Cache;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Throwable;
 
 class AchievementProvider
@@ -43,18 +43,18 @@ class AchievementProvider
 		}
 		$achievements = [];
 		$rows = DB::select('player_achievements', '*')
-		          ->where('code = %s AND id_user = %i', $player->getGame()->code, $player->user->id)
+		          ->where('code = %s AND id_user = %i', $player->game->code, $player->user->id)
 		          ->cacheTags(
 			          'user/achievements',
 			          'user/' . $player->id . '/achievements',
-			          'game/' . $player->getGame()->code . '/achievements'
+			          'game/' . $player->game->code . '/achievements'
 		          )
 		          ->fetchAllDto(PlayerAchievementRow::class);
 		foreach ($rows as $row) {
 			$achievements[] = new PlayerAchievement(
 				Achievement::get($row->id_achievement),
 				$player->user,
-				$player->getGame(),
+				$player->game,
 				$row->datetime
 			);
 		}

@@ -2,7 +2,6 @@
 
 namespace App\Models\Tournament;
 
-use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Events\EventBase;
 use App\Models\Events\EventRegistrationInterface;
 use App\Models\Events\EventTeamBase;
@@ -13,12 +12,14 @@ use App\Models\WithSchema;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Lsr\Core\App;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\OneToMany;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\ModelQuery;
+use Lsr\Lg\Results\Enums\GameModeType;
+use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Attributes\Relations\OneToMany;
+use Lsr\Orm\Exceptions\ValidationException;
+use Lsr\Orm\ModelCollection;
+use Lsr\Orm\ModelQuery;
 use OpenApi\Attributes as OA;
 
 #[
@@ -46,56 +47,61 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 	public int $teamsInGame = 2;
 
 	#[ManyToOne]
-	public ?League $league = null;
+	public ?League         $league   = null;
 	#[ManyToOne]
 	public ?LeagueCategory $category = null;
 
 	#[ManyToOne]
 	public ?GameGroup $group = null;
 
-	/** @var Group[] */
+	/** @var ModelCollection<Group> */
 	#[OneToMany(class: Group::class)]
-	public array $groups = [];
+	public ModelCollection $groups;
 
 	#[Instantiate]
 	#[OA\Property]
 	public TournamentPoints $points;
-	/** @var Team[] */
-	protected array $teams = [];
-	/** @var Player[] */
-	protected array $players = [];
-	/** @var Game[] */
-	private array $games = [];
-	/** @var Progression[] */
-	private array $progressions = [];
-	/** @var Team[] */
-	private array $sortedTeams = [];
-
-
 	#[OA\Property]
 	public DateTimeInterface  $start;
 	#[OA\Property]
 	public ?DateTimeInterface $end = null;
-
+	/** @var Team[] */
+	protected array $teams = [];
+	/** @var Player[] */
+	protected array $players = [];
 	protected bool $started;
-
-	/**
-	 * @return Player[]
-	 * @throws ValidationException
-	 */
-	public function getPlayers(): array {
-		if ($this->format === GameModeType::TEAM) {
-			return [];
+	/** @var Game[] */
+	private array $games = [];
+	/** @var Progression[] */
+	public array $progressions = [] {
+		get {
+			if (empty($this->progressions)) {
+				$this->progressions = Progression::query()->where('id_tournament = %i', $this->id)->get();
+			}
+			return $this->progressions;
 		}
-		if (empty($this->players)) {
-			$this->players = Player::query()->where('id_tournament = %i', $this->id)->get();
+	}
+	/** @var Team[] */
+	public array $sortedTeams = [] {
+		get {
+			if (empty($this->sortedTeams)) {
+				$teams = $this->teams;
+				usort($teams, static function (Team $a, Team $b) {
+					$diff = $b->points - $a->points;
+					if ($diff !== 0) {
+						return $diff;
+					}
+					return $b->score - $a->score;
+				});
+				$this->sortedTeams = $teams;
+			}
+			return $this->sortedTeams;
 		}
-		return $this->players;
 	}
 
 	public function isFinished(): bool {
 		if (!$this->finished) {
-			if (count($this->getGames()) === 0) {
+			if (count($this->games) === 0) {
 				$this->finished = false;
 				return false;
 			}
@@ -130,7 +136,7 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 	}
 
 	public function isFull(): bool {
-		return isset($this->teamLimit) && count($this->getTeams()) >= $this->teamLimit;
+		return isset($this->teamLimit) && count($this->teams) >= $this->teamLimit;
 	}
 
 	/**
@@ -148,36 +154,6 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 			return array_filter($this->teams, static fn(EventTeamBase $team) => !$team->disqualified);
 		}
 		return $this->teams;
-	}
-
-	/**
-	 * @return Team[]
-	 * @throws ValidationException
-	 */
-	public function getSortedTeams(): array {
-		if (empty($this->sortedTeams)) {
-			$teams = $this->getTeams();
-			usort($teams, static function (Team $a, Team $b) {
-				$diff = $b->points - $a->points;
-				if ($diff !== 0) {
-					return $diff;
-				}
-				return $b->getScore() - $a->getScore();
-			});
-			$this->sortedTeams = $teams;
-		}
-		return $this->sortedTeams;
-	}
-
-	/**
-	 * @return Progression[]
-	 * @throws ValidationException
-	 */
-	public function getProgressions(): array {
-		if (empty($this->progressions)) {
-			$this->progressions = Progression::query()->where('id_tournament = %i', $this->id)->get();
-		}
-		return $this->progressions;
 	}
 
 	/**
@@ -205,61 +181,39 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 		return $data;
 	}
 
+	public function isRegistrationActive(): bool {
+		return $this->registrationsActive && !$this->isStarted();
+	}
+
 	public function isStarted(): bool {
 		$this->started ??= $this->start < (new DateTimeImmutable());
 		return $this->started;
 	}
 
-	public function isRegistrationActive(): bool {
-		return $this->registrationsActive && !$this->isStarted();
-	}
-
-	public function getUrl(string|int ...$append) : string {
-		return App::getLink($this->getUrlPath(...$append));
-	}
-
 	/**
-	 * @param string|int ...$append
-	 *
-	 * @return list<string>
+	 * @return array<string,mixed>
 	 */
-	public function getUrlPath(string|int ...$append): array {
-		return array_values(
-			array_merge(
-				['tournament', $this->id],
-				array_map(static fn($val) => (string)$val, $append)
-			)
-		);
-	}
-
-	public function getRegistrationUrl() : string {
-		if ($this->league !== null && $this->league?->registrationType === RegistrationType::LEAGUE) {
-			return $this->league->getUrl('register');
-		}
-		return $this->getUrl('register');
-	}
-
-	public function getSchema() : array {
+	public function getSchema(): array {
 		$schema = [
-			'@context' => 'https://schema.org/',
-			'@type' => 'SportsEvent',
-			'name' => $this->name,
-			'startDate' => $this->start->format('c'),
+			'@context'            => 'https://schema.org/',
+			'@type'               => 'SportsEvent',
+			'name'                => $this->name,
+			'startDate'           => $this->start->format('c'),
 			'eventAttendanceMode' => 'OfflineEventAttendanceMode',
-			'sport' => 'Laser Game',
-			'identifier' => $this->getUrl(),
-			'url' => $this->getUrl(),
-			'keywords' => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
-			'competitor' => [],
-			'organizer' => [
-				'@type' => 'Organization',
+			'sport'               => 'Laser Game',
+			'identifier'          => $this->getUrl(),
+			'url'                 => $this->getUrl(),
+			'keywords'            => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
+			'competitor'          => [],
+			'organizer'           => [
+				'@type'      => 'Organization',
 				'identifier' => $this->arena->getUrl(),
-				'name' => $this->arena->name,
-				'url' => $this->arena->getUrl(),
-				'logo' => $this->arena->getLogoUrl(),
+				'name'       => $this->arena->name,
+				'url'        => $this->arena->getUrl(),
+				'logo'       => $this->arena->getLogoUrl(),
 			],
-			'offers' => [],
-			'eventStatus' => 'EventScheduled',
+			'offers'              => [],
+			'eventStatus'         => 'EventScheduled',
 		];
 
 		if ($this->image !== null) {
@@ -279,29 +233,29 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 		}
 
 		if ($this->league !== null) {
-			$schema['alternateName'] = $this->league->name.': '.$this->name;
+			$schema['alternateName'] = $this->league->name . ': ' . $this->name;
 			$schema['superEvent'] = [
-				'@type' => 'EventSeries',
-				'identifier' => $this->league->getUrl(),
-				'url' => $this->league->getUrl(),
-				'name' => $this->league->name,
-				'keywords' => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
+				'@type'               => 'EventSeries',
+				'identifier'          => $this->league->getUrl(),
+				'url'                 => $this->league->getUrl(),
+				'name'                => $this->league->name,
+				'keywords'            => 'Laser Game, tournament, turnaj, Laser liga, turnaj laser game',
 				'eventAttendanceMode' => 'OfflineEventAttendanceMode',
 			];
 		}
 
 		if ($this->arena->address->isFilled()) {
 			$schema['location'] = [
-				'@type' => 'Place',
-				'name' => $this->arena->name,
-				'url' => $this->arena->web,
-				'logo' => $this->arena->getLogoUrl(),
+				'@type'   => 'Place',
+				'name'    => $this->arena->name,
+				'url'     => $this->arena->web,
+				'logo'    => $this->arena->getLogoUrl(),
 				'address' => [
-					'@type' => 'PostalAddress',
-					'streetAddress' => $this->arena->address->street,
+					'@type'           => 'PostalAddress',
+					'streetAddress'   => $this->arena->address->street,
 					'addressLocality' => $this->arena->address->city,
-					'postalCode' => $this->arena->address->postCode,
-					'addressCountry' => $this->arena->address->country,
+					'postalCode'      => $this->arena->address->postCode,
+					'addressCountry'  => $this->arena->address->country,
 				],
 			];
 			if ($this->arena->lng !== null) {
@@ -316,21 +270,21 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 		if ($this->eventPriceGroup !== null && count($this->eventPriceGroup->prices) > 0) {
 			foreach ($this->eventPriceGroup->prices as $price) {
 				$schema['offers'][] = [
-					'@type' => 'Offer',
-					'price' => $price->price,
+					'@type'         => 'Offer',
+					'price'         => $price->price,
 					'priceCurrency' => 'CZK',
-					'name' => $price->description,
-					'description' => $this->eventPriceGroup->description,
-					'url' => $this->getRegistrationUrl()
+					'name'          => $price->description,
+					'description'   => $this->eventPriceGroup->description,
+					'url'           => $this->getRegistrationUrl(),
 				];
 			}
 		}
 
 		foreach ($this->getTeams(true) as $team) {
 			$teamData = [
-				'@type' => 'SportsTeam',
-				'name' => $team->name,
-				'sport' => 'Laser Game',
+				'@type'   => 'SportsTeam',
+				'name'    => $team->name,
+				'sport'   => 'Laser Game',
 				'athlete' => [],
 			];
 
@@ -339,13 +293,13 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 			}
 
 			if ($team->leagueTeam !== null) {
-				$teamData['url'] = App::getLink(['league', 'team', $team->leagueTeam->id]);
+				$teamData['url'] = App::getLink(['league', 'team', (string) $team->leagueTeam->id]);
 			}
 
-			foreach ($team->getPlayers() as $player) {
+			foreach ($team->players as $player) {
 				$playerData = [
 					'@type' => 'Person',
-					'name' => $player->nickname,
+					'name'  => $player->nickname,
 				];
 				if ($player->user !== null) {
 					$playerData['identifier'] = $player->user->getCode();
@@ -358,6 +312,46 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 		}
 
 		return $schema;
+	}
+
+	public function getUrl(string|int ...$append): string {
+		return App::getLink($this->getUrlPath(...$append));
+	}
+
+	/**
+	 * @param string|int ...$append
+	 *
+	 * @return list<string>
+	 */
+	public function getUrlPath(string|int ...$append): array {
+		/** @phpstan-ignore return.type */
+		return array_values(
+			array_merge(
+				['tournament', $this->id],
+				array_map(static fn($val) => (string)$val, $append)
+			)
+		);
+	}
+
+	public function getRegistrationUrl(): string {
+		if ($this->league !== null && $this->league->registrationType === RegistrationType::LEAGUE) {
+			return $this->league->getUrl('register');
+		}
+		return $this->getUrl('register');
+	}
+
+	/**
+	 * @return Player[]
+	 * @throws ValidationException
+	 */
+	public function getPlayers(): array {
+		if ($this->format === GameModeType::TEAM) {
+			return [];
+		}
+		if (empty($this->players)) {
+			$this->players = Player::query()->where('id_tournament = %i', $this->id)->get();
+		}
+		return $this->players;
 	}
 
 }

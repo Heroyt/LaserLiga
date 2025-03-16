@@ -86,7 +86,7 @@
     'teams' => [
     'name' => 'Týmy',
     'type' => 'tab',
-    'condition' => $event->format === App\GameModels\Game\Enums\GameModeType::TEAM,
+    'condition' => $event->format === Lsr\Lg\Results\Enums\GameModeType::TEAM,
     'piece' => 'Teams',
     'template' => './event/detailTeams.latte',
     'params' => [
@@ -97,7 +97,7 @@
     'players' => [
     'name' => 'Hráči',
     'type' => 'tab',
-    'condition' => $event->format === App\GameModels\Game\Enums\GameModeType::SOLO,
+    'condition' => $event->format === Lsr\Lg\Results\Enums\GameModeType::SOLO,
     'piece' => 'Players',
     'template' => './event/detailPlayers.latte',
     'params' => [

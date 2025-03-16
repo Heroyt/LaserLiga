@@ -2,17 +2,17 @@
 
 namespace App\Models\Questionnaire;
 
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToMany;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use App\Models\BaseModel;
+use Lsr\Db\DB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToMany;
+use Lsr\Orm\Exceptions\ValidationException;
 
 #[PrimaryKey('id_questionnaire')]
-class Questionnaire extends Model
+class Questionnaire extends BaseModel
 {
 
-	public const TABLE               = 'questionnaire';
+	public const string TABLE               = 'questionnaire';
 	public const QUESTION_LINK_TABLE = 'question_questionnaire';
 
 	public string  $name        = '';
@@ -26,15 +26,15 @@ class Questionnaire extends Model
 	 * @return Question[]
 	 * @throws ValidationException
 	 */
-	public function getQuestions() : array {
+	public function getQuestions(): array {
 		if (empty($this->questions)) {
 			$this->questions = Question::query()
-																 ->where(
-																	 'id_question IN %sql',
-																	 DB::select(self::QUESTION_LINK_TABLE, 'id_question')
-																		 ->where('id_questionnaire = %i', $this->id)
-																 )
-																 ->get();
+			                           ->where(
+				                           'id_question IN %sql',
+				                           DB::select(self::QUESTION_LINK_TABLE, 'id_question')
+				                             ->where('id_questionnaire = %i', $this->id)
+			                           )
+			                           ->get();
 		}
 		return $this->questions;
 	}

@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Exceptions\ModelSaveFailedException;
-use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Event\PlayerRegistrationDTO;
@@ -28,15 +27,16 @@ use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -468,7 +468,7 @@ class LeagueController extends Controller
 			$data->image = $this->processLogoUpload();
 			if (isset($previousTeam)) {
 				$data->image = isset($previousTeam->image) ? new Image($previousTeam->image) : null;
-				foreach ($previousTeam->getPlayers() as $previousPlayer) {
+				foreach ($previousTeam->players as $previousPlayer) {
 					$player = new PlayerRegistrationDTO(
 						$previousPlayer->nickname,
 						$previousPlayer->name ?? '',
@@ -534,7 +534,7 @@ class LeagueController extends Controller
 
 				// Prepare data for tournament registration
 				foreach ($data->players as $player) {
-					foreach ($team->getPlayers() as $teamPlayer) {
+					foreach ($team->players as $teamPlayer) {
 						if ($player->nickname === $teamPlayer->nickname) {
 							$player->leaguePlayer = $teamPlayer;
 							break;
@@ -680,7 +680,7 @@ class LeagueController extends Controller
 			}
 			if ($registration instanceof LeagueTeam) {
 				// Check if team contains currently registered player
-				foreach ($registration->getPlayers() as $player) {
+				foreach ($registration->players as $player) {
 					if ($player->user?->id === $this->params['user']->id) {
 						return true;
 					}
@@ -713,8 +713,8 @@ class LeagueController extends Controller
 			'category'  => $team->category?->id,
 			'players'   => [],
 		];
-		bdump($team->getPlayers());
-		foreach ($team->getPlayers() as $player) {
+		bdump($team->players);
+		foreach ($team->players as $player) {
 			$eventPlayers = EventPlayer::query()->where('id_league_player = %i', $player->id)->get();
 			$playerData = [
 				'id'          => $player->id,
@@ -843,7 +843,7 @@ class LeagueController extends Controller
 					$data->leagueTeam = $team->id;
 					$data->image = $team->getImageObj();
 					$tournaments = [];
-					foreach ($team->getTeams() as $tournamentTeam) {
+					foreach ($team->teams as $tournamentTeam) {
 						// Skip finished tournaments
 						if ($tournamentTeam->tournament->isFinished()) {
 							continue;
@@ -856,7 +856,7 @@ class LeagueController extends Controller
 								if ($player->leaguePlayer?->id === null) {
 									continue;
 								}
-								foreach ($tournamentTeam->getPlayers() as $tournamentPlayer) {
+								foreach ($tournamentTeam->players as $tournamentPlayer) {
 									if ($tournamentPlayer->leaguePlayer?->id === $player->leaguePlayer->id) {
 										$player->playerId = $tournamentPlayer->id;
 										break;

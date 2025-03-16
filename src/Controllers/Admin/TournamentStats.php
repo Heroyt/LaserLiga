@@ -8,8 +8,8 @@ use App\Models\Tournament\Stats;
 use App\Models\Tournament\Tournament;
 use JsonException;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Exceptions\TemplateDoesNotExistException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 
 class TournamentStats extends Controller

@@ -1,0 +1,74 @@
+tables:
+	App\Models\Arena:
+		order: 2
+		definition: '''
+		(
+            	`id_arena` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            	`id_user` int(11) unsigned DEFAULT NULL,
+            	`name` varchar(50) NOT NULL DEFAULT '',
+            	`lat` double DEFAULT NULL,
+            	`lng` double DEFAULT NULL,
+		    `address_street` varchar(100) DEFAULT NULL,
+		    `address_city` varchar(50) DEFAULT NULL,
+		    `address_post_code` varchar(10) DEFAULT NULL,
+		    `address_country` varchar(50) DEFAULT NULL,
+		    `web` varchar(200) DEFAULT NULL,
+		    `contactEmail` varchar(50) DEFAULT NULL,
+		    `contactPhone` varchar(20) DEFAULT NULL,
+		    `hidden` tinyint(1) NOT NULL DEFAULT 0,
+		    `reportEmails` varchar(500) DEFAULT NULL,
+            	PRIMARY KEY (`id_arena`),
+            	KEY `id_user` (`id_user`),
+            	CONSTRAINT `arenas_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		changes:
+			0.1:
+				- 'ADD `id_user` int(11) unsigned DEFAULT NULL AFTER `id_arena`'
+				- 'ADD `address_street` varchar(100) DEFAULT NULL AFTER `lng`'
+				- 'ADD `address_city` varchar(50) DEFAULT NULL AFTER `address_street`'
+				- 'ADD `address_post_code` varchar(10) DEFAULT NULL AFTER `address_city`'
+				- 'ADD `address_country` varchar(50) DEFAULT NULL AFTER `address_post_code`'
+				- 'ADD `web` varchar(200) DEFAULT NULL AFTER `address_country`'
+				- 'ADD `contactEmail` varchar(50) DEFAULT NULL AFTER `web`'
+				- 'ADD `contactPhone` varchar(20) DEFAULT NULL AFTER `contactEmail`'
+				- 'ADD `hidden` tinyint(1) NOT NULL DEFAULT 0 AFTER `contactPhone`'
+				- 'ADD `reportEmails` varchar(500) DEFAULT NULL AFTER `hidden`'
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	api_keys:
+		order: 3
+		definition: '''
+		(
+            	`id_key` int(11) unsigned NOT NULL AUTO_INCREMENT,
+            	`id_arena` int(11) unsigned NOT NULL,
+            	`key` varchar(50) NOT NULL DEFAULT '',
+            	`name` varchar(50) DEFAULT NULL,
+            	`valid` tinyint(1) NOT NULL DEFAULT 1,
+            	PRIMARY KEY (`id_key`),
+            	UNIQUE KEY `key` (`key`),
+            	KEY `id_arena` (`id_arena`),
+            	KEY `valid` (`valid`),
+            	CONSTRAINT `api_keys_ibfk_1` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'key'
+				columns: ['key']
+				unique: true
+			-
+				name: 'valid'
+				columns: ['valid']
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'

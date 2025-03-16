@@ -12,18 +12,25 @@ use App\Controllers\User\UserSettingsController;
 use App\Controllers\User\UserTournamentController;
 use App\Core\Middleware\CSRFCheck;
 use App\Core\Middleware\LoggedIn;
-use Lsr\Core\Routing\Route;
+use Lsr\Core\App;
+use Lsr\Core\Auth\Services\Auth;
+use Lsr\Core\Routing\Router;
 
-$loggedIn = new LoggedIn();
+$auth = App::getService('auth');
+assert($auth instanceof Auth);
 
-$routes = Route::group()
+/** @var Router $this */
+
+$loggedIn = new LoggedIn($auth);
+
+$routes = $this->group()
                ->middlewareAll($loggedIn)
                ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
 
 $privacyGroup = $routes->group('user/privacy')
                        ->get('agree', [UserPrivacyController::class, 'agree']);
 
-$publicUserRoutes = Route::group('/user')
+$publicUserRoutes = $this->group('/user')
                          ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
                          ->get('/leaderboard/{arenaId}', [LeaderboardController::class, 'show'])->name(
 		'player-leaderboard-arena'

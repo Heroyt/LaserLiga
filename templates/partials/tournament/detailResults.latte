@@ -1,8 +1,8 @@
-{varType App\Models\Tournament\Tournament $league}
+{varType App\Models\Tournament\Tournament $tournament}
 {varType string $results}
 {varType App\Models\Tournament\Stats[] $stats}
 
-{var App\Models\Tournament\Team[] $teams = $league->getSortedTeams()}
+{var App\Models\Tournament\Team[] $teams = $tournament->sortedTeams}
 <h3>
     {lang 'Výsledky turnaje'}
 </h3>
@@ -40,12 +40,12 @@
                     </a>
                 {/ifset}
             </td>
-            <td class="text-center">{$team->getWins()}</td>
-            <td class="text-center">{$team->getDraws()}</td>
-            <td class="text-center">{$team->getLosses()}</td>
+            <td class="text-center">{$team->wins}</td>
+            <td class="text-center">{$team->draws}</td>
+            <td class="text-center">{$team->losses}</td>
             <td class="text-center">{$team->points}</td>
-            <td class="text-center">{$team->getScore()|number:0,',','&nbsp;'|noescape}</td>
-            <td class="text-center">{$team->getSkill()|number:2,',','&nbsp;'|noescape}
+            <td class="text-center">{$team->score|number:0,',','&nbsp;'|noescape}</td>
+            <td class="text-center">{$team->skill|number:2,',','&nbsp;'|noescape}
                 {faSolid 'medal'}
             </td>
         </tr>
@@ -70,7 +70,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr n:foreach="$stat->getStats(tournament: $league) as ['model' => $model, 'value' => $value]">
+            <tr n:foreach="$stat->getStats(tournament: $tournament) as ['model' => $model, 'value' => $value]">
                 <td>{$iterator->counter}.</td>
                 <td>
                     {$stat->type === App\Models\Tournament\StatType::SOLO ? $model->nickname : $model->name}

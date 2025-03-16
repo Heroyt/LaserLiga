@@ -256,14 +256,14 @@ function getImageStyleSet(Image|string $image, bool $includeAllSizes = true): st
 		$image = new Image($image);
 	}
 
-	$type = $image->getType();
+	$type = $image->type;
 	$mime = match($type) {
 		'jpg', 'jpeg' => 'image/jpeg',
 		'png' => 'image/png',
 		default => 'image/'.$type,
 	};
 
-	$versions = $image->getOptimized();
+	$versions = $image->optimized;
 
 	$srcSet = [];
 
@@ -296,7 +296,7 @@ function getImageSrcSet(Image|string $image, bool $includeAllSizes = true): stri
 		$image = new Image($image);
 	}
 
-	$versions = $image->getOptimized();
+	$versions = $image->optimized;
 
 	$srcSet = [];
 

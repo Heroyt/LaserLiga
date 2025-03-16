@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers\Games;
 
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\Team;
 use App\Templates\Games\GameTeamParameters;
 use Lsr\Core\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
@@ -30,7 +31,8 @@ class GameTeamController extends Controller
 		}
 		$this->params->game = $game;
 
-		$team = $game->getTeams()->query()->filter('id', $id)->first();
+		/** @var Team|null $team */
+		$team = $game->teams->query()->filter('id', $id)->first();
 		if ($team === null) {
 			$this->title = 'Tým nenalezen';
 			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
@@ -40,12 +42,12 @@ class GameTeamController extends Controller
 		}
 		$this->params->team = $team;
 
-		$this->params->maxShots = $game->getTeams()
+		$this->params->maxShots = $game->teams
 		                               ->query()
 		                               ->sortBy('shots')
 		                               ->desc()
 		                               ->first()
-		                               ?->getShots() ?? 1000;
+		                               ->shots ?? 1000;
 
 		return $this->view('pages/game/partials/team')
 		            ->withHeader('Cache-Control', 'max-age=2592000,public');

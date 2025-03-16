@@ -5,8 +5,8 @@
 {var int $headerHeight = 150}
 {var int $contentWidth = 1200 - ($padding * 2)}
 {var int $contentHeight = 600 - ($padding * 2) - $headerHeight - $playerMargin}
-{var int $playerCount = count($group->getPlayers())}
-{var int $gameCount = count($group->getGames())}
+{var int $playerCount = count($group->players)}
+{var int $gameCount = count($group->games)}
 {var int $playerBoxHeight = 60}
 {var int $playerBoxWidth = 400}
 {var int $statBoxHeight = 100}
@@ -25,8 +25,8 @@
 ]}
 {var array[] $stats = [
 ['label' => 'Odehráno her', 'value' => number_format($gameCount, 0, ',', ' ')],
-['label' => 'První hra', 'value' => last($group->getGames())?->start?->format('j. n. Y H:i') ?? ''],
-['label' => 'Poslední hra', 'value' => first($group->getGames())?->start?->format('j. n. Y H:i') ?? ''],
+['label' => 'První hra', 'value' => last($group->games)?->start?->format('j. n. Y H:i') ?? ''],
+['label' => 'Poslední hra', 'value' => first($group->games)?->start?->format('j. n. Y H:i') ?? ''],
 ]}
 {var array $image = $images[$group->id % count($images)]}
 <?xml version="1.0" encoding="UTF-8"?>
@@ -54,7 +54,7 @@
               text-anchor="end">
             {lang 'Nejlepší hráči'}:
         </text>
-        {foreach $group->getPlayers() as $player}
+        {foreach $group->players as $player}
             {breakIf $iterator->counter > 6}
             {var int $top = $padding + 50 + ($iterator->counter0 * ($playerBoxHeight + $playerBoxMargin))}
             {var int $textY = $top + $playerBoxPadding + 20}

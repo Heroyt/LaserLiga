@@ -195,7 +195,7 @@
             {if $event instanceof App\Models\Tournament\League\League && count($event->getEvents()) > 0}
                 {foreach $event->getEvents() as $connectedEvent}
                     {varType App\Models\Events\Event $connectedEvent}
-                    {continueIf $connectedEvent->format !== App\GameModels\Game\Enums\GameModeType::SOLO}
+                    {continueIf $connectedEvent->format !== Lsr\Lg\Results\Enums\GameModeType::SOLO}
                     <div class="">
                         <div class="form-label">
                             {lang $connectedEvent->name}

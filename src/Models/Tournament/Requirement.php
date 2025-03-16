@@ -14,8 +14,8 @@ enum Requirement: string
 {
 
 	case REQUIRED = 'required';
-	case CAPTAIN = 'captain';
+	case CAPTAIN  = 'captain';
 	case OPTIONAL = 'optional';
-	case HIDDEN = 'hidden';
+	case HIDDEN   = 'hidden';
 
 }

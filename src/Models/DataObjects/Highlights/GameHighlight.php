@@ -10,9 +10,9 @@ class GameHighlight implements JsonSerializable
 {
 
 	public const int VERY_HIGH_RARITY = 100;
-	public const int HIGH_RARITY   = 90;
-	public const int MEDIUM_RARITY = 50;
-	public const int LOW_RARITY    = 10;
+	public const int HIGH_RARITY      = 90;
+	public const int MEDIUM_RARITY    = 50;
+	public const int LOW_RARITY       = 10;
 
 	/**
 	 * @param GameHighlightType $type
@@ -33,10 +33,11 @@ class GameHighlight implements JsonSerializable
 	 * @return array<string,mixed>
 	 */
 	public function jsonSerialize(): array {
-		return ['type'        => $this->type,
-		        'score'       => $this->rarityScore,
-		        'value'       => $this->value,
-		        'description' => $this->getDescription(),
+		return [
+			'type'        => $this->type,
+			'score'       => $this->rarityScore,
+			'value'       => $this->value,
+			'description' => $this->getDescription(),
 		];
 	}
 

@@ -2,23 +2,24 @@
 
 namespace App\Models\Events;
 
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use App\Models\BaseModel;
+use DateTimeInterface;
+use Lsr\Db\DB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ValidationException;
 
 #[PrimaryKey('id_event_date')]
-class EventDate extends Model
+class EventDate extends BaseModel
 {
 
-	public const TABLE = 'event_dates';
+	public const string TABLE = 'event_dates';
 
 	#[ManyToOne]
 	public Event $event;
 
-	public \DateTimeInterface  $start;
-	public ?\DateTimeInterface $end = null;
+	public DateTimeInterface  $start;
+	public ?DateTimeInterface $end = null;
 
 	public ?string $description = null;
 

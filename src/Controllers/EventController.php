@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Exceptions\ModelSaveFailedException;
-use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Event\PlayerRegistrationDTO;
@@ -23,15 +22,16 @@ use Dibi\DriverException;
 use Exception;
 use JsonException;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Exceptions\TemplateDoesNotExistException;
-use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\AuthInterface;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Logging\Logger;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
+use Nyholm\Psr7\UploadedFile;
 use Psr\Http\Message\ResponseInterface;
 
 class EventController extends Controller
@@ -387,7 +387,7 @@ class EventController extends Controller
 			$data->image = $this->processLogoUpload();
 			if (isset($previousTeam)) {
 				$data->image = isset($previousTeam->image) ? new Image($previousTeam->image) : null;
-				foreach ($previousTeam->getPlayers() as $previousPlayer) {
+				foreach ($previousTeam->players as $previousPlayer) {
 					$player = new PlayerRegistrationDTO(
 						$previousPlayer->nickname,
 						$previousPlayer->name ?? '',
@@ -669,7 +669,7 @@ class EventController extends Controller
 			}
 			if ($registration instanceof EventTeam) {
 				// Check if team contains currently registered player
-				foreach ($registration->getPlayers() as $player) {
+				foreach ($registration->players as $player) {
 					if ($player->user?->id === $this->params['user']->id) {
 						return true;
 					}
@@ -701,8 +701,8 @@ class EventController extends Controller
 			'team-name' => $team->name,
 			'players'   => [],
 		];
-		bdump($team->getPlayers());
-		foreach ($team->getPlayers() as $player) {
+		bdump($team->players);
+		foreach ($team->players as $player) {
 			$values['players'][] = [
 				'id'          => $player->id,
 				'user'        => $player->user?->getCode(),

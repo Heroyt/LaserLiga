@@ -2,55 +2,34 @@ includes:
 	- console.neon
 	- local.neon
 	- symfony.neon
+	- cqrs.neon
+	- jobs.neon
 parameters:
+	db:
+		driver: mysqli
+		lazy: true
+		host: db
+		port: 3306
+		collate: utf8mb4
+		database: lac
+		user: root
+		password: 'laser-arena-control'
 	auth:
 		userClass: 'App\Models\Auth\User'
-	routing:
-		routeFiles:
-			- %constants.appDir%routes
-		controllers:
-			- %constants.appDir%src/Controllers
 	templating:
 		tmpPath: '%constants.tempDir%latte'
 extensions:
-	caching: Nette\Bridges\CacheDI\CacheExtension(%constants.tempDir%)
-	orisai.scheduler: OriNette\Scheduler\DI\SchedulerExtension
+	cache: Lsr\Caching\DI\CacheExtension
 	decorator: Nette\DI\Extensions\DecoratorExtension
 	inject: Nette\DI\Extensions\InjectExtension
-orisai.scheduler:
-	console:
-		script: '%constants.appDir%bin/console'
-	errorHandler: tracy
-	jobs:
-		logArchive:
-			expression: 0 6 * * *
-			callback: [@cron.logArchive, 'run']
-		arenaReport:
-			expression: 0 23 * * *
-			callback: [@cron.arenaReport, 'run']
-		regressionUpdate:
-			expression: 0 3 * * *
-			callback: [@cron.regressionUpdate, 'run']
-		playerRankUpdate:
-			expression: 11 * * * *
-			callback: [@cron.playerRankUpdate, 'run']
-		playerAchievementCheck:
-			expression: 59 * * * *
-			callback: [@cron.playerAchievementCheck, 'run']
-		sitemap:
-			expression: 30 23 * * *
-			callback: [@cron.sitemap, 'run']
-		gamemodes:
-			expression: 45 23 * * *
-			callback: [@cron.gamemodes, 'run']
-		privacyUpdate:
-			expression: 00 12 * * *
-			callback: [@cron.privacy, 'run']
-		confirmEmail:
-			expression: 30 11 * * *
-			callback: [@cron.confirmEmail, 'run']
+	routing: Lsr\Core\Routing\DI\RoutingExtension
+	di: Nette\DI\Extensions\DIExtension
+	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
+di:
+	lazy: true
 services:
 	# Core
+	db.connection: Lsr\Db\Connection(config: %db%)
 	app: Lsr\Core\App
 	translations:
 		create: Lsr\Core\Translations
@@ -84,9 +63,8 @@ services:
 
 	regression.evo5: App\GameModels\Tools\Lasermaxx\RegressionStatCalculator
 
-	caching.journal: Lsr\Core\Caching\RedisJournal(@redis)
-	cache.storage: Lsr\Core\Caching\RedisStorage(@redis, '', @caching.journal)
-	cache: Lsr\Core\Caching\Cache(@cache.storage, null, %constants.debug%)
+	cache.journal: Lsr\Caching\Redis\RedisJournal(@redis)
+	cache.storage: Lsr\Caching\Redis\RedisStorage(@redis, '', @cache.journal)
 
 	avatars: App\Services\Avatar\AvatarService
 
@@ -99,6 +77,7 @@ services:
 	playerDistribution: App\Services\PlayerDistribution\PlayerDistributionService
 	playerGamesTogether: App\Services\Player\PlayersGamesTogetherService
 	playerStatsProvider: App\Services\Player\PlayerStatsProvider
+	playersProvider: App\Services\Player\PlayerProvider
 
 	mailer: Nette\Mail\SendmailMailer
 	mail: App\Services\MailService
@@ -133,20 +112,15 @@ services:
 	titleProvider: App\Services\Achievements\TitleProvider
 	eventRegistration: App\Services\EventRegistrationService
 	arenaStats: App\Services\ArenaStatsAggregator
+	gameModeProvider: App\Services\GameModeProvider
 
-	cron.logArchive: App\Cron\LogArchiveJob
-	cron.arenaReport: App\Cron\ArenaReportJob
-	cron.regressionUpdate: App\Cron\RegressionUpdateJob
-	cron.playerRankUpdate: App\Cron\PlayerRankUpdateJob
-	cron.playerAchievementCheck: App\Cron\PlayerAchievementCheckJob
-	cron.sitemap: App\Cron\GenerateSitemapJob
-	cron.gamemodes: App\Cron\CheckGameModesJob
-	cron.privacy: App\Cron\PrivacyUpdateNotificationJob
-	cron.confirmEmail: App\Cron\UserConfirmationEmailsJob
-
-	result.parser: App\Tools\ResultParsing\ResultsParser
-	result.parser.evo5: App\Tools\ResultParsing\Evo5\ResultsParser
-	result.parser.evo6: App\Tools\ResultParsing\Evo6\ResultsParser
+	result.parser: Lsr\Lg\Results\ResultsParser(['evo5' => @result.parser.evo5, 'evo6' => @result.parser.evo6])
+	results.generator: Lsr\Lg\Results\ResultsGenerator(['evo5' => @result.generator.evo5, 'evo6' => @result.generator.evo6])
+	results.logger: Lsr\Logging\Logger(%logger.dir%, 'results')
+	result.parser.evo5: App\Tools\ResultParsing\Evo5\ResultsParser(gameClass: App\GameModels\Game\Evo5\Game, logger: @results.logger)
+	result.parser.evo6: App\Tools\ResultParsing\Evo6\ResultsParser(gameClass: App\GameModels\Game\Evo6\Game, logger: @results.logger)
+	result.generator.evo5: Lsr\Lg\Results\LaserMaxx\Evo5\ResultsGenerator
+	result.generator.evo6: Lsr\Lg\Results\LaserMaxx\Evo6\ResultsGenerator
 
 	thumbnails: App\Services\Thumbnails\ThumbnailGenerator
 	fontawesome: App\Services\FontAwesomeManager
@@ -169,3 +143,12 @@ search:
 decorator:
 	Lsr\Core\Controllers\Controller:
 		inject: true
+
+cache:
+	cacheDir: %constants.tempDir%
+
+routing:
+	routeFiles:
+		- %constants.appDir%routes
+	controllers:
+		- %constants.appDir%src/Controllers

@@ -2,16 +2,16 @@
 
 namespace App\Models\Questionnaire;
 
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use App\Models\BaseModel;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ValidationException;
 
 #[PrimaryKey('id_user')]
-class User extends Model
+class User extends BaseModel
 {
 
-	public const TABLE       = 'questionnaire_user';
+	public const string TABLE       = 'questionnaire_user';
 	public const PRIMARY_KEY = 'id_user';
 
 	public string $identif  = '';
@@ -29,7 +29,7 @@ class User extends Model
 	 * @return Answer|null
 	 * @throws ValidationException
 	 */
-	public function getAnswerForQuestion(Question $question) : ?Answer {
+	public function getAnswerForQuestion(Question $question): ?Answer {
 		return $this->getAnswers()[$question->id] ?? null;
 	}
 
@@ -37,7 +37,7 @@ class User extends Model
 	 * @return Answer[]
 	 * @throws ValidationException
 	 */
-	public function getAnswers() : array {
+	public function getAnswers(): array {
 		if (empty($this->answers)) {
 			/** @var Answer[] $answers */
 			$answers = Answer::query()->where('id_user = %i', $this->id)->get();

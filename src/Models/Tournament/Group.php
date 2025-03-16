@@ -2,18 +2,18 @@
 
 namespace App\Models\Tournament;
 
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use App\Models\BaseModel;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ValidationException;
 
 #[PrimaryKey('id_group')]
-class Group extends Model
+class Group extends BaseModel
 {
 
-	public const TABLE = 'tournament_groups';
+	public const string TABLE = 'tournament_groups';
 
-	public string $name;
+	public string     $name;
 	#[ManyToOne]
 	public Tournament $tournament;
 

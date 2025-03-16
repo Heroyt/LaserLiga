@@ -2,9 +2,9 @@
 
 namespace App\Models\Events;
 
-use App\GameModels\Game\Enums\GameModeType;
 use App\Models\Tournament\Requirements;
-use Lsr\Core\Models\Attributes\Instantiate;
+use Lsr\Lg\Results\Enums\GameModeType;
+use Lsr\Orm\Attributes\Instantiate;
 use OpenApi\Attributes as OA;
 
 trait EventRegistrationTrait

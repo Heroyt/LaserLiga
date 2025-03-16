@@ -9,14 +9,14 @@ use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\Player;
 use Dibi\DriverException;
 use Lsr\Core\Controllers\ApiController;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -47,9 +47,8 @@ class LeaguesController extends ApiController
 		type: "array", items: new OA\Items(ref: "#/components/schemas/League"),
 	),)]
 	public function getAll(): ResponseInterface {
-		return $this->respond(
-			League::query()->where('id_arena = %i', $this->arena->id)->get()
-		);
+		/** @phpstan-ignore argument.type */
+		return $this->respond(League::query()->where('id_arena = %i', $this->arena->id)->get());
 	}
 
 	/**
@@ -254,7 +253,7 @@ class LeaguesController extends ApiController
 				$playerMap = [];
 				foreach ($category->getTeams() as $leagueTeam) {
 					$teamIds[$leagueTeam->id] = [];
-					$teams = $leagueTeam->getTeams();
+					$teams = $leagueTeam->teams;
 					$playerMap[$leagueTeam->id] ??= [];
 					/** @var \App\Models\Tournament\Player[] $missingPlayers */
 					$missingPlayers = [];
@@ -266,7 +265,7 @@ class LeaguesController extends ApiController
 					}
 					foreach ($teams as $team) {
 						$teamIds[$leagueTeam->id][$team->id] = [];
-						foreach ($team->getPlayers() as $player) {
+						foreach ($team->players as $player) {
 							$teamIds[$leagueTeam->id][$team->id][$player->id] = $player->leaguePlayer?->id;
 							$playerCount++;
 							$key = ($player->user->id ?? 0) . '-' . Strings::toAscii(Strings::lower($player->nickname ?? ''));

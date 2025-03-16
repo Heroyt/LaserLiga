@@ -18,7 +18,7 @@
 {/define}
 
 {define containerClasses}
-    game-results {if $game->getMode()?->isSolo()}solo{/if} py-5 mb-5 mb-lg-0
+    game-results {if $game->mode?->isSolo()}solo{/if} py-5 mb-5 mb-lg-0
 {/define}
 
 {define addHead}
@@ -69,13 +69,13 @@
 
 {define content}
     {include resultsHeader}
-    {if $game->getMode()?->isTeam() && $game->getMode()?->settings->partTeams}
+    {if $game->mode?->isTeam() && $game->mode?->settings->partTeams}
         {include resultsTeams}
     {/if}
-    {if $game->getMode()?->settings->partPlayers}
+    {if $game->mode?->settings->partPlayers}
         {include resultsPlayers}
     {/if}
-    {if $game->getMode()?->settings->partHits}
+    {if $game->mode?->settings->partHits}
         {include resultsHits}
     {/if}
 
@@ -182,7 +182,7 @@
 {/define}
 
 {define resultsWin}
-    {var App\GameModels\Game\Player|App\GameModels\Game\Team|null $win = $game->getMode()?->getWin($game)}
+    {var App\GameModels\Game\Player|App\GameModels\Game\Team|null $win = $game->mode?->getWin($game)}
     <div class="results-win">
         {if is_null($win)}
             <div class="print-primary">
@@ -193,7 +193,7 @@
                 {lang 'Vítězství', context: 'results'}: {$win->name}
             </div>
         {elseif $win instanceof App\GameModels\Game\Player}
-            <div class="{if $game->getMode()?->isSolo()}print-primary{else}bg-team-{$win->getTeam()->color}{/if}">
+            <div class="{if $game->mode?->isSolo()}print-primary{else}bg-team-{$win->team->color}{/if}">
                 {lang 'Vítězství', context: 'results'}: {$win->name}
             </div>
         {/if}
@@ -224,15 +224,15 @@
                 </div>
                 <div class="my-1">
                     <strong>{lang 'Herní mód', context: 'results.info'}:</strong>
-                    {lang $game->getMode()?->name, context: 'gameModes'}
+                    {lang $game->mode?->name, context: 'gameModes'}
                 </div>
-                <div n:if="$game->getMusic() !== null" class="my-1">
+                <div n:if="$game->music !== null" class="my-1">
                     <strong>{lang 'Hudební mód', context: 'results.info'}:</strong>
-                    {lang $game->getMusic()?->name, domain: 'music'}
+                    {lang $game->music?->name, domain: 'music'}
                 </div>
                 <div n:if="$game->getGroup() !== null">
                     <strong>{lang 'Skupina', context: 'results.info'}:</strong>
-                    {$game->getGroup()?->name}
+                    {$game->group?->name}
                 </div>
             </div>
             <div class="scoring p-0">
@@ -358,7 +358,7 @@
                         <div class="legend m-3">
                             {svgIcon 'dead', '', '1em'} - {lang 'Zásahy od/do spoluhráčů', context: 'results'}
                         </div>
-                        {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->getMode()?->settings->playerMines}
+                        {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode?->settings->playerMines}
                             <div class="legend m-3">
                                 {svgIcon 'base_2', '', '1em'} - {lang 'Bonusy', context: 'results'}
                             </div>
@@ -415,7 +415,7 @@
         </div>
         <div class="text-center">
             <button type="button" class="btn-lg btn btn-success d-none my-3" data-trigger="share"
-                    data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->getMode()?->name, context: 'gameModes'), $game->arena?->name)}"
+                    data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->mode?->name, context: 'gameModes'), $game->arena?->name)}"
                     data-url="{link 'g', $game->code}">
                 {faSolid 'share'}
                 {lang 'Sdílet'}
@@ -465,7 +465,7 @@
 					{lang 'Předchozí hra', context: 'results.group'}
 					</span>
                 </a>
-                <a n:if="$game->getGroup() !== null" href="{link ['game', 'group', $game->getGroup()?->getEncodedId()]}"
+                <a n:if="$game->getGroup() !== null" href="{link ['game', 'group', $game->getGroup()?->encodedId]}"
                                           class="btn btn-secondary"
                                           data-track-content="" data-content-name="Results - Group"
                                           data-content-piece="Button">
@@ -479,7 +479,7 @@
                     {faSolid 'trophy'}
                     {lang 'Turnaj'}
                 </a>
-                <a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-primary"
+                <a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-secondary"
                                             data-track-content="" data-content-name="Results - Next game"
                                             aria-label="{lang 'Následující hra', context: 'results.group'}"
                                             data-toggle="tooltip"
@@ -493,7 +493,7 @@
             </div>
         </div>
 
-        <div n:if="$game->getMode()?->isTeam()" class="btn-group mt-3 col-12" data-track-content=""
+        <div n:if="$game->mode?->isTeam()" class="btn-group mt-3 col-12" data-track-content=""
                                           data-content-name="Result mode switch">
             <input type="radio" class="btn-check" name="result-mode-select" value="players" id="result-mode-players"
                    autocomplete="off" checked>
@@ -508,13 +508,13 @@
 {/define}
 
 {define resultsPlayers}
-    {var int $maxShots = $game->getPlayers()->query()->sortBy('shots')->desc()->first()->shots}
-    {var int $count = count($game->getPlayers())}
+    {var int $maxShots = $game->players->query()->sortBy('shots')->desc()->first()->shots}
+    {var int $count = count($game->players)}
     <section class="results-players">
         <h2 class="visually-hidden">{lang 'Výsledky hráčů'}</h2>
-        {foreach $game->getPlayersSorted() as $key => $player}
+        {foreach $game->playersSorted as $key => $player}
             <div class="results-player rounded-10 my-2 bg-background-1 flex-fill shadow">
-                <a class="player-head collapsed bg-team-{$player->getTeamColor()} p-2 text-decoration-none" data-bs-toggle="collapse"
+                <a class="player-head collapsed bg-team-{$player->color} p-2 text-decoration-none" data-bs-toggle="collapse"
                      id="player-{$player->name|replace:' ','_'}"
                      tabindex="0" role="button" aria-expanded="false" aria-controls="player-body-{$key}"
                      data-track-content="" data-content-name="Results - player" data-content-target="{$player->name}"
@@ -569,7 +569,7 @@
 {define playerScore}
     {varType App\GameModels\Game\Player $player}
     <div class="score-skill d-flex flex-wrap justify-content-end">
-        <div n:if="$game->getMode()?->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
+        <div n:if="$game->mode?->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
             {faSolid 'star'}
             <span class="visually-hidden">{lang 'Skóre'}:</span>
             <b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
@@ -583,11 +583,11 @@
 {/define}
 
 {define resultsTeams}
-    {var int $totalScore = array_sum(array_map(function($team){ return $team->score > 0 ? $team->score : 0;},$game->getTeams()->getAll()))}
-    {var App\GameModels\Game\Team|null $win = $game->getMode()?->getWin($game)}
-    <div class="results-teams" data-teams="{count($game->getTeams())}">
+    {var int $totalScore = array_sum(array_map(function($team){ return $team->score > 0 ? $team->score : 0;},$game->teams->getAll()))}
+    {var App\GameModels\Game\Team|null $win = $game->mode?->getWin($game)}
+    <div class="results-teams" data-teams="{count($game->teams)}">
         <h2 class="visually-hidden">{lang 'Výsledky týmů'}</h2>
-        {foreach $game->getTeamsSorted() as $team}
+        {foreach $game->teamsSorted as $team}
             {varType App\GameModels\Game\Team $team}
             <div class="team-score rounded bg-team-{$team->color}"
                  style="--size:{100*($team->score > 0 ? $team->score : 0) / ($totalScore > 0 ? $totalScore : 1)|noescape}%;">
@@ -606,17 +606,17 @@
 
 {define resultsHits}
     {varType App\GameModels\Game\Player $player}
-    {var float $width = 87.5 / ($game->getPlayerCount() > 0 ? $game->getPlayerCount() : 1)}
+    {var float $width = 87.5 / ($game->playerCount > 0 ? $game->playerCount : 1)}
     <section class="results-hits align-self-end d-none d-md-block">
         <h2 class="caption fs-4">
             {svgIcon 'kill', '', '1rem'}
             {lang 'Zásahy hráčů', context: 'results.hits'}
         </h2>
-        <div n:foreach="$game->getPlayersSorted() as $player"
+        <div n:foreach="$game->playersSorted as $player"
                 class="player-hits w-100 bg-background-1 rounded py-2 px-3 d-flex mt-1 align-items-center shadow">
             {varType App\GameModels\Game\Player $player}
             <div class="player pe-1 border-end" style="width: 17.5%;">
-                <div class="text-uppercase fw-bold text-team-{$player->getTeamColor()}">
+                <div class="text-uppercase fw-bold text-team-{$player->color}">
                     {$player->name}
                 </div>
                 <div class="fs-sm">
@@ -630,15 +630,15 @@
                     {/switch}
                 </div>
             </div>
-            <div n:foreach="$game->getPlayersSorted()->getAll() as $player2" style="width: {$width|noescape}%;"
+            <div n:foreach="$game->playersSorted->getAll() as $player2" style="width: {$width|noescape}%;"
 
                     {varType App\GameModels\Game\Player $player2}
-                                                                             class="text-center px-1 {if $player->id === $player2->id}text-muted{elseif $player->getFavouriteTarget()?->id === $player2->id}fw-bold text-print-primary{/if}">
-                <div class="text-uppercase fw-semibold {if $player->id !== $player2->id}text-team-{$player2->getTeamColor()}{/if} fs-sm">
+                                                                             class="text-center px-1 {if $player->id === $player2->id}text-muted{elseif $player->favouriteTarget?->id === $player2->id}fw-bold text-print-primary{/if}">
+                <div class="text-uppercase fw-semibold {if $player->id !== $player2->id}text-team-{$player2->color}{/if} fs-sm">
                     {$player2->name}
                 </div>
                 {var int $hits = $player->getHitsPlayer($player2)}
-                {var bool $isAlly = $game->getMode()->isTeam() && $player->getTeamColor() === $player2->getTeamColor()}
+                {var bool $isAlly = $game->mode->isTeam() && $player->color === $player2->color}
                 <div n:class="$hits === 0 ? text-muted, $isAlly ? 'text-danger fw-bold'">
                     {$hits}
                 </div>

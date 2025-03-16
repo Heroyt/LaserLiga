@@ -10,5 +10,10 @@ parameters:
 	ignoreErrors:
 		-
 			identifier: missingType.generics
+		-
+			identifier: method.childReturnType
+			paths:
+				- src/GameModels/Traits/WithTeams.php
+				- src/GameModels/Traits/WithPlayers.php
 	universalObjectCratesClasses:
 		- Dibi\Row

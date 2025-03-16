@@ -5,7 +5,7 @@
 namespace App\Core\Interfaces;
 
 
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Model;
 
 /**
  * @template T of Model

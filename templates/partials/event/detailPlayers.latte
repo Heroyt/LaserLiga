@@ -26,7 +26,7 @@
             id="event-date-tab-{$date->id}" role="tabpanel"
             aria-labelledby="event-date-tab-{$date->id}-control"
             data-track-content="" data-content-name="League {$date->name} tournaments" tabindex="0">
-        {var App\Models\Events\EventPlayer[] $players = $date->getPlayers()}
+        {var App\Models\Events\EventPlayer[] $players = $date->players}
         {if $date->canceled}
             <h4 class="text-danger text-center">{lang 'Termín je zrušený'}</h4>
         {elseif count($players) > 0}

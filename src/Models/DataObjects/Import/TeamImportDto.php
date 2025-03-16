@@ -9,17 +9,19 @@ use OpenApi\Attributes as OA;
 class TeamImportDto
 {
 	#[OA\Property(example: 1)]
-	public ?int $id = null;
+	public ?int    $id             = null;
 	#[OA\Property(example: 1)]
-	public ?int $id_team = null;
+	public ?int    $id_team        = null;
 	#[OA\Property(example: 'Modrý tým')]
-	public ?string $name = null;
+	public ?string $name           = null;
 	#[OA\Property(example: 10000)]
-	public ?int $score = null;
+	public ?int    $score          = null;
 	#[OA\Property(example: 1)]
-	public ?int $color = null;
+	public ?int    $color          = null;
 	#[OA\Property(example: 1)]
-	public ?int $position = null;
+	public ?int    $position       = null;
 	#[OA\Property(example: 1)]
-	public ?int $tournamentTeam = null;
+	public ?int    $tournamentTeam = null;
+	#[OA\Property(example: 500)]
+	public ?int $bonus = null;
 }

@@ -3,7 +3,7 @@
 namespace App\Models\DataObjects\Player;
 
 use Dibi\Row;
-use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use Lsr\Orm\Interfaces\InsertExtendInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema]
@@ -44,28 +44,28 @@ class PlayerStats implements InsertExtendInterface
 	) {
 	}
 
-	public static function parseRow(Row $row) : ?static {
-		/** @phpstan-ignore-next-line  */
+	public static function parseRow(Row $row): ?static {
+		/** @phpstan-ignore-next-line */
 		return new PlayerStats(
-			(int) ($row->games_played ?? 0),
-			(int) ($row->arenas_played ?? 0),
-			(int) ($row->rank ?? 100),
-			(float) ($row->average_accuracy ?? 0.0),
-			(float) ($row->average_position ?? 0.0),
-			(int) ($row->max_accuracy ?? 0),
-			(int) ($row->max_score ?? 0),
-			(int) ($row->max_skill ?? 0),
-			(int) ($row->shots ?? 0),
-			(float) ($row->average_shots ?? 0.0),
-			(float) ($row->average_shots_per_minute ?? 0.0),
-			(int) ($row->total_minutes ?? 0),
-			(float) ($row->kd ?? 0.0),
-			(int) ($row->hits ?? 0),
-			(int) ($row->deaths ?? 0),
+			(int)($row->games_played ?? 0),
+			(int)($row->arenas_played ?? 0),
+			(int)($row->rank ?? 100),
+			(float)($row->average_accuracy ?? 0.0),
+			(float)($row->average_position ?? 0.0),
+			(int)($row->max_accuracy ?? 0),
+			(int)($row->max_score ?? 0),
+			(int)($row->max_skill ?? 0),
+			(int)($row->shots ?? 0),
+			(float)($row->average_shots ?? 0.0),
+			(float)($row->average_shots_per_minute ?? 0.0),
+			(int)($row->total_minutes ?? 0),
+			(float)($row->kd ?? 0.0),
+			(int)($row->hits ?? 0),
+			(int)($row->deaths ?? 0),
 		);
 	}
 
-	public function addQueryData(array &$data) : void {
+	public function addQueryData(array &$data): void {
 		$data['games_played'] = $this->gamesPlayed;
 		$data['arenas_played'] = $this->arenasPlayed;
 		$data['rank'] = $this->rank;

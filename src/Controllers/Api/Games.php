@@ -9,10 +9,10 @@ use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
+use App\GameModels\Game\Team;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\DataObjects\Game\MinimalGameRow;
@@ -33,18 +33,19 @@ use InvalidArgumentException;
 use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Controllers\ApiController;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Serializer\Serializer;
@@ -164,7 +165,7 @@ class Games extends ApiController
 			// TODO: Filter parsing could be more universally implemented for all API Controllers
 			$availableFilters = GameFactory::getAvailableFilters($system);
 			foreach ($request->getQueryParams() as $field => $value) {
-				$not = str_starts_with($value, 'not');
+				$not = is_string($value) && str_starts_with($value, 'not');
 				if ($not) {
 					$value = substr($value, 3);
 				}
@@ -417,7 +418,7 @@ class Games extends ApiController
 			return $this->respond(new ErrorResponse('This games belongs to a different arena,'), 403);
 		}
 		$users = [];
-		foreach ($game->getPlayers() as $player) {
+		foreach ($game->players as $player) {
 			if (isset($player->user)) {
 				$users[$player->vest] = $player->user;
 			}
@@ -566,10 +567,10 @@ class Games extends ApiController
 						500
 					);
 				}
-				foreach ($game->getPlayers()->getAll() as $player) {
+				foreach ($game->players->getAll() as $player) {
 					$playerSkills[$game->code][$player->vest] = [
 						'name'  => $player->name,
-						'skill' => $player->getSkill(),
+						'skill' => $player->skill,
 					];
 				}
 			} catch (InsufficientRegressionDataException) {
@@ -759,11 +760,11 @@ class Games extends ApiController
 		$playerSkills = [];
 		$sumSkill = 0;
 		$sumUserSkill = 0;
-		foreach ($game->getPlayers()->getAll() as $player) {
+		foreach ($game->players->getAll() as $player) {
 			$playerSkills[$player->vest] = [
 				'name'  => $player->name,
-				'skill' => $player->getSkill(),
-				'user'  => $player->user?->stats->rank ?? $player->getSkill(),
+				'skill' => $player->skill,
+				'user'  => $player->user?->stats->rank ?? $player->skill,
 			];
 			$sumSkill += $playerSkills[$player->vest]['skill'];
 			$sumUserSkill += $playerSkills[$player->vest]['user'];
@@ -826,7 +827,7 @@ class Games extends ApiController
 				403
 			);
 		}
-		foreach ($game->getPlayers() as $player) {
+		foreach ($game->players as $player) {
 			$player->accuracy = (int)round(100 * $player->hits / $player->shots);
 		}
 		$game->recalculateScores();
@@ -1067,7 +1068,7 @@ class Games extends ApiController
 
 			// Find logged-in users
 			/** @var Player $player */
-			foreach ($game->getPlayers()->getAll() as $player) {
+			foreach ($game->players->getAll() as $player) {
 				if (isset($player->user)) {
 					if (!isset($users[$player->user->id])) {
 						$users[$player->user->id] = [
@@ -1127,7 +1128,7 @@ class Games extends ApiController
 			$this->playerUserService->updatePlayerStats($user->user);
 			foreach ($userData['games'] as $game) {
 				$this->pushService->sendNewGameNotification($game, $user);
-				//$this->achievementChecker->checkPlayerGame($game->getGame(), $game);
+				//$this->achievementChecker->checkPlayerGame($game->game, $game);
 			}
 		}
 		// Update today's ranks
@@ -1570,13 +1571,14 @@ class Games extends ApiController
 			}
 
 			// Assign all players to one team
-			$team = $game->getTeams()->first();
+			/** @var Team|null $team */
+			$team = $game->teams->first();
 			if (!isset($team)) {
 				return $this->respond(new ErrorResponse('Error while getting a team from a game'), 500);
 			}
 			/** @var Player $player */
-			foreach ($game->getPlayers() as $player) {
-				$player->setTeam($team);
+			foreach ($game->players as $player) {
+				$player->team = $team;
 			}
 		}
 

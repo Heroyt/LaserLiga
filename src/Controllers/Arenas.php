@@ -14,9 +14,9 @@ use DateInterval;
 use DateTimeImmutable;
 use Exception;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
 use Psr\Http\Message\ResponseInterface;
 
 class Arenas extends Controller
@@ -31,7 +31,7 @@ class Arenas extends Controller
 		parent::__construct();
 	}
 
-	public function list() : ResponseInterface {
+	public function list(): ResponseInterface {
 		$this->params = new ArenaListParameters($this->params);
 		$this->params->breadcrumbs = [
 			'Laser Liga'  => [],
@@ -44,7 +44,7 @@ class Arenas extends Controller
 		return $this->view('pages/arenas/index');
 	}
 
-	public function show(Arena $arena, Request $request) : ResponseInterface {
+	public function show(Arena $arena, Request $request): ResponseInterface {
 		assert($arena->id !== null, 'Missing arena ID');
 		$this->params = new ArenaParameters($this->params);
 		$this->params->breadcrumbs = [
@@ -86,7 +86,10 @@ class Arenas extends Controller
 
 		$this->params->players = $this->statsAggregator->getArenaDayPlayerLeaderboard($arena, $today);
 		$this->params->todayGames = $this->statsAggregator->getArenaDateGameCount($arena, $today);
-		$this->params->todayPlayers = $this->params->todayGames === 0 ? 0 : $this->statsAggregator->getArenaDatePlayerCount($arena, $today);
+		$this->params->todayPlayers = $this->params->todayGames === 0 ? 0 : $this->statsAggregator->getArenaDatePlayerCount(
+			$arena,
+			$today
+		);
 
 		$this->params->music = [];
 		foreach (MusicMode::getAll($arena) as $music) {
@@ -100,7 +103,7 @@ class Arenas extends Controller
 		return $this->view('pages/arenas/arena');
 	}
 
-	public function games(Arena $arena, Request $request) : ResponseInterface {
+	public function games(Arena $arena, Request $request): ResponseInterface {
 		$this->params = new ArenaGamesParameters($this->params);
 		$this->params->arena = $arena;
 		$this->getArenaGames($arena, $request);
@@ -108,7 +111,7 @@ class Arenas extends Controller
 	}
 
 
-	public function gameModesStats(Arena $arena, Request $request) : ResponseInterface {
+	public function gameModesStats(Arena $arena, Request $request): ResponseInterface {
 		$date = $request->getGet('date');
 		if (!is_string($date)) {
 			$date = null;
@@ -116,8 +119,9 @@ class Arenas extends Controller
 		$date = $date !== null ? new DateTimeImmutable($date) : null;
 		$gamesQuery = $arena->queryGames($date, extraFields: ['id_mode']);
 		$this->statFilter($gamesQuery, $request);
-		$query = new Fluent(
+		$query = DB::getConnection()->getFluent(
 			DB::getConnection()
+				->connection
 				->select('[a].[id_mode], COUNT([a].[id_mode]) as [count], [b].[name]')
 				->from('%sql [a]', $gamesQuery->fluent)
 				->join(AbstractMode::TABLE, '[b]')
@@ -133,7 +137,7 @@ class Arenas extends Controller
 		return $this->respond($return);
 	}
 
-	private function statFilter(Fluent $query, Request $request) : void {
+	private function statFilter(Fluent $query, Request $request): void {
 		$week = $request->getGet('week');
 		if (is_string($week)) {
 			try {
@@ -141,10 +145,10 @@ class Arenas extends Controller
 			} catch (Exception) {
 				$date = new DateTimeImmutable();
 			}
-			$day = (int) $date->format('N');
+			$day = (int)$date->format('N');
 			try {
-				$start = $date->sub(new DateInterval('P'.($day - 1).'D'));
-				$end = $date->add(new DateInterval('P'.(7 - $day).'D'));
+				$start = $date->sub(new DateInterval('P' . ($day - 1) . 'D'));
+				$end = $date->add(new DateInterval('P' . (7 - $day) . 'D'));
 				$query->where('[start] BETWEEN %d AND %d', $start, $end);
 			} catch (Exception) {
 			}
@@ -159,25 +163,26 @@ class Arenas extends Controller
 			$day = $date->format('Y-m');
 			$days = $date->format('t');
 			try {
-				$start = new DateTimeImmutable($day.'-1');
-				$end = new DateTimeImmutable($day.'-'.$days);
+				$start = new DateTimeImmutable($day . '-1');
+				$end = new DateTimeImmutable($day . '-' . $days);
 				$query->where('[start] BETWEEN %d AND %d', $start, $end);
 			} catch (Exception) {
 			}
 		}
 	}
 
-	public function musicModesStats(Arena $arena, Request $request) : ResponseInterface {
+	public function musicModesStats(Arena $arena, Request $request): ResponseInterface {
 		$date = $request->getGet('date');
 		if (!is_string($date)) {
 			$date = null;
 		}
 		$date = $date !== null ? new DateTimeImmutable($date) : null;
 		$gamesQuery = $arena->queryGames($date, extraFields: ['id_music'])
-			->where('[id_music] IS NOT NULL');
+		                    ->where('[id_music] IS NOT NULL');
 		$this->statFilter($gamesQuery, $request);
-		$query = new Fluent(
+		$query = DB::getConnection()->getFluent(
 			DB::getConnection()
+				->connection
 				->select('[a].[id_music], COUNT([a].[id_music]) as [count], [b].[name]')
 				->from('%sql [a]', $gamesQuery->fluent)
 				->join(MusicMode::TABLE, '[b]')

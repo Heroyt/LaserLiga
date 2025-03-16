@@ -3,37 +3,37 @@
 namespace App\Models\Events;
 
 use App\Models\Arena;
+use App\Models\BaseModel;
 use App\Models\DataObjects\Image;
 use App\Models\Tournament\EventPriceGroup;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 use OpenApi\Attributes as OA;
 
-abstract class EventBase extends Model
+abstract class EventBase extends BaseModel
 {
 	use EventRegistrationTrait;
 
 	#[ManyToOne]
 	#[OA\Property]
-	public Arena  $arena;
+	public Arena            $arena;
 	#[OA\Property]
-	public string $name;
+	public string           $name;
 	#[OA\Property, ManyToOne]
 	public ?EventPriceGroup $eventPriceGroup = null;
 
 	#[OA\Property]
-	public ?string $rules            = null;
+	public ?string    $rules            = null;
 	#[OA\Property]
-	public ?string $prices           = null;
+	public ?string    $prices           = null;
 	#[OA\Property]
-	public ?string $resultsSummary   = null;
+	public ?string    $resultsSummary   = null;
 	#[OA\Property]
-	public ?string $image            = null;
+	public ?string    $image            = null;
 	#[OA\Property]
-	public ?string $shortDescription = null;
+	public ?string    $shortDescription = null;
 	#[OA\Property]
-	public ?string $description      = null;
+	public ?string    $description      = null;
 	#[OA\Property, Instantiate]
 	public EventPopup $popup;
 
@@ -49,7 +49,7 @@ abstract class EventBase extends Model
 		if (!isset($image)) {
 			return null;
 		}
-		$optimized = $image->getOptimized();
+		$optimized = $image->optimized;
 		return $optimized['webp'] ?? $optimized['original'];
 	}
 

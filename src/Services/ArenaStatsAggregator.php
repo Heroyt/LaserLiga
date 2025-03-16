@@ -8,8 +8,8 @@ use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\DataObjects\Game\LeaderboardRecord;
 use DateTimeInterface;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
 
 class ArenaStatsAggregator
 {
@@ -22,10 +22,10 @@ class ArenaStatsAggregator
 	 */
 	public function getArenaDayPlayerLeaderboard(Arena $arena, DateTimeInterface $date): array {
 		return $this->getArenaDayPlayerLeaderboardQuery($arena, $date)
-		             ->orderBy('skill')
-		             ->desc()
-		             ->limit(20)
-		             ->fetchAllDto(LeaderboardRecord::class);
+		            ->orderBy('skill')
+		            ->desc()
+		            ->limit(20)
+		            ->fetchAllDto(LeaderboardRecord::class);
 	}
 
 	public function getArenaDayPlayerLeaderboardQuery(Arena $arena, DateTimeInterface $date): Fluent {
@@ -60,14 +60,19 @@ class ArenaStatsAggregator
 				$gameIds
 			);
 		}
-		return (new Fluent(
-			DB::getConnection()->select('[p].*, [u].[id_arena], [u].[code]')->from(
-				'%sql',
-				'((' . implode(
-					') UNION ALL (',
-					$queries
-				) . ')) [p]'
-			)->leftJoin(LigaPlayer::TABLE, 'u')->on('[p].[id_user] = [u].[id_user]')
+		return (DB::getConnection()->getFluent(
+			DB::getConnection()
+				->connection
+				->select('[p].*, [u].[id_arena], [u].[code]')
+				->from(
+					'%sql',
+					'((' . implode(
+						') UNION ALL (',
+						$queries
+					) . ')) [p]'
+				)
+				->leftJoin(LigaPlayer::TABLE, 'u')
+				->on('[p].[id_user] = [u].[id_user]')
 		))->cacheTags(
 			'players',
 			'arena-players',
@@ -91,9 +96,9 @@ class ArenaStatsAggregator
 	public function getArenaDatePlayerCount(Arena $arena, DateTimeInterface $date): int {
 		return $arena->queryPlayers($date)
 		             ->cacheTags(
-						 'players',
-						 'games-'.$date->format('Y-m-d'),
-						 'arena/'.$arena->id.'/games/'.$date->format('Y-m-d'),
+			             'players',
+			             'games-' . $date->format('Y-m-d'),
+			             'arena/' . $arena->id . '/games/' . $date->format('Y-m-d'),
 		             )
 		             ->count();
 	}

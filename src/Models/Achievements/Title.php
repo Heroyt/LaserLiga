@@ -2,13 +2,13 @@
 
 namespace App\Models\Achievements;
 
+use App\Models\BaseModel;
 use App\Models\Rarity;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Attributes\PrimaryKey;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_title'), OA\Schema]
-class Title extends Model
+class Title extends BaseModel
 {
 
 	public const string TABLE = 'titles';

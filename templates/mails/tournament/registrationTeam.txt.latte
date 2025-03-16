@@ -13,7 +13,7 @@
         {lang 'Na ligu:'} {$team->event->name}
     {/if}
 
-	{foreach $team->getPlayers() as $player}
+	{foreach $team->players as $player}
 		{if $player->captain}{lang 'Kapitán'}{/if}
 		{if $player->sub}{lang 'Náhradník'}{/if}
 		{$player->name} "{$player->nickname}" {$player->surname}

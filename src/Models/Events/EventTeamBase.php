@@ -3,18 +3,18 @@
 namespace App\Models\Events;
 
 use App\Models\Auth\User;
+use App\Models\BaseModel;
 use App\Models\DataObjects\Image;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\WithTokenValidation;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Exceptions\ValidationException;
 
 /**
  * @template P of EventPlayerBase
  */
-abstract class EventTeamBase extends Model
+abstract class EventTeamBase extends BaseModel
 {
 	use WithTokenValidation;
 
@@ -32,12 +32,18 @@ abstract class EventTeamBase extends Model
 	public bool $disqualified = false;
 
 	/** @var P[] */
-	protected array $players = [];
+	public array $players = [] {
+		get {
+			if (empty($this->players)) {
+				$this->players = ($this::PLAYER_CLASS)::query()->where('id_team = %i', $this->id)->get();
+			}
+			return $this->players;
+		}
+		set(array $value) => $this->players = $value;
+	}
 
 	protected Image $imageObj;
 	protected float $avgPlayerRank;
-
-	abstract public function getEvent(): EventBase|League;
 
 	public function save(): bool {
 		if (empty($this->hash)) {
@@ -74,7 +80,7 @@ abstract class EventTeamBase extends Model
 			}
 			// Check if registration's player is the currently registered player
 			// Check if team contains currently registered player
-			foreach ($this->getPlayers() as $player) {
+			foreach ($this->players as $player) {
 				if ($player->user?->id === $user->id) {
 					return true;
 				}
@@ -86,16 +92,7 @@ abstract class EventTeamBase extends Model
 		return $this->validateHash($hash);
 	}
 
-	/**
-	 * @return P[]
-	 * @throws ValidationException
-	 */
-	public function getPlayers(): array {
-		if (empty($this->players)) {
-			$this->players = ($this::PLAYER_CLASS)::query()->where('id_team = %i', $this->id)->get();
-		}
-		return $this->players;
-	}
+	abstract public function getEvent(): EventBase|League;
 
 	/**
 	 * @return string|null
@@ -105,16 +102,8 @@ abstract class EventTeamBase extends Model
 		if (!isset($image)) {
 			return null;
 		}
-		$optimized = $image->getOptimized();
+		$optimized = $image->optimized;
 		return $optimized['webp'] ?? $optimized['original'];
-	}
-
-	public function getImageSrcSet(): ?string {
-		$image = $this->getImageObj();
-		if (!isset($image)) {
-			return null;
-		}
-		return getImageSrcSet($image);
 	}
 
 	/**
@@ -130,6 +119,14 @@ abstract class EventTeamBase extends Model
 		return $this->imageObj;
 	}
 
+	public function getImageSrcSet(): ?string {
+		$image = $this->getImageObj();
+		if (!isset($image)) {
+			return null;
+		}
+		return getImageSrcSet($image);
+	}
+
 	/**
 	 * @return float
 	 * @throws ValidationException
@@ -138,7 +135,7 @@ abstract class EventTeamBase extends Model
 		if (!isset($this->avgPlayerRank)) {
 			$sum = 0;
 			$count = 0;
-			foreach ($this->getPlayers() as $player) {
+			foreach ($this->players as $player) {
 				if (isset($player->user)) {
 					$count++;
 					$sum += $player->user->stats->rank;

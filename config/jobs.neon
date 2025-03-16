@@ -1,0 +1,56 @@
+extensions:
+	scheduler: OriNette\Scheduler\DI\SchedulerExtension
+scheduler:
+	console:
+		script: '%constants.appDir%bin/console'
+	errorHandler: tracy
+	jobs:
+		logArchive:
+			expression: 0 6 * * *
+			callback: [@cron.logArchive, 'run']
+		arenaReport:
+			expression: 0 23 * * *
+			callback: [@cron.arenaReport, 'run']
+		regressionUpdate:
+			expression: 0 3 * * *
+			callback: [@cron.regressionUpdate, 'run']
+		playerRankUpdate:
+			expression: 11 * * * *
+			callback: [@cron.playerRankUpdate, 'run']
+		playerAchievementCheck:
+			expression: 59 * * * *
+			callback: [@cron.playerAchievementCheck, 'run']
+		sitemap:
+			expression: 30 23 * * *
+			callback: [@cron.sitemap, 'run']
+		gamemodes:
+			expression: 45 23 * * *
+			callback: [@cron.gamemodes, 'run']
+		privacyUpdate:
+			expression: 00 12 * * *
+			callback: [@cron.privacy, 'run']
+		confirmEmail:
+			expression: 30 11 * * *
+			callback: [@cron.confirmEmail, 'run']
+services:
+	# Core scheduler
+	scheduler.logger: Lsr\Logging\Logger(%logger.dir%, 'scheduler')
+	scheduler.scheduler:
+		arguments:
+			logger: @scheduler.logger
+		alteration: true
+	scheduler.executor:
+		arguments:
+			logger: @scheduler.logger
+		alteration: true
+
+	# Cron jobs
+	cron.logArchive: App\Cron\LogArchiveJob
+	cron.arenaReport: App\Cron\ArenaReportJob
+	cron.regressionUpdate: App\Cron\RegressionUpdateJob
+	cron.playerRankUpdate: App\Cron\PlayerRankUpdateJob
+	cron.playerAchievementCheck: App\Cron\PlayerAchievementCheckJob
+	cron.sitemap: App\Cron\GenerateSitemapJob
+	cron.gamemodes: App\Cron\CheckGameModesJob
+	cron.privacy: App\Cron\PrivacyUpdateNotificationJob
+	cron.confirmEmail: App\Cron\UserConfirmationEmailsJob

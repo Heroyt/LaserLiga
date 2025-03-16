@@ -1,0 +1,95 @@
+tables:
+	App\Models\Achievements\Title:
+		order: 0
+		definition: '''
+		(
+		  `id_title` int(11) unsigned NOT NULL AUTO_INCREMENT,
+		  `name` varchar(50) NOT NULL,
+		  `description` text DEFAULT NULL,
+		  `rarity` enum('common','uncommon','rare','epic','legendary','mythic') NOT NULL DEFAULT 'common',
+		  `unlocked` tinyint(1) NOT NULL DEFAULT 0,
+		  PRIMARY KEY (`id_title`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+	App\Models\Achievements\Achievement:
+		order: 1
+		definition: '''
+		(
+          `id_achievement` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_title` int(11) unsigned DEFAULT NULL,
+          `icon` varchar(30) DEFAULT NULL,
+          `name` varchar(50) NOT NULL,
+          `description` text DEFAULT NULL,
+          `info` text DEFAULT NULL,
+          `type` enum('game_count','games_per_day','accuracy','arenas','position','hits','deaths','k:d','shots_min','shots_max','game_days_successive','games_per_month','signup','tournament_play','tournament_position','league_position','bonus','bonus_shield','bonus_machine_gun','bonus_invisibility','bonus_spy','trophy','birthday') NOT NULL,
+          `rarity` enum('common','uncommon','rare','epic','legendary','mythic') NOT NULL DEFAULT 'common',
+          `value` int(11) DEFAULT NULL,
+          `key` varchar(100) DEFAULT NULL,
+          `get_avatar` tinyint(1) NOT NULL DEFAULT 0,
+          `unlocked` tinyint(1) NOT NULL DEFAULT 0,
+          `group` tinyint(1) NOT NULL DEFAULT 1,
+          `hidden` tinyint(1) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id_achievement`),
+          KEY `id_title` (`id_title`),
+          CONSTRAINT `achievements_ibfk_1` FOREIGN KEY (`id_title`) REFERENCES `titles` (`id_title`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_title
+				refTable: App\Models\Achievements\Title
+				refColumn: id_title
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	player_achievements:
+		order: 3
+		definition: '''
+		(
+          `id_user` int(11) unsigned NOT NULL,
+          `id_achievement` int(11) unsigned NOT NULL,
+          `code` varchar(20) NOT NULL,
+          `datetime` datetime NOT NULL,
+          PRIMARY KEY (`id_user`,`id_achievement`),
+          KEY `id_achievement` (`id_achievement`),
+          KEY `code` (`code`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `player_achievements_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `players` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `player_achievements_ibfk_2` FOREIGN KEY (`id_achievement`) REFERENCES `achievements` (`id_achievement`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'code'
+				columns: ['code']
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\LigaPlayer
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_achievement
+				refTable: App\Models\Achievements\Achievement
+				refColumn: id_achievement
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+views:
+	vAchievements: '''
+	SELECT `a`.`id_achievement`                                    AS `id_achievement`,
+		   `a`.`id_title`                                          AS `id_title`,
+		   `a`.`name`                                              AS `name`,
+		   `a`.`description`                                       AS `description`,
+		   `a`.`info`                                              AS `info`,
+		   `a`.`type`                                              AS `type`,
+		   `a`.`rarity`                                            AS `rarity`,
+		   count(`p`.`id_user`) / (SELECT COUNT(*) FROM `players`) AS `real_rarity`,
+		   `a`.`value`                                             AS `value`,
+		   `a`.`key`                                               AS `key`,
+		   `a`.`get_avatar`                                        AS `get_avatar`,
+		   `a`.`unlocked`                                          AS `unlocked`,
+		   `a`.`group`                                             AS `group`
+	FROM `achievements` `a`
+			 LEFT JOIN `player_achievements` `p` ON `a`.`id_achievement` = `p`.`id_achievement`
+	GROUP BY `a`.`id_achievement`
+	'''

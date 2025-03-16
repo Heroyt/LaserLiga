@@ -8,6 +8,6 @@ use App\Helpers\DateTimeStringable;
 class PlayerDateRank
 {
 	public DateTimeStringable $date;
-	public ?int $position;
-	public string $position_text;
+	public ?int               $position;
+	public string             $position_text;
 }

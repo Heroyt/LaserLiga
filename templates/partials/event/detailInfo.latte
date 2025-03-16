@@ -45,13 +45,13 @@
                 </ul>
                 <p>
                     <strong>{lang 'Formát'}:</strong>
-                    {if $event->format === App\GameModels\Game\Enums\GameModeType::TEAM}
+                    {if $event->format === Lsr\Lg\Results\Enums\GameModeType::TEAM}
                         {lang 'Týmy'}
                     {else}
                         {lang 'Individuální'}
                     {/if}
                 </p>
-                <p n:if="$event->format === App\GameModels\Game\Enums\GameModeType::TEAM">
+                <p n:if="$event->format === Lsr\Lg\Results\Enums\GameModeType::TEAM">
                     <strong>{lang 'Počet hráčů v týmu'}:</strong> {$event->teamSize}
                 </p>
                 <p n:if="$event->subCount > 0">

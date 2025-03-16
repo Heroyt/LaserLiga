@@ -2,21 +2,21 @@
 
 namespace App\Models\Tournament\League;
 
+use App\Models\BaseModel;
 use App\Models\Events\EventTeamBase;
 use App\Models\Tournament\GameTeam;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
-use Lsr\Core\DB;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Db\DB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Nette\Utils\Strings;
 
 #[PrimaryKey('id_category')]
-class LeagueCategory extends Model
+class LeagueCategory extends BaseModel
 {
 
-	public const TABLE = 'league_category';
+	public const string TABLE = 'league_category';
 
 	public string $name;
 
@@ -24,7 +24,7 @@ class LeagueCategory extends Model
 	public League $league;
 
 	/** @var Tournament[] */
-	private array $tournaments = [];
+	private array  $tournaments = [];
 	private string $slug;
 	/** @var LeagueTeam[] */
 	private array $teams = [];
@@ -50,7 +50,7 @@ class LeagueCategory extends Model
 	public function getTeams(bool $excludeDisqualified = false): array {
 		if (empty($this->teams)) {
 			$this->teams = LeagueTeam::query()
-				->leftJoin(
+			                         ->leftJoin(
 				                         DB::select([GameTeam::TABLE, 'g'],
 				                                    'tt.[id_league_team], SUM(g.[score]) as score')
 				                           ->join(Team::TABLE, 'tt')

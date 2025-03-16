@@ -13,8 +13,8 @@ use App\Templates\Kiosk\DashboardParameters;
 use DateTimeImmutable;
 use Dibi\Row;
 use Exception;
-use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\Dibi\Fluent;
 
 trait ArenaStats
 {

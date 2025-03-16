@@ -22,7 +22,7 @@
     <div class="registration-switch collapse show" id="tournament-register-team-detail">
         <h3>{lang 'Hráči'}</h3>
         <div class="list-group">
-            <div n:foreach="$team->getPlayers() as $player" class="list-group-item">
+            <div n:foreach="$team->players as $player" class="list-group-item">
                 <h4>{$player->nickname}{ifset $player->user} - {$player->user->getCode()}{/ifset}</h4>
             </div>
         </div>

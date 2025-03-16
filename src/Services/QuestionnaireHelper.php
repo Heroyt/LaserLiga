@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Questionnaire\User;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Orm\Exceptions\ValidationException;
 
 class QuestionnaireHelper
 {

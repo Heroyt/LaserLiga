@@ -6,6 +6,7 @@ use App\Exceptions\ModelSaveFailedException;
 use App\Mails\Message;
 use App\Models\DataObjects\Event\PlayerRegistrationDTO;
 use App\Models\DataObjects\Event\TeamRegistrationDTO;
+use App\Models\DataObjects\Image;
 use App\Models\Events\Event;
 use App\Models\Events\EventPlayer;
 use App\Models\Events\EventPlayerBase;
@@ -23,14 +24,14 @@ use App\Models\Tournament\Substitute;
 use App\Models\Tournament\Team;
 use App\Models\Tournament\Tournament;
 use InvalidArgumentException;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
-use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Mail\SendException;
 use Nette\Utils\Validators;
+use Nyholm\Psr7\UploadedFile;
 
 readonly class EventRegistrationService
 {
@@ -199,10 +200,17 @@ readonly class EventRegistrationService
 
 		if (isset($data->image)) {
 			if ($data->image instanceof UploadedFile) {
-				$imgPath = UPLOAD_DIR . 'tournament/teams/' . uniqid('t-', false) . '.' . $data->image->getExtension();
-				if ($data->image->save($imgPath)) {
-					$team->image = str_replace(ROOT, '', $imgPath);
-				}
+				// Default to using provided extension
+				$type = strtolower(pathinfo($data->image->getClientFilename(), PATHINFO_EXTENSION));
+				// Save temp file
+				$tmpImage = UPLOAD_DIR . 'upload_tmp.' . $type;
+				$data->image->moveTo($tmpImage);
+				// Parse image to get the exif data type
+				$imageObj = new Image($tmpImage);
+				// Move to a new, real location
+				$imgPath = UPLOAD_DIR . 'tournament/teams/' . uniqid('t-', false) . '.' . $imageObj->type;
+				rename($tmpImage, $imgPath);
+				$team->image = str_replace(ROOT, '', $imgPath);
 			}
 			else {
 				$team->image = $data->image->getPath();
@@ -419,7 +427,7 @@ readonly class EventRegistrationService
 	 * @throws ValidationException
 	 */
 	private function addTeamEmailRecipients(EventTeamBase $team, Message $message): void {
-		foreach ($team->getPlayers() as $player) {
+		foreach ($team->players as $player) {
 			bdump($player->email);
 			if (empty($player->email)) {
 				continue;
@@ -492,7 +500,7 @@ readonly class EventRegistrationService
 		}
 
 		// Delete league team if no other registrations exist
-		if (isset($team->leagueTeam) && count($team->leagueTeam->getTeams()) === 0) {
+		if (isset($team->leagueTeam) && count($team->leagueTeam->teams) === 0) {
 			$team->leagueTeam->delete();
 		}
 

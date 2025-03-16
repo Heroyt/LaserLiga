@@ -14,12 +14,11 @@ use App\Services\Thumbnails\ThumbnailGenerator;
 use App\Templates\Player\ProfileParameters;
 use DateTimeImmutable;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Requests\Response;
+use Lsr\Db\DB;
 use Lsr\Interfaces\RequestInterface;
 use Nette\Security\Passwords;
 use Nyholm\Psr7\Stream;
@@ -182,8 +181,9 @@ class UserController extends AbstractUserController
 			$lookBackGames = 10;
 		}
 
-		$trends['rank'] = (new Fluent(
+		$trends['rank'] = (DB::getConnection()->getFluent(
 			DB::getConnection()
+				->connection
 			  ->select('SUM([difference])')
 			  ->from(
 				  DB::select('player_game_rating', '[difference]')

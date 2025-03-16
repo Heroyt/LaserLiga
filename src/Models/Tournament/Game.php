@@ -3,18 +3,19 @@
 namespace App\Models\Tournament;
 
 use App\GameModels\Factory\GameFactory;
+use App\Models\BaseModel;
 use DateTimeInterface;
-use Lsr\Core\Models\Attributes\ManyToMany;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\OneToMany;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToMany;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Attributes\Relations\OneToMany;
+use Lsr\Orm\ModelCollection;
 
 #[PrimaryKey('id_game')]
-class Game extends Model
+class Game extends BaseModel
 {
 
-	public const TABLE = 'tournament_games';
+	public const string TABLE = 'tournament_games';
 
 	#[ManyToOne]
 	public Tournament $tournament;
@@ -22,24 +23,24 @@ class Game extends Model
 	#[ManyToOne]
 	public ?Group $group;
 
-	/** @var Player[] */
+	/** @var ModelCollection<Player> */
 	#[ManyToMany('tournament_game_players', class: Player::class)]
-	public array $players = [];
+	public ModelCollection $players;
 
-	/** @var GameTeam[] */
+	/** @var ModelCollection<GameTeam> */
 	#[OneToMany(class: GameTeam::class)]
-	public array $teams = [];
+	public ModelCollection $teams;
 
-	public ?string $code = null;
-	public DateTimeInterface $start;
-	private ?\App\GameModels\Game\Game $game = null;
-
-	public function getGame(): ?\App\GameModels\Game\Game {
-		if (!isset($this->code)) {
-			return null;
+	public ?string                     $code = null;
+	public DateTimeInterface           $start;
+	public ?\App\GameModels\Game\Game $game = null {
+		get {
+			if (!isset($this->code)) {
+				return null;
+			}
+			$this->game = GameFactory::getByCode($this->code);
+			return $this->game;
 		}
-		$this->game = GameFactory::getByCode($this->code);
-		return $this->game;
 	}
 
 }

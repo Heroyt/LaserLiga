@@ -34,8 +34,10 @@ class UserPrivacyController extends AbstractUserController
 			$request->passErrors[] = lang('Něco se nepodařilo', context: 'error');
 			return $this->app->redirect(['dashboard'], $request);
 		}
-		$request->passNotices[] = ['type'  => 'success',
-		                           'title' => lang('Souhlas byl uložen. Děkujeme!', context: 'success'),
+		$request->passNotices[] = [
+			'type'    => 'success',
+			'title'   => lang('Souhlas byl uložen. Děkujeme!', context: 'success'),
+			'content' => '',
 		];
 		return $this->app->redirect(['dashboard'], $request);
 	}

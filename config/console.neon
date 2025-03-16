@@ -1,29 +1,13 @@
 extensions:
-	orisai.console: OriNette\Console\DI\ConsoleExtension
-orisai.console:
+	console: OriNette\Console\DI\ConsoleExtension
+	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
+console:
 	name: 'LaserLiga'
 services:
-	# Commands
-	command.cache.clean: App\Cli\Commands\Cache\CleanCacheCommand
-
-	command.games.skills: App\Cli\Commands\Games\RecalculateSkillsGameCommand
-	command.games.gameModes: App\Cli\Commands\Games\AssignGameModesCommand
-	command.games.removeDuplicates: App\Cli\Commands\Games\RemoveDuplicateGamesCommand
-
-	command.regression.hits: App\Cli\Commands\Regression\CalculateHitsRegressionCommand
-	command.regression.hitsOwn: App\Cli\Commands\Regression\CalculateHitsOwnRegressionCommand
-	command.regression.deaths: App\Cli\Commands\Regression\CalculateDeathsRegressionCommand
-	command.regression.deathsOwn: App\Cli\Commands\Regression\CalculateDeathsOwnRegressionCommand
-	command.regression.update: App\Cli\Commands\Regression\UpdateRegressionModelsCommand
-
-	command.translation.compile: App\Cli\Commands\Translation\CompileTranslationsCommand
-	command.translation.removeComments: App\Cli\Commands\Translation\RemoveCommentsCommand
-	command.translation.removeDuplicates: App\Cli\Commands\Translation\RemoveTranslationsDuplicatesCommand
-	command.translation.updateByTemplate: App\Cli\Commands\Translation\UpdateTranslationsByTemplateCommand
-
-	command.logs.archive: App\Cli\Commands\Logs\ArchiveLogsCommand
-	command.logs.clear: App\Cli\Commands\Logs\ClearLogsCommand
-
-	command.sitemap: App\Cli\Commands\GenerateSitemapCommand
-
-	command.league.recalcPoints: App\Cli\Commands\League\RecalcPointsCommand
+search:
+	commands:
+		in: '%constants.appDir%/src/Cli/Commands'
+		extends:
+			- Symfony\Component\Console\Command\Command
+		tags:
+			- console.command

@@ -5,30 +5,34 @@ namespace App\Models;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use App\Models\Auth\User;
+use Lsr\Caching\Cache;
 use Lsr\Core\App;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
-use Throwable;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ValidationException;
 
 #[PrimaryKey('id_match')]
-class PossibleMatch extends Model
+class PossibleMatch extends BaseModel
 {
 
-	public const TABLE = 'possible_matches';
+	public const string TABLE = 'possible_matches';
 
 	#[ManyToOne]
-	public User $user;
+	public User   $user;
 	public string $code;
-	public ?bool $matched = null;
+	public ?bool  $matched = null;
 
-	private Game $game;
+	public Game $game {
+		get {
+			$this->game ??= GameFactory::getByCode($this->code);
+			return $this->game;
+		}
+	}
 
 	/**
 	 * @param User $user
 	 * @param bool $includeMatched
+	 *
 	 * @return PossibleMatch[]
 	 * @throws ValidationException
 	 */
@@ -40,24 +44,15 @@ class PossibleMatch extends Model
 		return $query->cacheTags('user/' . $user->id . '/possibleMatches')->get();
 	}
 
-	/**
-	 * @return Game
-	 * @throws Throwable
-	 */
-	public function getGame(): Game {
-		$this->game ??= GameFactory::getByCode($this->code);
-		return $this->game;
-	}
-
 	public function clearCache(): void {
 		parent::clearCache();
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
 		$cache->clean([
-			Cache::Tags => [
-				'user/' . $this->user->id . '/possibleMatches'
-			]
-		]);
+			              Cache::Tags => [
+				              'user/' . $this->user->id . '/possibleMatches',
+			              ],
+		              ]);
 	}
 
 }

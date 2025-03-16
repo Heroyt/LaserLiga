@@ -141,7 +141,7 @@
                             {$game->arena->getLogoHtml()|noescape}
 
                             <div class="players">
-                            <span n:foreach="$game->getPlayersSorted() as $player"
+                            <span n:foreach="$game->playersSorted as $player"
                                     n:tag="isset($player->user) ? 'a' : 'span'"
                                     {ifset $player->user}href="{link ['user', $player->user->getCode()]}"{/ifset}
                                     data-toggle="tooltip"

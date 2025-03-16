@@ -13,8 +13,8 @@ use DateTimeImmutable;
 use Dibi\Row;
 use Exception;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\Dibi\Fluent;
 use Lsr\Interfaces\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -82,7 +82,7 @@ class UserHistoryController extends AbstractUserController
 		$allowedOrderFields = [];
 
 		/** @var string|string[] $selectedFields */
-		$selectedFields = $request->getGet('fields', ['players', 'skill']); // @phpstan-ignore  argument.type
+		$selectedFields = $request->getGet('fields', ['players', 'skill']);
 		if (is_string($selectedFields)) {
 			if (empty($selectedFields)) {
 				$selectedFields = ['players', 'skill'];

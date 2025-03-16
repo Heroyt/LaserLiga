@@ -1,0 +1,217 @@
+includes:
+	- config/migrations/games/evo5.neon
+	- config/migrations/games/evo6.neon
+tables:
+	App\Models\System:
+		order: 3
+		definition: '''
+		(
+			`id_system` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`name` varchar(100) NOT NULL,
+			`type` varchar(100) NOT NULL,
+			`system_ip` varchar(100) NOT NULL DEFAULT '',
+			`results_dir` varchar(255) NOT NULL DEFAULT '',
+			`game_load_dir` varchar(255) NOT NULL DEFAULT '',
+			`music_dir` varchar(255) NOT NULL DEFAULT '',
+			`column_count` tinyint(3) unsigned NOT NULL DEFAULT 15,
+			`row_count` tinyint(3) unsigned NOT NULL DEFAULT 15,
+			`default` bool NOT NULL DEFAULT false,
+			`active` bool NOT NULL DEFAULT true,
+			PRIMARY KEY (`id_system`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		modifications:
+			0.1:
+				- 'ADD `column_count` tinyint(3) unsigned NOT NULL DEFAULT 15'
+				- 'ADD `row_count` tinyint(3) unsigned NOT NULL DEFAULT 15'
+	App\Models\MusicMode:
+		order: 3
+		definition: '''
+        		(
+        			`id_music` int(11) unsigned NOT NULL,
+        			`id_arena` int(11) unsigned NOT NULL,
+					`id_local` int(11) unsigned NOT NULL,
+					`file_name` varchar(100) NOT NULL,
+        			`name` varchar(20) NOT NULL,
+        			`order` int(10) unsigned NOT NULL DEFAULT 0,
+        			`preview_start` int(10) unsigned NOT NULL DEFAULT 0,
+                    `background_image` varchar(255) DEFAULT NULL,
+                    `icon` varchar(255) DEFAULT NULL,
+                    `group` varchar(80) DEFAULT NULL,
+        			PRIMARY KEY (`id_music`, `id_arena`),
+					KEY `id_local` (`id_local`),
+        			FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
+        		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        	'''
+		changes:
+			0.1:
+				- 'ADD `id_local` int(11) unsigned NOT NULL AFTER `id_arena`'
+				- 'ADD `file_name` varchar(100) NOT NULL AFTER `id_local`'
+				- 'ADD `preview_start` int(10) unsigned NOT NULL DEFAULT 0 AFTER `order`'
+				- 'ADD `background_image` varchar(255) DEFAULT NULL AFTER `preview_start`'
+				- 'ADD `icon` varchar(255) DEFAULT NULL AFTER `background_image`'
+				- 'ADD `group` varchar(80) DEFAULT NULL AFTER `icon`'
+		indexes:
+			-
+				name: 'id_local'
+				columns: ['id_local']
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\GameModels\Game\GameModes\AbstractMode:
+		order: 0
+		definition: '''
+		(
+        	`id_mode` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        	`systems` text DEFAULT NULL,
+			`order` int(10) unsigned NOT NULL DEFAULT 0,
+        	`name` varchar(50) DEFAULT NULL,
+        	`description` text DEFAULT NULL,
+        	`load_name` varchar(50) DEFAULT NULL,
+        	`type` enum('TEAM','SOLO') NOT NULL DEFAULT 'TEAM',
+        	`teams` text NOT NULL,
+        	`public` tinyint(1) NOT NULL DEFAULT 0,
+        	`mines` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli automaticky detekovat miny nebo vůbec',
+        	`part_win` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli má být vložena část s tím kdo vyhrál.',
+        	`part_teams` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se na výsledcích zobrazuje tabulka teamů',
+        	`part_players` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se na výsledcích zobrazuje tabulka hráčů',
+        	`part_hits` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se na výsledcích zobrazuje tabulka zabití',
+        	`part_best` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se na výsledcích zobrazuje tabulka \"Ti nej\"',
+        	`part_best_day` tinyint(1) NOT NULL DEFAULT 1,
+        	`player_score` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se ve výsledcích hráče zobrazí skóre.',
+        	`player_shots` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se ve výsledcích hráče zobrazí výstřely.',
+        	`player_miss` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se ve výsledcích hráče zobrazí výstřely mimo.',
+        	`player_accuracy` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se ve výsledcích hráče zobrazí přesnost',
+        	`player_mines` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se ve výsledcích hráče zobrazí miny.',
+        	`player_players` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se ve výsledcích hráče zobrazí Zásahy hráčů.',
+        	`player_players_teams` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli se ve výsledcích hráče zobrazí zabití na vlastní a protihráče.',
+        	`player_kd` tinyint(1) NOT NULL DEFAULT 1,
+        	`player_favourites` tinyint(1) NOT NULL DEFAULT 1,
+        	`player_lives` tinyint(1) NOT NULL DEFAULT 0,
+        	`team_score` tinyint(1) NOT NULL DEFAULT 1,
+        	`team_accuracy` tinyint(1) NOT NULL DEFAULT 1,
+        	`team_shots` tinyint(1) NOT NULL DEFAULT 1,
+        	`team_hits` tinyint(1) NOT NULL DEFAULT 1,
+        	`team_zakladny` tinyint(1) NOT NULL DEFAULT 0,
+        	`best_score` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_hits` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_deaths` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_accuracy` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_hits_own` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_deaths_own` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_shots` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_miss` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	`best_mines` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Jestli zobrazovat v tabulce \"Ti nej\" hodnotu',
+        	PRIMARY KEY (`id_mode`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Seznam a nastavení módů.';
+		'''
+		modifications:
+			0.1:
+				- 'ADD `teams` text NOT NULL DEFAULT ''["0","1","2","3","4","5"]'' AFTER `type`'
+			0.2:
+				- 'ADD `rankable` tinyint(1) NOT NULL DEFAULT 1 AFTER `teams`'
+			0.3:
+				- 'ADD `active` tinyint(1) NOT NULL DEFAULT 1 AFTER `public`'
+				- 'ADD `alias` varchar(50) DEFAULT '''' AFTER `name`'
+			0.4:
+				- 'DROP COLUMN `system`'
+				- 'ADD `systems` text DEFAULT NULL AFTER `id_mode`'
+			0.5:
+				- 'ADD `order` int(10) unsigned NOT NULL DEFAULT 0 AFTER `systems`'
+	game_modes-names:
+		definition: '''
+		(
+			`id_mode` int(11) unsigned NOT NULL,
+			`sysName` varchar(20) NOT NULL,
+			PRIMARY KEY (`sysName`,`id_mode`),
+			KEY `Mode` (`id_mode`),
+			CONSTRAINT `game_modes-names_ibfk_1` FOREIGN KEY (`id_mode`) REFERENCES `game_modes` (`id_mode`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+	App\GameModels\Vest:
+		order: 4
+		definition: '''
+			(
+				`id_vest` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				`vest_num` int(11) NOT NULL,
+				`id_system` int(11) unsigned DEFAULT NULL,
+				`grid_col` int(10) unsigned DEFAULT NULL,
+				`grid_row` int(10) unsigned DEFAULT NULL,
+				`status` enum('ok','playable','broken') NOT NULL DEFAULT 'ok',
+				`info` text DEFAULT NULL,
+				`updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+				`type` varchar(50) NOT NULL DEFAULT 'vest',
+				PRIMARY KEY (`id_vest`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		modifications:
+			0.1:
+				- 'ADD `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp();'
+			0.2:
+				- "ADD `status` enum('ok','playable','broken') NOT NULL DEFAULT 'ok';"
+				- "ADD `info` text DEFAULT NULL;"
+			0.3:
+				- 'DROP COLUMN `system`'
+				- 'ADD `id_system` int(11) unsigned DEFAULT NULL'
+			0.3.1:
+				- 'ADD `type` varchar(50) NOT NULL DEFAULT "vest"'
+		foreignKeys:
+			-
+				column: id_system
+				refTable: App\Models\System
+				refColumn: id_system
+				onDelete: 'SET NULL'
+	possible_matches:
+		order: 2
+		definition: '''
+		(
+          `id_match` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_user` int(11) unsigned NOT NULL,
+          `code` varchar(50) NOT NULL,
+          `matched` tinyint(1) DEFAULT NULL,
+          PRIMARY KEY (`id_match`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `possible_matches_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'matched'
+				columns: ['matched']
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	game_highlights:
+		order: 0
+		definition: '''
+		(
+          `code` varchar(20) NOT NULL,
+          `datetime` datetime DEFAULT NULL,
+          `rarity` int(10) unsigned NOT NULL DEFAULT 0,
+          `type` varchar(20) NOT NULL DEFAULT 'other',
+          `description` varchar(500) NOT NULL,
+          `players` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`players`)),
+          `object` blob DEFAULT NULL,
+          `users` longtext GENERATED ALWAYS AS (json_extract(`players`,'$[*].user')) VIRTUAL,
+          PRIMARY KEY (`code`,`type`,`description`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+views:
+	vModesNames: '''
+	SELECT `a`.`id_mode`     AS `id_mode`,
+		   `a`.`systems`     AS `systems`,
+		   `a`.`name`        AS `name`,
+		   `a`.`description` AS `description`,
+		   `a`.`type`        AS `type`,
+		   `b`.`sysName`     AS `sysName`
+	FROM `game_modes` `a`
+			 LEFT JOIN `game_modes-names` `b` ON `a`.`id_mode` = `b`.`id_mode`
+	'''

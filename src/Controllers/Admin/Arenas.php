@@ -6,13 +6,13 @@ use App\Models\Arena;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Exceptions\FileException;
 use Lsr\Exceptions\TemplateDoesNotExistException;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use SimpleXMLElement;
 
@@ -29,9 +29,6 @@ class Arenas extends Controller
 		return $this->view('pages/admin/arenas/index');
 	}
 
-	/**
-	 * @throws Exception
-	 */
 	public function invalidateApiKey(Request $request): ResponseInterface {
 		$id = (int)($request->params['id'] ?? 0);
 		DB::update('api_keys', ['valid' => 0], ['id_key = %i', $id]);
@@ -45,7 +42,7 @@ class Arenas extends Controller
 	public function edit(int $id): ResponseInterface {
 		try {
 			$arena = Arena::get($id);
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			return $this->view('pages/admin/arenas/not-found')
 			            ->withStatus(404);
 		}

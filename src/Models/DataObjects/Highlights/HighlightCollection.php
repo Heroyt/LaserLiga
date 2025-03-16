@@ -30,6 +30,18 @@ class HighlightCollection implements Countable, Iterator, JsonSerializable
 		return $this;
 	}
 
+	/**
+	 * @return GameHighlight[] Sorted by their rarityScore in descending order
+	 */
+	public function getAll(): array {
+		if ($this->count === count($this->flattened)) {
+			return $this->flattened;
+		}
+		krsort($this->data);
+		$this->flattened = array_merge(...$this->data);
+		return $this->flattened;
+	}
+
 	public function changeRarity(GameHighlight $highlight, int $rarity): HighlightCollection {
 		$this->remove($highlight);
 		$highlight->rarityScore = $rarity;
@@ -54,18 +66,6 @@ class HighlightCollection implements Countable, Iterator, JsonSerializable
 
 	public function current(): GameHighlight {
 		return $this->getAll()[$this->index];
-	}
-
-	/**
-	 * @return GameHighlight[] Sorted by their rarityScore in descending order
-	 */
-	public function getAll(): array {
-		if ($this->count === count($this->flattened)) {
-			return $this->flattened;
-		}
-		krsort($this->data);
-		$this->flattened = array_merge(...$this->data);
-		return $this->flattened;
 	}
 
 	public function next(): void {

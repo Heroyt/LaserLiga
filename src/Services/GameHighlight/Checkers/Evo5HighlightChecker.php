@@ -2,14 +2,15 @@
 
 namespace App\Services\GameHighlight\Checkers;
 
+use App\GameModels\Game\Evo5\Game;
 use App\GameModels\Game\Evo5\Player;
-use App\GameModels\Game\Game;
 use App\Helpers\Gender;
 use App\Models\DataObjects\Highlights\GameHighlight;
 use App\Models\DataObjects\Highlights\GameHighlightType;
 use App\Models\DataObjects\Highlights\HighlightCollection;
 use App\Services\GameHighlight\GameHighlightChecker;
 use App\Services\GenderService;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
 
 class Evo5HighlightChecker implements GameHighlightChecker
 {
@@ -19,8 +20,8 @@ class Evo5HighlightChecker implements GameHighlightChecker
 	/**
 	 * @inheritDoc
 	 */
-	public function checkGame(Game $game, HighlightCollection $highlights): void {
-		if (!$game instanceof \App\GameModels\Game\Evo5\Game) {
+	public function checkGame(GameInterface $game, HighlightCollection $highlights): void {
+		if (!$game instanceof Game) {
 			return;
 		}
 
@@ -30,7 +31,7 @@ class Evo5HighlightChecker implements GameHighlightChecker
 		$powersMax = 0;
 		$powersSecondMax = 0;
 		/** @var Player $player */
-		foreach ($game->getPlayers()->getAll() as $player) {
+		foreach ($game->players->getAll() as $player) {
 			if ($player->minesHits > 0) {
 				$mineDeaths[] = $player;
 			}
@@ -64,7 +65,7 @@ class Evo5HighlightChecker implements GameHighlightChecker
 							Gender::OTHER  => '%s jediné bylo zasaženo minou.',
 						},
 						context: 'pod',
-						domain: 'highlights',
+						domain : 'highlights',
 					),
 					'@' . $name . '@'
 				),  GameHighlight::VERY_HIGH_RARITY
@@ -85,7 +86,7 @@ class Evo5HighlightChecker implements GameHighlightChecker
 							Gender::OTHER  => '%s jediné získalo bonusy.',
 						},
 						context: 'pod',
-						domain: 'highlights',
+						domain : 'highlights',
 					),
 					'@' . $name . '@'
 				),  GameHighlight::VERY_HIGH_RARITY
@@ -107,7 +108,7 @@ class Evo5HighlightChecker implements GameHighlightChecker
 							Gender::OTHER  => '%s získalo %.1fx tolik bonusů co ostatní.',
 						},
 						context: 'pod',
-						domain: 'highlights',
+						domain : 'highlights',
 					),
 					'@' . $name . '@',
 					$ratio

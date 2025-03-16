@@ -1,9 +1,9 @@
-{varType App\Models\Tournament\Tournament $league}
-{var App\Models\Tournament\Team[] $teams = $league->getTeams()}
+{varType App\Models\Tournament\Tournament $tournament}
+{var App\Models\Tournament\Team[] $teams = $tournament->getTeams()}
 <h3 class="text-center">
     {lang 'Týmy'}
-    {ifset $league->teamLimit}
-        ({count($teams)}/{$league->teamLimit})
+    {ifset $tournament->teamLimit}
+        ({count($teams)}/{$tournament->teamLimit})
     {/ifset}
 </h3>
 <p class="text-center text-muted">{lang 'Seznam přihlášených týmů na turnaj laser game.'}</p>
@@ -25,7 +25,7 @@
             </p>
 
             <div class="d-flex justify-content-center align-items-center flex-wrap">
-                <div n:foreach="$team->getPlayers() as $player" n:tag="isset($player->user) ? 'a' : 'div'" {ifset $player->user}href="{link 'user', $player->user->getCode()}"{/ifset}
+                <div n:foreach="$team->players as $player" n:tag="isset($player->user) ? 'a' : 'div'" {ifset $player->user}href="{link 'user', $player->user->getCode()}"{/ifset}
                         data-toggle="tooltip" title="{lang $player->skill->getReadable()}"
                         itemprop="athlete" itemscope itemtype="https://schema.org/Person"
                         n:class="'rounded', 'p-2', 'm-2', $player->skill === App\Models\Tournament\PlayerSkill::BEGINNER ? 'text-bg-secondary', $player->skill === App\Models\Tournament\PlayerSkill::SOMEWHAT_ADVANCED ? 'text-bg-light-cyan', $player->skill === App\Models\Tournament\PlayerSkill::ADVANCED ? 'text-bg-medium-cyan', $player->skill === App\Models\Tournament\PlayerSkill::PRO ? 'text-bg-primary'">
@@ -45,7 +45,7 @@
                 </a>
             {/ifset}
             {if isset($user) && $team->validateAccess($user)}
-                <a href="{if $league->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $league->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $league->id, $team->id}{/if}"
+                <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', 'registration', $tournament->league->id, $team->leagueTeam->id}{else}{link 'tournament', 'registration', $tournament->id, $team->id}{/if}"
                    class="btn btn-secondary">
                     {faSolid 'pen-to-square'}
                     {lang 'Upravit přihlášku'}

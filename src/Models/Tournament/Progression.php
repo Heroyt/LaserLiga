@@ -2,29 +2,29 @@
 
 namespace App\Models\Tournament;
 
+use App\Models\BaseModel;
 use JsonException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
 #[PrimaryKey('id_progression')]
-class Progression extends Model
+class Progression extends BaseModel
 {
 
-	public const TABLE = 'tournament_progressions';
+	public const string TABLE = 'tournament_progressions';
 
 	#[ManyToOne]
 	public Tournament $tournament;
 	#[ManyToOne('id_group', 'id_group_from')]
-	public ?Group $from = null;
+	public ?Group     $from = null;
 	#[ManyToOne('id_group', 'id_group_to')]
-	public Group $to;
+	public Group      $to;
 
-	public ?int $start = null;
-	public ?int $length = null;
+	public ?int    $start   = null;
+	public ?int    $length  = null;
 	public ?string $filters = null;
-	public ?string $keys = null;
-	public int $points = 0;
+	public ?string $keys    = null;
+	public int     $points  = 0;
 
 	/** @var int[] */
 	private array $keysParsed = [];
@@ -44,6 +44,7 @@ class Progression extends Model
 
 	/**
 	 * @param int[] $keys
+	 *
 	 * @throws JsonException
 	 */
 	public function setKeys(array $keys): Progression {

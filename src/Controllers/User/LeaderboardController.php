@@ -13,11 +13,11 @@ use DateTimeImmutable;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Exceptions\TemplateDoesNotExistException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 
 /**

@@ -50,7 +50,7 @@ class UserFindGamesController extends AbstractUserController
 		$this->params->possibleMatches = $this->userService->scanPossibleMatches($this->params->loggedInUser);
 		$this->params->games = [];
 		foreach ($this->params->possibleMatches as $match) {
-			$this->params->games[] = $match->getGame();
+			$this->params->games[] = $match->game;
 		}
 		return $this->view('pages/profile/findGames');
 	}

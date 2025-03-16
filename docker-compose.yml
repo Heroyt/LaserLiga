@@ -1,6 +1,6 @@
 services:
-  liga-db:
-    restart: always
+  db:
+    restart: unless-stopped
     image: "mariadb:10.6.9"
     ports:
       - "3308:3306"
@@ -13,8 +13,8 @@ services:
       - mariadb-liga-dev:/var/lib/mysql
     networks:
       - backend
-  liga-redis:
-    restart: always
+  redis:
+    restart: unless-stopped
     image: eqalpha/keydb:latest
     ports:
       - "6378:6379"
@@ -22,48 +22,48 @@ services:
       - backend
       - frontend
     volumes:
-      - ./redis/data:/data
-  liga-php:
-    restart: always
+      - ./docker/redis/data:/data
+  php:
+    restart: unless-stopped
     build:
-      context: ../
+      context: ./
       dockerfile: ./docker/Dockerfile
     working_dir: /var/www/
     links:
-      - liga-db
-      - liga-redis
+      - db
+      - redis
     depends_on:
-      - liga-db
-      - liga-redis
+      - db
+      - redis
     volumes:
-      - ../:/var/www
-      - ./fpm/:/etc/php/
-      - ./core/php.ini:/usr/local/etc/php/php.ini
+      - ./:/var/www
+      - ./docker/fpm/:/etc/php/
+      - ./docker/core/php.ini:/usr/local/etc/php/php.ini
     networks:
       - backend
     environment:
       APP_NAME: "Laser liga"
-      DB_HOST: "liga-db"
+      DB_HOST: "db"
       DB_PORT: 3306
       DB_DATABASE: "lac"
       DB_USER: "root"
       DB_PASSWORD: "laser-arena-control"
-  liga-web:
-    restart: always
+  web:
+    restart: unless-stopped
     image: nginx:alpine
     depends_on:
-      - liga-php
-      - liga-db
+      - php
+      - db
     ports:
       - "8002:80"
     networks:
       - backend
       - frontend
     links:
-      - liga-php
+      - php
     volumes:
-      - ../:/var/www
-      - ./nginx:/etc/nginx
+      - ./:/var/www
+      - ./docker/nginx:/etc/nginx
 volumes:
   mariadb-liga-dev:
 networks:

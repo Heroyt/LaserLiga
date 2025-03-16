@@ -10,11 +10,13 @@ use App\Controllers\Api\TournamentsController;
 use App\Controllers\Api\VestController;
 use App\Controllers\User\UserGameController;
 use App\Core\Middleware\ApiToken;
-use Lsr\Core\Routing\Route;
+use Lsr\Core\Routing\Router;
+
+/** @var Router $this */
 
 $apiToken = new ApiToken();
 
-$apiGroup = Route::group('api')->middlewareAll($apiToken);
+$apiGroup = $this->group('api')->middlewareAll($apiToken);
 
 // Games
 $gamesGroup = $apiGroup->group('games')

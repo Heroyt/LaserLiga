@@ -6,13 +6,14 @@ use App\Models\Arena;
 use App\Models\Auth\Enums\ConnectionType;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\NoDB;
-use Lsr\Core\Models\Attributes\OneToMany;
-use Lsr\Core\Models\Attributes\OneToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Db\DB;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Attributes\Relations\OneToMany;
+use Lsr\Orm\Attributes\Relations\OneToOne;
+use Lsr\Orm\Exceptions\ValidationException;
+use Lsr\Orm\ModelCollection;
 
 #[PrimaryKey('id_user')]
 class User extends \Lsr\Core\Auth\Models\User
@@ -24,28 +25,45 @@ class User extends \Lsr\Core\Auth\Models\User
 
 	public int $id_user_type; // TODO: Figure out the error when this is deleted
 
-	/** @var UserConnection[] */
+	/** @var ModelCollection<UserConnection> */
 	#[OneToMany(class: UserConnection::class)]
-	public array $connections = [];
+	public ModelCollection $connections;
 
 	#[OneToOne, NoDB]
 	public ?LigaPlayer $player = null;
 
 	public DateTimeInterface $createdAt;
 
-	public ?string $emailToken = null;
+	public ?string            $emailToken     = null;
 	public ?DateTimeInterface $emailTimestamp = null;
-	public bool $isConfirmed = false;
+	public bool               $isConfirmed    = false;
 
-	public ?int $privacyVersion = null;
-	public ?int $privacyNotificationVersion = null;
-	public ?DateTimeInterface $privacyConfirmed = null;
+	public ?int               $privacyVersion             = null;
+	public ?int               $privacyNotificationVersion = null;
+	public ?DateTimeInterface $privacyConfirmed           = null;
 
 	/** @var int[] */
 	private array $managedArenaIds;
 
+	/**
+	 * @return array{id: int}
+	 */
+	public function __serialize(): array {
+		return [
+			'id' => $this->id,
+		];
+	}
+
+	/**
+	 * @param array{id: int} $data
+	 */
+	public function __unserialize(array $data): void {
+		$this->id = $data['id'];
+		$this->fetch(true);
+	}
+
 	public static function getByCode(string $code): ?static {
-		/** @phpstan-ignore-next-line  */
+		/** @phpstan-ignore-next-line */
 		return LigaPlayer::getByCode($code)?->user;
 	}
 
@@ -71,6 +89,10 @@ class User extends \Lsr\Core\Auth\Models\User
 		return true;
 	}
 
+	public function save(): bool {
+		return parent::save() && $this->saveConnections() && (!isset($this->player) || $this->player->save());
+	}
+
 	public function removeConnection(UserConnection $connection): void {
 		foreach ($this->connections as $key => $test) {
 			if ($connection === $test) {
@@ -79,15 +101,6 @@ class User extends \Lsr\Core\Auth\Models\User
 				return;
 			}
 		}
-	}
-
-	public function insert(): bool {
-		$this->createdAt ??= new DateTimeImmutable();
-		return parent::insert();
-	}
-
-	public function save(): bool {
-		return parent::save() && $this->saveConnections() && (!isset($this->player) || $this->player->save());
 	}
 
 	public function addConnection(UserConnection $connection): User {
@@ -100,9 +113,20 @@ class User extends \Lsr\Core\Auth\Models\User
 			}
 		}
 		if (!$found) {
-			$this->connections[] = $connection;
+			$this->connections->add($connection);
 		}
 		return $this;
+	}
+
+	/**
+	 * @return ModelCollection<UserConnection>
+	 * @throws ValidationException
+	 */
+	public function getConnections(): ModelCollection {
+		if (empty($this->connections)) {
+			$this->connections = new ModelCollection(UserConnection::getForUser($this));
+		}
+		return $this->connections;
 	}
 
 	public function getConnectionByType(ConnectionType $type): ?UserConnection {
@@ -112,17 +136,6 @@ class User extends \Lsr\Core\Auth\Models\User
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * @return UserConnection[]
-	 * @throws ValidationException
-	 */
-	public function getConnections(): array {
-		if (empty($this->connections)) {
-			$this->connections = UserConnection::getForUser($this);
-		}
-		return $this->connections;
 	}
 
 	/**
@@ -159,6 +172,15 @@ class User extends \Lsr\Core\Auth\Models\User
 		return $this->player;
 	}
 
+	public function insert(): bool {
+		$this->createdAt ??= new DateTimeImmutable();
+		return parent::insert();
+	}
+
+	public function managesArena(Arena $arena): bool {
+		return in_array($arena->id, $this->getManagedArenaIds(), true);
+	}
+
 	/**
 	 * @return int[]
 	 */
@@ -169,11 +191,7 @@ class User extends \Lsr\Core\Auth\Models\User
 		return $this->managedArenaIds;
 	}
 
-	public function managesArena(Arena $arena): bool {
-		return in_array($arena->id, $this->getManagedArenaIds(), true);
-	}
-
-	public function shouldRevalidatePrivacyPolicy() : bool {
+	public function shouldRevalidatePrivacyPolicy(): bool {
 		return $this->privacyVersion === null || self::CURRENT_PRIVACY_VERSION > $this->privacyVersion;
 	}
 }

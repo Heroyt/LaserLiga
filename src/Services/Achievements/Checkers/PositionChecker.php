@@ -6,7 +6,7 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\Models\Achievements\Achievement;
 use App\Services\Achievements\CheckerInterface;
-use Lsr\Core\DB;
+use Lsr\Db\DB;
 
 class PositionChecker implements CheckerInterface
 {

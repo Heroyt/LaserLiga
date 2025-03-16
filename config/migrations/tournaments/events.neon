@@ -1,0 +1,266 @@
+tables:
+	App\Models\Tournament\EventPriceGroup:
+		order: 0
+		definition: '''
+		(
+		  `id_event_price_group` int(11) unsigned NOT NULL AUTO_INCREMENT,
+		  `description` text DEFAULT NULL,
+		  PRIMARY KEY (`id_event_price_group`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+	App\Models\Tournament\EventPrice:
+		order: 1
+		definition: '''
+		(
+          `id_event_price` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_event_price_group` int(11) unsigned NOT NULL,
+          `description` varchar(100) NOT NULL,
+          `price` decimal(11,2) NOT NULL,
+          PRIMARY KEY (`id_event_price`),
+          KEY `id_event_price_group` (`id_event_price_group`),
+          CONSTRAINT `event_prices_ibfk_1` FOREIGN KEY (`id_event_price_group`) REFERENCES `event_price_groups` (`id_event_price_group`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_event_price_group
+				refTable: App\Models\Tournament\EventPriceGroup
+				refColumn: id_event_price_group
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Events\Event:
+		order: 4
+		definition: '''
+		(
+          `id_event` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_arena` int(11) unsigned NOT NULL,
+          `id_league` int(11) unsigned DEFAULT NULL,
+          `id_event_price_group` int(11) unsigned DEFAULT NULL,
+          `name` varchar(100) NOT NULL,
+          `short_description` text DEFAULT NULL,
+          `description` text DEFAULT NULL,
+          `rules` text DEFAULT NULL,
+          `prices` text DEFAULT NULL,
+          `image` varchar(200) DEFAULT NULL,
+          `results_summary` longtext DEFAULT NULL,
+          `format` enum('TEAM','SOLO') NOT NULL DEFAULT 'TEAM',
+          `team_size` int(10) unsigned NOT NULL DEFAULT 1,
+          `sub_count` int(10) unsigned NOT NULL DEFAULT 0,
+          `player_name` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'required',
+          `player_surname` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'required',
+          `player_email` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'captain',
+          `player_parent_email` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'hidden',
+          `player_phone` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'captain',
+          `player_parent_phone` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'hidden',
+          `player_birth_year` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'hidden',
+          `player_skill` enum('required','captain','optional','hidden') NOT NULL DEFAULT 'required',
+          `active` tinyint(1) NOT NULL DEFAULT 1,
+          `registrations_active` tinyint(1) NOT NULL DEFAULT 1,
+          `team_limit` int(10) unsigned DEFAULT NULL,
+          `finished` tinyint(1) NOT NULL DEFAULT 0,
+          `dates_type` enum('multiple','single') NOT NULL DEFAULT 'multiple',
+          `popup_title` varchar(100) DEFAULT NULL,
+          `popup_description` text DEFAULT NULL,
+          `popup_image` varchar(200) DEFAULT NULL,
+          `popup_link` varchar(200) DEFAULT NULL,
+          `popup_active` tinyint(1) NOT NULL DEFAULT 1,
+          PRIMARY KEY (`id_event`),
+          KEY `id_arena` (`id_arena`),
+          KEY `id_league` (`id_league`),
+          KEY `id_event_price_group` (`id_event_price_group`),
+          CONSTRAINT `events_ibfk_1` FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `events_ibfk_2` FOREIGN KEY (`id_league`) REFERENCES `leagues` (`id_league`) ON DELETE SET NULL ON UPDATE CASCADE,
+          CONSTRAINT `events_ibfk_3` FOREIGN KEY (`id_event_price_group`) REFERENCES `event_price_groups` (`id_event_price_group`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_league
+				refTable: App\Models\Tournament\League\League
+				refColumn: id_league
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+			-
+				column: id_event_price_group
+				refTable: App\Models\Tournament\EventPriceGroup
+				refColumn: id_event_price_group
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	App\Models\Events\EventDate:
+		order: 5
+		definition: '''
+		(
+          `id_event_date` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_event` int(11) unsigned NOT NULL,
+          `start` datetime NOT NULL,
+          `end` datetime DEFAULT NULL,
+          `description` text DEFAULT NULL,
+          `canceled` tinyint(1) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id_event_date`),
+          KEY `start` (`start`),
+          KEY `id_event` (`id_event`),
+          CONSTRAINT `event_dates_ibfk_1` FOREIGN KEY (`id_event`) REFERENCES `events` (`id_event`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'start'
+				columns: ['start']
+		foreignKeys:
+			-
+				column: id_event
+				refTable: App\Models\Events\Event
+				refColumn: id_event
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Events\EventTeam:
+		order: 6
+		definition: '''
+		(
+          `id_team` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_league_team` int(11) unsigned DEFAULT NULL,
+          `id_event` int(11) unsigned NOT NULL,
+          `name` varchar(100) NOT NULL,
+          `hash` varchar(200) NOT NULL,
+          `image` varchar(200) DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+          `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+          `disqualified` tinyint(1) NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id_team`),
+          KEY `id_event` (`id_event`),
+          KEY `id_league_team` (`id_league_team`),
+          CONSTRAINT `event_teams_ibfk_1` FOREIGN KEY (`id_event`) REFERENCES `events` (`id_event`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `event_teams_ibfk_2` FOREIGN KEY (`id_league_team`) REFERENCES `league_teams` (`id_team`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_event
+				refTable: App\Models\Events\Event
+				refColumn: id_event
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_league_team
+				refTable: App\Models\Tournament\League\LeagueTeam
+				refColumn: id_team
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	App\Models\Events\EventPlayer:
+		order: 7
+		definition: '''
+		(
+          `id_player` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `id_league_player` int(11) unsigned DEFAULT NULL,
+          `id_event` int(11) unsigned NOT NULL,
+          `id_team` int(11) unsigned DEFAULT NULL,
+          `id_user` int(11) unsigned DEFAULT NULL,
+          `nickname` varchar(50) DEFAULT NULL,
+          `image` varchar(200) DEFAULT NULL,
+          `captain` tinyint(1) NOT NULL DEFAULT 0,
+          `sub` tinyint(1) NOT NULL DEFAULT 0,
+          `email` varchar(50) DEFAULT NULL,
+          `parent_email` varchar(50) DEFAULT NULL,
+          `phone` varchar(20) DEFAULT NULL,
+          `parent_phone` varchar(20) DEFAULT NULL,
+          `name` varchar(50) DEFAULT NULL,
+          `surname` varchar(50) DEFAULT NULL,
+          `skill` enum('BEGINNER','SOMEWHAT_ADVANCED','ADVANCED','PRO') NOT NULL DEFAULT 'BEGINNER',
+          `birth_year` tinyint(4) DEFAULT NULL,
+          `hash` varchar(200) NOT NULL,
+          `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+          `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+          PRIMARY KEY (`id_player`),
+          KEY `id_event` (`id_event`),
+          KEY `id_team` (`id_team`),
+          KEY `id_user` (`id_user`),
+          KEY `id_league_player` (`id_league_player`),
+          CONSTRAINT `event_players_ibfk_1` FOREIGN KEY (`id_event`) REFERENCES `events` (`id_event`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `event_players_ibfk_2` FOREIGN KEY (`id_team`) REFERENCES `event_teams` (`id_team`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `event_players_ibfk_3` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE,
+          CONSTRAINT `event_players_ibfk_4` FOREIGN KEY (`id_league_player`) REFERENCES `league_players` (`id_player`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_event
+				refTable: App\Models\Events\Event
+				refColumn: id_event
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_team
+				refTable: App\Models\Events\EventTeam
+				refColumn: id_team
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_user
+				refTable: App\Models\Auth\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+			-
+				column: id_league_player
+				refTable: App\Models\Tournament\League\Player
+				refColumn: id_player
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	event_team_date:
+		order: 7
+		definition: '''
+		(
+          `id_team` int(11) unsigned NOT NULL,
+          `id_event_date` int(11) unsigned NOT NULL,
+          PRIMARY KEY (`id_team`,`id_event_date`),
+          KEY `id_date` (`id_event_date`),
+          KEY `id_team` (`id_team`),
+          CONSTRAINT `event_team_date_ibfk_1` FOREIGN KEY (`id_team`) REFERENCES `event_teams` (`id_team`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `event_team_date_ibfk_2` FOREIGN KEY (`id_event_date`) REFERENCES `event_dates` (`id_event_date`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_team
+				refTable: App\Models\Events\EventTeam
+				refColumn: id_team
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_event_date
+				refTable: App\Models\Events\EventDate
+				refColumn: id_event_date
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	event_player_date:
+		order: 8
+		definition: '''
+		(
+          `id_player` int(11) unsigned NOT NULL,
+          `id_event_date` int(11) unsigned NOT NULL,
+          PRIMARY KEY (`id_player`,`id_event_date`),
+          KEY `id_date` (`id_event_date`),
+          KEY `id_team` (`id_player`),
+          CONSTRAINT `event_player_date_ibfk_1` FOREIGN KEY (`id_player`) REFERENCES `event_players` (`id_player`) ON DELETE CASCADE ON UPDATE CASCADE,
+          CONSTRAINT `event_player_date_ibfk_2` FOREIGN KEY (`id_event_date`) REFERENCES `event_dates` (`id_event_date`) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_player
+				refTable: App\Models\Events\EventPlayer
+				refColumn: id_player
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_event_date
+				refTable: App\Models\Events\EventDate
+				refColumn: id_event_date
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'

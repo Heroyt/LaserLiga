@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers\Games;
 
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\Player;
 use App\Templates\Games\GamePlayerEloParameters;
 use Lsr\Core\Controllers\Controller;
 use Psr\Http\Message\ResponseInterface;
@@ -29,7 +30,8 @@ class GamePlayerEloController extends Controller
 		}
 		$this->params->game = $game;
 
-		$player = $game->getPlayers()->query()->filter('id', $id)->first();
+		/** @var Player|null $player */
+		$player = $game->players->query()->filter('id', $id)->first();
 		if ($player === null) {
 			$this->title = 'Hráč nenalezen';
 			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';

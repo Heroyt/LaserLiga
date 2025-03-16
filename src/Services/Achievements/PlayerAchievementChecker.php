@@ -8,8 +8,8 @@ use App\Models\Achievements\PlayerAchievementCheckDto;
 use App\Models\Auth\Player;
 use App\Models\DataObjects\Game\PlayerGamesGame;
 use Dibi\Exception;
-use Lsr\Core\DB;
-use Lsr\Core\Models\ModelRepository;
+use Lsr\Db\DB;
+use Lsr\Orm\ModelRepository;
 
 final readonly class PlayerAchievementChecker
 {
@@ -36,7 +36,7 @@ final readonly class PlayerAchievementChecker
 				continue;
 			}
 			$gamePlayer = null;
-			foreach ($game->getPlayers() as $gPlayer) {
+			foreach ($game->players as $gPlayer) {
 				if ($gPlayer->user?->id === $player->id) {
 					$gamePlayer = $gPlayer;
 					break;

@@ -4,13 +4,13 @@ namespace App\Models\Tournament\League;
 
 use App\Models\Events\EventBase;
 use App\Models\Events\EventPlayerBase;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
 #[PrimaryKey('id_player')]
 class Player extends EventPlayerBase
 {
-	public const TABLE     = 'league_players';
+	public const string TABLE     = 'league_players';
 	public const TOKEN_KEY = 'league-player';
 
 	#[ManyToOne]

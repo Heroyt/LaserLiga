@@ -14,8 +14,10 @@ use App\Services\GameHighlight\PlayerHighlightChecker;
 use App\Services\GenderService;
 use App\Services\NameInflectionService;
 use App\Services\Player\PlayersGamesTogetherService;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Throwable;
 
 class UserHighlightChecker implements PlayerHighlightChecker
@@ -31,30 +33,26 @@ class UserHighlightChecker implements PlayerHighlightChecker
 		$this->maxThreshold = 1 / $this->minThreshold;
 	}
 
-	public function checkPlayer(Player $player, HighlightCollection $highlights): void {
+	public function checkPlayer(PlayerInterface $player, HighlightCollection $highlights): void {
 		if (!isset($player->user)) {
 			return;
 		}
 
 		$this->checkPlayerAccuracy($player, $highlights);
 
-		$this->checkPlayerShots($player, $player->getGame(), $highlights);
+		$this->checkPlayerShots($player, $player->game, $highlights);
 
 		try {
-			$this->checkComparePlayerHighlights($player->getGame(), $player, $highlights);
+			$this->checkComparePlayerHighlights($player->game, $player, $highlights);
 		} catch (Throwable) {
 		}
 	}
 
 	/**
 	 * Checks the player's accuracy and adds a game highlight if the accuracy is better or worse than usual.
-	 *
-	 * @param Player              $player     The player object.
-	 * @param HighlightCollection $highlights The highlight collection object.
-	 *
-	 * @return void
 	 */
-	private function checkPlayerAccuracy(Player $player, HighlightCollection $highlights): void {
+	private function checkPlayerAccuracy(PlayerInterface $player, HighlightCollection $highlights): void {
+		assert($player instanceof Player);
 		if ($player->user->stats->averageAccuracy < 1) {
 			return;
 		}
@@ -101,14 +99,9 @@ class UserHighlightChecker implements PlayerHighlightChecker
 
 	/**
 	 * Checks the player's shots in the game and adds highlights if necessary.
-	 *
-	 * @param Player              $player     The player whose shots need to be checked.
-	 * @param Game                $game       The game in which the player participated.
-	 * @param HighlightCollection $highlights The collection of highlights to add to.
-	 *
-	 * @return void
 	 */
-	private function checkPlayerShots(Player $player, Game $game, HighlightCollection $highlights): void {
+	private function checkPlayerShots(PlayerInterface $player, GameInterface $game, HighlightCollection $highlights): void {
+		assert($player instanceof Player && $game instanceof Game);
 		$shotsDiff = ($player->shots / $game->getRealGameLength()) / $player->user->stats->averageShotsPerMinute;
 		if ($shotsDiff > $this->minThreshold) {
 			$highlights->add(
@@ -153,19 +146,16 @@ class UserHighlightChecker implements PlayerHighlightChecker
 	/**
 	 * Checks for player highlights in comparison with other players in a game.
 	 *
-	 * @param Game                $game       The game object.
-	 * @param Player              $player     The player to compare.
-	 * @param HighlightCollection $highlights The collection to store highlights.
-	 *
-	 * @return void
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 * @throws Throwable
 	 */
-	private function checkComparePlayerHighlights(Game $game, Player $player, HighlightCollection $highlights): void {
+	private function checkComparePlayerHighlights(GameInterface $game, PlayerInterface $player, HighlightCollection $highlights): void {
+		assert($player instanceof Player && $game instanceof Game);
 		$gender = GenderService::rankWord($player->name);
 		// Find registered players other than player1 and compare their regular results with this game
-		foreach ($game->getPlayers()->getAll() as $player2) {
+		/** @var Player $player2 */
+		foreach ($game->players->getAll() as $player2) {
 			// Skip if the players are the same
 			if ($player->vest === $player2->vest) {
 				continue;
@@ -191,8 +181,7 @@ class UserHighlightChecker implements PlayerHighlightChecker
 			}
 
 			// Skip players that are not registered, or if the player2 is the same as player1 or if
-			if (!isset($player2->user) || ($game->getMode()?->isTeam() && $player->getTeam(
-					)?->color === $player2->getTeam()?->color)) {
+			if (!isset($player2->user) || ($game->mode->isTeam() && $player->team?->color === $player2->team?->color)) {
 				continue;
 			}
 
@@ -206,10 +195,10 @@ class UserHighlightChecker implements PlayerHighlightChecker
 			if ($game->getMode()?->isTeam()) {
 				/** @var Team|null $winTeam */
 				$winTeam = $game->getMode()->getWin($game);
-				if ($winTeam?->color === $player->getTeam()?->color) {
+				if ($winTeam?->color === $player->team?->color) {
 					$isWin = true;
 				}
-				else if ($winTeam?->color !== $player2->getTeam()?->color) {
+				else if ($winTeam?->color !== $player2->team?->color) {
 					continue; // We don't care for draws
 				}
 			}
@@ -235,17 +224,9 @@ class UserHighlightChecker implements PlayerHighlightChecker
 
 	/**
 	 * Checks the player's win ratio against another player in a game.
-	 *
-	 * @param Game                $game          The game object.
-	 * @param GamesTogether       $gamesTogether The gamesTogether object.
-	 * @param Player              $player        The player to check win ratio against.
-	 * @param Gender              $gender        The gender of the player.
-	 * @param Player              $player2       The player to compare win ratio with.
-	 * @param HighlightCollection $highlights    The collection to store highlights.
-	 *
-	 * @return void
 	 */
-	private function checkPlayerWinRatioAgainstAnotherPlayer(Game $game, GamesTogether $gamesTogether, Player $player, Gender $gender, Player $player2, HighlightCollection $highlights): void {
+	private function checkPlayerWinRatioAgainstAnotherPlayer(GameInterface $game, GamesTogether $gamesTogether, PlayerInterface $player, Gender $gender, PlayerInterface $player2, HighlightCollection $highlights): void {
+		assert($player instanceof Player && $player2 instanceof Player);
 		if (!isset($player->user)) {
 			return;
 		}
@@ -282,11 +263,11 @@ class UserHighlightChecker implements PlayerHighlightChecker
 					'@' . $player2->name . '@<' . NameInflectionService::dative(
 						$player2->name
 					) . '>',
-				) . ($game->getMode()?->isTeam() ? ' (' . lang(
-						         'Týmové skóre',
-						context: 'user',
-						domain : 'highlights'
-					) . ')' : ''),
+				) . (
+				$game->mode?->isTeam() ?
+					' (' . lang('Týmové skóre', context: 'user', domain: 'highlights') . ')'
+					: ''
+				),
 				(int)round(
 					GameHighlight::MEDIUM_RARITY + (20 / $winLossRatio)
 				)

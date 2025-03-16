@@ -5,7 +5,7 @@
 namespace App\Core\Interfaces;
 
 /**
- * @template T of \Lsr\Core\Models\Model
+ * @template T of \Lsr\Orm\Model
  */
 interface CollectionQueryFilterInterface
 {

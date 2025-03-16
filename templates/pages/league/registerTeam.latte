@@ -55,7 +55,7 @@
         {/if}
         {foreach $league->getEvents() as $connectedEvent}
             {varType App\Models\Events\Event $connectedEvent}
-            {continueIf $connectedEvent->format !== App\GameModels\Game\Enums\GameModeType::TEAM}
+            {continueIf $connectedEvent->format !== Lsr\Lg\Results\Enums\GameModeType::TEAM}
             <div class="mb-2 mx-2">
                 <div class="form-label">{lang $connectedEvent->name}</div>
                 {switch $connectedEvent->datesType}

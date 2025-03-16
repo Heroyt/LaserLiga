@@ -2,13 +2,13 @@
 
 namespace App\Models\Questionnaire;
 
+use App\Models\BaseModel;
 use JsonException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
 #[PrimaryKey('id_answer')]
-class Answer extends Model
+class Answer extends BaseModel
 {
 
 	public const string TABLE = 'question_answer';
@@ -26,7 +26,7 @@ class Answer extends Model
 	 * @return string|string[]
 	 * @throws JsonException
 	 */
-	public function getValue() : string|array {
+	public function getValue(): string|array {
 		if ($this->question->allowMultiple || $this->question->allowCustom) {
 			return json_decode($this->value, true, 512, JSON_THROW_ON_ERROR);
 		}

@@ -4,8 +4,8 @@ namespace App\Services\Achievements;
 
 use App\Models\Achievements\Title;
 use App\Models\Auth\Player;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
 
 class TitleProvider
 {

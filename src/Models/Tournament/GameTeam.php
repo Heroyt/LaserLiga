@@ -2,23 +2,23 @@
 
 namespace App\Models\Tournament;
 
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use App\Models\BaseModel;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
 #[PrimaryKey('id_game_team')]
-class GameTeam extends Model
+class GameTeam extends BaseModel
 {
 
-	public const TABLE = 'tournament_game_teams';
+	public const string TABLE = 'tournament_game_teams';
 
 	#[ManyToOne]
 	public Game $game;
 
-	public int $key = 0;
+	public int  $key      = 0;
 	public ?int $position = null;
-	public ?int $score = null;
-	public ?int $points = null;
+	public ?int $score    = null;
+	public ?int $points   = null;
 
 	#[ManyToOne]
 	public ?Team $team = null;

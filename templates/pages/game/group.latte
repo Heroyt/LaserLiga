@@ -461,7 +461,7 @@
                     <div class="score" data-toggle="tooltip" title="{lang 'Průměrné ohodnocení týmu'}"
                          data-skills="{json_encode($team->skills)}">
                         {faSolid 'medal'}
-                        {$team->getSkill()|number:0,',','&nbsp;'|noescape}
+                        {$team->skill|number:0,',','&nbsp;'|noescape}
                         {faSolid 'circle-info', ['ms-2', 'me-1', 'cursor-info']}
                     </div>
 
@@ -490,7 +490,7 @@
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrná přesnost'}</h5>
                             {var int $circleRadius = 98}
-                            {var float $accuracy = $team->getAccuracyAvg()}
+                            {var float $accuracy = $team->accuracyAvg}
                             <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"
                                  class="accuracy" xml:space="preserve"
                                  style="--color:var(--text);fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
@@ -526,9 +526,9 @@
                                 ({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'}):
                             </h5>
                             <div class="stat-value">
-                                {ratio($team->getHitsSum(), $team->getDeathsSum(), 0)}
-                                :{ratio($team->getHitsSum(), $team->getDeathsSum(), 1)}
-                                ({$team->getKd()|number:2,',','&nbsp;'|noescape})
+                                {ratio($team->hitsSum, $team->deathsSum, 0)}
+                                :{ratio($team->hitsSum, $team->deathsSum, 1)}
+                                ({$team->kd|number:2,',','&nbsp;'|noescape})
                             </div>
                         </div>
                     </div>
@@ -536,14 +536,14 @@
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrné skóre'}</h5>
                             <div class="stat-value">
-                                {$team->getScoreAvg()|number:2,',','&nbsp;'|noescape}
+                                {$team->scoreAvg|number:2,',','&nbsp;'|noescape}
                                 {faSolid 'star'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkové skóre'}</h5>
                             <div class="stat-value">
-                                {$team->getScoreSum()|number:0,',','&nbsp;'|noescape}
+                                {$team->scoreAvg|number:0,',','&nbsp;'|noescape}
                                 {faSolid 'star'}
                             </div>
                         </div>
@@ -552,28 +552,28 @@
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrný počet výstřelů'}</h5>
                             <div class="stat-value">
-                                {$team->getShotsAvg()|number:2,',','&nbsp;'|noescape}
+                                {$team->shotsAvg|number:2,',','&nbsp;'|noescape}
                                 {svgIcon 'bullet', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkem výstřelů'}</h5>
                             <div class="stat-value">
-                                {$team->getShotsSum()|number:0,',','&nbsp;'|noescape}
+                                {$team->shotsSum|number:0,',','&nbsp;'|noescape}
                                 {svgIcon 'bullet_2', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrný počet výstřelů mimo'}</h5>
                             <div class="stat-value">
-                                {$team->getMissAvg()|number:2,',','&nbsp;'|noescape}
+                                {$team->missAvg|number:2,',','&nbsp;'|noescape}
                                 {svgIcon 'bullets', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkem výstřelů mimo'}</h5>
                             <div class="stat-value">
-                                {$team->getMissSum()|number:0,',','&nbsp;'|noescape}
+                                {$team->missSum|number:0,',','&nbsp;'|noescape}
                                 {svgIcon 'bullets', '', '2rem'}
                             </div>
                         </div>
@@ -582,28 +582,28 @@
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrný počet zásahů'}</h5>
                             <div class="stat-value">
-                                {$team->getHitsAvg()|number:2,',','&nbsp;'|noescape}
+                                {$team->hitsAvg|number:2,',','&nbsp;'|noescape}
                                 {svgIcon 'kill', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkem zásahů'}</h5>
                             <div class="stat-value">
-                                {$team->getHitsSum()|number:0,',','&nbsp;'|noescape}
+                                {$team->hitsSum|number:0,',','&nbsp;'|noescape}
                                 {svgIcon 'kill', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrný počet zásahů do spoluhráčů'}</h5>
                             <div class="stat-value">
-                                {$team->getHitsOwnAvg()|number:2,',','&nbsp;'|noescape}
+                                {$team->hitsOwnAvg|number:2,',','&nbsp;'|noescape}
                                 {svgIcon 'dead', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkem zásahů do spoluhráčů'}</h5>
                             <div class="stat-value">
-                                {$team->getHitsOwnSum()|number:0,',','&nbsp;'|noescape}
+                                {$team->hitsOwnSum|number:0,',','&nbsp;'|noescape}
                                 {svgIcon 'dead', '', '2rem'}
                             </div>
                         </div>
@@ -612,28 +612,28 @@
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrný počet smrtí'}</h5>
                             <div class="stat-value">
-                                {$team->getDeathsAvg()|number:2,',','&nbsp;'|noescape}
+                                {$team->deathsAvg|number:2,',','&nbsp;'|noescape}
                                 {svgIcon 'skull', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkem smrtí'}</h5>
                             <div class="stat-value">
-                                {$team->getDeathsSum()|number:0,',','&nbsp;'|noescape}
+                                {$team->deathsSum|number:0,',','&nbsp;'|noescape}
                                 {svgIcon 'skull', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Průměrný počet smrtí od spoluhráčů'}</h5>
                             <div class="stat-value">
-                                {$team->getDeathsOwnAvg()|number:2,',','&nbsp;'|noescape}
+                                {$team->deathsOwnAvg|number:2,',','&nbsp;'|noescape}
                                 {svgIcon 'dead', '', '2rem'}
                             </div>
                         </div>
                         <div class="stat">
                             <h5 class="stat-title">{lang 'Celkem smrtí od spoluhráčů'}</h5>
                             <div class="stat-value">
-                                {$team->getDeathsOwnSum()|number:0,',','&nbsp;'|noescape}
+                                {$team->deathsOwnSum|number:0,',','&nbsp;'|noescape}
                                 {svgIcon 'dead', '', '2rem'}
                             </div>
                         </div>

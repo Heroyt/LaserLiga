@@ -26,6 +26,8 @@ use App\Services\Achievements\Checkers\TrophyChecker;
 use App\Services\Player\PlayerUserService;
 use DateTimeImmutable;
 use Exception;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 
 readonly class AchievementChecker
 {
@@ -53,15 +55,14 @@ readonly class AchievementChecker
 	}
 
 	/**
-	 * @param Game $game
-	 *
 	 * @pre Stats from the game should already be processed
 	 * @return PlayerAchievement[] New achievements that were not yet saved
+	 * @throws Exception
 	 * @see PlayerUserService::updatePlayerStats()
 	 */
-	public function checkGame(Game $game): array {
+	public function checkGame(GameInterface $game): array {
 		$achievements = [];
-		foreach ($game->getPlayers() as $player) {
+		foreach ($game->players as $player) {
 			if (isset($player->user)) {
 				$achievements[] = $this->checkPlayerGame($game, $player);
 			}
@@ -70,14 +71,13 @@ readonly class AchievementChecker
 	}
 
 	/**
-	 * @param Game   $game
-	 * @param Player $player
-	 *
 	 * @pre Stats from the game should already be processed
 	 * @return PlayerAchievement[]
+	 * @throws Exception
 	 * @see PlayerUserService::updatePlayerStats()
 	 */
-	public function checkPlayerGame(Game $game, Player $player): array {
+	public function checkPlayerGame(GameInterface $game, PlayerInterface $player): array {
+		assert($player instanceof Player && $game instanceof Game);
 		if (!isset($player->user)) {
 			return [];
 		}

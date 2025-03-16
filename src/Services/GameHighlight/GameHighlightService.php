@@ -8,23 +8,25 @@ use App\GameModels\Game\Team;
 use App\Models\DataObjects\Highlights\GameHighlight;
 use App\Models\DataObjects\Highlights\HighlightCollection;
 use Dibi\Exception;
+use Lsr\Caching\Cache;
 use Lsr\Core\App;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\DB;
+use Lsr\Db\DB;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 use Throwable;
-use Tracy\Debugger;
-use Tracy\Logger;
+use TypeError;
+use function igbinary_unserialize;
 
 class GameHighlightService
 {
 
-	public const  TABLE         = 'game_highlights';
-	private const PLAYER_REGEXP = '/@([^@]+)@(?:<([^@]+)>)?/';
+	public const  string TABLE         = 'game_highlights';
+	private const string PLAYER_REGEXP = '/@([^@]+)@(?:<([^@]+)>)?/';
 
 	/** @var int If highlights are checked for a specified user, boost the rarity score of the ones that contain this user by this value */
-	private const USER_SCORE_BOOST = 50;
+	private const int USER_SCORE_BOOST = 50;
 
-	/** @var Player[][] */
+	/** @var PlayerInterface[][] */
 	private array $playerCache = [];
 
 	/** @var GameHighlightChecker[] */
@@ -57,17 +59,9 @@ class GameHighlightService
 
 	/**
 	 *
-	 * @template T of Team
-	 * @template P of Player
-	 *
-	 * @param Game<T, P>              $game
-	 * @param \App\Models\Auth\Player $user
-	 * @param bool                    $cache
-	 *
-	 * @return HighlightCollection
 	 * @throws Throwable
 	 */
-	public function getHighlightsForGameForUser(Game $game, \App\Models\Auth\Player $user, bool $cache = true): HighlightCollection {
+	public function getHighlightsForGameForUser(GameInterface $game, \App\Models\Auth\Player $user, bool $cache = true): HighlightCollection {
 		$highlights = $this->getHighlightsForGame($game, $cache);
 
 		foreach ($highlights->getAll() as $highlight) {
@@ -75,7 +69,7 @@ class GameHighlightService
 			foreach ($matches[1] as $playerName) {
 				$player = $this->getPlayerByName($playerName, $game);
 
-				if (isset($player, $player->user) && $player->user->id === $user->id) {
+				if (isset($player->user) && $player->user->id === $user->id) {
 					$highlights->changeRarity($highlight, $highlight->rarityScore + $this::USER_SCORE_BOOST);
 					break;
 				}
@@ -87,46 +81,32 @@ class GameHighlightService
 
 	/**
 	 * Get all highlight for a game
-	 *
-	 * @template T of Team
-	 * @template P of Player
-	 *
-	 * @param Game<T, P> $game
-	 * @param bool       $cache
-	 *
-	 * @return HighlightCollection
 	 * @throws Throwable Cache error
 	 */
-	public function getHighlightsForGame(Game $game, bool $cache = true): HighlightCollection {
+	public function getHighlightsForGame(GameInterface $game, bool $cache = true): HighlightCollection {
+		assert($game instanceof Game);
 		if (!$cache) {
 			return $this->loadHighlightsForGame($game, true);
 		}
 
 		return $this->cache->load(
 			'game.' . $game->code . '.highlights.' . App::getInstance()->getLanguage()->id,
-			function (array &$dependencies) use ($game) {
-				$dependencies[$this->cache::Tags] = [
+			fn() => $this->loadHighlightsForGame($game),
+			/** @phpstan-ignore argument.type */
+			[
+				$this->cache::Tags => [
 					'highlights',
 					'games',
 					'games/' . $game::SYSTEM,
 					'games/' . $game::SYSTEM . '/' . $game->id,
 					'games/' . $game->code,
 					'games/' . $game->code . '/highlights',
-				];
-				return $this->loadHighlightsForGame($game);
-			}
+				],
+			]
 		);
 	}
 
-	/**
-	 * @template T of Team
-	 * @template P of Player
-	 *
-	 * @param Game<T,P> $game
-	 *
-	 * @return HighlightCollection
-	 */
-	private function loadHighlightsForGame(Game $game, bool $generate = false): HighlightCollection {
+	private function loadHighlightsForGame(GameInterface $game, bool $generate = false): HighlightCollection {
 		if ($generate) {
 			$highlights = $this->generateHighlightsForGame($game);
 			$this->saveHighlightCollection($highlights, $game);
@@ -142,16 +122,16 @@ class GameHighlightService
 		return $highlights;
 	}
 
-	private function generateHighlightsForGame(Game $game): HighlightCollection {
+	private function generateHighlightsForGame(GameInterface $game): HighlightCollection {
 		$highlights = new HighlightCollection();
 
-		foreach ($game->getTeams()->getAll() as $team) {
+		foreach ($game->teams->getAll() as $team) {
 			foreach ($this->teamCheckers as $checker) {
 				$checker->checkTeam($team, $highlights);
 			}
 		}
 
-		foreach ($game->getPlayers()->getAll() as $player) {
+		foreach ($game->players->getAll() as $player) {
 			foreach ($this->playerCheckers as $checker) {
 				$checker->checkPlayer($player, $highlights);
 			}
@@ -164,7 +144,7 @@ class GameHighlightService
 		return $highlights;
 	}
 
-	private function saveHighlightCollection(HighlightCollection $collection, Game $game): bool {
+	private function saveHighlightCollection(HighlightCollection $collection, GameInterface $game): bool {
 		try {
 			DB::getConnection()->begin();
 			foreach ($collection->getAll() as $highlight) {
@@ -198,12 +178,9 @@ class GameHighlightService
 	/**
 	 * Get players from highlight
 	 *
-	 * @param GameHighlight $highlight
-	 * @param Game          $game
-	 *
 	 * @return array{name:string,label:string,user:string|null}[]
 	 */
-	public function getHighlightPlayers(GameHighlight $highlight, Game $game): array {
+	public function getHighlightPlayers(GameHighlight $highlight, GameInterface $game): array {
 		preg_match_all($this::PLAYER_REGEXP, $highlight->getDescription(), $matches, PREG_SET_ORDER);
 		$players = [];
 		foreach ($matches as $match) {
@@ -215,32 +192,19 @@ class GameHighlightService
 		return $players;
 	}
 
-	/**
-	 * @param string $name
-	 * @param Game   $game
-	 *
-	 * @return Player|null
-	 */
-	private function getPlayerByName(string $name, Game $game): ?Player {
+	private function getPlayerByName(string $name, GameInterface $game): ?PlayerInterface {
 		if (isset($this->playerCache[$game->code][$name])) {
 			return $this->playerCache[$game->code][$name];
 		}
 		if (!isset($this->playerCache[$game->code])) {
 			$this->playerCache[$game->code] = [];
 		}
-		$this->playerCache[$game->code][$name] = $game->getPlayers()->query()->filter('name', $name)->first();
+		$this->playerCache[$game->code][$name] = $game->players->query()->filter('name', $name)->first();
 		return $this->playerCache[$game->code][$name];
 	}
 
-	/**
-	 * @template T of Team
-	 * @template P of Player
-	 *
-	 * @param Game<T,P> $game
-	 *
-	 * @return HighlightCollection
-	 */
-	private function loadHighlightsForGameFromDb(Game $game): HighlightCollection {
+	private function loadHighlightsForGameFromDb(GameInterface $game): HighlightCollection {
+		assert($game instanceof Game);
 		$highlights = new HighlightCollection();
 		/** @var string[] $objects */
 		$objects = DB::select($this::TABLE, '[object]')
@@ -257,11 +221,11 @@ class GameHighlightService
 
 		foreach ($objects as $object) {
 			try {
-				$highlight = @\igbinary_unserialize($object);
+				$highlight = @igbinary_unserialize($object);
 				if ($highlight instanceof GameHighlight) {
 					$highlights->add($highlight);
 				}
-			} catch (\TypeError) {
+			} catch (TypeError) {
 			}
 		}
 		return $highlights;
@@ -276,7 +240,7 @@ class GameHighlightService
 	 *
 	 * @return string
 	 */
-	public function playerNamesToLinks(string $highlightDescription, Game $game): string {
+	public function playerNamesToLinks(string $highlightDescription, GameInterface $game): string {
 		return preg_replace_callback(
 			$this::PLAYER_REGEXP,
 			function (array $matches) use ($game) {

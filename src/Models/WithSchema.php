@@ -6,6 +6,9 @@ namespace App\Models;
 interface WithSchema
 {
 
+	/**
+	 * @return array<string,mixed>
+	 */
 	public function getSchema(): array;
 
 }

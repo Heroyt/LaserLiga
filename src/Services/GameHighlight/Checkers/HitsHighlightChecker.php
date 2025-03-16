@@ -2,7 +2,6 @@
 
 namespace App\Services\GameHighlight\Checkers;
 
-use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\Helpers\Gender;
 use App\Models\DataObjects\Highlights\GameHighlight;
@@ -12,6 +11,8 @@ use App\Services\GameHighlight\GameHighlightChecker;
 use App\Services\GameHighlight\PlayerHighlightChecker;
 use App\Services\GenderService;
 use App\Services\NameInflectionService;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 
 class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightChecker
 {
@@ -19,7 +20,7 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 	/**
 	 * @inheritDoc
 	 */
-	public function checkGame(Game $game, HighlightCollection $highlights): void {
+	public function checkGame(GameInterface $game, HighlightCollection $highlights): void {
 		$pairs = [];
 		$maxHitsOwn = 0;
 		/** @var Player[] $maxHitsOwnPlayers */
@@ -27,7 +28,8 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 		$maxDeathsOwn = 0;
 		/** @var Player[] $maxDeathsOwnPlayers */
 		$maxDeathsOwnPlayers = [];
-		foreach ($game->getPlayers()->getAll() as $player) {
+		/** @var Player $player */
+		foreach ($game->players->getAll() as $player) {
 			if ($maxHitsOwn <= $player->hitsOwn && $player->hitsOwn > 0) {
 				if ($maxHitsOwn !== $player->hitsOwn) {
 					$maxHitsOwn = $player->hitsOwn;
@@ -60,7 +62,8 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 						new GameHighlight(
 							GameHighlightType::HITS,
 							sprintf(
-								lang(        'Hráči %s a %s se oba navzájem zasáhli %dx.',
+								lang(
+									         'Hráči %s a %s se oba navzájem zasáhli %dx.',
 									context: 'hits',
 									domain : 'highlights'
 								),
@@ -75,7 +78,7 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 			}
 		}
 
-		if ($game->getMode()?->isTeam()) {
+		if ($game->mode?->isTeam()) {
 			$maxHitsOwnPlayerCount = count($maxHitsOwnPlayers);
 			switch ($maxHitsOwnPlayerCount) {
 				case 0:
@@ -92,7 +95,8 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 										Gender::FEMALE => '%s zasáhla nejvíce spoluhráčů (%d).',
 										Gender::OTHER  => '%s zasáhlo nejvíce spoluhráčů (%d).',
 									},
-									domain: 'highlights', context: 'results'
+									context: 'results',
+									domain : 'highlights'
 								),
 								'@' . $maxHitsOwnPlayers[0]->name . '@',
 								$maxHitsOwn,
@@ -135,7 +139,8 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 										Gender::FEMALE => '%s byla zasažena nejvíce spoluhráči (%d).',
 										Gender::OTHER  => '%s bylo zasaženo nejvíce spoluhráči (%d).',
 									},
-									domain: 'highlights', context: 'results'
+									context: 'results',
+									domain : 'highlights'
 								),
 								'@' . $maxDeathsOwnPlayers[0]->name . '@',
 								$maxDeathsOwn,
@@ -152,7 +157,11 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 						new GameHighlight(
 							GameHighlightType::HITS,
 							sprintf(
-								lang('%s byli zasaženi nejvíce spoluhráči (%d).', domain: 'highlights', context: 'results'),
+								lang(
+									         '%s byli zasaženi nejvíce spoluhráči (%d).',
+									context: 'results',
+									domain : 'highlights'
+								),
 								$firstNames . ' ' . lang('a', context: 'spojka') . ' ' . last($playerNames),
 								$maxDeathsOwn,
 							),
@@ -164,11 +173,12 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 		}
 	}
 
-	public function checkPlayer(Player $player, HighlightCollection $highlights): void {
+	public function checkPlayer(PlayerInterface $player, HighlightCollection $highlights): void {
+		assert($player instanceof Player);
 		$name1 = $player->name;
 		$gender1 = GenderService::rankWord($name1);
 
-		if ($player->getGame()->getMode()?->isTeam()) {
+		if ($player->game->mode?->isTeam()) {
 			if ($player->hitsOwn > $player->hitsOther) {
 				$highlights->add(
 					new GameHighlight(
@@ -192,8 +202,8 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 				);
 			}
 
-			if ($player->getFavouriteTarget()?->getTeam()?->color === $player->getTeam()?->color) {
-				$name2 = $player->getFavouriteTarget()->name ?? '';
+			if ($player->favouriteTarget?->team?->color === $player->team?->color) {
+				$name2 = $player->favouriteTarget->name ?? '';
 				$gender2 = GenderService::rankWord($name2);
 				$name2Verb = match ($gender2) {
 					Gender::OTHER, Gender::MALE => 'svého spoluhráče',
@@ -214,7 +224,7 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 							),
 							'@' . $name1 . '@',
 							'@' . $name2 . '@<' . NameInflectionService::accusative($name2) . '>',
-							$player->getHitsPlayer($player->getFavouriteTarget()),
+							$player->getHitsPlayer($player->favouriteTarget),
 						),
 						GameHighlight::VERY_HIGH_RARITY + 20
 					)
@@ -230,7 +240,9 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 				continue;
 			}
 			$hitCounts[$hit->count] ??= [];
-			$hitCounts[$hit->count][] = '@' . $hit->playerTarget->name . '@<' . NameInflectionService::accusative($hit->playerTarget->name) . '>';
+			$hitCounts[$hit->count][] = '@' . $hit->playerTarget->name . '@<' . NameInflectionService::accusative(
+					$hit->playerTarget->name
+				) . '>';
 		}
 		foreach ($hitCounts as $count => $hits) {
 			$hitCounts = count($hits);

@@ -9,6 +9,7 @@ use App\GameModels\Game\Game;
 use App\Helpers\Gender;
 use App\Models\Achievements\Title;
 use App\Models\Arena;
+use App\Models\BaseModel;
 use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Models\DataObjects\Player\PlayerStats;
 use App\Services\Achievements\TitleProvider;
@@ -18,22 +19,23 @@ use App\Services\GenderService;
 use App\Services\NameInflectionService;
 use DateTimeInterface;
 use Dibi\Row;
+use InvalidArgumentException;
 use Lsr\Core\App;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Attributes\Validation\Email;
-use Lsr\Core\Models\Model;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
+use Lsr\LaserLiga\PlayerInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\ObjectValidation\Attributes\Email;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Utils\Random;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_user')]
 #[OA\Schema(schema: 'LigaPlayerBase')]
-class Player extends Model
+class Player extends BaseModel implements PlayerInterface
 {
 
 	public const string TABLE = 'players';
@@ -45,12 +47,12 @@ class Player extends Model
 	/** @var string Unique code for each player - two players can have the same code if they are from different arenas. */
 	#[PlayerCode]
 	#[OA\Property]
-	public string $code;
+	public string  $code;
 	#[OA\Property]
-	public string $nickname;
+	public string  $nickname;
 	#[Email]
 	#[OA\Property]
-	public string $email;
+	public string  $email;
 	#[OA\Property]
 	public ?string $avatar      = null;
 	#[OA\Property]
@@ -65,7 +67,12 @@ class Player extends Model
 	#[OA\Property]
 	public ?DateTimeInterface $birthday = null;
 
-	private Gender $gender;
+	public Gender $gender {
+		get {
+			$this->gender ??= GenderService::rankWord($this->nickname);
+			return $this->gender;
+		}
+	}
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		parent::__construct($id, $dbRow);
@@ -74,25 +81,10 @@ class Player extends Model
 		}
 	}
 
-	public static function getByCode(string $code) : ?static {
-		$code = strtoupper(trim($code));
-		if (preg_match('/(\d)+-([A-Z\d]{5})/', $code, $matches) !== 1) {
-			throw new \InvalidArgumentException('Code is not valid');
-		}
-		if (((int) $matches[1]) === 0) {
-			return static::query()->where('[id_arena] IS NULL AND [code] = %s', $matches[2])->first();
-		}
-		return static::query()->where('[id_arena] = %i AND [code] = %s', $matches[1], $matches[2])->first();
-	}
-
 	/**
-	 * @param string $code
-	 * @param Player $player
-	 *
-	 * @return void
 	 * @throws ValidationException
 	 */
-	public static function validateCode(string $code, Player $player) : void {
+	public static function validateCode(string $code, PlayerInterface $player, string $propertyPrefix = ''): void {
 		if (!$player->validateUniqueCode($code)) {
 			throw new ValidationException('Invalid player\'s code. Must be unique.');
 		}
@@ -105,7 +97,7 @@ class Player extends Model
 	 *
 	 * @return bool
 	 */
-	public function validateUniqueCode(string $code) : bool {
+	public function validateUniqueCode(string $code): bool {
 		$id = DB::select($this::TABLE, $this::getPrimaryKey())->where('[code] = %s', $code)->fetchSingle();
 		return !isset($id) || $id === $this->id;
 	}
@@ -116,7 +108,7 @@ class Player extends Model
 	 * @throws ModelNotFoundException
 	 * @throws DirectoryCreationException
 	 */
-	public function getPlayedArenas() : array {
+	public function getPlayedArenas(): array {
 		$arenas = [];
 		/** @var int[] $rows */
 		$rows = $this->queryPlayedArenas()->fetchPairs();
@@ -126,25 +118,21 @@ class Player extends Model
 		return $arenas;
 	}
 
-	public function queryPlayedArenas() : Fluent {
+	public function queryPlayedArenas(): Fluent {
 		$queries = PlayerFactory::getPlayersWithGamesUnionQueries(gameFields: ['id_arena']);
-		$query = new Fluent(
+		$query = DB::getConnection()->getFluent(
 			DB::getConnection()
+				->connection
 				->select('%SQL [id_arena]', 'DISTINCT')
-				->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
+				->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')
 				->where('[id_user] = %i', $this->id)
 		);
-		$query->cacheTags('user/games', 'user/'.$this->id.'/games', 'user/'.$this->id.'/arenas', 'user/'.$this->id);
-		return $query;
-	}
-
-	public function queryGames(?\DateTimeInterface $date = null) : Fluent {
-		$query = PlayerFactory::queryPlayersWithGames(playerFields: ['vest'])
-													->where('[id_user] = %i', $this->id);
-		if (isset($date)) {
-			$query->where('DATE([start]) = %d', $date);
-		}
-		$query->cacheTags('user/'.$this->id.'/games');
+		$query->cacheTags(
+			'user/games',
+			'user/' . $this->id . '/games',
+			'user/' . $this->id . '/arenas',
+			'user/' . $this->id
+		);
 		return $query;
 	}
 
@@ -154,6 +142,27 @@ class Player extends Model
 			return null;
 		}
 		return GameFactory::getByCode($row->code);
+	}
+
+	public function queryGames(?DateTimeInterface $date = null): Fluent {
+		$query = PlayerFactory::queryPlayersWithGames(playerFields: ['vest'])
+		                      ->where('[id_user] = %i', $this->id);
+		if (isset($date)) {
+			$query->where('DATE([start]) = %d', $date);
+		}
+		$query->cacheTags('user/' . $this->id . '/games');
+		return $query;
+	}
+
+	public static function getByCode(string $code): ?static {
+		$code = strtoupper(trim($code));
+		if (preg_match('/(\d)+-([A-Z\d]{5})/', $code, $matches) !== 1) {
+			throw new InvalidArgumentException('Code is not valid');
+		}
+		if (((int)$matches[1]) === 0) {
+			return static::query()->where('[id_arena] IS NULL AND [code] = %s', $matches[2])->first();
+		}
+		return static::query()->where('[id_arena] = %i AND [code] = %s', $matches[1], $matches[2])->first();
 	}
 
 	public function getLastGame(): ?Game {
@@ -169,18 +178,11 @@ class Player extends Model
 	 *
 	 * @return void
 	 */
-	public function generateRandomCode() : void {
+	public function generateRandomCode(): void {
 		do {
 			$code = Random::generate(5, '0-9A-Z');
 		} while (!$this->validateUniqueCode($code));
 		$this->code = $code;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getCode() : string {
-		return Info::get('arena_id', 0).'-'.$this->code;
 	}
 
 	/**
@@ -196,17 +198,19 @@ class Player extends Model
 		return str_replace('mask="url(#viewboxMask)"', '', $this->avatar);
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getCode(): string {
+		return Info::get('arena_id', 0) . '-' . $this->code;
+	}
+
 	public function getTitle(): Title {
 		if (!isset($this->title)) {
 			$titleProvider = App::getServiceByType(TitleProvider::class);
 			$this->title = first($titleProvider->getForUser($this));
 		}
 		return $this->title;
-	}
-
-	public function getGender(): Gender {
-		$this->gender ??= GenderService::rankWord($this->nickname);
-		return $this->gender;
 	}
 
 	public function accusativeNickname(): string {

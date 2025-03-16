@@ -6,10 +6,10 @@ use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Evo5\Game;
-use App\GameModels\Game\Evo5\Player;
+use App\GameModels\Game\Evo5\Player as Evo5Player;
 use App\GameModels\Game\Evo5\PlayerHit;
-use App\GameModels\Game\Evo5\Scoring;
-use App\GameModels\Game\Timing;
+use App\GameModels\Game\Evo6\Player as Evo6Player;
+use App\GameModels\Game\Evo6\Team;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Services\Player\PlayerUserService;
@@ -19,13 +19,15 @@ use DateTimeImmutable;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Exceptions\TemplateDoesNotExistException;
+use Lsr\Lg\Results\LaserMaxx\Evo6\Scoring;
+use Lsr\Lg\Results\Timing;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
@@ -48,7 +50,7 @@ class Games extends Controller
 			return $this->respond(['error' => 'game not found'], 404);
 		}
 		/** @var \App\GameModels\Game\Player $player */
-		foreach ($game->getPlayers() as $player) {
+		foreach ($game->players as $player) {
 			if (isset($player->user)) {
 				$this->pushService->sendNewGameNotification($player, $player->user);
 			}
@@ -82,7 +84,7 @@ class Games extends Controller
 			case 'evo5':
 				$game = new Game();
 
-				$game->scoring = new Scoring(
+				$game->scoring = new \Lsr\Lg\Results\LaserMaxx\Evo5\Scoring(
 					(int)$request->getPost('score-death'),
 					(int)$request->getPost('score-hit'),
 					(int)$request->getPost('score-death-own'),
@@ -98,7 +100,7 @@ class Games extends Controller
 			case 'evo6':
 				$game = new \App\GameModels\Game\Evo6\Game();
 
-				$game->scoring = new \App\GameModels\Game\Evo6\Scoring(
+				$game->scoring = new Scoring(
 					(int)$request->getPost('score-death'),
 					(int)$request->getPost('score-hit'),
 					(int)$request->getPost('score-death-own'),
@@ -139,17 +141,19 @@ class Games extends Controller
 			(int)$request->getPost('timing-end'),
 		);
 
+		/** @phpstan-ignore method.notFound */
 		$game->end = $game->start->add(
 			new DateInterval(
 				'PT' . $game->timing->gameLength . 'M' . ($game->timing->before + $game->timing->after) . 'S'
 			)
 		);
 
+
 		$teams = [];
 		/** @var array<int,array{name:string,color:numeric-string}> $teamsData */
 		$teamsData = $request->getPost('teams', []);
 		foreach ($teamsData as $id => $data) {
-			/** @var \App\GameModels\Game\Evo5\Team|\App\GameModels\Game\Evo6\Team $team */
+			/** @var \App\GameModels\Game\Evo5\Team|Team $team */
 			$team = new $game->teamClass;
 			$game->addTeam($team);
 			$teams[$id] = $team;
@@ -162,6 +166,7 @@ class Games extends Controller
 		}
 
 		$players = [];
+		/** @var array{user:LigaPlayer,player:Evo5Player|Evo6Player}[] $users */
 		$users = [];
 		/** @var array<int,array{
 		 *     team:numeric-string,
@@ -173,10 +178,11 @@ class Games extends Controller
 		 *     invisibility:numeric-string,
 		 *     machineGun:numeric-string,
 		 *     shield:numeric-string,
-		 *     }> $playersData */
+		 *     }> $playersData
+		 */
 		$playersData = $request->getPost('players', []);
 		foreach ($playersData as $id => $data) {
-			/** @var Player|\App\GameModels\Game\Evo6\Player $player */
+			/** @var Evo5Player|Evo6Player $player */
 			$player = new $game->playerClass;
 			$player->team = $teams[(int)$data['team']];
 			$player->team->addPlayer($player);
@@ -207,7 +213,7 @@ class Games extends Controller
 			$player->scoreMines = $game->scoring->hitPod * $player->minesHits;
 			$player->shots = (int)$data['shots'];
 			$player->shotPoints = $game->scoring->shot * $player->shots;
-			if ($player instanceof Player) {
+			if ($player instanceof Evo5Player) {
 				$player->bonus->agent = (int)$data['agent'];
 				$player->bonus->invisibility = (int)$data['invisibility'];
 				$player->bonus->machineGun = (int)$data['machineGun'];
@@ -264,6 +270,7 @@ class Games extends Controller
 			return $this->respond(new ErrorResponse('Failed to save the game'), 500);
 		}
 
+		/** @var array{user:LigaPlayer,player:Evo5Player|Evo6Player} $user */
 		foreach ($users as $user) {
 			$user['user']->clearCache();
 			$this->playerUserService->updatePlayerStats($user['user']->user);

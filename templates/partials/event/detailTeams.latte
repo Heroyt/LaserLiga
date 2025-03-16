@@ -1,5 +1,5 @@
 {varType App\Models\Events\Event $event}
-{var App\Models\Events\EventTeam[] $teams = $event->getTeams()}
+{var App\Models\Events\EventTeam[] $teams = $event->teams}
 <h3 class="text-center">
     {lang 'Týmy'}
     {ifset $event->teamLimit}
@@ -25,7 +25,7 @@
             </p>
 
             <div class="d-flex justify-content-center align-items-center flex-wrap">
-                <div n:foreach="$team->getPlayers() as $player" n:tag="isset($player->user) ? 'a' : 'div'" {ifset $player->user}href="{link 'user', $player->user->getCode()}"{/ifset}
+                <div n:foreach="$team->players as $player" n:tag="isset($player->user) ? 'a' : 'div'" {ifset $player->user}href="{link 'user', $player->user->getCode()}"{/ifset}
                         data-toggle="tooltip" title="{lang $player->skill->getReadable()}"
                         itemprop="athlete" itemscope itemtype="https://schema.org/Person"
                         n:class="'rounded', 'p-2', 'm-2', $player->skill === App\Models\Tournament\PlayerSkill::BEGINNER ? 'text-bg-secondary', $player->skill === App\Models\Tournament\PlayerSkill::SOMEWHAT_ADVANCED ? 'text-bg-light-cyan', $player->skill === App\Models\Tournament\PlayerSkill::ADVANCED ? 'text-bg-medium-cyan', $player->skill === App\Models\Tournament\PlayerSkill::PRO ? 'text-bg-primary'">

@@ -2,15 +2,18 @@
 
 namespace App\Models\Achievements;
 
-class AchievementClaimDto implements \JsonSerializable
+use DateTimeInterface;
+use JsonSerializable;
+
+class AchievementClaimDto implements JsonSerializable
 {
 
 	public function __construct(
-		public Achievement $achievement,
-		public bool $claimed = false,
-		public ?string $code = null,
-		public ?\DateTimeInterface $dateTime = null,
-		public int $totalCount = 0,
+		public Achievement        $achievement,
+		public bool               $claimed = false,
+		public ?string            $code = null,
+		public ?DateTimeInterface $dateTime = null,
+		public int                $totalCount = 0,
 	) {
 	}
 
@@ -29,7 +32,7 @@ class AchievementClaimDto implements \JsonSerializable
 	}
 
 	public function getIcon(): string {
-		return isset($this->achievement->icon) ? str_replace(
+		return !empty($this->achievement->icon) ? str_replace(
 			"\n",
 			'',
 			svgIcon($this->achievement->icon, 'auto', '2rem')

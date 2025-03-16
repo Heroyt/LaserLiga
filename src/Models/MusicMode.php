@@ -4,43 +4,45 @@ namespace App\Models;
 
 use App\Models\DataObjects\Image;
 use Lsr\Core\App;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Attributes\Validation\Required;
-use Lsr\Core\Models\Attributes\Validation\StringLength;
-use Lsr\Core\Models\Model;
+use Lsr\Lg\Results\Interface\Models\MusicModeInterface;
+use Lsr\ObjectValidation\Attributes\Required;
+use Lsr\ObjectValidation\Attributes\StringLength;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_music')]
 #[OA\Schema]
-class MusicMode extends Model
+class MusicMode extends BaseModel implements MusicModeInterface
 {
 
 	public const string TABLE = 'music';
 
 	#[Required]
-	#[StringLength(1, 20)]
+	#[StringLength(min: 1, max: 20)]
 	#[OA\Property]
-	public string $name;
-	public ?string $group = null;
+	public string  $name;
+	public ?string $group        = null;
 	#[OA\Property]
-	public int    $order        = 0;
+	public int     $order        = 0;
 	#[OA\Property]
-	public string $fileName     = '';
+	public string  $fileName     = '';
 	#[ManyToOne]
 	#[OA\Property]
-	public ?Arena $arena        = null;
+	public ?Arena  $arena        = null;
 	#[OA\Property]
-	public int    $idLocal;
+	public int     $idLocal;
 	#[OA\Property]
-	public int    $previewStart = 0;
+	public int     $previewStart = 0;
 
+	#[OA\Property]
 	public ?string $backgroundImage = null;
-	public ?string $icon = null;
+	#[OA\Property]
+	public ?string $icon            = null;
 
 	private ?Image $backgroundImageObject = null;
-	private ?Image $iconObject = null;
+	private ?Image $iconObject            = null;
 
 	/**
 	 * @param Arena|null $arena Filter music for arena
@@ -48,7 +50,7 @@ class MusicMode extends Model
 	 * @return MusicMode[]
 	 * @throws ValidationException
 	 */
-	public static function getAll(?Arena $arena = null) : array {
+	public static function getAll(?Arena $arena = null): array {
 		$q = self::query()->orderBy('order');
 		if (isset($arena)) {
 			$q->where('[id_arena] = %i', $arena->id);
@@ -56,7 +58,7 @@ class MusicMode extends Model
 		return $q->get();
 	}
 
-	public function getMediaUrl() : string {
+	public function getMediaUrl(): string {
 		return str_replace(ROOT, App::getInstance()->getBaseUrl(), $this->fileName);
 	}
 

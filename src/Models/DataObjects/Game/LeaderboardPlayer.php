@@ -8,14 +8,14 @@ use DateTimeInterface;
 class LeaderboardPlayer
 {
 
-	public int $idPlayer;
-	public int $idGame;
+	public int               $idPlayer;
+	public int               $idGame;
 	public DateTimeInterface $date;
-	public string $mode;
-	public string $name;
-	public int $value;
-	public int $better;
-	public int $count;
-	public int $same;
+	public string            $mode;
+	public string            $name;
+	public int               $value;
+	public int               $better;
+	public int               $count;
+	public int               $same;
 
 }

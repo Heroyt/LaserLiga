@@ -135,7 +135,7 @@
                 {lang 'Zásahy do týmů', context: 'results.hits'}
             </h4>
             <div class="row g-1">
-                {foreach $game->getTeamsSorted()->getAll() as $team2}
+                {foreach $game->teamsSorted->getAll() as $team2}
                     {varType App\GameModels\Game\Team $team2}
                     <div class="col-6 text-center">
                         <div class="rounded border">
@@ -157,7 +157,7 @@
                 {lang 'Smrti od týmů', context: 'results.hits'}
             </h4>
             <div class="row g-1">
-                {foreach $game->getTeamsSorted()->getAll() as $team2}
+                {foreach $game->teamsSorted->getAll() as $team2}
                     {varType App\GameModels\Game\Team $team2}
                     <div class="col-6 text-center">
                         <div class="rounded border">

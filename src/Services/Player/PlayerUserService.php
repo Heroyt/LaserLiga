@@ -8,14 +8,15 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Models\PossibleMatch;
 use Dibi\Exception;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Caching\Cache;
+use Lsr\Db\DB;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Caching\Cache as CacheParent;
 use Throwable;
 
@@ -35,11 +36,8 @@ readonly class PlayerUserService
 	/**
 	 * Set a user to a player
 	 *
-	 * @template G of Game
-	 * @template T of Team
-	 *
-	 * @param User        $user
-	 * @param Player<G,T> $player
+	 * @param User                                  $user
+	 * @param Player $player
 	 *
 	 * @return bool
 	 * @throws Exception
@@ -51,7 +49,7 @@ readonly class PlayerUserService
 		}
 		$player->user = $user->player;
 		if ($player->save()) {
-			$player->getGame()->clearCache();
+			$player->game->clearCache();
 			$this->cache->clean(
 				[
 					CacheParent::Tags => [
@@ -67,7 +65,7 @@ readonly class PlayerUserService
 				$possibleMatch = PossibleMatch::query()->where(
 					'[id_user] = %i AND [code] = %s',
 					$user->id,
-					$player->getGame()->code
+					$player->game->code
 				)->first();
 				if (isset($possibleMatch)) {
 					$possibleMatch->matched = true;
@@ -115,19 +113,21 @@ readonly class PlayerUserService
 	public function updateUserTrophies(User $user): void {
 		$player = $user->createOrGetPlayer();
 
-		$rows = $player->queryGames()->where(
-			'[code] NOT IN %sql',
-			DB::select('player_trophies_count', 'game')->where(
-				'[id_user] = %i',
-				$user->id
-			)->fluent
-		)->fetchAll(cache: false);
+		$rows = $player->queryGames()
+		               ->where(
+			               '[code] NOT IN %sql',
+			               DB::select('player_trophies_count', 'game')->where(
+				               '[id_user] = %i',
+				               $user->id
+			               )
+				               ->fluent
+		               )->fetchAll(cache: false);
 		foreach ($rows as $row) {
 			$game = GameFactory::getById($row->id_game, ['system' => $row->system]);
 			if (!isset($game)) {
 				continue;
 			}
-			$userPlayer = $game->getPlayers()->get($row->vest);
+			$userPlayer = $game->players->get($row->vest);
 			if (!isset($userPlayer)) {
 				continue;
 			}
@@ -159,9 +159,9 @@ readonly class PlayerUserService
 			$values[] = [
 				'id_user'  => $player->user->id,
 				'name'     => $name,
-				'game'     => $player->getGame()->code,
-				'rankable' => ($player->getGame()->getMode()->rankable ?? true ? 1 : 0),
-				'datetime' => $player->getGame()->start,
+				'game'     => $player->game->code,
+				'rankable' => ($player->game->mode->rankable ?? true ? 1 : 0),
+				'datetime' => $player->game->start,
 			];
 		}
 		if (!empty($values)) {
@@ -187,10 +187,11 @@ readonly class PlayerUserService
 			return true;
 		}
 
+		/** @var LigaPlayer $user */
 		$user = $player->user;
 		$player->user = null;
 		if ($player->save()) {
-			$player->getGame()->clearCache();
+			$player->game->clearCache();
 			$this->cache->clean(
 				[
 					CacheParent::Tags => [
@@ -201,8 +202,8 @@ readonly class PlayerUserService
 				]
 			);
 			try {
-				DB::delete('player_game_rating', ['id_user = %i AND code = %s', $user->id, $player->getGame()->code]);
-				DB::delete('possible_matches', ['id_user = %i AND code = %s', $user->id, $player->getGame()->code]);
+				DB::delete('player_game_rating', ['id_user = %i AND code = %s', $user->id, $player->game->code]);
+				DB::delete('possible_matches', ['id_user = %i AND code = %s', $user->id, $player->game->code]);
 			} catch (Exception $e) {
 				return false;
 			}

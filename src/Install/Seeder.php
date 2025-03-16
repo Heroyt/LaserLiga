@@ -4,17 +4,16 @@ namespace App\Install;
 
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Auth\User;
-use Dibi\Exception;
 use JsonException;
 use Lsr\Core\Auth\Models\User as UserParent;
 use Lsr\Core\Auth\Models\UserType;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Db\DB;
+use Nette\Security\Passwords;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class Seeder implements InstallInterface
 {
+	use InstallPrints;
 
 	public const array USER_TYPES = [
 		[
@@ -38,7 +37,7 @@ class Seeder implements InstallInterface
 	public const array GAME_MODES = [
 		[
 			'id_mode'              => 1,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'Team deathmach',
 			'description'          => 'Classic team game.',
 			'load_name'            => '1-TEAM-DEATHMACH',
@@ -78,7 +77,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 2,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'Deathmach',
 			'description'          => 'Classic free for all game.',
 			'load_name'            => '2-SOLO-DEATHMACH',
@@ -118,7 +117,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 3,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'CSGO',
 			'description'          => 'Náročná hra o přežití se 3mi životy.',
 			'load_name'            => '3-TEAM-CSGO',
@@ -158,7 +157,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 4,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'Základny',
 			'description'          => 'Strategická hra, kdy 2 týmy bojují proti sobě o zničení základny druhého týmu.',
 			'load_name'            => '3-TEAM-Zakladny',
@@ -198,7 +197,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 5,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'Barvičky',
 			'description'          => 'Rychlá, šílená hra. Po pár smrtích se přebarvíš na barvu toho, kdo tě trefil.',
 			'load_name'            => '3-TEAM-Barvicky',
@@ -238,7 +237,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 6,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'T.M.A',
 			'description'          => 'Klasická hra, ale tentokrát bez světel.',
 			'load_name'            => '3-TEAM-TMA',
@@ -278,7 +277,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 7,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'T.M.A - solo',
 			'description'          => 'Klasická hra, ale tentokrát bez světel.',
 			'load_name'            => '3-SOLO-TMA',
@@ -318,7 +317,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 8,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'Apokalypsa',
 			'description'          => 'Hra na zombíky! Vybraní hráči jsou zombie, kteří se snaží infikovat ostatní hráče.',
 			'load_name'            => '3-TEAM-Apokalypsa',
@@ -358,7 +357,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 9,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'Survival',
 			'description'          => 'Strategická hra s omezeným počtem životů a nábojů.',
 			'load_name'            => '3-SOLO-SURVIVAL',
@@ -398,7 +397,7 @@ class Seeder implements InstallInterface
 		],
 		[
 			'id_mode'              => 10,
-			'system'               => 'evo5',
+			'systems'               => null,
 			'name'                 => 'Survival',
 			'description'          => 'Strategická hra s omezeným počtem životů a nábojů.',
 			'load_name'            => '3-TEAM-SURVIVAL',
@@ -486,23 +485,23 @@ class Seeder implements InstallInterface
 	 * @inheritDoc
 	 * @throws JsonException
 	 */
-	public static function install(bool $fresh = false) : bool {
+	public static function install(bool $fresh = false, ?OutputInterface $output = null) : bool {
 		try {
-			echo PHP_EOL.'Seeding...'.PHP_EOL.PHP_EOL;
+			self::printInfo('Seeding...', $output);
 
 			// Insert user types
-			echo 'Inserting user types:'.PHP_EOL;
+			self::printDebug('Inserting user types:', $output);
 			if ($fresh) {
 				DB::delete(UserType::TABLE, ['1=1']);
 				DB::resetAutoIncrement(UserType::TABLE);
 			}
 			foreach (self::USER_TYPES as $insert) {
-				echo json_encode($insert, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE).PHP_EOL;
+				self::printDebug(json_encode($insert, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), $output);
 				DB::insertIgnore(UserType::TABLE, $insert);
 			}
 
 			// Insert rights
-			echo 'Inserting rights:'.PHP_EOL;
+			self::printDebug('Inserting rights:', $output);
 			if ($fresh) {
 				DB::delete('rights', ['1=1']);
 				DB::resetAutoIncrement('rights');
@@ -512,10 +511,10 @@ class Seeder implements InstallInterface
 					'right'       => $right,
 					'description' => $description,
 				];
-				echo json_encode($insert, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE).PHP_EOL;
+				self::printDebug(json_encode($insert, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), $output);
 				DB::insertIgnore('rights', $insert);
 			}
-			echo 'Inserting rights for user types:'.PHP_EOL;
+			self::printDebug('Inserting rights for user types:', $output);
 			if ($fresh) {
 				DB::delete('user_type_rights', ['1=1']);
 				DB::resetAutoIncrement('user_type_rights');
@@ -526,25 +525,30 @@ class Seeder implements InstallInterface
 				DB::delete(UserParent::TABLE, ['1=1']);
 				DB::resetAutoIncrement(UserParent::TABLE);
 			}
+			$passwords = null;
 			if (!User::exists(1)) {
-				echo 'Creating admin user...'.PHP_EOL;
+				$passwords = new Passwords();
+				self::printDebug('Creating admin user...', $output);
 				$user = new User();
 				$user->name = 'admin';
 				$user->email = 'admin@admin.cz';
 				$user->type = UserType::get(1);
-				$user->setPassword('admin');
+				$user->password = $passwords->hash('admin');
 				if (!$user->save()) {
+					self::printError('Failed to create user', $output);
 					return false;
 				}
 			}
 			if (!User::exists(2)) {
-				echo 'Creating general user...'.PHP_EOL;
+				$passwords ??= new Passwords();
+				self::printDebug('Creating general user...', $output);
 				$user = new User();
 				$user->name = 'user';
 				$user->email = 'user@user.cz';
 				$user->type = UserType::get(2);
-				$user->setPassword('user');
+				$user->password = $passwords->hash('user');
 				if (!$user->save()) {
+					self::printError('Failed to create user', $output);
 					return false;
 				}
 			}
@@ -563,8 +567,8 @@ class Seeder implements InstallInterface
 				DB::insertIgnore(AbstractMode::TABLE.'-names', $insert);
 			}
 
-		} catch (Exception|ValidationException|ModelNotFoundException|DirectoryCreationException $e) {
-			echo "\e[0;31m".$e->getMessage()."\e[m\n";
+		} catch (\Throwable $e) {
+			self::printException($e, $output);
 			return false;
 		}
 		return true;

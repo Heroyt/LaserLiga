@@ -4,18 +4,17 @@ namespace App\Services\Player;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
 use App\Models\Auth\Player;
 use App\Models\DataObjects\Game\GamesTogetherRow;
 use App\Models\DataObjects\GamesTogether;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Caching\Cache;
+use Lsr\Db\DB;
+use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Throwable;
 
 readonly class PlayersGamesTogetherService
@@ -67,6 +66,7 @@ readonly class PlayersGamesTogetherService
 	 */
 	private function loadGamesTogether(Player $player1, Player $player2, array $modes = []): GamesTogether {
 		$gamesQuery = DB::getConnection()
+			->connection
 		                ->select(
 			                "[id_game], [type], [code], [id_mode], GROUP_CONCAT([vest] SEPARATOR ',') as [vests], GROUP_CONCAT([id_team] SEPARATOR ',') as [teams], GROUP_CONCAT([id_user] SEPARATOR ',') as [users], GROUP_CONCAT([name] SEPARATOR ',') as [names]"
 		                )
@@ -88,7 +88,7 @@ readonly class PlayersGamesTogetherService
 			$gamesQuery->where('[id_mode] IN %in', $modes);
 		}
 
-		$games = (new Fluent($gamesQuery))
+		$games = DB::getConnection()->getFluent($gamesQuery)
 			->cacheTags(
 				'players',
 				'user/' . $player1->id . '/games',
@@ -145,7 +145,7 @@ readonly class PlayersGamesTogetherService
 				$data->gameCodesTogether[] = $gameRow->code;
 				$data->gameCountTogether++;
 				/** @var Team|null $winTeam */
-				$winTeam = $game->getMode()?->getWin($game);
+				$winTeam = $game->mode?->getWin($game);
 				if (isset($winTeam) && $winTeam->id === (int)$team1) {
 					$data->winsTogether++;
 				}
@@ -166,11 +166,11 @@ readonly class PlayersGamesTogetherService
 				if ($game->getMode()?->isTeam()) {
 					$data->gameCountEnemyTeam++;
 					/** @var Team|null $winTeam */
-					$winTeam = $game->getMode()->getWin($game);
-					if ($currentPlayer->getTeam()?->id === $winTeam?->id) {
+					$winTeam = $game->mode->getWin($game);
+					if ($currentPlayer->team?->id === $winTeam?->id) {
 						$data->winsEnemy++;
 					}
-					elseif ($otherPlayer->getTeam()?->id === $winTeam?->id) {
+					elseif ($otherPlayer->team?->id === $winTeam?->id) {
 						$data->lossesEnemy++;
 					}
 					else {

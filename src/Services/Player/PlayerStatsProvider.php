@@ -11,9 +11,9 @@ use App\Models\DataObjects\Player\PlayerGameSkillRow;
 use App\Models\DataObjects\Player\PlayerStats;
 use DateTimeInterface;
 use Dibi\Exception;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
+use Lsr\Orm\Exceptions\ValidationException;
 use Throwable;
 
 readonly class PlayerStatsProvider
@@ -50,16 +50,16 @@ readonly class PlayerStatsProvider
 			rank                 : $this->calculatePlayerRating($player),
 			averageAccuracy      : $aggregateValues->accuracy,
 			averagePosition      : $aggregateValues->position,
-			maxAccuracy          : (int) $aggregateValues->maxAccuracy,
-			maxScore             : (int) $aggregateValues->maxScore,
-			maxSkill             : (int) $aggregateValues->maxSkill,
-			shots                : (int) $aggregateValues->shots,
+			maxAccuracy          : (int)$aggregateValues->maxAccuracy,
+			maxScore             : (int)$aggregateValues->maxScore,
+			maxSkill             : (int)$aggregateValues->maxSkill,
+			shots                : (int)$aggregateValues->shots,
 			averageShots         : $aggregateValues->averageShots,
 			averageShotsPerMinute: $aggregateValues->shots / max(1, $aggregateValues->minutes ?? 1),
-			totalMinutes         : (int) ($aggregateValues->minutes ?? 0),
+			totalMinutes         : (int)($aggregateValues->minutes ?? 0),
 			kd                   : $aggregateValues->deaths !== 0 ? $aggregateValues->hits / $aggregateValues->deaths : 0.0,
-			hits                 : (int) $aggregateValues->hits,
-			deaths               : (int) $aggregateValues->deaths,
+			hits                 : (int)$aggregateValues->hits,
+			deaths               : (int)$aggregateValues->deaths,
 		);
 	}
 
@@ -76,11 +76,12 @@ readonly class PlayerStatsProvider
 			gameFields  : ['timing_game_length'],
 			playerFields: ['shots', 'hits', 'deaths']
 		);
-		$query = new Fluent(
+		$query = DB::getConnection()->getFluent(
 			DB::getConnection()
-			  ->select(...$args)
-			  ->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')
-			  ->where('[id_user] = %i AND [shots] > 30', $user->id)
+				->connection
+				->select(...$args)
+				->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')
+				->where('[id_user] = %i AND [shots] > 30', $user->id)
 		);
 		$query->cacheTags('user/games', 'user/' . $user->id . '/games')
 			// Rankable games are differentiated by its game mode
@@ -98,11 +99,12 @@ readonly class PlayerStatsProvider
 	 */
 	public function calculatePlayerGamesPlayed(Player|User $player, ?DateTimeInterface $until = null): int {
 		$queries = PlayerFactory::getPlayersWithGamesUnionQueries();
-		$query = new Fluent(
+		$query = DB::getConnection()->getFluent(
 			DB::getConnection()
-			  ->select('COUNT(*)')
-			  ->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')
-			  ->where('[id_user] = %i', $player->id)
+				->connection
+				->select('COUNT(*)')
+				->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')
+				->where('[id_user] = %i', $player->id)
 		);
 		if (isset($until)) {
 			$query->where('start <= %dt', $until);

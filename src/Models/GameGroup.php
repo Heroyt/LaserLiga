@@ -11,12 +11,14 @@ use App\Models\Group\Player as GroupPlayer;
 use App\Models\Group\PlayerHit;
 use App\Models\Group\Team;
 use DateTimeInterface;
+use Lsr\Caching\Cache;
 use Lsr\Core\App;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
+use Lsr\Lg\Results\Interface\Models\GameGroupInterface;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Nette\Caching\Cache as CacheParent;
 use Throwable;
 
@@ -24,27 +26,35 @@ use Throwable;
  *
  */
 #[PrimaryKey('id_group')]
-class GameGroup extends Model
+class GameGroup extends BaseModel implements GameGroupInterface
 {
 
-	public const TABLE = 'game_groups';
+	public const string TABLE = 'game_groups';
 
 	#[ManyToOne]
 	public Arena  $arena;
 	public int    $idLocal;
-	public string $name = '';
+	public string $name   = '';
+	#[NoDB]
+	public bool   $active = true;
 
 	// TODO: Fix this so that OneToMany connection uses a factory when available
+	public string             $encodedId {
+		get {
+			if (!isset($this->encodedId)) {
+				$this->encodedId = bin2hex(base64_encode($this->id . '-' . $this->arena->id . '-' . $this->idLocal));
+			}
+			return $this->encodedId;
+		}
+	}
 	/** @var Game[] */
 	private array $games = [];
-
 	/** @var GroupPlayer[] */
 	private array $players = [];
 	/** @var Team[] */
 	private array $teams = [];
 	/** @var AbstractMode[] */
 	private array             $modes = [];
-	private string            $encodedId;
 	private DateTimeInterface $firstDate;
 	private DateTimeInterface $lastDate;
 
@@ -106,24 +116,20 @@ class GameGroup extends Model
 
 			$this->teams = $cache->load(
 				'group/' . $this->id . '/teams',
-				function (array &$dependencies) use ($games): array {
-					$dependencies[CacheParent::Tags] = [
-						'gameGroups',
-					];
-					$dependencies[CacheParent::Expire] = '1 months';
+				function () use ($games): array {
 					/** @var Team[] $teams */
 					$teams = [];
 
 					foreach ($games as $game) {
-						if ($game->getMode()?->isSolo()) {
+						if ($game->mode?->isSolo()) {
 							continue;
 						}
 
 						/** @var GameTeam|null $win */
-						$win = $game->getMode()?->getWin($game);
+						$win = $game->mode?->getWin($game);
 
 						/** @var GameTeam $gameTeam */
-						foreach ($game->getTeams() as $gameTeam) {
+						foreach ($game->teams as $gameTeam) {
 							// Get unique key
 							$key = $this->getTeamKey($gameTeam);
 
@@ -154,14 +160,14 @@ class GameGroup extends Model
 						}
 
 						// Get team hits
-						foreach ($game->getTeams() as $gameTeam) {
+						foreach ($game->teams as $gameTeam) {
 							$key = $this->getTeamKey($gameTeam);
 							if (!isset($teams[$key])) {
 								continue;
 							}
 							$team = $teams[$key];
 							/** @var Gameteam $gameTeam2 */
-							foreach ($game->getTeams() as $gameTeam2) {
+							foreach ($game->teams as $gameTeam2) {
 								$key2 = $this->getTeamKey($gameTeam2);
 								if (!isset($teams[$key2]) || $key === $key2) {
 									continue;
@@ -215,13 +221,21 @@ class GameGroup extends Model
 					// Sort teams by their wins and score in descending order
 					uasort(
 						$teams,
-						static fn(Team $a, Team $b) => $a->getPoints() === $b->getPoints() ?
-							$b->getScoreSum() - $a->getScoreSum() :
-							$b->getPoints() - $a->getPoints()
+						static fn(Team $a, Team $b) => $a->points === $b->points ?
+							$b->scoreSum - $a->scoreSum :
+							$b->points - $a->points
 					);
 
 					return $teams;
-				}
+				},
+				[
+					'tags' => [
+						'gameGroups',
+						$this::TABLE . '/' . $this->id,
+						'group/' . $this->id . '/teams',
+					],
+					'expire' => '1 months',
+				]
 			);
 		}
 		return $this->teams;
@@ -245,13 +259,7 @@ class GameGroup extends Model
 			$cache = App::getService('cache');
 			$this->games = $cache->load(
 				'group/' . $this->id . '/games/' . $sortBy . ($desc ? '/desc' : ''),
-				function (array &$dependencies) use ($sortBy, $desc): array {
-					$dependencies[CacheParent::Tags] = [
-						'gameGroups',
-						$this::TABLE . '/' . $this->id,
-						'group/' . $this->id . '/games',
-					];
-					$dependencies[CacheParent::Expire] = '1 months';
+				function () use ($sortBy, $desc): array {
 					$games = [];
 					$query = GameFactory::queryGames(true, fields: ['id_group'])
 					                    ->where('[id_group] = %i', $this->id)
@@ -264,11 +272,22 @@ class GameGroup extends Model
 						$games[(string)$row->code] = GameFactory::getByCode($row->code);
 					}
 					return $games;
-				}
+				},
+				[
+					'tags' => [
+						'gameGroups',
+						$this::TABLE . '/' . $this->id,
+						'group/' . $this->id . '/games',
+					],
+					'expire' => '1 months',
+				]
 			);
 		}
 		if (!empty($modes)) {
-			return array_filter($this->games, static fn(Game $game) => in_array($game->getMode()?->id, $modes, true));
+			return array_filter(
+				$this->games,
+				static fn(?Game $game) => in_array($game?->mode?->id, $modes, true)
+			);
 		}
 
 		return $this->games;
@@ -283,12 +302,37 @@ class GameGroup extends Model
 	 */
 	private function getTeamKey(GameTeam $team): string {
 		$teamPlayersNames = [];
-		foreach ($team->getPlayers() as $player) {
+		foreach ($team->players as $player) {
 			$groupPlayer = $this->getPlayer($player);
 			$teamPlayersNames[] = $groupPlayer->asciiName ?? $player->name;
 		}
 		sort($teamPlayersNames);
 		return md5(implode('-', $teamPlayersNames));
+	}
+
+	/**
+	 * Retrieves a player from the group by their player instance.
+	 *
+	 * @param Player $player The player instance for which to retrieve the player
+	 *
+	 * @return GroupPlayer|null The player instance found, or null if not found
+	 * @throws Throwable
+	 */
+	public function getPlayer(PlayerInterface $player): ?GroupPlayer {
+		return $this->getPlayerByName($player->name);
+	}
+
+	/**
+	 * Retrieves a player by their name.
+	 *
+	 * @param string $name The name of the player
+	 *
+	 * @return GroupPlayer|null The player instance found, or null if not found
+	 * @throws Throwable
+	 */
+	public function getPlayerByName(string $name): ?GroupPlayer {
+		$asciiName = strtolower(Strings::toAscii($name));
+		return $this->getPlayers()[$asciiName] ?? null;
 	}
 
 	/**
@@ -305,16 +349,11 @@ class GameGroup extends Model
 			$cache = App::getService('cache');
 			$this->players = $cache->load(
 				'group/' . $this->id . '/players',
-				function (array &$dependencies) use ($games): array {
-					$dependencies[CacheParent::Tags] = [
-						'gameGroups',
-					];
-					$dependencies[CacheParent::Expire] = '1 months';
-
+				function () use ($games): array {
 					$players = [];
 					foreach ($games as $game) {
 						/** @var Player $player */
-						foreach ($game->getPlayers() as $player) {
+						foreach ($game->players as $player) {
 							$asciiName = strtolower(Strings::toAscii($player->name));
 							if (!isset($players[$asciiName])) {
 								$players[$asciiName] = new GroupPlayer(
@@ -328,14 +367,14 @@ class GameGroup extends Model
 
 						// Add hits
 						/** @var Player $player */
-						foreach ($game->getPlayers() as $player) {
+						foreach ($game->players as $player) {
 							$asciiName = strtolower(Strings::toAscii($player->name));
 							$groupPlayer = $players[$asciiName];
 							foreach ($player->getHitsPlayers() as $hits) {
 								$asciiName2 = strtolower(Strings::toAscii($hits->playerTarget->name));
 								$groupPlayer2 = $players[$asciiName2];
-								$enemies = $player->getGame()->getMode()?->isSolo() || $player->getTeamColor(
-									) !== $hits->playerTarget->getTeamColor();
+								$enemies = $player->game->mode?->isSolo(
+									) || $player->color !== $hits->playerTarget->color;
 
 								if (!isset($groupPlayer->hitPlayers[$asciiName2])) {
 									$groupHits = new PlayerHit($groupPlayer, $groupPlayer2);
@@ -370,40 +409,23 @@ class GameGroup extends Model
 					// Sort players by their skill in descending order
 					uasort(
 						$players,
-						static fn(GroupPlayer $playerA, GroupPlayer $playerB) => $playerB->getSkill(
-							) - $playerA->getSkill()
+						static fn(GroupPlayer $playerA, GroupPlayer $playerB) =>
+							$playerB->getSkill() - $playerA->getSkill()
 					);
 
 					return $players;
-				}
+				},
+				[
+					'tags' => [
+						'gameGroups',
+						$this::TABLE . '/' . $this->id,
+						'group/' . $this->id . '/players',
+					],
+					'expire' => '1 months',
+				]
 			);
 		}
 		return $this->players;
-	}
-
-	/**
-	 * Retrieves a player from the group by their player instance.
-	 *
-	 * @param Player $player The player instance for which to retrieve the player
-	 *
-	 * @return GroupPlayer|null The player instance found, or null if not found
-	 * @throws Throwable
-	 */
-	public function getPlayer(Player $player): ?GroupPlayer {
-		return $this->getPlayerByName($player->name);
-	}
-
-	/**
-	 * Retrieves a player by their name.
-	 *
-	 * @param string $name The name of the player
-	 *
-	 * @return GroupPlayer|null The player instance found, or null if not found
-	 * @throws Throwable
-	 */
-	public function getPlayerByName(string $name): ?GroupPlayer {
-		$asciiName = strtolower(Strings::toAscii($name));
-		return $this->getPlayers()[$asciiName] ?? null;
 	}
 
 	/**
@@ -417,7 +439,7 @@ class GameGroup extends Model
 	private function getTeamPlayers(GameTeam $team): array {
 		/** @var GroupPlayer[] $teamPlayers */
 		$teamPlayers = [];
-		foreach ($team->getPlayers() as $player) {
+		foreach ($team->players as $player) {
 			$groupPlayer = $this->getPlayer($player);
 			if (isset($groupPlayer)) {
 				$teamPlayers[] = $groupPlayer;
@@ -434,13 +456,14 @@ class GameGroup extends Model
 	 */
 	public function getPlayersSortedForModes(array $modeIds): array {
 		$players = array_filter(
-			$this->getPlayers(),
+			$this->players,
 			static fn(GroupPlayer $player) => $player->getModesPlayCount($modeIds) > 0
 		);
 		uasort(
-			$players, static fn(GroupPlayer $playerA, GroupPlayer $playerB) => $playerB->getModesSkill(
-				$modeIds
-			) - $playerA->getModesSkill($modeIds)
+			$players,
+			static fn(GroupPlayer $playerA, GroupPlayer $playerB) => $playerB->getModesSkill(
+					$modeIds
+				) - $playerA->getModesSkill($modeIds)
 		);
 		return $players;
 	}
@@ -453,32 +476,30 @@ class GameGroup extends Model
 		if (empty($this->games)) {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
-			return $cache->load('group/' . $this->id . '/games/ids', function (array &$dependencies): array {
-				$dependencies[CacheParent::Tags] = [
-					'gameGroups',
-					$this::TABLE . '/' . $this->id,
-					'group/' . $this->id . '/games',
-				];
-				$dependencies[CacheParent::EXPIRE] = '1 months';
-				$games = [];
-				$rows = GameFactory::queryGames(true, fields: ['id_group'])
-				                   ->where('[id_group] = %i', $this->id)
-				                   ->orderBy('start')
-				                   ->fetchAll(cache: false);
-				foreach ($rows as $row) {
-					$games[] = $row->code;
-				}
-				return $games;
-			});
+			return $cache->load(
+				'group/' . $this->id . '/games/ids',
+				function (): array {
+					$games = [];
+					$rows = GameFactory::queryGames(true, fields: ['id_group'])
+					                   ->where('[id_group] = %i', $this->id)
+					                   ->orderBy('start')
+					                   ->fetchAll(cache: false);
+					foreach ($rows as $row) {
+						$games[] = $row->code;
+					}
+					return $games;
+				},
+				[
+					CacheParent::Expire => '1 months',
+					CacheParent::Tags   => [
+						'gameGroups',
+						$this::TABLE . '/' . $this->id,
+						'group/' . $this->id . '/games',
+					],
+				],
+			);
 		}
 		return array_map(static fn($game) => $game->code, $this->games);
-	}
-
-	public function getEncodedId(): string {
-		if (!isset($this->encodedId)) {
-			$this->encodedId = bin2hex(base64_encode($this->id . '-' . $this->arena->id . '-' . $this->idLocal));
-		}
-		return $this->encodedId;
 	}
 
 	/**
@@ -493,9 +514,9 @@ class GameGroup extends Model
 		$last = $this->getLastDate()?->format($format);
 		return match (true) {
 			(!isset($first) && !isset($last)) => '',
-			!isset($first) => $last,
-			!isset($last), $first === $last => $first,
-			default        => $first . ' - ' . $last,
+			!isset($first)                    => $last,
+			!isset($last), $first === $last   => $first,
+			default                           => $first . ' - ' . $last,
 		};
 	}
 
@@ -528,8 +549,8 @@ class GameGroup extends Model
 	public function getModes(): array {
 		if (empty($this->modes)) {
 			foreach ($this->getGames() as $game) {
-				if ($game->getMode() !== null && !isset($this->modes[$game->getMode()->id])) {
-					$this->modes[$game->getMode()->id] = $game->getMode();
+				if ($game->mode !== null && !isset($this->modes[$game->mode->id])) {
+					$this->modes[$game->mode->id] = $game->mode;
 				}
 			}
 		}

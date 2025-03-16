@@ -32,8 +32,8 @@ class TournamentChecker implements CheckerInterface
 		$tournament = $game->getTournamentGame()->tournament;
 
 		$i = 1;
-		foreach ($tournament->getSortedTeams() as $team) {
-			foreach ($team->getPlayers() as $teamPlayer) {
+		foreach ($tournament->sortedTeams as $team) {
+			foreach ($team->players as $teamPlayer) {
 				if ($teamPlayer->user?->id === $player->id) {
 					return $i;
 				}

@@ -17,11 +17,10 @@ use App\Services\PlayerDistribution\PlayerDistributionService;
 use DateInterval;
 use DateTimeImmutable;
 use Dibi\Exception;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Exceptions\FileException;
+use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 
 class StatController extends AbstractUserController
@@ -53,11 +52,12 @@ class StatController extends AbstractUserController
 
 		$gamesQuery = $user->createOrGetPlayer()->queryGames()
 		                   ->where('[start] >= %dt', $since);
-		$query = new Fluent(
+		$query = DB::getConnection()->getFluent(
 			DB::getConnection()
-			  ->select('COUNT([a].[id_mode]) as [count], [a].[modeName] as [name]')
-			  ->from('%sql [a]', $gamesQuery->fluent)
-			  ->groupBy('id_mode')
+				->connection
+				->select('COUNT([a].[id_mode]) as [count], [a].[modeName] as [name]')
+				->from('%sql [a]', $gamesQuery->fluent)
+				->groupBy('id_mode')
 		);
 		/** @var array<string, int> $data */
 		$data = $query
@@ -186,7 +186,9 @@ class StatController extends AbstractUserController
 		$limit = $request->getGet('limit', 'month');
 		/** @var DateTimeImmutable $since */
 		$since = match ($limit) {
-			'all'   => $player->queryGames()->orderBy('start')->fetchDto(PlayerGamesGame::class)->start ?? new DateTimeImmutable(),
+			'all'   => $player->queryGames()->orderBy('start')->fetchDto(
+				PlayerGamesGame::class
+			)->start ?? new DateTimeImmutable(),
 			'year'  => new DateTimeImmutable('-1 years'),
 			'week'  => new DateTimeImmutable('-7 days'),
 			default => new DateTimeImmutable('-1 months'),
@@ -210,12 +212,13 @@ class StatController extends AbstractUserController
 
 		/** @var array<string,array<int,ModeCounts>> $data */
 		$data = (
-		new Fluent(
+		DB::getConnection()->getFluent(
 			DB::getConnection()
-			  ->select('COUNT(*) as [count], [id_mode], [modeName], ' . $interval . ' as [date]')
-			  ->from($query->fluent, 'a')
-			  ->groupBy('[date], [id_mode]')
-			  ->orderBy('[date], [id_mode]')
+				->connection
+				->select('COUNT(*) as [count], [id_mode], [modeName], ' . $interval . ' as [date]')
+				->from($query->fluent, 'a')
+				->groupBy('[date], [id_mode]')
+				->orderBy('[date], [id_mode]')
 		)
 		)
 			->cacheTags('players', 'user/games', 'user/' . $user->id . '/games', 'gameCounts')
@@ -358,7 +361,7 @@ class StatController extends AbstractUserController
 				lang(
 					        '%.2f zásah za minutu',
 					        '%.2f zásahů za minutu',
-					        $hitsLabel,
+					(int) $hitsLabel,
 					format: [$hitsLabel],
 				),
 			),
@@ -367,7 +370,7 @@ class StatController extends AbstractUserController
 				lang(
 					        '%.2f smrt za minutu',
 					        '%.2f smrtí za minutu',
-					        $deathsLabel,
+					(int) $deathsLabel,
 					format: [$deathsLabel],
 				),
 			),

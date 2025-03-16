@@ -5,17 +5,24 @@ use App\Controllers\Admin\Debug;
 use App\Controllers\Admin\Games;
 use App\Controllers\Admin\TournamentStats;
 use App\Core\Middleware\LoggedIn;
-use Lsr\Core\Routing\Route;
+use Lsr\Core\App;
+use Lsr\Core\Auth\Services\Auth;
+use Lsr\Core\Routing\Router;
 
-$adminGroup = Route::group('/admin');
+/** @var Router $this */
+
+$adminGroup = $this->group('/admin');
+
+$auth = App::getService('auth');
+assert($auth instanceof Auth);
 
 // Arenas
-$arenasMiddleware = new LoggedIn(['manage-arenas']);
-$gamesMiddleware = new LoggedIn(['manage-games']);
-$tournamentMiddleware = new LoggedIn(['manage-tournaments']);
+$arenasMiddleware = new LoggedIn($auth, ['manage-arenas']);
+$gamesMiddleware = new LoggedIn($auth, ['manage-games']);
+$tournamentMiddleware = new LoggedIn($auth, ['manage-tournaments']);
 
 $adminGroup->group('tracy')
-           ->middlewareAll(new LoggedIn(['debug']))
+           ->middlewareAll(new LoggedIn($auth, ['debug']))
            ->get('on', [Debug::class, 'turnOnTracy'])
            ->get('off', [Debug::class, 'turnOffTracy']);
 

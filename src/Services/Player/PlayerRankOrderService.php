@@ -8,8 +8,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Dibi\Exception;
 use InvalidArgumentException;
-use Lsr\Core\Caching\Cache;
-use Lsr\Core\DB;
+use Lsr\Caching\Cache;
+use Lsr\Db\DB;
 
 class PlayerRankOrderService
 {

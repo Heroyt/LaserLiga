@@ -9,10 +9,11 @@ use App\Services\MailService;
 use DateTimeImmutable;
 use Dibi\Exception;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
+use Lsr\Db\DB;
 use Lsr\Logging\Logger;
 use Nette\Mail\SendException;
+use Nette\Security\Passwords;
 use Nette\Utils\Validators;
 use Psr\Http\Message\ResponseInterface;
 
@@ -20,7 +21,8 @@ class ForgotPassword extends Controller
 {
 
 	public function __construct(
-		private readonly MailService $mailService
+		private readonly MailService $mailService,
+		private readonly Passwords $passwords,
 	) {
 		parent::__construct();
 	}
@@ -135,7 +137,7 @@ class ForgotPassword extends Controller
 			if ($password === $password1) {
 				/** @var User $user */
 				$user = User::getByEmail($email);
-				$user->setPassword($password);
+				$user->password = $this->passwords->hash($password);
 				if ($user->save()) {
 					try {
 						DB::update(

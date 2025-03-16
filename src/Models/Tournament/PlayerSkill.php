@@ -10,17 +10,17 @@ namespace App\Models\Tournament;
 enum PlayerSkill: string
 {
 
-	case BEGINNER = 'BEGINNER';
+	case BEGINNER          = 'BEGINNER';
 	case SOMEWHAT_ADVANCED = 'SOMEWHAT_ADVANCED';
-	case ADVANCED = 'ADVANCED';
-	case PRO = 'PRO';
+	case ADVANCED          = 'ADVANCED';
+	case PRO               = 'PRO';
 
-	public function getReadable() : string {
+	public function getReadable(): string {
 		return match ($this) {
-			self::BEGINNER => 'Začátečník',
+			self::BEGINNER          => 'Začátečník',
 			self::SOMEWHAT_ADVANCED => 'Částečně pokročilý',
-			self::ADVANCED => 'Pokročilý',
-			self::PRO => 'Profík',
+			self::ADVANCED          => 'Pokročilý',
+			self::PRO               => 'Profík',
 		};
 	}
 

@@ -14,11 +14,11 @@ use App\Models\Tournament\Tournament;
 use Dibi\Exception;
 use Iterator;
 use Lsr\Core\App;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Routing\Route;
 use Lsr\Core\Routing\Router;
 use Lsr\Enums\RequestMethod;
 use Lsr\Interfaces\RouteInterface;
+use Lsr\Orm\Exceptions\ValidationException;
 use RuntimeException;
 use SimpleXMLElement;
 
@@ -150,7 +150,7 @@ class SitemapGenerator
 		self::$groups ??= GameGroup::getAll();
 
 		foreach (self::$groups as $group) {
-			$path[2] = $group->getEncodedId();
+			$path[2] = $group->encodedId;
 			$url = App::getLink($path);
 			$element = self::findOrCreateUrl($url, $parent);
 			self::updateUrl($element, count($path) > 3 ? '0.6' : '0.8');

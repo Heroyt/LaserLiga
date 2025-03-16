@@ -7,6 +7,7 @@
 $services = [
 	ROOT . 'vendor/lsr/routing/services.neon',
 	ROOT . 'vendor/lsr/logging/services.neon',
+	ROOT . 'vendor/lsr/serializer/services.neon',
 	ROOT . 'vendor/lsr/core/services.neon',
 	ROOT . 'vendor/lsr/auth/services.neon',
 	ROOT . 'config/constants.php',

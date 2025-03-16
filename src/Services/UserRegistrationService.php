@@ -11,8 +11,8 @@ use DateTimeImmutable;
 use Dibi\Exception;
 use Lsr\Core\Auth\Exceptions\DuplicateEmailException;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Db\DB;
+use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Mail\SmtpException;
 use Random\RandomException;
 
@@ -61,6 +61,7 @@ readonly class UserRegistrationService
 
 		try {
 			$this->sendEmailConfirmation($user);
+			/** @phpstan-ignore catch.neverThrown */
 		} catch (SmtpException) {
 		}
 

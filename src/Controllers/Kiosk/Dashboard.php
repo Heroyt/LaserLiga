@@ -14,9 +14,9 @@ use App\Templates\Kiosk\DashboardParameters;
 use App\Templates\Kiosk\DashboardType;
 use DateTimeImmutable;
 use Lsr\Core\Controllers\Controller;
-use Lsr\Core\DB;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Session;
+use Lsr\Db\DB;
 use Psr\Http\Message\ResponseInterface;
 
 class Dashboard extends Controller

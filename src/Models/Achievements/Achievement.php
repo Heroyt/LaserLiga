@@ -2,14 +2,14 @@
 
 namespace App\Models\Achievements;
 
+use App\Models\BaseModel;
 use App\Models\Rarity;
-use Lsr\Core\Models\Attributes\OneToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\OneToOne;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_achievement'), OA\Schema]
-class Achievement extends Model
+class Achievement extends BaseModel
 {
 	public const string TABLE = 'achievements';
 

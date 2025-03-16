@@ -13,12 +13,12 @@
 use App\Core\Loader;
 use Dibi\Bridges\Tracy\Panel;
 use Latte\Bridges\Tracy\LattePanel;
+use Lsr\Caching\Tracy\CacheTracyPanel;
 use Lsr\Core\App;
-use Lsr\Core\DB;
+use Lsr\Core\Tracy\RoutingTracyPanel;
+use Lsr\Core\Tracy\TranslationTracyPanel;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
-use Lsr\Helpers\Tracy\CacheTracyPanel;
-use Lsr\Helpers\Tracy\RoutingTracyPanel;
-use Lsr\Helpers\Tracy\TranslationTracyPanel;
 use Nette\Bridges\DITracy\ContainerPanel;
 use Nette\Bridges\HttpTracy\SessionPanel;
 use Nette\Mail\Mailer;
@@ -54,7 +54,7 @@ Debugger::$dumpTheme = 'dark';
 // Register custom tracy panels
 Debugger::getBar()
 //        ->addPanel(new TimerTracyPanel())
-        ->addPanel(new CacheTracyPanel())
+//        ->addPanel(new CacheTracyPanel())
 //        ->addPanel(new DbTracyPanel())
         ->addPanel(new TranslationTracyPanel())
         ->addPanel(new RoutingTracyPanel());
@@ -90,10 +90,11 @@ define(
 if (defined('INDEX') && PHP_SAPI !== 'cli') {
 	// Register library tracy panels
 	if (!isset($_ENV['noDb'])) {
-		(new Panel())->register(DB::getConnection());
+		(new Panel())->register(DB::getConnection()->connection);
 	}
 	if (Debugger::isEnabled()) {
 		Debugger::getBar()
+				->addPanel(new CacheTracyPanel(App::getService('cache'))) // @phpstan-ignore-line
 		        ->addPanel(new ContainerPanel(App::getContainer()))
 		        ->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line
 		        ->addPanel(new SessionPanel());

@@ -4,7 +4,7 @@ namespace App\Models\Tournament;
 
 use App\Models\Auth\User;
 use Exception;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Orm\Exceptions\ValidationException;
 
 trait WithTokenValidation
 {
@@ -12,7 +12,7 @@ trait WithTokenValidation
 	public string $hash = '';
 
 	/**
-	 * @param User|null $user
+	 * @param User|null   $user
 	 * @param string|null $hash
 	 *
 	 * @return bool
@@ -36,7 +36,7 @@ trait WithTokenValidation
 	 * @return string
 	 * @throws Exception
 	 */
-	public function getHash() : string {
+	public function getHash(): string {
 		if (empty($this->hash)) {
 			$this->hash = bin2hex(random_bytes(32));
 		}
@@ -48,7 +48,7 @@ trait WithTokenValidation
 	 * @throws ValidationException
 	 * @throws Exception
 	 */
-	public function save() : bool {
+	public function save(): bool {
 		if (empty($this->hash)) {
 			$this->hash = bin2hex(random_bytes(32));
 		}

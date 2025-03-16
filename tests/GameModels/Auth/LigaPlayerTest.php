@@ -6,10 +6,10 @@ use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use Dibi\Exception;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Db\DB;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
 
 class LigaPlayerTest extends TestCase

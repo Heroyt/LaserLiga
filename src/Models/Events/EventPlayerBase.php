@@ -4,17 +4,17 @@ namespace App\Models\Events;
 
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
+use App\Models\BaseModel;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\WithTokenValidation;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Lsr\Core\App;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\Validation\Email;
-use Lsr\Core\Models\Model;
+use Lsr\ObjectValidation\Attributes\Email;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
-abstract class EventPlayerBase extends Model
+abstract class EventPlayerBase extends BaseModel
 {
 	use WithTokenValidation;
 
@@ -44,8 +44,6 @@ abstract class EventPlayerBase extends Model
 	public DateTimeInterface  $createdAt;
 	public ?DateTimeInterface $updatedAt = null;
 
-	abstract public function getEvent(): EventBase|League;
-
 	public function validateAccess(?User $user = null, ?string $hash = ''): bool {
 		if (isset($user)) {
 			if (
@@ -65,6 +63,8 @@ abstract class EventPlayerBase extends Model
 					$hash
 				));
 	}
+
+	abstract public function getEvent(): EventBase|League;
 
 	public function insert(): bool {
 		if (!isset($this->createdAt)) {

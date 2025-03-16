@@ -13,20 +13,19 @@ use DateTimeInterface;
 use Dibi\Exception;
 use Dibi\Row;
 use Lsr\Core\App;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 use RuntimeException;
 
 #[PrimaryKey('id_arena')]
 #[OA\Schema]
-class Arena extends Model
+class Arena extends BaseModel
 {
 
 	public const string TABLE = 'arenas';
@@ -239,8 +238,8 @@ class Arena extends Model
 	 * Get arena's game ids
 	 *
 	 * @param DateTimeInterface|null $date
-	 * @param string|null   $system
-	 * @param bool          $cache
+	 * @param string|null            $system
+	 * @param bool                   $cache
 	 *
 	 * @return array<string,int[]>|int[]
 	 */
@@ -276,7 +275,7 @@ class Arena extends Model
 
 	/**
 	 * @param DateTimeInterface|null $date
-	 * @param string[]      $extraFields
+	 * @param string[]               $extraFields
 	 *
 	 * @return Fluent
 	 */
@@ -298,9 +297,9 @@ class Arena extends Model
 	}
 
 	/**
-	 * @param string        $system
+	 * @param string                 $system
 	 * @param DateTimeInterface|null $date
-	 * @param string[]      $extraFields
+	 * @param string[]               $extraFields
 	 *
 	 * @return Fluent
 	 */
@@ -309,21 +308,21 @@ class Arena extends Model
 	}
 
 	public function queryGamesCountPerDay(bool $excludeNotFinished = false): Fluent {
-		$query = DB::getConnection()->select('[date], count(*) as [count]');
+		$query = DB::getConnection()->connection->select('[date], count(*) as [count]');
 		$queries = [];
 		foreach (GameFactory::getSupportedSystems() as $key => $system) {
 			$q = DB::select(["[{$system}_games]", "[g$key]"],
 			                "[g$key].[code], DATE([g$key].[start]) as [date], [g$key].[id_arena]")->where(
-					'[id_arena] = %i',
-					$this->id
-				);
+				'[id_arena] = %i',
+				$this->id
+			);
 			if ($excludeNotFinished) {
 				$q->where("[g$key].[end] IS NOT NULL");
 			}
 			$queries[] = (string)$q;
 		}
 		$query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')->groupBy('date');
-		return (new Fluent($query))->cacheTags('games', 'games/counts');
+		return DB::getConnection()->getFluent($query)->cacheTags('games', 'games/counts');
 	}
 
 	public function getRegisteredPlayerCount(): int {
@@ -370,6 +369,6 @@ class Arena extends Model
 	}
 
 	public function getUrl(): string {
-		return App::getLink(['arena', $this->id]);
+		return App::getLink(['arena', (string) $this->id]);
 	}
 }

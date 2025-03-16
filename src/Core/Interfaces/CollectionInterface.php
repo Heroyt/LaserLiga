@@ -9,7 +9,7 @@ use ArrayAccess;
 use Countable;
 use Iterator;
 use JsonSerializable;
-use Lsr\Core\Models\Model;
+use Lsr\Orm\Model;
 
 /**
  * @template T of Model
