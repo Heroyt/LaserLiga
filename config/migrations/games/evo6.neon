@@ -67,6 +67,7 @@ tables:
 			`ammo` int(10) unsigned DEFAULT NULL,
 			`visited` tinyint(1) NOT NULL DEFAULT 0,
 			`meta` BLOB DEFAULT NULL,
+			`photos_secret` varchar(100) DEFAULT NULL,
 			PRIMARY KEY (`id_game`),
 			UNIQUE KEY `code` (`code`),
 			UNIQUE KEY `id_arena_2` (`id_arena`,`start`),
@@ -113,6 +114,8 @@ tables:
 				- 'ADD `respawn_lives` tinyint(3) unsigned DEFAULT 0'
 			0.2.1:
 				- 'ADD `results_file` varchar(255) DEFAULT NULL'
+			0.3:
+				- 'ADD `photos_secret` varchar(100) DEFAULT NULL'
 		foreignKeys:
 			-
 				column: id_music

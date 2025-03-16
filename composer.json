@@ -57,7 +57,9 @@
     "ext-zlib": "*",
     "lsr/lg-result-parsing": "dev-master",
 		"spatie/dropbox-api": "^1.23",
-		"lsr/cqrs": "^0.1.1"
+		"lsr/cqrs": "^0.1.1",
+		"aws/aws-sdk-php": "^3.342",
+    "ext-exif": "*"
   },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

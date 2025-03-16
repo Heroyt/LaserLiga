@@ -13,4 +13,7 @@ $services = [
 	ROOT . 'config/constants.php',
 ];
 $services[] = PRODUCTION ? ROOT . 'config/services.neon' : ROOT . 'config/servicesDebug.neon';
+if (defined('PRIVATE_DIR') && file_exists(PRIVATE_DIR . 'config.neon')) {
+	$services[] = PRIVATE_DIR . 'config.neon';
+}
 return $services;

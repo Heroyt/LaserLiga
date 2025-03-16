@@ -55,6 +55,11 @@ class Arena extends BaseModel
 
 	public bool $hidden = false;
 
+	/** @var non-empty-string|null  */
+	public ?string $dropboxApiKey = null;
+	/** @var non-empty-string|null  */
+	public ?string $dropboxDirectory = null;
+
 	/** @var array<string,array<string, int[]>> */
 	private array $gameIds = [];
 

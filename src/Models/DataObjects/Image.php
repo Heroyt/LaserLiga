@@ -145,10 +145,11 @@ class Image
 	}
 
 	/**
+	 * @param list<int<1,max>> $sizes
 	 * @return void
 	 * @throws FileException
 	 */
-	public function optimize(): void {
+	public function optimize(array $sizes = ImageService::SIZES): void {
 		// Do not optimize SVG
 		if ($this->type === 'svg') {
 			return;
@@ -157,7 +158,7 @@ class Image
 		$imageService = App::getService('image');
 		assert($imageService instanceof ImageService, 'Invalid DI service');
 
-		$imageService->optimize($this->image);
+		$imageService->optimize($this->image, $sizes);
 	}
 
 	/**

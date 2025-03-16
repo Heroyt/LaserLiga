@@ -8,21 +8,23 @@ tables:
             	`name` varchar(50) NOT NULL DEFAULT '',
             	`lat` double DEFAULT NULL,
             	`lng` double DEFAULT NULL,
-		    `address_street` varchar(100) DEFAULT NULL,
-		    `address_city` varchar(50) DEFAULT NULL,
-		    `address_post_code` varchar(10) DEFAULT NULL,
-		    `address_country` varchar(50) DEFAULT NULL,
-		    `web` varchar(200) DEFAULT NULL,
-		    `contactEmail` varchar(50) DEFAULT NULL,
-		    `contactPhone` varchar(20) DEFAULT NULL,
-		    `hidden` tinyint(1) NOT NULL DEFAULT 0,
-		    `reportEmails` varchar(500) DEFAULT NULL,
+				`address_street` varchar(100) DEFAULT NULL,
+				`address_city` varchar(50) DEFAULT NULL,
+				`address_post_code` varchar(10) DEFAULT NULL,
+				`address_country` varchar(50) DEFAULT NULL,
+				`web` varchar(200) DEFAULT NULL,
+				`contactEmail` varchar(50) DEFAULT NULL,
+				`contactPhone` varchar(20) DEFAULT NULL,
+				`hidden` tinyint(1) NOT NULL DEFAULT 0,
+				`reportEmails` varchar(500) DEFAULT NULL,
+				`dropbox_api_key` text DEFAULT NULL,
+				`dropbox_directory` varchar(255) DEFAULT NULL,
             	PRIMARY KEY (`id_arena`),
             	KEY `id_user` (`id_user`),
             	CONSTRAINT `arenas_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
-		changes:
+		modifications:
 			0.1:
 				- 'ADD `id_user` int(11) unsigned DEFAULT NULL AFTER `id_arena`'
 				- 'ADD `address_street` varchar(100) DEFAULT NULL AFTER `lng`'
@@ -34,6 +36,9 @@ tables:
 				- 'ADD `contactPhone` varchar(20) DEFAULT NULL AFTER `contactEmail`'
 				- 'ADD `hidden` tinyint(1) NOT NULL DEFAULT 0 AFTER `contactPhone`'
 				- 'ADD `reportEmails` varchar(500) DEFAULT NULL AFTER `hidden`'
+			0.2:
+				- 'ADD `dropbox_api_key` text DEFAULT NULL'
+				- 'ADD `dropbox_directory` varchar(255) DEFAULT NULL'
 		foreignKeys:
 			-
 				column: id_user

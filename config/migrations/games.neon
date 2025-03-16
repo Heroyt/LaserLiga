@@ -43,7 +43,7 @@ tables:
         			FOREIGN KEY (`id_arena`) REFERENCES `arenas` (`id_arena`) ON DELETE CASCADE ON UPDATE CASCADE
         		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         	'''
-		changes:
+		modifications:
 			0.1:
 				- 'ADD `id_local` int(11) unsigned NOT NULL AFTER `id_arena`'
 				- 'ADD `file_name` varchar(100) NOT NULL AFTER `id_local`'
@@ -204,6 +204,51 @@ tables:
           PRIMARY KEY (`code`,`type`,`description`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 		'''
+	App\Models\Photos\Photo:
+		order: 0
+		definition: '''
+		(
+			`id_photo` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`identifier` varchar(255) NOT NULL,
+			`url` varchar(512) DEFAULT NULL,
+			`game_code` varchar(50) DEFAULT NULL,
+			`exif_time` datetime DEFAULT NULL,
+			PRIMARY KEY (`id_photo`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'identifier'
+				columns: ['identifier']
+				unique: true
+			-
+				name: 'game_code'
+				columns: ['game_code']
+	App\Models\Photos\PhotoVariation:
+		order: 1
+		definition: '''
+		(
+			`id_photo_variation` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_photo` int(11) unsigned NOT NULL,
+			`identifier` varchar(255) NOT NULL,
+			`url` varchar(512) DEFAULT NULL,
+			`size` int(11) unsigned NOT NULL,
+			`type` varchar(20) NOT NULL,
+			PRIMARY KEY (`id_photo_variation`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_photo
+				refTable: App\Models\Photos\Photo
+				refColumn: id_photo
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+		indexes:
+			-
+				name: 'identifier'
+				columns: ['identifier']
+				unique: true
 views:
 	vModesNames: '''
 	SELECT `a`.`id_mode`     AS `id_mode`,

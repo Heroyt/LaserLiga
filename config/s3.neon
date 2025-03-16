@@ -1,0 +1,9 @@
+parameters:
+	s3:
+		bucket: la-fotky
+		region:
+		endpoint:
+		credentials:
+services:
+	s3.config: App\Services\AWS\S3Config(%s3%)
+	s3.client: Aws\S3\S3Client(%s3%)

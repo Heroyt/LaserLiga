@@ -4,6 +4,8 @@ includes:
 	- symfony.neon
 	- cqrs.neon
 	- jobs.neon
+	- s3.neon
+	- dropbox.neon
 parameters:
 	db:
 		driver: mysqli

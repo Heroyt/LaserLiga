@@ -32,7 +32,7 @@ FROM setup AS extensions
 # PHP extensions
 RUN apt-get install -y libzip-dev unzip libicu-dev cifs-utils ffmpeg libpng-dev libwebp-dev
 RUN apt install -y curl libcurl4-openssl-dev
-RUN docker-php-ext-install mysqli curl gettext sockets pdo_mysql zip pcntl intl opcache gd
+RUN docker-php-ext-install mysqli curl gettext sockets pdo_mysql zip pcntl intl opcache gd exif
 
 # Imagick
 RUN apt-get update &&  \
@@ -56,7 +56,7 @@ RUN git clone https://github.com/Imagick/imagick.git --depth 1 /tmp/imagick && \
 RUN pecl install igbinary
 
 # Enable all extensions
-RUN docker-php-ext-enable mysqli curl gettext sockets pdo_mysql zip pcntl intl opcache imagick igbinary
+RUN docker-php-ext-enable mysqli curl gettext sockets pdo_mysql zip pcntl intl opcache imagick igbinary exif
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype --with-webp && docker-php-ext-install gd
 
 RUN apt-get update  \

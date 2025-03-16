@@ -15,9 +15,18 @@ services:
 
 	symfony.denormalizer.array: Symfony\Component\Serializer\Normalizer\ArrayDenormalizer
 
+	symfony.attributeloader: Symfony\Component\Serializer\Mapping\Loader\AttributeLoader
+	symfony.classmetadatafactory: Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory(@symfony.attributeloader)
+	symfony.nameconverter: Symfony\Component\Serializer\NameConverter\MetadataAwareNameConverter(@symfony.classmetadatafactory)
+
 	symfony.normalizer.enum: Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer
 	symfony.normalizer.json: Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer(defaultContext: %symfony.normalizer.context%)
-	symfony.normalizer.object: Symfony\Component\Serializer\Normalizer\ObjectNormalizer(propertyTypeExtractor: @symfony.info.reflectionextractor,defaultContext: %symfony.normalizer.context%)
+	symfony.normalizer.object: Symfony\Component\Serializer\Normalizer\ObjectNormalizer(
+		classMetadataFactory: @symfony.classmetadatafactory
+		nameConverter: @symfony.nameconverter
+		propertyTypeExtractor: @symfony.info.reflectionextractor,
+		defaultContext: %symfony.normalizer.context%
+	)
 
 	symfony.encoder.json: Symfony\Component\Serializer\Encoder\JsonEncoder(defaultContext: %symfony.serializer.json.context%)
 	symfony.encoder.xml: Symfony\Component\Serializer\Encoder\XmlEncoder

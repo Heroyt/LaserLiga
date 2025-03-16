@@ -26,11 +26,12 @@ class ImageService
 
 	/**
 	 * @param string $file
+	 * @param list<int<1,max>> $sizes List of target widths in pixels
 	 *
-	 * @return void
+	 * @return array{webp?:string}&array<string, string>
 	 * @throws FileException
 	 */
-	public function optimize(string $file): void {
+	public function optimize(string $file, array $sizes = self::SIZES): array {
 		$image = $this->loadFile($file);
 
 		$type = strtolower(pathinfo($file, PATHINFO_EXTENSION));
@@ -39,13 +40,17 @@ class ImageService
 
 		$optimizedDir = $path . 'optimized';
 
+		$images = [];
+
 		if ($type !== 'webp') {
-			$this->save($image, $optimizedDir . '/' . $name . '.webp');
+			$webp = $optimizedDir . '/' . $name . '.webp';
+			$this->save($image, $webp);
+			$images['webp'] = $webp;
 		}
 
 		$originalWidth = imagesx($image);
 
-		foreach ($this::SIZES as $size) {
+		foreach ($sizes as $size) {
 			if ($originalWidth < $size) {
 				continue;
 			}
@@ -54,8 +59,12 @@ class ImageService
 
 			$resizedFileName = $optimizedDir . '/' . $name . 'x' . $size . '.' . $type;
 			$this->save($resized, $resizedFileName);
-			$this->save($resized, $optimizedDir . '/' . $name . 'x' . $size . '.webp');
+			$images[(string) $size] = $resizedFileName;
+			$resizedFileNameWebp = $optimizedDir . '/' . $name . 'x' . $size . '.webp';
+			$this->save($resized, $resizedFileNameWebp);
+			$images[$size.'-webp'] = $resizedFileNameWebp;
 		}
+		return $images;
 	}
 
 	/**
