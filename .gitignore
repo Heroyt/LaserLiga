@@ -46,3 +46,4 @@ tmp/
 .config/
 assets/*/optimized
 config/local.neon
+docker/redis/data
