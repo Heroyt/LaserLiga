@@ -14,6 +14,7 @@
 
 use App\Controllers\E400;
 use App\Controllers\E404;
+use App\CQRS\AsyncDispatcher;
 use App\Exceptions\DispatchBreakException;
 use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
@@ -23,6 +24,7 @@ use Lsr\Core\Routing\Exceptions\MethodNotAllowedException;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Nyholm\Psr7\ServerRequest;
+use Psr\Http\Message\ResponseInterface;
 
 const ROOT = __DIR__ . '/';
 /** Visiting site normally */
@@ -75,9 +77,49 @@ try {
 }
 Timer::stop('app');
 
+sendResponse($response);
+\Tracy\Debugger::shutdownHandler();
+$app->session->close();
+fastcgi_finish_request();
+
+// Finish other tasks after response is sent (almost async)
+
 $fontawesome = $app::getService('fontawesome');
 assert($fontawesome instanceof FontAwesomeManager, 'Invalid fontawesome manager instance from DI');
 $app->translations->updateTranslations();
 $fontawesome->saveIcons();
 
-App::sendResponse($response);
+// Handle async commands
+$dispatcher = $app::getService('cqrs.asyncDispatcher');
+assert($dispatcher instanceof AsyncDispatcher, 'Invalid async dispatcher instance from DI');
+$dispatcher->dispatchAsyncQueue();
+
+function sendResponse(ResponseInterface $response) : void {
+	// Check if something is not already sent
+	if (headers_sent()) {
+		throw new RuntimeException('Headers were already sent. The response could not be emitted!');
+	}
+
+	// Status code
+	http_response_code($response->getStatusCode());
+
+	// Send headers
+	foreach ($response->getHeaders() as $name => $values) {
+		header(sprintf('%s: %s', $name, $response->getHeaderLine($name)), false);
+	}
+
+	// Send body
+	$stream = $response->getBody();
+
+	if (!$stream->isReadable()) {
+		return;
+	}
+
+	if ($stream->isSeekable()) {
+		$stream->rewind();
+	}
+
+	while (!$stream->eof()) {
+		echo $stream->read(8192);
+	}
+}

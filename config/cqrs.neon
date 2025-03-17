@@ -2,7 +2,11 @@ extensions:
 	cqrs: Lsr\CQRS\DI\CqrsExtension
 	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
 cqrs:
+	asyncBus: @cqrs.asyncBus
 services:
+	cqrs.logger: Lsr\Logging\Logger(%logger.dir%, 'cqrs')
+	cqrs.asyncBus: App\CQRS\AsyncCommandBus
+	cqrs.asyncDispatcher: App\CQRS\AsyncDispatcher(logger: @cqrs.logger)
 search:
 	cqrs.queries:
 		in: '%constants.appDir%src/CQRS/Queries'

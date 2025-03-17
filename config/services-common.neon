@@ -52,6 +52,7 @@ services:
 				- 'tournament'
 				- 'privacy'
 				- 'music'
+	csrf: Lsr\Helpers\Csrf\TokenHelper::getInstance(@session)
 
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
