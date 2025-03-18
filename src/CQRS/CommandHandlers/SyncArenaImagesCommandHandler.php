@@ -14,6 +14,7 @@ use App\CQRS\Commands\SyncArenaImagesCommand;
 use App\Exceptions\FileException;
 use App\Models\Photos\Photo;
 use App\Models\Photos\PhotoVariation;
+use App\Services\Dropbox\TokenProvider;
 use App\Services\ImageService;
 use DateTimeImmutable;
 use Lsr\CQRS\CommandBus;
@@ -41,7 +42,7 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 		$response = new SyncArenaImagesResponse();
 		// Check arena settings
 		$arena = $command->arena;
-		if ($arena->dropboxApiKey === null) {
+		if ($arena->dropbox->apiKey === null) {
 			$response->errors[] = 'Dropbox API key is not set';
 			return $response;
 		}
@@ -50,7 +51,7 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 		$baseIdentifier = 'photos/' . Strings::webalize($arena->name) . '/';
 
 		// Initialize dropbox client
-		$client = new Client($arena->dropboxApiKey);
+		$client = new Client(new TokenProvider($arena));
 
 		/** @var OutputInterface|null $output */
 		$output = $command->output;

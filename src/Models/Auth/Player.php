@@ -26,6 +26,7 @@ use Lsr\Db\Dibi\Fluent;
 use Lsr\LaserLiga\PlayerInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\Email;
+use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
@@ -67,6 +68,7 @@ class Player extends BaseModel implements PlayerInterface
 	#[OA\Property]
 	public ?DateTimeInterface $birthday = null;
 
+	#[NoDB]
 	public Gender $gender {
 		get {
 			$this->gender ??= GenderService::rankWord($this->nickname);

@@ -39,6 +39,7 @@ class GameGroup extends BaseModel implements GameGroupInterface
 	public bool   $active = true;
 
 	// TODO: Fix this so that OneToMany connection uses a factory when available
+	#[NoDB]
 	public string             $encodedId {
 		get {
 			if (!isset($this->encodedId)) {

@@ -135,6 +135,7 @@ services:
 	templating.latte.engine:
 		setup:
 			- addExtension(@templating.latte.lac)
+	requestValidationMapper: Lsr\Core\Requests\Validation\RequestValidationMapper
 search:
 	achievementCheckers:
 		in: %constants.appDir%/src/Services/Achievements/Checkers

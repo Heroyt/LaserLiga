@@ -51,7 +51,7 @@ class SyncArenaImagesCommand extends Command
 			return self::FAILURE;
 		}
 
-		if (empty($arena->dropboxApiKey)) {
+		if (empty($arena->dropbox->apiKey)) {
 			$output->writeln('<error>Dropbox API key is not set</error>');
 			return self::FAILURE;
 		}

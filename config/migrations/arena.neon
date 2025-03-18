@@ -13,12 +13,17 @@ tables:
 				`address_post_code` varchar(10) DEFAULT NULL,
 				`address_country` varchar(50) DEFAULT NULL,
 				`web` varchar(200) DEFAULT NULL,
-				`contactEmail` varchar(50) DEFAULT NULL,
-				`contactPhone` varchar(20) DEFAULT NULL,
+				`contact_email` varchar(50) DEFAULT NULL,
+				`contact_phone` varchar(20) DEFAULT NULL,
 				`hidden` tinyint(1) NOT NULL DEFAULT 0,
-				`reportEmails` varchar(500) DEFAULT NULL,
+				`report_emails` varchar(500) DEFAULT NULL,
 				`dropbox_api_key` text DEFAULT NULL,
 				`dropbox_directory` varchar(255) DEFAULT NULL,
+				`dropbox_app_id` text DEFAULT NULL,
+				`dropbox_secret` text DEFAULT NULL,
+				`dropbox_refresh_token` text DEFAULT NULL,
+				`dropbox_api_key_valid` datetime DEFAULT NULL,
+				`dropbox_auth_challenge` varchar(128) DEFAULT NULL,
             	PRIMARY KEY (`id_arena`),
             	KEY `id_user` (`id_user`),
             	CONSTRAINT `arenas_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -32,13 +37,22 @@ tables:
 				- 'ADD `address_post_code` varchar(10) DEFAULT NULL AFTER `address_city`'
 				- 'ADD `address_country` varchar(50) DEFAULT NULL AFTER `address_post_code`'
 				- 'ADD `web` varchar(200) DEFAULT NULL AFTER `address_country`'
-				- 'ADD `contactEmail` varchar(50) DEFAULT NULL AFTER `web`'
-				- 'ADD `contactPhone` varchar(20) DEFAULT NULL AFTER `contactEmail`'
-				- 'ADD `hidden` tinyint(1) NOT NULL DEFAULT 0 AFTER `contactPhone`'
-				- 'ADD `reportEmails` varchar(500) DEFAULT NULL AFTER `hidden`'
+				- 'ADD `contact_email` varchar(50) DEFAULT NULL AFTER `web`'
+				- 'ADD `contact_phone` varchar(20) DEFAULT NULL AFTER `contact_email`'
+				- 'ADD `hidden` tinyint(1) NOT NULL DEFAULT 0 AFTER `contact_phone`'
+				- 'ADD `report_emails` varchar(500) DEFAULT NULL AFTER `hidden`'
 			0.2:
 				- 'ADD `dropbox_api_key` text DEFAULT NULL'
 				- 'ADD `dropbox_directory` varchar(255) DEFAULT NULL'
+			0.3:
+				- 'ADD `dropbox_secret` text DEFAULT NULL'
+			0.3.1:
+				- 'ADD `dropbox_app_id` text DEFAULT NULL'
+			0.3.2:
+				- 'ADD `dropbox_refresh_token` text DEFAULT NULL'
+				- 'ADD `dropbox_api_key_valid` datetime DEFAULT NULL'
+			0.3.3:
+				- 'ADD `dropbox_auth_challenge` varchar(128) DEFAULT NULL'
 		foreignKeys:
 			-
 				column: id_user

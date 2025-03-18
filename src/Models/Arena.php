@@ -7,6 +7,7 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Factory\TeamFactory;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
+use App\Models\Extensions\DropboxSettings;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\Tournament;
 use DateTimeInterface;
@@ -18,6 +19,7 @@ use Lsr\Db\Dibi\Fluent;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
@@ -51,14 +53,13 @@ class Arena extends BaseModel
 	public ?string $contactPhone = null;
 	public ?string $reportEmails = null;
 
+	#[ManyToOne]
 	public ?User $user = null;
 
 	public bool $hidden = false;
 
-	/** @var non-empty-string|null  */
-	public ?string $dropboxApiKey = null;
-	/** @var non-empty-string|null  */
-	public ?string $dropboxDirectory = null;
+	#[Instantiate, OA\Property]
+	public DropboxSettings $dropbox;
 
 	/** @var array<string,array<string, int[]>> */
 	private array $gameIds = [];
