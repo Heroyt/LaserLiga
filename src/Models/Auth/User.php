@@ -43,7 +43,14 @@ class User extends \Lsr\Core\Auth\Models\User
 	public ?DateTimeInterface $privacyConfirmed           = null;
 
 	/** @var int[] */
-	private array $managedArenaIds;
+	public array $managedArenaIds {
+		get {
+			$this->managedArenaIds ??= DB::select('user_managed_arena', 'id_arena')
+			                             ->where('id_user = %i', $this->id)
+			                             ->fetchPairs();
+			return $this->managedArenaIds;
+		}
+	}
 
 	/**
 	 * @return array{id: int}
@@ -178,17 +185,7 @@ class User extends \Lsr\Core\Auth\Models\User
 	}
 
 	public function managesArena(Arena $arena): bool {
-		return in_array($arena->id, $this->getManagedArenaIds(), true);
-	}
-
-	/**
-	 * @return int[]
-	 */
-	public function getManagedArenaIds(): array {
-		$this->managedArenaIds ??= DB::select('user_managed_arena', 'id_arena')
-		                             ->where('id_user = %i', $this->id)
-		                             ->fetchPairs();
-		return $this->managedArenaIds;
+		return in_array($arena->id, $this->managedArenaIds, true);
 	}
 
 	public function shouldRevalidatePrivacyPolicy(): bool {

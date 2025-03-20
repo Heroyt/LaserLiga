@@ -52,6 +52,9 @@ $gameCodeGroup = $gameGroup->group('{code}');
 
 $gameCodeGroup->get('', [GameController::class, 'show'])->name('game')
               ->get('{user}', [GameController::class, 'show'])->name('user-game')
+              ->get('photos', [GameController::class, 'downloadPhotos'])
+              ->post('photos/public', [GameController::class, 'makePublic'])
+              ->post('photos/hidden', [GameController::class, 'makeHidden'])
               ->get('thumb', [GameController::class, 'thumb'])
               ->get('thumb.png', [GameController::class, 'thumb'])
               ->get('highlights', [GameHighlightsController::class, 'show']);
@@ -75,6 +78,7 @@ $this->group('g')
      ->get('', [GameController::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
      ->get('abcdefghij', [Dashboard::class, 'bp'])
      ->get('{code}', [GameController::class, 'show'])->name('game-alias')
+     ->get('{code}/photos', [GameController::class, 'downloadPhotos'])
      ->get('{code}/thumb', [GameController::class, 'thumb']);
 
 $this->group('players')
@@ -167,15 +171,23 @@ $tournamentGroup->get('history', [TournamentController::class, 'history'])->name
 $tournamentIdGroup = $tournamentGroup->group('{id}');
 $tournamentIdGroup->get('', [TournamentController::class, 'detail'])->name('tournament-detail');
 $tournamentIdGroup->get('register', [TournamentController::class, 'register'])->name('tournament-register');
-$tournamentIdGroup->post('register', [TournamentController::class, 'processRegister'])->name('tournament-register-process')->middleware(new CSRFCheck('tournament-register'));
+$tournamentIdGroup->post('register', [TournamentController::class, 'processRegister'])->name(
+	'tournament-register-process'
+)->middleware(new CSRFCheck('tournament-register'));
 
 $tournamentGroup->get('registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])
-     ->name('tournament-register-update')
-     ->get('registration/{tournamentId}/{registration}/{hash}', [TournamentController::class, 'updateRegistration'])
-     ->name('tournament-register-update-2')
-     ->post('registration/{tournamentId}/{registration}', [TournamentController::class, 'processUpdateRegister'])
-     ->name('tournament-register-update-process')
-     ->middleware(new CSRFCheck('tournament-update-register'));
+                ->name('tournament-register-update')
+                ->get(
+	                'registration/{tournamentId}/{registration}/{hash}',
+	                [TournamentController::class, 'updateRegistration']
+                )
+                ->name('tournament-register-update-2')
+                ->post(
+	                'registration/{tournamentId}/{registration}',
+	                [TournamentController::class, 'processUpdateRegister']
+                )
+                ->name('tournament-register-update-process')
+                ->middleware(new CSRFCheck('tournament-update-register'));
 
 $this->group('league')
      ->get('', [LeagueController::class, 'show'])
@@ -247,18 +259,18 @@ $eventsGroup->get('', [EventController::class, 'show'])->name('events');
 $eventsGroup->get('history', [EventController::class, 'history'])->name('events-history');
 $eventsIdGroup = $eventsGroup->group('{id}');
 $eventsIdGroup->get('', [EventController::class, 'detail'])
-     ->get('register', [EventController::class, 'register'])->name('event-register')
-     ->post('register', [EventController::class, 'processRegister'])
-     ->name('event-register-process')
-     ->middleware(new CSRFCheck('event-register'));
+              ->get('register', [EventController::class, 'register'])->name('event-register')
+              ->post('register', [EventController::class, 'processRegister'])
+              ->name('event-register-process')
+              ->middleware(new CSRFCheck('event-register'));
 
 $eventsGroup->get('registration/{eventId}/{registration}', [EventController::class, 'updateRegistration'])
-     ->name('event-register-update')
-     ->get('registration/{eventId}/{registration}/{hash}', [EventController::class, 'updateRegistration'])
-     ->name('event-register-update-2')
-     ->post('registration/{eventId}/{registration}', [EventController::class, 'processUpdateRegister'])
-     ->name('event-register-update-process')
-     ->middleware(new CSRFCheck('event-update-register'));
+            ->name('event-register-update')
+            ->get('registration/{eventId}/{registration}/{hash}', [EventController::class, 'updateRegistration'])
+            ->name('event-register-update-2')
+            ->post('registration/{eventId}/{registration}', [EventController::class, 'processUpdateRegister'])
+            ->name('event-register-update-process')
+            ->middleware(new CSRFCheck('event-update-register'));
 
 // Push
 $this->group('push')
@@ -273,4 +285,4 @@ $this->group('push')
 
 // Well-known
 $this->group('.well-known')
-	->get('change-password', [WellKnownController::class, 'changePassword']);
+     ->get('change-password', [WellKnownController::class, 'changePassword']);

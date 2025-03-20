@@ -398,3 +398,29 @@ tables:
 				refColumn: id_user
 				onUpdate: 'CASCADE'
 				onDelete: 'SET NULL'
+	user_rights:
+		order: 2
+		definition: '''
+		(
+			`id_user` int(11) unsigned NOT NULL,
+			`right` varchar(20) NOT NULL DEFAULT '',
+			PRIMARY KEY (`id_user`,`right`),
+			KEY `right` (`right`),
+			KEY `id_user` (`id_user`),
+			CONSTRAINT `user_rights_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
+			CONSTRAINT `user_rights_ibfk_2` FOREIGN KEY (`right`) REFERENCES `rights` (`right`) ON DELETE CASCADE ON UPDATE CASCADE
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_user
+				refTable: Lsr\Core\Auth\Models\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: right
+				refTable: 'rights'
+				refColumn: right
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'

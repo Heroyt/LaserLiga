@@ -20,7 +20,7 @@ RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 <IfModule mod_headers.c>
     #Header set Cache-Control "public"
     Header add Service-Worker-Allowed "/"
-    Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' https://*.laserliga.cz fonts.googleapis.com; img-src * 'self' data: https:; script-src 'self' https://*.laserliga.cz https://challenges.cloudflare.com 'unsafe-inline'; style-src 'self' https://*.laserliga.cz 'unsafe-inline' fonts.googleapis.com; font-src 'self' https://*.laserliga.cz fonts.gstatic.com data:; frame-src 'self' https://*.laserliga.cz https://challenges.cloudflare.com; connect-src 'self'  https://*.laserliga.cz https://analytics.laserliga.cz;"
+    Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' https://*.laserliga.cz fonts.googleapis.com; img-src * 'self' data: https: https://*.scw.cloud; script-src 'self' https://*.laserliga.cz https://challenges.cloudflare.com https://npmcdn.com 'unsafe-inline'; style-src 'self' https://*.laserliga.cz 'unsafe-inline' fonts.googleapis.com; font-src 'self' https://*.laserliga.cz fonts.gstatic.com data:; frame-src 'self' https://*.laserliga.cz https://challenges.cloudflare.com; connect-src 'self'  https://*.laserliga.cz https://analytics.laserliga.cz;"
 </IfModule>
 
 <IfModule mod_deflate.c>

@@ -1,0 +1,59 @@
+{parameters
+    App\Models\Photos\Photo[] $photos,
+    App\GameModels\Game\Game $game,
+    bool $canDownloadPhotos = false,
+}
+
+<section class="result-photos">
+    <h2 class="caption fs-4">
+        {faSolid 'images'}
+        <span class="ms-1">{lang 'Fotky', domain: 'results'}</span>
+    </h2>
+
+    <p n:if="$canDownloadPhotos">
+        {if $game->photosPublic}
+            {_'Fotky ze hry jsou nastaveny jako veřejné.', domain: 'results'}
+        {else}
+            {_'Fotky ze hry jsou nastaveny jako neveřejné. Pro zobrazení fotek je třeba přístup přes speciální odkaz, nebo přihlášení do LaserLigy.', domain: 'results'}
+        {/if}
+    </p>
+
+    <div class="photos-wrapper mt-2">
+        {foreach $photos as $photo}
+            {continueIf $photo->url === null}
+            <picture class="game-photo">
+                {var App\Models\Photos\PhotoVariation|null $thumbWebp = $photo->findVariation(150,'webp')}
+                <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->url}" type="image/webp">
+                {var App\Models\Photos\PhotoVariation|null $thumb = $photo->findVariation(150,$photo->type)}
+                <source n:if="$thumb?->url !== null" srcset="{$thumb->url}" type="{$photo->mime}">
+                {var App\Models\Photos\PhotoVariation|null $webp = $photo->findWebpOriginal()}
+                <source n:if="$webp?->url !== null" srcset="{$webp->url}" type="image/webp">
+                <img src="{$photo->url}" data-webp="{$webp?->url}" alt="{_'Fotka ze hry %s', domain: 'results', format: [$game->start?->format('d.m.Y H:i') ?? '']}" loading="lazy">
+            </picture>
+        {/foreach}
+    </div>
+
+    <p class="mt-3" n:if="$canDownloadPhotos">
+        <a href="{link ['game', $game->code, 'photos']}" class="btn btn-primary" download>
+            {faSolid 'download'}
+            {lang 'Stáhnout fotky', domain: 'results'}
+        </a>
+        <button n:if="!$game->photosPublic" type="button" class="btn btn-info" id="make-photos-public" data-confirm="{_'Opravdu chcete zveřejnit fotky z této hry? Fotky uvidí kdokoliv, kdo si zobrazí výsledky této hry, ale nebude je moci stáhnout.', domain: 'results'}">
+            {faSolid 'globe'}
+            {lang 'Zveřejnit fotky', domain: 'results'}
+        </button>
+        <button n:if="$game->photosPublic" type="button" class="btn btn-warning" id="make-photos-hidden" data-confirm="{_'Opravdu chcete zrušit zveřejnění fotek z této hry? Fotky uvidí jen hráči hry, nebo ten, kdo přejde na výsledky se speciálním odkazem.', domain: 'results'}">
+            {faSolid 'eye-slash'}
+            {lang 'Zrušit zveřejnění fotek', domain: 'results'}
+        </button>
+    </p>
+
+    <dialog id="photo-dialog">
+        <div class="dialog-content">
+            <picture>
+                <source class="webp-source" srcset="" type="image/webp">
+                <img src="" alt=""{_'Fotka ze hry %s', domain: 'results', format: [$game->start?->format('d.m.Y H:i') ?? '']}>
+            </picture>
+        </div>
+    </dialog>
+</section>

@@ -1,5 +1,5 @@
 import {HighlightInfo} from "../../interfaces/game";
-import {fetchGet} from "../client";
+import {fetchGet, fetchPost, SuccessResponse} from "../client";
 
 export type GameHighlightResponse = HighlightInfo[];
 
@@ -27,4 +27,12 @@ export async function getGamePlayerResults(gameCode: string, playerId: number): 
 
 export async function getGamePlayerDistribution(gameCode: string, playerId: number, distributionParameter: string, dates: string): Promise<GamePlayerDistributionResponse> {
     return fetchGet(`/game/${gameCode}/player/${playerId}/distribution/${distributionParameter}`, {dates});
+}
+
+export async function makePhotosPublic(gameCode: string): Promise<SuccessResponse> {
+    return fetchPost(`/game/${gameCode}/photos/public`, {});
+}
+
+export async function makePhotosHidden(gameCode: string): Promise<SuccessResponse> {
+    return fetchPost(`/game/${gameCode}/photos/hidden`, {});
 }

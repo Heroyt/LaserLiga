@@ -39,6 +39,7 @@ tables:
 			`visited` tinyint(1) NOT NULL DEFAULT 0,
 			`meta` BLOB DEFAULT NULL,
 			`photos_secret` varchar(100) DEFAULT NULL,
+			`photos_public` bool DEFAULT false,
 			PRIMARY KEY (`id_game`),
 			UNIQUE KEY `code` (`code`),
 		  	UNIQUE KEY `id_arena_2` (`id_arena`,`start`),
@@ -68,6 +69,8 @@ tables:
 				- 'ADD `anti_stalking` tinyint(1) unsigned DEFAULT 0'
 			0.7.0:
 				- 'ADD `photos_secret` varchar(100) DEFAULT NULL'
+			0.7.1:
+				- 'ADD `photos_public` bool DEFAULT false'
 		foreignKeys:
 			-
 				column: id_music

@@ -1,16 +1,5 @@
 {layout '../../@layout.latte'}
-
-{varType Lsr\Core\Controllers\Controller $page}
-{varType App\GameModels\Game\Game $game}
-{varType App\GameModels\Game\Today $today}
-{varType string $prevGame}
-{varType string $nextGame}
-{varType string $prevUserGame}
-{varType string $nextUserGame}
-{varType \App\Models\Auth\User|null $user}
-{default array|null $schema = null}
-{default string $gameDescription = ''}
-{default App\Models\Auth\LigaPlayer|null $activeUser = null}
+{templateType App\Templates\Games\GameParameters}
 
 {define teamColor}
     {default int $teamColor = 0}
@@ -53,7 +42,7 @@
             {/foreach}
         </style>
         <script n:ifset="$schema" type="application/ld+json">
-            {json_encode($schema, JSON_PRETTY_PRINT)|noescape}
+            {$schema|json|noescape}
         </script>
         <script>
             _mtm.push({
@@ -62,21 +51,21 @@
             })
         </script>
     {/ifset}
-    {ifset $style}
-        {$style->getCssClasses()|noescape}
-    {/ifset}
 {/define}
 
 {define content}
     {include resultsHeader}
-    {if $game->mode?->isTeam() && $game->mode?->settings->partTeams}
+    {if $game->mode?->isTeam() && $game->mode?->settings?->partTeams}
         {include resultsTeams}
     {/if}
-    {if $game->mode?->settings->partPlayers}
+    {if $game->mode?->settings?->partPlayers}
         {include resultsPlayers}
     {/if}
-    {if $game->mode?->settings->partHits}
+    {if $game->mode?->settings?->partHits}
         {include resultsHits}
+    {/if}
+    {if count($photos) > 0}
+        {include '../../components/photos.latte', $photos, $game, $canDownloadPhotos}
     {/if}
 
     <div class="modal fade" id="leaderboard-modal" tabindex="-1">
@@ -141,41 +130,6 @@
 
     {include './partials/distribution.latte'}
 
-    {*<div class="modal fade" id="tournament-modal" tabindex="-1" data-show="false">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{lang 'Písecký pohár 2023!'}</h5>
-                    <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
-                            aria-label="{lang 'Close', context: 'actions'}">
-                        {faSolid 'xmark'}
-                    </button>
-                </div>
-                <div class="modal-body text-center">
-                    <img src="{getUrl}upload/tournament/1-6432805c4a1d2.png" alt="Písecký pohár 2023"
-                         class="img-fluid mb-3" loading="lazy">
-                    <h3 class="text-center">{lang 'Přihlaš i svůj (vý)herní tým na pravidelný turnaj!'}</h3>
-                    <h4 class="fs-5">{lang 'Začátečníci'} - 30.4.2023</h4>
-                    <h4 class="fs-5">{lang 'Pokročilí'} - 28.5.2023</h4>
-                    <h4 class="fs-5">{lang 'Mazáci'} - 25.6.2023</h4>
-                    <p>{lang 'Možnost tréninkových her za 50 Kč / hráč / hra'}</p>
-                    <p>{lang 'Domluv si trénink s profíky!'}</p>
-                    <p class="mt-3">
-                        <a href="{link 'league', 1}" class="btn btn-primary btn-lg"
-                           target="_blank">
-                            Informace a přihláška
-                        </a>
-                    </p>
-                    <p class="mt-3">
-                        <button type="button" class="btn btn-secondary" id="dont-show" data-bs-dismiss="modal">
-                            {lang 'Nezobrazovat'}
-                        </button>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>*}
-
     <script>
         const gameCode = {$game->code};
     </script>
@@ -184,7 +138,7 @@
 {define resultsWin}
     {var App\GameModels\Game\Player|App\GameModels\Game\Team|null $win = $game->mode?->getWin($game)}
     <div class="results-win">
-        {if is_null($win)}
+        {if $win === null}
             <div class="print-primary">
                 {lang 'Remíza', context: 'results'}
             </div>
@@ -414,9 +368,13 @@
             </section>
         </div>
         <div class="text-center">
+            {var array $link = ['g', $game->code]}
+            {if count($photos) > 0 && $game->photosSecret !== null}
+                {do $link['photos'] = $game->photosSecret}
+            {/if}
             <button type="button" class="btn-lg btn btn-success d-none my-3" data-trigger="share"
                     data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->mode?->name, context: 'gameModes'), $game->arena?->name)}"
-                    data-url="{link 'g', $game->code}">
+                    data-url="{link $link}">
                 {faSolid 'share'}
                 {lang 'Sdílet'}
             </button>

@@ -1,7 +1,9 @@
 import {Modal} from 'bootstrap';
 import {PlayerModuleInterface} from "./playerModules";
 import {TeamModuleInterface} from "./teamModules";
-import {getGameHighlights} from "../../api/endpoints/game";
+import {getGameHighlights, makePhotosHidden, makePhotosPublic} from "../../api/endpoints/game";
+import {startLoading, stopLoading} from "../../loaders";
+import {triggerNotificationError} from "../../components/notifications";
 
 declare global {
     const gameCode: string;
@@ -87,6 +89,7 @@ export default function initResults() {
         return teamModule;
     }
 
+    initPhotos();
 }
 
 async function loadHighlights() {
@@ -140,5 +143,67 @@ async function loadHighlights() {
         }
     } catch (e) {
         console.error(e);
+    }
+}
+
+function initPhotos() {
+    const photos = document.querySelectorAll<HTMLImageElement>('.game-photo img');
+    const dialog = document.getElementById('photo-dialog') as HTMLDialogElement;
+    if (photos.length === 0 || !dialog) {
+        console.log('Skip game photos')
+        return;
+    }
+
+    const dialogImg = dialog.querySelector('img');
+    const dialogWebpSource = dialog.querySelector<HTMLSourceElement>('.webp-source');
+
+    for (const photo of photos) {
+        const url = photo.src;
+        const webp = photo.dataset.webp;
+
+        photo.addEventListener('click', () => {
+           dialogImg.src = url;
+           dialogWebpSource.srcset = webp;
+           dialog.showModal();
+        });
+    }
+
+    dialog.addEventListener('click', () => {
+        dialog.close();
+    });
+
+    const makePublic = document.getElementById('make-photos-public') as HTMLButtonElement;
+    if (makePublic) {
+        makePublic.addEventListener('click', () => {
+            if (!confirm(makePublic.dataset.confirm)) {
+                return;
+            }
+            startLoading(true);
+            makePhotosPublic(gameCode)
+                .then(() => {
+                    window.location.reload();
+                })
+                .catch(async (e) => {
+                    stopLoading(false, true);
+                    await triggerNotificationError(e);
+                });
+        });
+    }
+    const makeHidden = document.getElementById('make-photos-hidden') as HTMLButtonElement;
+    if (makeHidden) {
+        makeHidden.addEventListener('click', () => {
+            if (!confirm(makeHidden.dataset.confirm)) {
+                return;
+            }
+            startLoading(true);
+            makePhotosHidden(gameCode)
+                .then(() => {
+                    window.location.reload();
+                })
+                .catch(async (e) => {
+                    stopLoading(false, true);
+                    await triggerNotificationError(e);
+                });
+        });
     }
 }
