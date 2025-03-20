@@ -1,13 +1,13 @@
 extensions:
-	console: OriNette\Console\DI\ConsoleExtension
 	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
-console:
-	name: 'LaserLiga'
-services:
+	console: OriNette\Console\DI\ConsoleExtension
 search:
-	commands:
+	console.commands:
 		in: '%constants.appDir%/src/Cli/Commands'
 		extends:
 			- Symfony\Component\Console\Command\Command
 		tags:
 			- console.command
+console:
+	name: 'LaserLiga'
+services:
