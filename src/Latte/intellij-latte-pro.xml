@@ -114,5 +114,12 @@
         </function>
     </functions>
     <filters>
+        <filter name="json" description="Json encode using Symfony serializer" />
+        <filter name="xml" description="XML encode using Symfony serializer" />
+        <filter name="csv" description="CSV encode using Symfony serializer" />
+        <filter name="faSolid" description="Transform into Fontawesome icon" />
+        <filter name="faRegular" description="Transform into Fontawesome icon" />
+        <filter name="faBrand" description="Transform into Fontawesome icon" />
+        <filter name="fa" description="Transform into Fontawesome icon" />
     </filters>
 </latte>
