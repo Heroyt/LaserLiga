@@ -5,11 +5,13 @@ namespace App\Models\Photos;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
+use App\Models\Arena;
 use App\Models\BaseModel;
 use DateTimeInterface;
 use Lsr\ObjectValidation\Attributes\Required;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\Attributes\Relations\OneToMany;
 use Lsr\Orm\ModelCollection;
 
@@ -21,6 +23,8 @@ class Photo extends BaseModel
 
 	#[Required]
 	public string  $identifier;
+	#[ManyToOne]
+	public Arena $arena;
 	public ?string $url      = null;
 	public ?string $gameCode = null;
 	public ?DateTimeInterface $exifTime = null;

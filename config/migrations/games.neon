@@ -209,6 +209,7 @@ tables:
 		definition: '''
 		(
 			`id_photo` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_arena` int(11) unsigned DEFAULT NULL,
 			`identifier` varchar(255) NOT NULL,
 			`url` varchar(512) DEFAULT NULL,
 			`game_code` varchar(50) DEFAULT NULL,
@@ -216,6 +217,9 @@ tables:
 			PRIMARY KEY (`id_photo`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
+		modifications:
+			0.1.0:
+				- 'ADD `id_arena` int(11) unsigned DEFAULT NULL AFTER `id_photo`'
 		indexes:
 			-
 				name: 'identifier'
@@ -224,6 +228,13 @@ tables:
 			-
 				name: 'game_code'
 				columns: ['game_code']
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
 	App\Models\Photos\PhotoVariation:
 		order: 1
 		definition: '''

@@ -102,6 +102,7 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 
 				// Find or create entity
 				$photo = Photo::findOrCreateByIdentifier($identifier . '.' . $entry->fileType);
+				$photo->arena = $command->arena;
 				$photo->exifTime = $exifTime;
 
 				// Upload to S3
