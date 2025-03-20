@@ -27,32 +27,33 @@ extensions:
 	routing: Lsr\Core\Routing\DI\RoutingExtension
 	di: Nette\DI\Extensions\DIExtension
 	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
+	lsr: Lsr\Core\DI\LsrExtension
 di:
 	lazy: true
+lsr:
+	appDir: %constants.appDir%
+	tempDir: %constants.tempDir%
+	latte:
+		tempDir: %constants.tempDir%latte/
+	translations:
+		defaultLang: cs_CZ
+		supportedLanguages:
+			- 'cs_CZ'
+			- 'en_US'
+			- 'de_DE'
+			- 'fr_FR'
+			- 'sk_SK'
+		domains:
+			- 'results'
+			- 'tips'
+			- 'cli'
+			- 'highlights'
+			- 'tournament'
+			- 'privacy'
+			- 'music'
 services:
 	# Core
 	db.connection: Lsr\Db\Connection(config: %db%)
-	app: Lsr\Core\App
-	translations:
-		create: Lsr\Core\Translations
-		arguments:
-			config: @config
-			defaultLang: 'cs_CZ'
-			supportedLanguages:
-				- 'cs_CZ'
-				- 'en_US'
-				- 'de_DE'
-				- 'fr_FR'
-				- 'sk_SK'
-			textDomains:
-				- 'results'
-				- 'tips'
-				- 'cli'
-				- 'highlights'
-				- 'tournament'
-				- 'privacy'
-				- 'music'
-	csrf: Lsr\Helpers\Csrf\TokenHelper::getInstance(@session)
 
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
@@ -137,6 +138,13 @@ services:
 			- addExtension(@templating.latte.lac)
 	requestValidationMapper: Lsr\Core\Requests\Validation\RequestValidationMapper
 search:
+	controllers:
+		in: '%constants.appDir%src/Controllers'
+		extends:
+			- Lsr\Core\Controllers\Controller
+			- Lsr\Core\Controllers\ApiController
+		tags:
+			- controllers
 	achievementCheckers:
 		in: %constants.appDir%/src/Services/Achievements/Checkers
 		implements:
