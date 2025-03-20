@@ -135,7 +135,7 @@ class IconNode extends StatementNode
             $this->position,
         );
         if ($this->addDynamic) {
-            return $icon . '\App\Core\App::getService(\'fontawesome\')->addIcon($ʟ_style,$ʟ_icon);'."\n";
+            return $icon . App::class.'::getService(\'fontawesome\')->addIcon($ʟ_style,$ʟ_icon);'."\n";
         }
 
         return $icon;
