@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Models\DataObjects\Game;
 
+use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\Game;
 use DateTimeInterface;
 
 class PlayerGamesGame
@@ -25,4 +27,11 @@ class PlayerGamesGame
 	public int                $id_arena;
 	public ?int                $id_mode  = null;
 	public ?string             $modeName = null;
+
+	public Game $game {
+		get {
+			$this->game ??= GameFactory::getByCode($this->code);
+			return $this->game;
+		}
+	}
 }
