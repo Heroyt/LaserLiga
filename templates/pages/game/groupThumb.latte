@@ -5,8 +5,8 @@
 {var int $headerHeight = 150}
 {var int $contentWidth = 1200 - ($padding * 2)}
 {var int $contentHeight = 600 - ($padding * 2) - $headerHeight - $playerMargin}
-{var int $playerCount = count($group->players)}
-{var int $gameCount = count($group->games)}
+{var int $playerCount = count($group->getPlayers())}
+{var int $gameCount = count($group->getGames())}
 {var int $playerBoxHeight = 60}
 {var int $playerBoxWidth = 400}
 {var int $statBoxHeight = 100}
@@ -54,7 +54,7 @@
               text-anchor="end">
             {lang 'Nejlepší hráči'}:
         </text>
-        {foreach $group->players as $player}
+        {foreach $group->getPlayers() as $player}
             {breakIf $iterator->counter > 6}
             {var int $top = $padding + 50 + ($iterator->counter0 * ($playerBoxHeight + $playerBoxMargin))}
             {var int $textY = $top + $playerBoxPadding + 20}
