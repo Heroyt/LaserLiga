@@ -35,7 +35,9 @@ class Dashboard extends Controller
 	public function show(): ResponseInterface {
 		$this->params->addCss = ['pages/playerProfile.css'];
 		$user = $this->auth->getLoggedIn();
-		assert($user !== null, 'User not logged in');
+		if ($user === null) {
+			return $this->redirect('login');
+		}
 		assert($user->player !== null, 'User is not a player');
 		$this->params->loggedInUser = $this->params->user = $user;
 		$this->params->lastGames = $user->createOrGetPlayer()

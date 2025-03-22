@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\Models\Achievements\PlayerAchievement;
 use App\Models\Auth\LigaPlayer;
@@ -244,6 +245,22 @@ class PushService
 			return $player->user;
 		}
 		return User::get($player->id);
+	}
+
+	public function sendPhotosNotification(PlayerUser $user, Game $game, string $url) : void {
+		if (!$this->checkSubscriptionSetting($user, 'photos')) {
+			return;
+		}
+		try {
+			$notification = new Notification();
+			$notification->user = $this->getUser($user);
+			$notification->title = lang('Nové fotky!', context: 'notification');
+			$notification->action = $url;
+			$notification->body = lang('Na tvé hře z %s přibyly fotky!', context: 'notification', format: [$game->start->format('j. n. Y')]);
+			$this->send($notification);
+			$notification->save();
+		} catch (Throwable) {
+		}
 	}
 
 }

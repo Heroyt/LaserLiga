@@ -1,0 +1,17 @@
+{layout '../@layout.latte'}
+
+{varType App\Models\Arena $arena}
+{varType App\GameModels\Game\Game $game}
+{varType string $url}
+
+{block body}
+	<h1>{_'Vaše fotky ze hry %s', context: 'mail', format: [$game->start->format('j. n. Y')]}</h1>
+	<p>
+		{_'K Vašim výsledkům ze hry byly přiřazeny fotky.', context: 'mail'}
+	</p>
+	<p>
+		<a href="{$url}" class="btn btn-lg">
+			{_'Výsledky s fotkami', context: 'mail'}
+		</a>
+	</p>
+{/block}

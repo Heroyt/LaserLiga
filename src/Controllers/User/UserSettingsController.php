@@ -200,6 +200,8 @@ class UserSettingsController extends AbstractUserController
 			$request->addPassError(lang('Profil se nepodařilo uložit'));
 			return $this->respondForm($request, statusCode: 500);
 		}
+		$user->clearCache();
+		$player->clearCache();
 
 		if ($emailChanged) {
 			$this->userRegistrationService->sendEmailConfirmation($user);
@@ -271,6 +273,7 @@ class UserSettingsController extends AbstractUserController
 		$player->avatarStyle = $avatarType->value;
 		$player->avatarSeed = $seed;
 		$player->save();
+		$player->clearCache();
 		return $this->respond([$player, $type, $avatarType, $seed]);
 	}
 

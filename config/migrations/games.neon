@@ -260,6 +260,21 @@ tables:
 				name: 'identifier'
 				columns: ['identifier']
 				unique: true
+	App\Models\Photos\PhotoMailLog:
+		order: 0
+		definition: '''
+		(
+			`id_log` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`datetime` datetime NOT NULL,
+			`game_code` varchar(50) NOT NULL,
+			`email` varchar(255) NOT NULL,
+			PRIMARY KEY (`id_log`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'game_code'
+				columns: ['game_code']
 views:
 	vModesNames: '''
 	SELECT `a`.`id_mode`     AS `id_mode`,

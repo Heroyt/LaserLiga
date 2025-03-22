@@ -2,9 +2,10 @@
     App\Models\Photos\Photo[] $photos,
     App\GameModels\Game\Game $game,
     bool $canDownloadPhotos = false,
+    array $downloadLink = ['game', $game->code, 'photos'],
 }
 
-<section class="result-photos">
+<section class="result-photos" data-track-content="" data-content-name="Results - Photos">
     <h2 class="caption fs-4">
         {faSolid 'images'}
         <span class="ms-1">{lang 'Fotky', domain: 'results'}</span>
@@ -33,16 +34,16 @@
         {/foreach}
     </div>
 
-    <p class="mt-3" n:if="$canDownloadPhotos">
-        <a href="{link ['game', $game->code, 'photos']}" class="btn btn-primary" download>
+    <p class="mt-3" n:if="$canDownloadPhotos"  data-track-content="" data-content-name="Results - Photos - actions">
+        <a href="{link $downloadLink}" class="btn btn-primary" data-content-piece="download-photos">
             {faSolid 'download'}
             {lang 'Stáhnout fotky', domain: 'results'}
         </a>
-        <button n:if="!$game->photosPublic" type="button" class="btn btn-info" id="make-photos-public" data-confirm="{_'Opravdu chcete zveřejnit fotky z této hry? Fotky uvidí kdokoliv, kdo si zobrazí výsledky této hry, ale nebude je moci stáhnout.', domain: 'results'}">
+        <button n:if="!$game->photosPublic" type="button" class="btn btn-info" id="make-photos-public" data-confirm="{_'Opravdu chcete zveřejnit fotky z této hry? Fotky uvidí kdokoliv, kdo si zobrazí výsledky této hry, ale nebude je moci stáhnout.', domain: 'results'}" data-content-piece="make-photos-public">
             {faSolid 'globe'}
             {lang 'Zveřejnit fotky', domain: 'results'}
         </button>
-        <button n:if="$game->photosPublic" type="button" class="btn btn-warning" id="make-photos-hidden" data-confirm="{_'Opravdu chcete zrušit zveřejnění fotek z této hry? Fotky uvidí jen hráči hry, nebo ten, kdo přejde na výsledky se speciálním odkazem.', domain: 'results'}">
+        <button n:if="$game->photosPublic" type="button" class="btn btn-warning" id="make-photos-hidden" data-confirm="{_'Opravdu chcete zrušit zveřejnění fotek z této hry? Fotky uvidí jen hráči hry, nebo ten, kdo přejde na výsledky se speciálním odkazem.', domain: 'results'}" data-content-piece="make-photos-hidden">
             {faSolid 'eye-slash'}
             {lang 'Zrušit zveřejnění fotek', domain: 'results'}
         </button>
@@ -52,7 +53,7 @@
         <div class="dialog-content">
             <picture>
                 <source class="webp-source" srcset="" type="image/webp">
-                <img src="" alt=""{_'Fotka ze hry %s', domain: 'results', format: [$game->start?->format('d.m.Y H:i') ?? '']}>
+                <img src="" alt="">
             </picture>
         </div>
     </dialog>

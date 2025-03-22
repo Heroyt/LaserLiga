@@ -23,7 +23,6 @@ final readonly class SyncArenaImagesCommand implements CommandInterface
 		public ?int $limit = null,
 		public array $optimizeSizes = [
 			150,
-			500,
 		],
 		public ?OutputInterface $output = null,
 	) {

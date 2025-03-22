@@ -72,6 +72,9 @@ $gameGroupGroup = $gameGroup->group('group');
 $gameGroupIdGroup = $gameGroupGroup->group('{groupid}');
 $gameGroupIdGroup->get('', [GroupController::class, 'group'])->name('group-results');
 $gameGroupIdGroup->get('thumb', [GroupController::class, 'thumbGroup']);
+$gameGroupIdGroup->get('photos', [GroupController::class, 'downloadPhotos']);
+$gameGroupIdGroup->post('photos/public', [GroupController::class, 'makePublic']);
+$gameGroupIdGroup->post('photos/hidden', [GroupController::class, 'makeHidden']);
 
 // Alias to 'game' group
 $this->group('g')

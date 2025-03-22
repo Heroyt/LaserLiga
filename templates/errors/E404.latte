@@ -1,3 +1,6 @@
 {layout '../@layout.latte'}
 
-{define content}<h1>404 - {lang 'stránka nenalezena', context: 'errors'}</h1>{/define}
+{define content}
+    <h1>404 - {lang 'stránka nenalezena', context: 'errors'}</h1>
+    <p>{$exception?->getMessage()}</p>
+{/define}

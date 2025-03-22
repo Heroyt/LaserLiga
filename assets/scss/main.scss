@@ -81,6 +81,7 @@ footer {
 @import 'components/popup';
 @import 'components/playBtn';
 @import 'components/musicModeCard';
+@import 'components/dialog';
 @import "viewTransitions";
 
 @include media-breakpoint-down('lg') {

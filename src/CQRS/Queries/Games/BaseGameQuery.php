@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\CQRS\Queries\Games;
 
 use App\GameModels\Factory\GameFactory;
+use App\Models\Arena;
 use App\Models\System;
 use App\Models\SystemType;
 use DateTimeInterface;
@@ -56,4 +57,12 @@ trait BaseGameQuery
         }
         return $this;
     }
+
+	public function arena(Arena|int $arena) : self {
+		if ($arena instanceof Arena) {
+			$arena = $arena->id;
+		}
+		$this->query->where('[id_arena] = %i', $arena);
+		return $this;
+	}
 }

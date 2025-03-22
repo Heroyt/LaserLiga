@@ -36,3 +36,11 @@ export async function makePhotosPublic(gameCode: string): Promise<SuccessRespons
 export async function makePhotosHidden(gameCode: string): Promise<SuccessResponse> {
     return fetchPost(`/game/${gameCode}/photos/hidden`, {});
 }
+
+export async function makePhotosPublicGroup(groupI: string): Promise<SuccessResponse> {
+    return fetchPost(`/game/group/${groupI}/photos/public`, {});
+}
+
+export async function makePhotosHiddenGroup(groupI: string): Promise<SuccessResponse> {
+    return fetchPost(`/game/group/${groupI}/photos/hidden`, {});
+}

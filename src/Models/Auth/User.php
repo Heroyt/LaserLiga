@@ -6,6 +6,7 @@ use App\Models\Arena;
 use App\Models\Auth\Enums\ConnectionType;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Lsr\Core\Models\WithCacheClear;
 use Lsr\Db\DB;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
@@ -18,6 +19,8 @@ use Lsr\Orm\ModelCollection;
 #[PrimaryKey('id_user')]
 class User extends \Lsr\Core\Auth\Models\User
 {
+	use WithCacheClear;
+
 	public const int CURRENT_PRIVACY_VERSION = 1;
 
 	#[ManyToOne('', 'id_parent')]
@@ -43,8 +46,14 @@ class User extends \Lsr\Core\Auth\Models\User
 	public ?DateTimeInterface $privacyConfirmed           = null;
 
 	/** @var int[] */
+	#[NoDB]
 	public array $managedArenaIds {
 		get {
+			if (isset($this->type) && $this->type->superAdmin) {
+				$this->managedArenaIds ??= array_map(static fn(Arena $arena) => $arena->id, Arena::getAll());
+				return $this->managedArenaIds;
+			}
+
 			$this->managedArenaIds ??= DB::select('user_managed_arena', 'id_arena')
 			                             ->where('id_user = %i', $this->id)
 			                             ->fetchPairs();
@@ -52,21 +61,24 @@ class User extends \Lsr\Core\Auth\Models\User
 		}
 	}
 
-	/**
-	 * @return array{id: int}
-	 */
-	public function __serialize(): array {
-		return [
-			'id' => $this->id,
-		];
-	}
-
-	/**
-	 * @param array{id: int} $data
-	 */
-	public function __unserialize(array $data): void {
-		$this->id = $data['id'];
-		$this->fetch(true);
+	/** @var ModelCollection<Arena>  */
+	#[NoDB]
+	public ModelCollection $managedArenas {
+		get {
+			if (!isset($this->managedArenas)) {
+				if (isset($this->type) && $this->type->superAdmin) {
+					$arenas = Arena::getAll();
+				}
+				else {
+					$arenas = [];
+					foreach ($this->managedArenaIds as $id) {
+						$arenas[] = Arena::get($id);
+					}
+				}
+				$this->managedArenas = new ModelCollection($arenas);
+			}
+			return $this->managedArenas;
+		}
 	}
 
 	public static function getByCode(string $code): ?static {

@@ -16,6 +16,7 @@ class PhotoVariation extends BaseModel
 	#[ManyToOne]
 	public Photo $photo;
 
+	/** @var non-empty-string  */
 	public string $identifier;
 	public ?string $url = null;
 	public int $size;

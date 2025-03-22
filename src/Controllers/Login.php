@@ -20,6 +20,7 @@ use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
 use Lsr\Core\Session;
 use Lsr\Db\DB;
+use Lsr\Helpers\Csrf\TokenHelper;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
@@ -46,6 +47,7 @@ class Login extends Controller
 		private readonly Turnstile               $turnstile,
 		private readonly UserRegistrationService $userRegistration,
 		private readonly Session $session,
+		private readonly TokenHelper $tokenHelper,
 	) {
 		parent::__construct();
 		$this->params = new LoginParams();
@@ -74,8 +76,9 @@ class Login extends Controller
 		];
 		$this->description = 'Vytvořte si nový hráčský účet v systému Laser liga.';
 
-		if (!formValid('register-user')) {
-			$this->params->errors[] = lang('Požadavek vypršel, zkuste znovu načíst stránku.', context: 'errors');
+		$token = (string)$request->getPost('_csrf_token', '');
+		if (!$this->tokenHelper->formValid('register-user', $token)) {
+			$this->params->errors[] = lang('Požadavek vypršel, zkuste znovu načíst stránku. '.json_encode($token), context: 'errors');
 			$this->params->arenas = Arena::getAll();
 			return $this->view('pages/login/register');
 		}
@@ -233,6 +236,16 @@ class Login extends Controller
 		if ($this->auth->loggedIn()) {
 			$this->auth->logout();
 		}
+
+		$request->addPassNotice(lang('Odhlášení bylo úspěšné.'));
+
+		$response = $this->app->redirect('login', $request);
+		$kiosk = $this->session->get('kiosk');
+		if ($kiosk) {
+			$arenaId = $this->session->get('kioskArena');
+			$response = $this->app->redirect(['kiosk', $arenaId], $request);
+		}
+
 		$cookies = $request->getCookieParams();
 		if (isset($cookies['rememberme'])) {
 			$ex = explode(':', $cookies['rememberme']);
@@ -240,18 +253,11 @@ class Login extends Controller
 				[$token, $validator] = $ex;
 				DB::delete('user_tokens', ['[token] = %s', $token]);
 			}
-			setcookie('rememberme', '', -1);
+			// Unset cookie
+			$response = $response->withHeader('Set-Cookie', 'rememberme=; expires=Thu, 01 Jan 1970 00:00:00 GMT');
 		}
 
-		$request->addPassNotice(lang('Odhlášení bylo úspěšné.'));
-
-		$kiosk = $this->session->get('kiosk');
-		if ($kiosk) {
-			$arenaId = $this->session->get('kioskArena');
-			return $this->app->redirect(['kiosk', $arenaId], $request);
-		}
-
-		return $this->app->redirect('login', $request);
+		return $response;
 	}
 
 	public function confirm(Request $request): ResponseInterface {

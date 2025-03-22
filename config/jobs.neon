@@ -32,6 +32,9 @@ scheduler:
 		confirmEmail:
 			expression: 30 11 * * *
 			callback: [@cron.confirmEmail, 'run']
+		syncPhotos:
+			expression: */5 8-23 * * *
+			callback: [@cron.syncPhotos, 'run']
 services:
 	# Core scheduler
 	scheduler.logger: Lsr\Logging\Logger(%logger.dir%, 'scheduler')
@@ -54,3 +57,4 @@ services:
 	cron.gamemodes: App\Cron\CheckGameModesJob
 	cron.privacy: App\Cron\PrivacyUpdateNotificationJob
 	cron.confirmEmail: App\Cron\UserConfirmationEmailsJob
+	cron.syncPhotos: App\Cron\SyncPhotosJob

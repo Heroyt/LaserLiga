@@ -5,7 +5,7 @@ namespace App\CQRS\CommandResponses;
 
 use App\Models\Photos\Photo;
 
-class SyncArenaImagesResponse
+final class SyncArenaImagesResponse
 {
 
 	public int $count = 0;

@@ -1,30 +1,27 @@
 {layout '../../../@layout.latte'}
-
-{varType App\Models\Arena[] $arenas}
+{templateType App\Templates\Admin\ArenaShowParameters}
 
 {block content}
-
-	<table class="table table-striped">
-		<thead>
-		<tr>
-			<th>{lang 'Logo'}</th>
-			<th>{lang 'Název'}</th>
-			<th>{lang 'Akce'}</th>
-		</tr>
-		</thead>
-		<tbody>
-		<tr n:foreach="$arenas as $arena">
-			<td>{$arena->getLogoHtml()|noescape}</td>
-			<td>{$arena->name}</td>
-			<td>
-				<div class="btn-group">
-					<a href="{link ['admin', 'arenas', $arena->id]}" class="btn btn-info">
-						{faSolid 'pencil'}
-					</a>
-				</div>
-			</td>
-		</tr>
-		</tbody>
-	</table>
-
+    <div class="d-flex flex-wrap justify-content-evenly">
+        <div n:foreach="$arenas as $arena" class="card p-3 m-3">
+            <div class="card-img-top d-flex justify-content-center">
+                {$arena->getLogoHtml()|noescape}
+            </div>
+            <div class="card-body text-center">
+                <h5 class="card-title">{$arena->name}</h5>
+                <div class="btn-group mt-3">
+                    <a n:if="($user->hasRight('view-photos') || $user->hasRight('manage-photos')) && $user->managesArena($arena)"
+                            href="{link ['admin', 'arenas', $arena->id, 'photos']}"
+                            class="btn btn-primary btn">
+                        {faSolid 'images'} {_'Fotky'}
+                    </a>
+                    <a n:if="($user->hasRight('edit-arena') || $user->hasRight('manage-arena')) && $user->managesArena($arena)"
+                            href="{link ['admin', 'arenas', $arena->id, 'edit']}"
+                            class="btn btn-info">
+                        {faSolid 'pencil'} {_'Upravit'}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 {/block}

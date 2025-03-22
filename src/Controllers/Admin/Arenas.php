@@ -3,15 +3,16 @@
 namespace App\Controllers\Admin;
 
 use App\Models\Arena;
+use App\Models\Auth\User;
+use App\Templates\Admin\ArenaShowParameters;
 use Dibi\Exception;
 use JsonException;
+use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 use Lsr\Db\DB;
 use Lsr\Exceptions\FileException;
 use Lsr\Exceptions\TemplateDoesNotExistException;
-use Lsr\Logging\Exceptions\DirectoryCreationException;
-use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use SimpleXMLElement;
@@ -20,12 +21,23 @@ class Arenas extends Controller
 {
 
 	/**
+	 * @param Auth<User> $auth
+	 */
+	public function __construct(
+		private readonly Auth $auth,
+	){
+		parent::__construct();
+	}
+
+	/**
 	 * @throws ValidationException
 	 * @throws TemplateDoesNotExistException
 	 * @throws JsonException
 	 */
 	public function show(): ResponseInterface {
-		$this->params['arenas'] = Arena::getAll();
+		$this->params = new ArenaShowParameters($this->params);
+		$this->params->user = $this->auth->getLoggedIn();
+		$this->params->arenas = $this->params->user->managedArenas;
 		return $this->view('pages/admin/arenas/index');
 	}
 
@@ -39,14 +51,7 @@ class Arenas extends Controller
 	 * @throws TemplateDoesNotExistException
 	 * @throws JsonException
 	 */
-	public function edit(int $id): ResponseInterface {
-		try {
-			$arena = Arena::get($id);
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
-			return $this->view('pages/admin/arenas/not-found')
-			            ->withStatus(404);
-		}
-
+	public function edit(Arena $arena): ResponseInterface {
 		$this->params['apiKeys'] = DB::select('api_keys', '[id_key], [key], [name]')->where(
 			'[id_arena] = %i AND [valid] = 1',
 			$arena->id
@@ -56,12 +61,7 @@ class Arenas extends Controller
 		return $this->view('pages/admin/arenas/arena');
 	}
 
-	public function process(int $id, Request $request): ResponseInterface {
-		try {
-			$arena = Arena::get($id);
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
-			return $this->respond(['error' => 'Arena not found', 'exception' => $e->getMessage()], 404);
-		}
+	public function process(Arena $arena, Request $request): ResponseInterface {
 		return $this->respond(['status' => 'ok']);
 	}
 
@@ -69,12 +69,7 @@ class Arenas extends Controller
 		return $this->respond(['status' => 'ok']);
 	}
 
-	public function imageUpload(int $id, Request $request): ResponseInterface {
-		try {
-			$arena = Arena::get($id);
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
-			return $this->respond(['error' => 'Arena not found', 'exception' => $e->getMessage()], 404);
-		}
+	public function imageUpload(Arena $arena, Request $request): ResponseInterface {
 		$this->processImageUpload($arena, $request);
 		if (!empty($request->passErrors)) {
 			return $this->respond(['errors' => $request->passErrors], 500);
@@ -163,12 +158,7 @@ class Arenas extends Controller
 	/**
 	 * @throws Exception
 	 */
-	public function generateApiKey(int $id, Request $request): ResponseInterface {
-		try {
-			$arena = Arena::get($id);
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
-			return $this->respond(['error' => 'Arena not found', 'exception' => $e->getMessage()], 404);
-		}
+	public function generateApiKey(Arena $arena, Request $request): ResponseInterface {
 		/** @var string|null $name */
 		$name = $request->getPost('name');
 		$key = $arena->generateApiKey($name);

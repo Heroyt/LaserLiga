@@ -191,11 +191,12 @@ class Player extends BaseModel implements PlayerInterface
 	 * @return string SVG avatar
 	 */
 	public function getAvatar(): string {
-		if (!isset($this->avatar)) {
+		if (empty($this->avatar)) {
 			$avatarService = App::getServiceByType(AvatarService::class);
 			assert($avatarService instanceof AvatarService);
 			$this->avatar = $avatarService->getAvatar($this->getCode(), AvatarType::getRandom());
 			$this->save();
+			$this->clearCache();
 		}
 		return str_replace('mask="url(#viewboxMask)"', '', $this->avatar);
 	}

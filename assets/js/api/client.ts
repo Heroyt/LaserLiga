@@ -112,6 +112,39 @@ export async function fetchPost(path: string, body: string | FormData | object |
     return processResponse(type, response);
 }
 
+
+/**
+ * Call a fetch DELETE method with some pre-processing
+ * @param path
+ * @param body
+ * @throws ResponseError
+ */
+export async function fetchDelete(path: string, body: string | FormData | object | URLSearchParams = '') {
+    const options: RequestInit = {
+        method: 'DELETE',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    };
+
+    if (body instanceof FormData) {
+        options.body = body;
+    } else if (typeof (body) === 'object') {
+        options.body = JSON.stringify(body);
+        // @ts-ignore
+        options.headers['Content-Type'] = 'application/json';
+    } else {
+        options.body = body;
+    }
+
+    const response = await fetch(path, options);
+    if (!response.ok) {
+        throw new ResponseError(response);
+    }
+    const type = response.headers.get('Content-Type');
+    return processResponse(type, response);
+}
+
 /**
  * Send a GET request to a path with optional get parameters.
  *

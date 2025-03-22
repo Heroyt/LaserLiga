@@ -3,17 +3,26 @@ declare(strict_types=1);
 
 namespace App\Controllers\Games;
 
+use App\CQRS\Commands\S3\DownloadFilesZipCommand;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
+use App\Models\Photos\Photo;
 use App\Services\Thumbnails\ThumbnailGenerator;
 use App\Templates\Games\GroupParameters;
+use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
+use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Requests\Response;
+use Lsr\Core\Routing\Exceptions\AccessDeniedException;
+use Lsr\Core\Session;
+use Lsr\CQRS\CommandBus;
+use Lsr\Helpers\Tools\Strings;
 use Lsr\Interfaces\RequestInterface;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 
 /**
  * @property GroupParameters $params
@@ -27,6 +36,7 @@ class GroupController extends Controller
 	public function __construct(
 		private readonly Auth               $auth,
 		private readonly ThumbnailGenerator $thumbnailGenerator,
+		private readonly Session            $session,
 	) {
 		parent::__construct();
 		$this->params = new GroupParameters();
@@ -40,22 +50,10 @@ class GroupController extends Controller
 	public function group(Request $request, string $groupid = '4d4330774c54413d'): ResponseInterface {
 		$this->params->addCss[] = 'pages/gameGroup.css';
 		$this->params->groupCode = $groupid; // Default is '0-0-0'
-		$parsed = $this->parseGroupId($groupid);
-		if ($parsed === null) { // Decode error
-			return $this->view('pages/game/invalidGroup')
-			            ->withStatus(403);
-		}
-		[$groupId, $arenaId, $localId] = $parsed;
 
-		// Find group matching all ids
-		/** @var GameGroup|null $group */
-		$group = GameGroup::query()
-		                  ->where('id_group = %i AND id_arena = %i AND id_local = %i', $groupId, $arenaId, $localId)
-		                  ->first();
-
-		if (!isset($group)) { // Group not found
-			return $this->view('pages/game/invalidGroup')
-			            ->withStatus(404);
+		$group = $this->getGroup($groupid);
+		if ($group instanceof ResponseInterface) {
+			return $group;
 		}
 
 		assert($group->arena->id !== null, 'Invalid group arena');
@@ -85,7 +83,29 @@ class GroupController extends Controller
 
 		$this->params->orderBy = $orderBy;
 		$this->params->desc = $desc;
+		$this->findGroupPhotos($group, $request);
 		return $this->view($request->isAjax() ? 'partials/results/groupGames' : 'pages/game/group');
+	}
+
+	private function getGroup(string $groupId): GameGroup|ResponseInterface {
+		$parsed = $this->parseGroupId($groupId);
+		if ($parsed === null) { // Decode error
+			return $this->view('pages/game/invalidGroup')
+			            ->withStatus(403);
+		}
+		[$groupId, $arenaId, $localId] = $parsed;
+
+		// Find group matching all ids
+		/** @var GameGroup|null $group */
+		$group = GameGroup::query()
+		                  ->where('id_group = %i AND id_arena = %i AND id_local = %i', $groupId, $arenaId, $localId)
+		                  ->first();
+
+		if (!isset($group)) { // Group not found
+			return $this->view('pages/game/invalidGroup')
+			            ->withStatus(404);
+		}
+		return $group;
 	}
 
 	/**
@@ -112,23 +132,91 @@ class GroupController extends Controller
 		return $mapped;
 	}
 
-	public function thumbGroup(string $groupid, Request $request): ResponseInterface {
-		$parsed = $this->parseGroupId($groupid);
-		if ($parsed === null) { // Decode error
-			return $this->view('pages/game/invalidGroup')
-			            ->withStatus(403);
+	private function findGroupPhotos(GameGroup $group, Request $request): void {
+		if (!$this->canShowPhotos($group, $request)) {
+			return;
 		}
-		[$groupId, $arenaId, $localId] = $parsed;
 
-		// Find group matching all ids
-		/** @var GameGroup|null $group */
-		$group = GameGroup::query()
-		                  ->where('id_group = %i AND id_arena = %i AND id_local = %i', $groupId, $arenaId, $localId)
-		                  ->first();
+		$this->params->photos = Photo::findForGameCodes($group->getGamesCodes());
+		$this->params->canDownloadPhotos = $this->canDownloadPhotos($group, $request);
+	}
 
-		if (!isset($group)) { // Group not found
-			return $this->view('pages/game/invalidGroup')
-			            ->withStatus(404);
+	/**
+	 * Check if the current user has the right to view photos of the game
+	 */
+	private function canShowPhotos(GameGroup $group, Request $request): bool {
+		$game = first($group->getGames());
+		if ($game === null) {
+			return false;
+		}
+		if ($game->photosPublic) {
+			return true;
+		}
+
+		return $this->canDownloadPhotos($group, $request);
+	}
+
+	private function canDownloadPhotos(GameGroup $group, Request $request): bool {
+		$game = first($group->getGames());
+		if ($game === null) {
+			return false;
+		}
+		// Check logged-in user
+		$user = $this->auth->getLoggedIn();
+		if ($user !== null) {
+			// Admin and arena users
+			if (
+				$user->hasRight('view-photos-all')
+				|| (
+					($user->hasRight('manage-photos') || $user->hasRight('view-photos'))
+					&& $user->managesArena($game->arena)
+				)
+			) {
+				return true;
+			}
+
+			// Check if user is in the game
+			foreach ($group->getPlayers() as $player) {
+				if ($player->player->user?->id === $user->id) {
+					return true;
+				}
+			}
+		}
+
+		// Check secret
+		if ($game->photosSecret !== null) {
+			/** @var string|string[] $sessionSecrets */
+			$sessionSecrets = $this->session->get('photos', []);
+
+			// Check GET parameter
+			$secret = $request->getGet('photos');
+			if ($secret !== null && $secret === $game->photosSecret) {
+				// Update session
+				if (is_string($sessionSecrets)) {
+					$sessionSecrets = [$sessionSecrets];
+				}
+				$sessionSecrets[] = $secret;
+				$this->session->set('photos', $sessionSecrets);
+
+				return true;
+			}
+
+			// Check session
+			if (is_string($sessionSecrets) && $sessionSecrets === $game->photosSecret) {
+				return true;
+			}
+			if (is_array($sessionSecrets) && in_array($game->photosSecret, $sessionSecrets, true)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function thumbGroup(string $groupid, Request $request): ResponseInterface {
+		$group = $this->getGroup($groupid);
+		if ($group instanceof ResponseInterface) {
+			return $group;
 		}
 
 		$this->params->group = $group;
@@ -166,6 +254,90 @@ class GroupController extends Controller
 		}
 
 		return $this->view('pages/game/groupThumb');
+	}
+
+	public function downloadPhotos(Request $request, string $groupid): ResponseInterface {
+		$group = $this->getGroup($groupid);
+		if ($group instanceof ResponseInterface) {
+			return $group;
+		}
+
+		if (!$this->canDownloadPhotos($group, $request)) {
+			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této skupiny.'));
+		}
+		$commandBus = App::getServiceByType(CommandBus::class);
+		assert($commandBus instanceof CommandBus);
+		$zip = UPLOAD_DIR . 'photos/';
+		if (!is_dir($zip) && !mkdir($zip, 0777, true)) {
+			throw new RuntimeException('Cannot create directory for photos');
+		}
+		$zip .= Strings::webalize($group->name) . '.zip';
+
+		$photos = Photo::findForGameCodes($group->getGamesCodes());
+		$urls = [];
+		foreach ($photos as $photo) {
+			if ($photo->url !== null) {
+				$urls[] = $photo->url;
+			}
+		}
+
+		if (!$commandBus->dispatch(new DownloadFilesZipCommand($urls, $zip))) {
+			throw new RuntimeException('Cannot download photos');
+		}
+
+		return new Response(
+			new \Nyholm\Psr7\Response(
+				200,
+				[
+					'Content-Type'              => 'application/octet-stream',
+					'Content-Disposition'       => 'attachment; filename="fotky_' . Strings::webalize(
+							$group->name
+						) . '.zip"',
+					'Content-Size'              => filesize($zip),
+					'Content-Transfer-Encoding' => 'binary',
+					'Content-Description'       => 'File Transfer',
+				],
+				fopen($zip, 'rb'),
+			)
+		);
+	}
+
+	public function makePublic(Request $request, string $groupid): ResponseInterface {
+		$group = $this->getGroup($groupid);
+		if ($group instanceof ResponseInterface) {
+			return $group;
+		}
+
+		if (!$this->canDownloadPhotos($group, $request)) {
+			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
+		}
+
+		foreach ($group->getGames() as $game) {
+			$game->photosPublic = true;
+			$game->save();
+			$game->clearCache();
+		}
+		$group->clearCache();
+		return $this->respond(new SuccessResponse());
+	}
+
+	public function makeHidden(Request $request, string $groupid): ResponseInterface {
+		$group = $this->getGroup($groupid);
+		if ($group instanceof ResponseInterface) {
+			return $group;
+		}
+
+		if (!$this->canDownloadPhotos($group, $request)) {
+			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
+		}
+
+		foreach ($group->getGames() as $game) {
+			$game->photosPublic = false;
+			$game->save();
+			$game->clearCache();
+		}
+		$group->clearCache();
+		return $this->respond(new SuccessResponse());
 	}
 
 }

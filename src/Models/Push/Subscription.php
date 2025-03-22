@@ -23,6 +23,7 @@ class Subscription extends BaseModel
 
 	public bool $settingGame = true;
 	public bool $settingRank = true;
+	public bool $settingPhotos = true;
 
 	public DateTimeInterface $createdAt;
 

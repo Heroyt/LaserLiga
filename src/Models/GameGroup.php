@@ -413,7 +413,6 @@ class GameGroup extends BaseModel implements GameGroupInterface
 						static fn(GroupPlayer $playerA, GroupPlayer $playerB) =>
 							$playerB->getSkill() - $playerA->getSkill()
 					);
-
 					return $players;
 				},
 				[

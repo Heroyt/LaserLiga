@@ -2,6 +2,7 @@
 
 namespace App\Tools;
 
+use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use Lsr\Helpers\Tools\Strings;
 
@@ -13,14 +14,25 @@ class Color
 	 *
 	 * @return string
 	 */
-	public static function getGamesColor(array $games) : string {
+	public static function getGamesColor(array $games = []) : string {
 		/** @var array<string,array<int, string>> $styles */
 		$styles = [];
-		foreach ($games as $game) {
-			if (isset($styles[$game::SYSTEM])) {
-				continue;
+		if (empty($games)) {
+			foreach (GameFactory::getSupportedSystems() as $system) {
+				$styles[$system] = match ($system) {
+					'evo5' => \App\GameModels\Game\Evo5\Game::getTeamColors(),
+					'evo6' => \App\GameModels\Game\Evo6\Game::getTeamColors(),
+					default => [],
+				};
 			}
-			$styles[$game::SYSTEM] = $game::getTeamColors();
+		}
+		else {
+			foreach ($games as $game) {
+				if (isset($styles[$game::SYSTEM])) {
+					continue;
+				}
+				$styles[$game::SYSTEM] = $game::getTeamColors();
+			}
 		}
 		$classes = '';
 		$return = '<style>:root{';

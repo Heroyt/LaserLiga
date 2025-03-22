@@ -373,7 +373,7 @@ tables:
 				refColumn: id_user
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
-	notification_subscriptions:
+	App\Models\Push\Subscription:
 		order: 2
 		definition: '''
 		(
@@ -386,11 +386,15 @@ tables:
           `setting_game` tinyint(1) NOT NULL DEFAULT 1,
           `setting_rank` tinyint(1) NOT NULL DEFAULT 1,
           `setting_achievement` tinyint(1) NOT NULL DEFAULT 1,
+          `setting_photos` tinyint(1) NOT NULL DEFAULT 1,
           PRIMARY KEY (`id_subscription`),
           KEY `id_user` (`id_user`),
           CONSTRAINT `notification_subscriptions_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 		'''
+		modifications:
+			0.1.0:
+				- 'ADD `setting_photos` tinyint(1) NOT NULL DEFAULT 1'
 		foreignKeys:
 			-
 				column: id_user

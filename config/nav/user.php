@@ -29,4 +29,12 @@ if (!empty($user->player?->getTournaments() ?? [])) {
 	];
 }
 
+if (($user->hasRight('view-arena') || $user->hasRight('manage-arena') || $user->hasRight('manage-arenas'))) {
+	$nav[] = [
+		'name' => lang('Správa arény'),
+		'route' => 'admin-arenas',
+		'icon' => $fontawesome->solid('house-lock'),
+	];
+}
+
 return $nav;

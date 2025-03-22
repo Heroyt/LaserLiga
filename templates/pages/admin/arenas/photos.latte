@@ -1,0 +1,210 @@
+{layout '../../../@layout.latte'}
+{templateType App\Templates\Admin\ArenaPhotosParameters}
+
+{define addHead}
+    {\App\Tools\Color::getGamesColor()|noescape}
+    <script>
+        const arenaId = {$arena->id};
+    </script>
+{/define}
+
+{block content}
+    <div>
+        <a href="{link ['admin', 'arenas']}" class="btn btn-warning mb-4">
+            {faSolid 'angle-left'}
+            {_'Zpět'}
+        </a>
+    </div>
+    <h2>{_'Fotky arény'} {$arena->name} - {$date|date:'j. n. Y'}</h2>
+
+    <label for="selected-date">{_'Datum'}:</label>
+    <input id="selected-date" type="text" class="form-control date-picker" value="{$date|date:'d.m.Y'}">
+
+    <div class="form-check mt-2">
+        <input type="checkbox" class="form-check-input" value="1" id="filter-photos" n:attr="checked: $filterPhotos">
+        <label for="filter-photos" class="form-check-label">{_'Filtrovat fotky podle data'}</label>
+        <div class="form-text">{_'Jinak se zobrazí všechny nepřiřazené fotky.'}</div>
+    </div>
+
+    <form class="assign-photos mt-4 row" method="post" action="{link ['admin', 'arenas', $arena->id, 'photos', 'download']}" target="_blank">
+        <div class="unassigned-photos col-lg-6 col-12 col-md-4">
+            <h3>{_'Nepřiřazené fotky'} ({$photos|length})</h3>
+            <p class="my-3">
+                <button disabled type="button" class="btn btn-danger" id="delete-bulk" data-confirm="{_'Opravdu chcete smazat %d fotek?'}">
+                    {faSolid 'trash'}
+                    {_'Smazat vybrané fotky'}
+                </button>
+                <button class="btn btn-success" id="select-all" type="button">
+                    {faSolid 'check-square'}
+                    {_'Vybrat vše'}
+                </button>
+                <button class="btn btn-primary" type="submit">
+                    {faSolid 'download'}
+                    {_'Stáhnout vybrané fotky'}
+                </button>
+            </p>
+            <div class="photos-wrapper d-flex flex-wrap justify-content-between">
+                {foreach $photos as $photo}
+                    {continueIf $photo->url === null}
+                    <figure class="unassigned-photo figure m-2" data-id="{$photo->id}">
+                        <input type="checkbox" name="ids[]" class="photo-select" value="{$photo->id}" id="photo-select-{$photo->id}">
+                        <label for="photo-select-{$photo->id}" class="border rounded p-2">
+                            <span class="mb-2 text-end d-block">
+                                <button class="delete btn btn-danger btn-sm" data-confirm="{_'Opravdu chcete fotku smazat?'}" data-toggle="tooltip" title="{_'Smazat'}">
+                                    {faSolid 'trash'}
+                                </button>
+                            </span>
+                            <picture class="game-photo">
+                                {var App\Models\Photos\PhotoVariation|null $thumbWebp = $photo->findVariation(150,'webp')}
+                                <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->url}" type="image/webp">
+                                {var App\Models\Photos\PhotoVariation|null $thumb = $photo->findVariation(150,$photo->type)}
+                                <source n:if="$thumb?->url !== null" srcset="{$thumb->url}" type="{$photo->mime}">
+                                {var App\Models\Photos\PhotoVariation|null $webp = $photo->findWebpOriginal()}
+                                <source n:if="$webp?->url !== null" srcset="{$webp->url}" type="image/webp">
+                                <img src="{$photo->url}" data-webp="{$webp?->url}"
+                                     alt="{_'Fotka ze hry %s', domain: 'results', format: [$photo->exifTime?->format('d.m.Y H:i') ?? '']}"
+                                     loading="lazy" class="figure-img img-fluid rounded"/>
+                            </picture>
+                            <figcaption class="text-center">{$photo->exifTime|date:'j. n. Y H:i'}</figcaption>
+                        </label>
+                    </figure>
+                {/foreach}
+            </div>
+        </div>
+        <div class="games col-lg-6 col-12 col-md-8">
+            <h3>{_'Odehrané skupiny'} ({$gameGroups|length})</h3>
+            <div class="card my-3 game-group" n:foreach="$gameGroups as $key => $group">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        {ifset $group->gameGroup}
+                            {$group->gameGroup->name}
+                        {else}
+                            {_'Hra'} {$group->dateTime|date('H:i')}
+                        {/ifset}
+                    </h4>
+                    <div class="group-games d-flex flex-column mt-2">
+                        <div class="group-game rounded my-1 border px-3 py-2" n:foreach="$group->games as $game">
+                            <h5>{$game->mode->name} - {$game->start|date:'H:i'}</h5>
+                            <div class="players">
+                                <span n:foreach="$game->playersSorted as $player"
+                                        n:tag="isset($player->user) ? 'a' : 'span'"
+                                        {ifset $player->user}
+                                            href="{link ['user', $player->user->getCode()]}"
+                                        {/ifset}
+                                        data-toggle="tooltip"
+                                        title="{sprintf(lang('%s score'), number_format($player->score, 0, ',', '&nbsp;'))|noescape}"
+                                        class="badge bg-{$player->team !== null ? $player->team->getTeamBgClass(true) : 'background-2'}">
+                                    {$player->position}.&nbsp;{$player->name}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div n:class="text-center, show-photos, count($group->photos) === 0 ? 'd-none'">
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#group-photos-{$key}">
+                            {faSolid 'angle-down'}
+                            {_'Zobrazi/Skrýt fotky'}
+                        </button>
+                    </div>
+                    <div class="collapse" id="group-photos-{$key}">
+                        <div class="group-photos mt-2 d-flex flex-wrap justify-content-around">
+                            {foreach $group->photos as $photo}
+                                {continueIf $photo->url === null}
+                                <picture class="game-photo">
+                                    {var App\Models\Photos\PhotoVariation|null $thumbWebp = $photo->findVariation(150,'webp')}
+                                    <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->url}" type="image/webp">
+                                    {var App\Models\Photos\PhotoVariation|null $thumb = $photo->findVariation(150,$photo->type)}
+                                    <source n:if="$thumb?->url !== null" srcset="{$thumb->url}" type="{$photo->mime}">
+                                    {var App\Models\Photos\PhotoVariation|null $webp = $photo->findWebpOriginal()}
+                                    <source n:if="$webp?->url !== null" srcset="{$webp->url}" type="image/webp">
+                                    <img src="{$photo->url}" data-webp="{$webp?->url}"
+                                         alt="{_'Fotka ze hry %s', domain: 'results', format: [$photo->exifTime?->format('d.m.Y H:i') ?? '']}"
+                                         loading="lazy" class="img-fluid rounded"/>
+                                </picture>
+                            {/foreach}
+                        </div>
+                    </div>
+                    <div class="group-actions text-center mt-3">
+                        <a n:if="count($group->photos) > 0" href="{$group->link}" class="btn btn-info m-1">
+                            {faSolid 'eye'}
+                            {_'Výsledky'}
+                        </a>
+                        <button disabled type="button" class="btn btn-primary assign-photos m-1"
+                                data-code="{$group->games[0]->code}" data-codes="{$group->codes|json}">
+                            {faSolid 'plus'}
+                            {_'Přiřadit fotky'}
+                        </button>
+                        <button n:attr="disabled: count($group->photos) === 0"
+                                type="button"
+                                class="btn btn-secondary send-email m-1"
+                                data-link="{$group->link}">
+                            {faSolid 'envelope'}
+                            {_'Odeslat na e-mail'}
+                        </button>
+                        <button n:attr="disabled: count($group->photos) === 0"
+                                type="button"
+                                class="btn btn-danger unassign-photos m-1">
+                            {faSolid 'ban'}
+                            {_'Zrušit přiřazení fotek'}
+                        </button>
+                    </div>
+                    <div class="mail-log mt-3" n:if="count($group->mailLog) > 0">
+                       <h5>{_'Odeslané e-maily'}</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item" n:foreach="$group->mailLog as $log">
+                                {$log->datetime|date: 'j. n. Y H:i'} - {$log->email}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <dialog id="photo-dialog">
+        <div class="dialog-content">
+            <picture>
+                <source class="webp-source" srcset="" type="image/webp">
+                <img src="" alt="">
+            </picture>
+        </div>
+    </dialog>
+
+    <dialog id="send-mail-dialog">
+        <div class="dialog-header d-flex justify-content-between align-items-center">
+            <h3>
+                {faSolid 'envelope'}
+                {_'Odeslat fotky na e-mail'}
+            </h3>
+            <button class="close btn btn-link ms-5" type="button">
+                {faSolid 'xmark'}
+            </button>
+        </div>
+        <form class="dialog-content needs-validation" novalidate id="mails-form" data-failed="{_'Nepodařilo se odeslat e-maily.'}" data-success="{_'E-maily byly úspěšně odeslány.'}">
+            <label for="mails" class="form-label">
+                {_'E-mailové adresy'}:
+            </label>
+            <textarea
+                    name="mails"
+                    id="mails"
+                    class="form-control"
+                    rows="10"
+                    placeholder="mail1@laserliga.cz, mail2@laserliga.cz,..."
+                    data-empty="{_'Musíte zadat alespoň jednu e-mailovou adresu.'}"
+                    data-invalid="{_'Některé e-mailové adresy nejsou platné.'}"
+            ></textarea>
+            <div class="invalid-feedback">
+                {_'Některé e-mailové adresy nejsou platné.'}
+            </div>
+            <div class="form-text">
+                {_'Adresy oddělte čárkou nebo novým řádkem.'}
+            </div>
+
+            <p class="mt-3">
+                <button class="btn btn-success" id="send-mail" type="submit">
+                    {faSolid 'paper-plane'}
+                    {_'Odeslat e-maily'}
+                </button>
+            </p>
+        </form>
+    </dialog>
+{/block}

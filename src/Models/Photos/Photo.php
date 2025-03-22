@@ -21,6 +21,7 @@ class Photo extends BaseModel
 
 	public const string TABLE = 'photos';
 
+	/** @var non-empty-string  */
 	#[Required]
 	public string  $identifier;
 	#[ManyToOne]

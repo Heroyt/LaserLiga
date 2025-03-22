@@ -5,6 +5,7 @@ namespace App\Templates\Games;
 
 use App\Models\Auth\User;
 use App\Models\GameGroup;
+use App\Models\Photos\Photo;
 use App\Templates\PageTemplateParameters;
 use Lsr\Core\Controllers\TemplateParameters;
 
@@ -19,5 +20,8 @@ class GroupParameters extends TemplateParameters
 	public array $modes = [];
 	public string $orderBy = 'start';
 	public bool $desc = true;
+	/** @var Photo[] */
+	public array $photos = [];
+	public bool $canDownloadPhotos = false;
 
 }

@@ -1,0 +1,10 @@
+dialog {
+	border: none;
+	border-radius: .5rem;
+	background-color: var(--background-1);
+
+	&::backdrop {
+		background-color: rgb(0 0 0 / 50%);
+		cursor: pointer;
+	}
+}

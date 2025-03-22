@@ -1,0 +1,12 @@
+{layout '../@layout.txt.latte'}
+
+{varType App\Models\Arena $arena}
+{varType App\GameModels\Game\Game $game}
+{varType string $url}
+
+{block body}
+    {_'Vaše fotky ze hry %s', context: 'mail', format: [$game->start->format('j. n. Y')]}
+
+    {_'K Vašim výsledkům ze hry byly přiřazeny fotky.', context: 'mail'}
+    {_'Výsledky s fotkami', context: 'mail'}: {$url}
+{/block}

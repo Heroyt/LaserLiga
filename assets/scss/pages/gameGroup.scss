@@ -121,4 +121,28 @@
   @import '../components/stats';
   @import '../components/titles';
 
+	.photos-wrapper {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		grid-gap: .5rem .2rem;
+
+		img {
+			aspect-ratio: 1;
+			object-fit: cover;
+			cursor: pointer;
+		}
+	}
+
+	#photo-dialog {
+		.dialog-content {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		img {
+			max-width: 80vw;
+			max-height: 80vh;
+		}
+	}
 }

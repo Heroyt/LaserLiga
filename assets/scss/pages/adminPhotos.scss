@@ -1,0 +1,42 @@
+.assign-photos {
+	.unassigned-photos {
+		.photos-wrapper {
+			.photo-select {
+				display: none;
+
+				&:checked + label {
+					background-color: var(--bs-green);
+				}
+			}
+
+			label {
+				cursor: pointer;
+			}
+		}
+	}
+
+	img {
+		aspect-ratio: 1;
+		width: 150px;
+		object-fit: cover;
+		cursor: pointer;
+	}
+}
+
+#photo-dialog {
+	.dialog-content {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	img {
+		max-width: 80vw;
+		max-height: 80vh;
+	}
+
+	&::backdrop {
+		background-color: rgb(0 0 0 / 50%);
+		cursor: pointer;
+	}
+}

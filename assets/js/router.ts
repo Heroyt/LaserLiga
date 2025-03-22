@@ -142,5 +142,13 @@ export default function route(pageInfo: PageInfo): void {
                     module.default();
                 });
             break;
+        case 'admin-arenas-photos':
+            import(
+                './pages/admin/arenaPhotos'
+                )
+                .then(module => {
+                    module.default();
+                });
+            break;
     }
 }
