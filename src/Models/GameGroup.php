@@ -139,7 +139,7 @@ class GameGroup extends BaseModel implements GameGroupInterface
 								$team = $teams[$key];
 							}
 							else {
-								$teams[$key] = $team = new Team($key, $gameTeam);
+								$teams[$key] = $team = Team::get($this->id, $key, $gameTeam);
 							}
 
 							$team->addGame($game, $gameTeam);
@@ -163,17 +163,14 @@ class GameGroup extends BaseModel implements GameGroupInterface
 						// Get team hits
 						foreach ($game->teams as $gameTeam) {
 							$key = $this->getTeamKey($gameTeam);
-							if (!isset($teams[$key])) {
-								continue;
-							}
-							$team = $teams[$key];
+							$team = Team::get($this->id, $key, $gameTeam);
 							/** @var Gameteam $gameTeam2 */
 							foreach ($game->teams as $gameTeam2) {
 								$key2 = $this->getTeamKey($gameTeam2);
-								if (!isset($teams[$key2]) || $key === $key2) {
+								if ($key === $key2) {
 									continue;
 								}
-								$team2 = $teams[$key2];
+								$team2 = Team::get($this->id, $key2, $gameTeam2);
 
 								$team->gamesTeams[$key2] ??= 0;
 								$team->gamesTeams[$key2]++;
@@ -357,8 +354,10 @@ class GameGroup extends BaseModel implements GameGroupInterface
 						foreach ($game->players as $player) {
 							$asciiName = strtolower(Strings::toAscii($player->name));
 							if (!isset($players[$asciiName])) {
-								$players[$asciiName] = new GroupPlayer(
-									$asciiName, clone $player
+								$players[$asciiName] = GroupPlayer::get(
+									$this->id,
+									$asciiName,
+									clone $player
 								);
 								$players[$asciiName]->name = $player->name;
 							}

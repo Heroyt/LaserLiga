@@ -6,7 +6,10 @@ use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player as GamePlayer;
 use App\GameModels\Game\Team;
+use InvalidArgumentException;
 use Lsr\Lg\Results\Interface\Models\GroupPlayerInterface;
+use ReflectionClass;
+use ReflectionException;
 
 /**
  * Wrapper class to aggregate values from multiple player instances
@@ -20,21 +23,145 @@ class Player implements GroupPlayerInterface
 {
 	use PlayerAggregate;
 
+	/** @var array<string,Player> */
+	private static array $cache = [];
 	public string $name = '';
-
 	/** @var PlayerModeAggregate[] $gameModes */
 	public array $gameModes = [];
-
 	/** @var PlayerHit[] */
 	public array $hitPlayers = [];
-
 	/** @var PlayerHit[] */
 	public array $deathPlayers = [];
 
 	public function __construct(
+		public int                 $groupId,
 		public string              $asciiName,
 		public readonly GamePlayer $player,
 	) {
+	}
+
+	public static function get(
+		int $groupId,
+		string $asciiName,
+		GamePlayer $player
+	) : Player {
+		$key = $groupId . '_' . $asciiName;
+		self::$cache[$key] ??= new self($groupId, $asciiName, $player);
+		return self::$cache[$key];
+	}
+
+	/**
+	 * @return array{
+	 *     groupId: int,
+	 *      asciiName: string,
+	 *      player: array{id: int, system: string},
+	 *      name: string,
+	 *      gameModes: PlayerModeAggregate[],
+	 *      hitPlayers: PlayerHit[],
+	 *      deathPlayers: PlayerHit[],
+	 *      gameCodes: string[],
+	 *      playCount: int,
+	 *      hits: int[],
+	 *      deaths: int[],
+	 *      hitsOwn: int[],
+	 *      deathsOwn: int[],
+	 *      shots: int[],
+	 *      misses: int[],
+	 *      skills: int[],
+	 *      vests: array<string|int, int>,
+	 *      accuracies: int[],
+	 *      scores: int[]
+	 *  }
+	 */
+	public function __serialize(): array {
+		return [
+			'groupId'   => $this->groupId,
+			'asciiName' => $this->asciiName,
+			'player'    => [
+				'id'     => $this->player->id,
+				'system' => $this->player::SYSTEM,
+			],
+
+			'name'         => $this->name,
+			'gameModes'    => $this->gameModes,
+			'hitPlayers'   => $this->hitPlayers,
+			'deathPlayers' => $this->deathPlayers,
+
+			'gameCodes'  => $this->gameCodes,
+			'playCount'  => $this->playCount,
+			'hits'       => $this->hits,
+			'deaths'     => $this->deaths,
+			'hitsOwn'    => $this->hitsOwn,
+			'deathsOwn'  => $this->deathsOwn,
+			'shots'      => $this->shots,
+			'misses'     => $this->misses,
+			'skills'     => $this->skills,
+			'vests'      => $this->vests,
+			'accuracies' => $this->accuracies,
+			'scores'     => $this->scores,
+		];
+	}
+
+	/**
+	 * @param array{
+	 *     groupId: int,
+	 *     asciiName: string,
+	 *     player: array{id: int, system: string},
+	 *     name: string,
+	 *     gameModes: PlayerModeAggregate[],
+	 *     hitPlayers: PlayerHit[],
+	 *     deathPlayers: PlayerHit[],
+	 *     gameCodes: string[],
+	 *     playCount: int,
+	 *     hits: int[],
+	 *     deaths: int[],
+	 *     hitsOwn: int[],
+	 *     deathsOwn: int[],
+	 *     shots: int[],
+	 *     misses: int[],
+	 *     skills: int[],
+	 *     vests: array<string|int, int>,
+	 *     accuracies: int[],
+	 *     scores: int[]
+	 * } $data
+	 *
+	 * @throws ReflectionException
+	 */
+	public function __unserialize(array $data): void {
+		$this->groupId = $data['groupId'];
+		$this->asciiName = $data['asciiName'];
+
+		// Lazy loaded player class
+		/** @var class-string<GamePlayer> $playerClass */
+		$playerClass = match ($data['player']['system']) {
+			'evo6'       => \App\GameModels\Game\Evo6\Player::class,
+			'evo5'       => \App\GameModels\Game\Evo5\Player::class,
+			'laserforce' => \App\GameModels\Game\LaserForce\Player::class,
+			default      => throw new InvalidArgumentException('Invalid system'),
+		};
+		$reflector = new ReflectionClass($playerClass);
+		/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+		$this->player = $reflector->newLazyProxy(static fn() => $playerClass::get($data['player']['id']));
+
+		$this->name = $data['name'];
+		$this->gameModes = $data['gameModes'];
+		$this->hitPlayers = $data['hitPlayers'];
+		$this->deathPlayers = $data['deathPlayers'];
+
+		$this->gameCodes = $data['gameCodes'];
+		$this->playCount = $data['playCount'];
+		$this->hits = $data['hits'];
+		$this->deaths = $data['deaths'];
+		$this->hitsOwn = $data['hitsOwn'];
+		$this->deathsOwn = $data['deathsOwn'];
+		$this->shots = $data['shots'];
+		$this->misses = $data['misses'];
+		$this->skills = $data['skills'];
+		$this->vests = $data['vests'];
+		$this->accuracies = $data['accuracies'];
+		$this->scores = $data['scores'];
+
+		self::$cache[$this->groupId . '_' . $this->asciiName] = $this;
 	}
 
 	/**

@@ -4,8 +4,10 @@ namespace App\Models\Group;
 
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team as GameTeam;
+use InvalidArgumentException;
 use Lsr\Lg\Results\Interface\Models\GroupPlayerInterface;
 use Lsr\Lg\Results\Interface\Models\GroupTeamInterface;
+use ReflectionClass;
 
 class Team implements GroupTeamInterface
 {
@@ -36,6 +38,9 @@ class Team implements GroupTeamInterface
 		'pink',
 		'ocean',
 	];
+
+	/** @var array<string, Team> */
+	private static array $cache = [];
 
 
 	/** @var GroupPlayerInterface[] */
@@ -83,9 +88,9 @@ class Team implements GroupTeamInterface
 	/** @var array<string,int> */
 	public array $lossesTeams = [];
 	/** @var array<string,int> */
-	public array  $drawsTeams = [];
-	public int    $wins       = 0;
-	public int    $losses     = 0;
+	public array $drawsTeams = [];
+	public int   $wins       = 0;
+	public int   $losses     = 0;
 	public int   $draws      = 0;
 	public float $skill {
 		get {
@@ -99,7 +104,7 @@ class Team implements GroupTeamInterface
 			return $this->scoreSum;
 		}
 	}
-	public float  $scoreAvg {
+	public float $scoreAvg {
 		get {
 			$this->scoreAvg ??= $this->scoreSum / (count($this->scores) > 0 ? count($this->scores) : 1);
 			return $this->scoreAvg;
@@ -111,7 +116,7 @@ class Team implements GroupTeamInterface
 			return $this->hitsSum;
 		}
 	}
-	public float  $hitsAvg {
+	public float $hitsAvg {
 		get {
 			$this->hitsAvg ??= $this->hitsSum / (count($this->hits) > 0 ? count($this->hits) : 1);
 			return $this->hitsAvg;
@@ -123,7 +128,7 @@ class Team implements GroupTeamInterface
 			return $this->hitsOwnSum;
 		}
 	}
-	public float  $hitsOwnAvg {
+	public float $hitsOwnAvg {
 		get {
 			$this->hitsOwnAvg ??= $this->hitsOwnSum / (count($this->hitsOwn) > 0 ? count($this->hitsOwn) : 1);
 			return $this->hitsOwnAvg;
@@ -135,7 +140,7 @@ class Team implements GroupTeamInterface
 			return $this->deathsSum;
 		}
 	}
-	public float  $deathsAvg {
+	public float $deathsAvg {
 		get {
 			$this->deathsAvg ??= $this->deathsSum / (count($this->deaths) > 0 ? count($this->deaths) : 1);
 			return $this->deathsAvg;
@@ -147,7 +152,7 @@ class Team implements GroupTeamInterface
 			return $this->deathsOwnSum;
 		}
 	}
-	public float  $deathsOwnAvg {
+	public float $deathsOwnAvg {
 		get {
 			$this->deathsOwnAvg ??= $this->deathsOwnSum / (count($this->deathsOwn) > 0 ? count(
 					$this->deathsOwn
@@ -161,7 +166,7 @@ class Team implements GroupTeamInterface
 			return $this->shotsSum;
 		}
 	}
-	public float  $shotsAvg {
+	public float $shotsAvg {
 		get {
 			$this->shotsAvg ??= $this->shotsSum / (count($this->shots) > 0 ? count($this->shots) : 1);
 			return $this->shotsAvg;
@@ -173,7 +178,7 @@ class Team implements GroupTeamInterface
 			return $this->missSum;
 		}
 	}
-	public float  $missAvg {
+	public float $missAvg {
 		get {
 			$this->missAvg ??= $this->missSum / (count($this->misses) > 0 ? count($this->misses) : 1);
 			return $this->missAvg;
@@ -185,7 +190,7 @@ class Team implements GroupTeamInterface
 			return $this->kd;
 		}
 	}
-	public float  $accuracyAvg {
+	public float $accuracyAvg {
 		get {
 			$this->accuracyAvg ??= array_sum($this->accuracies) / (count($this->accuracies) > 0 ? count(
 					$this->accuracies
@@ -193,7 +198,7 @@ class Team implements GroupTeamInterface
 			return $this->accuracyAvg;
 		}
 	}
-	public int $points {
+	public int   $points {
 		get => ($this->wins * 3) + $this->draws;
 	}
 
@@ -203,9 +208,182 @@ class Team implements GroupTeamInterface
 	public array $colors = [];
 
 	public function __construct(
-		public string   $key,
+		public int               $groupId,
+		public string            $key,
 		public readonly GameTeam $team,
 	) {
+	}
+
+	public function __serialize(): array {
+		return [
+			'groupId'     => $this->groupId,
+			'key'         => $this->key,
+			'team'        => [
+				'id'     => $this->team->id,
+				'system' => $this->team::SYSTEM,
+			],
+			'players'     => array_map(
+				static fn(Player $player) => [
+					'group' => $player->groupId,
+					'name' => $player->asciiName,
+					'player' => [
+						'id' => $player->player->id,
+						'system' => $player->player::SYSTEM,
+					]
+				],
+				$this->players
+			),
+			'teams'       => array_map(
+				static fn(GameTeam $team) => [
+					'id' => $team->id,
+					'system' => $team::SYSTEM
+				],
+				$this->teams
+			),
+			'playCount'   => $this->playCount,
+			'name'        => $this->name,
+			'names'       => $this->names,
+			'gameCodes'   => $this->gameCodes,
+			'scores'      => $this->scores,
+			'positions'   => $this->positions,
+			'hits'        => $this->hits,
+			'deaths'      => $this->deaths,
+			'hitsOwn'     => $this->hitsOwn,
+			'deathsOwn'   => $this->deathsOwn,
+			'shots'       => $this->shots,
+			'misses'      => $this->misses,
+			'accuracies'  => $this->accuracies,
+			'skills'      => $this->skills,
+			'gamesTeams'  => $this->gamesTeams,
+			'hitTeams'    => $this->hitTeams,
+			'deathTeams'  => $this->deathTeams,
+			'winsTeams'   => $this->winsTeams,
+			'lossesTeams' => $this->lossesTeams,
+			'drawsTeams'  => $this->drawsTeams,
+			'wins'        => $this->wins,
+			'losses'      => $this->losses,
+			'draws'       => $this->draws,
+			'colors'      => $this->colors,
+		];
+	}
+
+	/**
+	 * @param array{
+	 *     groupId: int,
+	 *     key: string,
+	 *     team: array{id: int, system: string},
+	 *     players: array{group:int, name:string, player:array{id:int,system:string}}[],
+	 *     teams: array{id: int, system: string}[],
+	 *     playCount: int,
+	 *     name: string,
+	 *     names: string[],
+	 *     gameCodes: string[],
+	 *     scores: int[],
+	 *     positions: int[],
+	 *     hits: int[],
+	 *     deaths: int[],
+	 *     hitsOwn: int[],
+	 *     deathsOwn: int[],
+	 *     shots: int[],
+	 *     misses: int[],
+	 *     accuracies: float[],
+	 *     skills: float[],
+	 *     gamesTeams: int[],
+	 *     hitTeams: int[],
+	 *     deathTeams: int[],
+	 *     winsTeams: int[],
+	 *     lossesTeams: int[],
+	 *     drawsTeams: int[],
+	 *     wins: int,
+	 *     losses: int,
+	 *     draws: int,
+	 *     colors: int[]
+	 * } $data
+	 *
+	 * @throws \ReflectionException
+	 */
+	public function __unserialize(array $data): void {
+		$this->groupId = $data['groupId'];
+		$this->key = $data['key'];
+
+		// Lazy loaded team class
+		/** @var class-string<GameTeam> $teamClass */
+		$teamClass = match ($data['team']['system']) {
+			'evo6'       => \App\GameModels\Game\Evo6\Team::class,
+			'evo5'       => \App\GameModels\Game\Evo5\Team::class,
+			'laserforce' => \App\GameModels\Game\LaserForce\Team::class,
+			default      => throw new InvalidArgumentException('Invalid system'),
+		};
+		$reflector = new ReflectionClass($teamClass);
+		/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+		$this->team = $reflector->newLazyProxy(static fn() => $teamClass::get($data['team']['id']));
+		$this->players = [];
+		$playerReflector = new ReflectionClass(Player::class);
+		foreach ($data['players'] as $player) {
+			/** @var class-string<\App\GameModels\Game\Player> $playerClass */
+			$playerClass = match ($player['player']['system']) {
+				'evo6'       => \App\GameModels\Game\Evo6\Player::class,
+				'evo5'       => \App\GameModels\Game\Evo5\Player::class,
+				'laserforce' => \App\GameModels\Game\LaserForce\Player::class,
+				default      => throw new InvalidArgumentException('Invalid system'),
+			};
+			$reflector = new ReflectionClass($playerClass);
+			$this->players[$player['name']] = $playerReflector->newLazyProxy(
+				static fn() => Player::get(
+					$player['group'],
+					$player['name'],
+					$reflector->newLazyProxy(static fn() => $playerClass::get($player['player']['id']))
+				)
+			);
+		}
+		$this->teams = [];
+		foreach ($data['teams'] as $team) {
+			/** @var class-string<GameTeam> $teamClass */
+			$teamClass = match ($team['system']) {
+				'evo6'       => \App\GameModels\Game\Evo6\Team::class,
+				'evo5'       => \App\GameModels\Game\Evo5\Team::class,
+				'laserforce' => \App\GameModels\Game\LaserForce\Team::class,
+				default      => throw new InvalidArgumentException('Invalid system'),
+			};
+			$reflector = new ReflectionClass($teamClass);
+			$this->teams[] = $reflector->newLazyProxy(static fn() => $teamClass::get($team['id']));
+		}
+		$this->playCount = $data['playCount'];
+		$this->name = $data['name'];
+		$this->names = $data['names'];
+		$this->gameCodes = $data['gameCodes'];
+		$this->scores = $data['scores'];
+		$this->positions = $data['positions'];
+		$this->hits = $data['hits'];
+		$this->deaths = $data['deaths'];
+		$this->hitsOwn = $data['hitsOwn'];
+		$this->deathsOwn = $data['deathsOwn'];
+		$this->shots = $data['shots'];
+		$this->misses = $data['misses'];
+		$this->accuracies = $data['accuracies'];
+		$this->skills = $data['skills'];
+		$this->gamesTeams = $data['gamesTeams'];
+		$this->hitTeams = $data['hitTeams'];
+		$this->deathTeams = $data['deathTeams'];
+		$this->winsTeams = $data['winsTeams'];
+		$this->lossesTeams = $data['lossesTeams'];
+		$this->drawsTeams = $data['drawsTeams'];
+		$this->wins = $data['wins'];
+		$this->losses = $data['losses'];
+		$this->draws = $data['draws'];
+		$this->colors = $data['colors'];
+
+		self::$cache[$this->groupId . '_' . $this->key] = $this;
+	}
+
+	public static function get(
+		int      $groupId,
+		string   $key,
+		GameTeam $team
+	): Team {
+		$cacheKey = $groupId . '_' . $key;
+		self::$cache[$cacheKey] ??= new self($groupId, $key, $team);
+		return self::$cache[$cacheKey];
 	}
 
 	/**
