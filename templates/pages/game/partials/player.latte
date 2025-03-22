@@ -413,8 +413,10 @@
         {svgIcon 'base_2', '3rem'}
         <div class="bonus">
             {if $player instanceof App\GameModels\Game\Evo5\Player}
-            <div n:foreach="$player->bonus->getArray() as $name => $value" class="{$name}" data-toggle="tooltip"
-                                                                           title="{lang $player->bonus::NAMES[$name] ?? ''}">
+            <div n:foreach="$player->bonus->getArray() as $name => $value"
+                    class="{$name}"
+                    data-toggle="tooltip"
+                    title="{lang $player->bonus::NAMES[$name] ?? ''}">
                 {svgIcon $name, '2rem'}
                 {$value}
             </div>

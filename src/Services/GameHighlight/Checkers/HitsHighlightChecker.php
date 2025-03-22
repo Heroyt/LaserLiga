@@ -202,7 +202,7 @@ class HitsHighlightChecker implements GameHighlightChecker, PlayerHighlightCheck
 				);
 			}
 
-			if ($player->favouriteTarget?->team?->color === $player->team?->color) {
+			if ($player->favouriteTarget !== null &&  $player->favouriteTarget->color === $player->color) {
 				$name2 = $player->favouriteTarget->name ?? '';
 				$gender2 = GenderService::rankWord($name2);
 				$name2Verb = match ($gender2) {

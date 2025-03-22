@@ -68,14 +68,13 @@
 					<div class="card-body">
 						{if $team->tournament->isStarted()}
 							<div class="d-flex justify-content-evenly flex-wrap text-center mb-4">
-								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Umístění'}
-										:</strong> {$team->getPosition()}.
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Umístění'}:</strong> {$team->position}.
 								</div>
-								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Výhry'}:</strong> {$team->getWins()}
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Výhry'}:</strong> {$team->wins}
 								</div>
-								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Remízy'}:</strong> {$team->getDraws()}
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Remízy'}:</strong> {$team->draws}
 								</div>
-								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Prohry'}:</strong> {$team->getLosses()}
+								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Prohry'}:</strong> {$team->losses}
 								</div>
 								<div class="col-12 col-sm-6 my-1"><strong>{lang 'Body'}:</strong> {$team->points}</div>
 							</div>
@@ -90,42 +89,42 @@
 									 data-toggle="tooltip" title="{lang 'Průměrná herní úroveň'}">
 									<div class="fs-1">{faSolid 'medal'}</div>
 									<div>
-										{$team->getSkill()|number:2,',','&nbsp;'|noescape}
+										{$team->skill|number:2,',','&nbsp;'|noescape}
 									</div>
 								</div>
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 									 data-toggle="tooltip" title="{lang 'Celkem skóre'}">
 									<div class="fs-1">{faSolid 'star'}</div>
 									<div>
-										{$team->getScore()|number:0,',','&nbsp;'|noescape}
+										{$team->score|number:0,',','&nbsp;'|noescape}
 									</div>
 								</div>
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 									 data-toggle="tooltip" title="{lang 'Celkem zásahů'}">
 									<div class="custom-icon mt-2">{svgIcon 'kill', 'auto', '2.5rem'}</div>
 									<div>
-										{$team->getKills()|number:0,',','&nbsp;'|noescape}
+										{$team->kills|number:0,',','&nbsp;'|noescape}
 									</div>
 								</div>
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 									 data-toggle="tooltip" title="{lang 'Celkem smrtí'}">
 									<div class="custom-icon mt-2">{svgIcon 'skull', 'auto', '2.5rem'}</div>
 									<div>
-										{$team->getDeaths()|number:0,',','&nbsp;'|noescape}
+										{$team->deaths|number:0,',','&nbsp;'|noescape}
 									</div>
 								</div>
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 									 data-toggle="tooltip" title="{lang 'Celkem výstřelů'}">
 									<div class="custom-icon mt-2">{svgIcon 'bullets', 'auto', '2.5rem'}</div>
 									<div>
-										{$team->getShots()|number:0,',','&nbsp;'|noescape}
+										{$team->shots|number:0,',','&nbsp;'|noescape}
 									</div>
 								</div>
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
 									 data-toggle="tooltip" title="{lang 'Průměrná přesnost'}">
 									<div class="custom-icon mt-2">{svgIcon 'target', 'auto', '2.5rem'}</div>
 									<div>
-										{$team->getAccuracy()|number:2,',',''}%
+										{$team->accuracy|number:2,',',''}%
 									</div>
 								</div>
 							</div>
