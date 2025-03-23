@@ -78,7 +78,7 @@ class Login extends Controller
 
 		$token = (string)$request->getPost('_csrf_token', '');
 		if (!$this->tokenHelper->formValid('register-user', $token)) {
-			$this->params->errors[] = lang('Požadavek vypršel, zkuste znovu načíst stránku. '.json_encode($token), context: 'errors');
+			$this->params->errors[] = lang('Požadavek vypršel, zkuste znovu načíst stránku.', context: 'errors');
 			$this->params->arenas = Arena::getAll();
 			return $this->view('pages/login/register');
 		}
