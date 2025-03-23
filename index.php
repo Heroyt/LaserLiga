@@ -23,8 +23,10 @@ use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Exceptions\MethodNotAllowedException;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\ResponseInterface;
+use Tracy\Debugger;
 
 const ROOT = __DIR__ . '/';
 /** Visiting site normally */
@@ -62,12 +64,7 @@ try {
 	} catch (DispatchBreakException $e) {
 		$response = $e->getResponse();
 	} catch (MethodNotAllowedException $e) {
-		$controller = App::getContainer()->getByType(E400::class);
-		/** @var Request $request */
-		$request = $app->getRequest();
-		$controller->init($request);
-		$response = $controller->show($request, $e)
-		                       ->withStatus(405);
+		$response = new \Lsr\Core\Requests\Response(new Response(405, ['Content-Type' => 'text/plain'], $e->getMessage()));
 	}
 } catch (JsonException $e) {
 	$request = new Request(new ServerRequest($_SERVER['REQUEST_METHOD'], $_SERVER['SCRIPT_URI']));
@@ -78,7 +75,7 @@ try {
 Timer::stop('app');
 
 sendResponse($response);
-\Tracy\Debugger::shutdownHandler();
+Debugger::shutdownHandler();
 $app->session->close();
 fastcgi_finish_request();
 
@@ -94,7 +91,7 @@ $dispatcher = $app::getService('cqrs.asyncDispatcher');
 assert($dispatcher instanceof AsyncDispatcher, 'Invalid async dispatcher instance from DI');
 $dispatcher->dispatchAsyncQueue();
 
-function sendResponse(ResponseInterface $response) : void {
+function sendResponse(ResponseInterface $response): void {
 	// Check if something is not already sent
 	if (headers_sent()) {
 		throw new RuntimeException('Headers were already sent. The response could not be emitted!');
