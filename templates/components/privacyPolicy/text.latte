@@ -115,32 +115,49 @@
     </h2>
     <p>
         {_'Přihláška na akci organizovanou skrz web LaserLiga.cz může vyžadovat vyplnění dodatečných údajů o hráčích jako jejich jméno, telefon, rok narození a případně kontaktní údaje na zákonného zástupce.', domain: 'privacy', context: 'tournament_registration'}
-            {_'Povinnost jednotlivých údajů určuje organizátor dané akce (aréna).', domain: 'privacy', context: 'tournament_registration'}
-            {_'Organizátor akce (aréna) má přístup k údajům vyplněných v přihlášce a může je využívat primárně k účelům komunikace s hráči.', domain: 'privacy', context: 'tournament_registration'}
-            {_'Upozorňujeme, že každá aréna působí jako samostatný správce osobních údajů. Organizátoři akcí mohou mít své vlastní zásady zpracování osobních údajů, které nejsou pod kontrolou webu LaserLiga.cz.', domain: 'privacy', context: 'tournament_registration'}
-            {_'Doporučujeme, aby si uživatelé před přihlášením na turnaj přečetli zásady zpracování osobních údajů konkrétní arény.', domain: 'privacy', context: 'tournament_registration'}
+        {_'Povinnost jednotlivých údajů určuje organizátor dané akce (aréna).', domain: 'privacy', context: 'tournament_registration'}
+        {_'Organizátor akce (aréna) má přístup k údajům vyplněných v přihlášce a může je využívat primárně k účelům komunikace s hráči.', domain: 'privacy', context: 'tournament_registration'}
+        {_'Upozorňujeme, že každá aréna působí jako samostatný správce osobních údajů. Organizátoři akcí mohou mít své vlastní zásady zpracování osobních údajů, které nejsou pod kontrolou webu LaserLiga.cz.', domain: 'privacy', context: 'tournament_registration'}
+        {_'Doporučujeme, aby si uživatelé před přihlášením na turnaj přečetli zásady zpracování osobních údajů konkrétní arény.', domain: 'privacy', context: 'tournament_registration'}
     </p>
 </section>
 
 <section class="my-4">
-    <h2>6. {_'Uchovávání osobních údajů', domain: 'privacy', context: 'section_title'}</h2>
+    <h2>6. {_'Fotografie a jejich zpracování', domain: 'privacy', context: 'section_title'}</h2>
+    <p>
+        {_'LaserLiga umožňuje arénám nahrávát k výsledkům z her fotografie hráčů.', domain: 'privacy', context: 'photos_info'}
+        {_'Fotografie pořizují a spravují arény. Fotografie ve výchozím stavu nejsou veřejně přístupné; přístup k nim mají pouze uživatelé se speciálním odkazem (který arény odesílají pomocí LaserLigy na e-mail) nebo registrovaní hráči, kteří se účastnili příslušné hry.', domain: 'privacy', context: 'photos_info'}
+    </p>
+    <p>
+        {_'Fotografie jsou uchovávány v cloudovém úložišti evropského poskytovatele <a href="https://www.scaleway.com/en/privacy-policy/" target="_blank">Scaleway</a>.', domain: 'privacy', context: 'photos_storage'|noescape}
+    </p>
+    <p>
+        {_'Uživatelé s přístupem k fotografiím mohou fotografie stáhnout, požádat o jejich odstranění nebo je zveřejnit. V případě zveřejnění se fotografie zobrazí všem návštěvníkům, kteří si prohlížejí výsledky hry, avšak nemohou je stahovat, žádat o odstranění ani měnit jejich viditelnost.', domain: 'privacy', context: 'photos_rights'}
+    </p>
+    <p>
+        {_'Fotografie, které aréna pořídila, ale nepřiřadila ke hře, budou odstraněny po jednom týdnu; fotografie přiřazené ke hře budou automaticky odstraněny typicky po 2 měsících.', domain: 'privacy', context: 'photos_retention'}
+    </p>
+</section>
+
+<section class="my-4">
+    <h2>7. {_'Uchovávání osobních údajů', domain: 'privacy', context: 'section_title'}</h2>
     <p>{_'Osobní údaje uchováváme po dobu aktivního účtu uživatele nebo do odvolání souhlasu.', domain: 'privacy', context: 'data_retention'}</p>
 </section>
 
 <section class="my-4">
-    <h2>7. {_'Kdo má přístup k osobním údajům', domain: 'privacy', context: 'section_title'}</h2>
+    <h2>8. {_'Kdo má přístup k osobním údajům', domain: 'privacy', context: 'section_title'}</h2>
     <ul>
         <li>{_'<strong>Provozovatel webu</strong>', domain: 'privacy', context: 'access'|noescape}</li>
         <li>
             {_'<strong>Zapojené arény</strong>: Mají přístup pouze k e-mailovým adrésám hráčů, kteří si je vybrali jako domovskou arénu nebo v nich hráli a k údajům vyplněných v přihláškách na akce organizované danou arénou.', domain: 'privacy', context: 'access'|noescape}
-                {_'Arény jsou odpovědné za zpracování těchto údajů a mohou mít vlastní zásady ochrany osobních údajů.', domain: 'privacy', context: 'access'}
+            {_'Arény jsou odpovědné za zpracování těchto údajů a mohou mít vlastní zásady ochrany osobních údajů.', domain: 'privacy', context: 'access'}
         </li>
     </ul>
     <p>{_'<strong>Osobní údaje nejsou poskytovány jiným třetím stranám</strong> ani předávány mimo EU.', domain: 'privacy', context: 'access'|noescape}</p>
 </section>
 
 <section class="my-4">
-    <h2>8. {_'Analytika a cookies', domain: 'privacy', context: 'section_title'}</h2>
+    <h2>9. {_'Analytika a cookies', domain: 'privacy', context: 'section_title'}</h2>
     <p>
         {_'Používáme open-source analytickou službu, která nesdílí data se třetími stranami a je plně v naší správě.', domain: 'privacy', context: 'analytics'}
         <a target="_blank" href="https://matomo.org/">Matomo</a>
@@ -148,7 +165,7 @@
 </section>
 
 <section class="my-4">
-    <h2>9. {_'Práva uživatelů', domain: 'privacy', context: 'section_title'}</h2>
+    <h2>10. {_'Práva uživatelů', domain: 'privacy', context: 'section_title'}</h2>
     <p>{_'Podle GDPR máte právo:', domain: 'privacy', context: 'user_rights'}</p>
     <ul>
         <li>{_'Právo na přístup ke svým údajům.', domain: 'privacy', context: 'user_right'}</li>
@@ -159,27 +176,28 @@
 </section>
 
 <section class="my-4">
-    <h2>10. {_'Ochrana osobních údajů', domain: 'privacy', context: 'section_title'}</h2>
+    <h2>11. {_'Ochrana osobních údajů', domain: 'privacy', context: 'section_title'}</h2>
     <p>
         {_'Web %s implementuje vhodná technická a organizační opatření k ochraně osobních údajů proti neoprávněnému přístupu, změně, ztrátě či zničení.', domain: 'privacy', context: 'contact_dpa', format: ['LaserLiga.cz']}
     </p>
     <p>
         {_'Pro ochranu formulářů na webu používáme službu <a href="https://www.cloudflare.com/application-services/products/turnstile/" target="_blank">Cloudflare Turnstile Captcha</a>, která chrání proti automatizovaným útokům a zajišťuje bezpečnost webu.', domain: 'privacy', context: 'security_turnstile'|noescape}
-            {_'Cloudflare Turnstile nezpracovává osobní údaje uživatelů a veškeré ověřování probíhá anonymně.', domain: 'privacy', context: 'security_turnstile_anonymity'}
+        {_'Cloudflare Turnstile nezpracovává osobní údaje uživatelů a veškeré ověřování probíhá anonymně.', domain: 'privacy', context: 'security_turnstile_anonymity'}
     </p>
 </section>
 
 <section class="my-4">
-    <h2>11. {_'Kontakt na dozorový úřad', domain: 'privacy', context: 'section_title'}</h2>
+    <h2>12. {_'Kontakt na dozorový úřad', domain: 'privacy', context: 'section_title'}</h2>
     <p>
         {_'Pokud nejste spokojeni se zpracováním, máte právo se obrátit na dozorový úřad.', domain: 'privacy', context: 'contact_dpa'}
-        <a target="_blank" href="https://www.uoou.cz">{_'Úřad pro ochranu osobních údajů', domain: 'privacy', context: 'dpa_link'}</a>
+        <a target="_blank"
+           href="https://www.uoou.cz">{_'Úřad pro ochranu osobních údajů', domain: 'privacy', context: 'dpa_link'}</a>
     </p>
 </section>
 
 <section class="my-4">
-    <h2>12. {_'Změny zásad', domain: 'privacy', context: 'section_title'}</h2>
+    <h2>13. {_'Změny zásad', domain: 'privacy', context: 'section_title'}</h2>
     <p>{_'Tyto zásady mohou být aktualizovány. O změnách budete informováni.', domain: 'privacy', context: 'updates'}</p>
 
-    <p>{_'Poslední aktualizace: %s', format: ['17. 12. 2024'], domain: 'privacy', context: 'last_updated'}</p>
+    <p>{_'Poslední aktualizace: %s', format: ['23. 3. 2025'], domain: 'privacy', context: 'last_updated'}</p>
 </section>

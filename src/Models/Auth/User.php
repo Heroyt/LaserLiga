@@ -21,7 +21,7 @@ class User extends \Lsr\Core\Auth\Models\User
 {
 	use WithCacheClear;
 
-	public const int CURRENT_PRIVACY_VERSION = 1;
+	public const int CURRENT_PRIVACY_VERSION = 2;
 
 	#[ManyToOne('', 'id_parent')]
 	public ?User $parent = null;
