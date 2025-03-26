@@ -35,6 +35,9 @@ scheduler:
 		syncPhotos:
 			expression: */5 8-23 * * *
 			callback: [@cron.syncPhotos, 'run']
+		clearTempPhotos:
+			expression: */30 * * * *
+			callback: [@cron.clearTempPhotos, 'run']
 services:
 	# Core scheduler
 	scheduler.logger: Lsr\Logging\Logger(%logger.dir%, 'scheduler')
@@ -58,3 +61,4 @@ services:
 	cron.privacy: App\Cron\PrivacyUpdateNotificationJob
 	cron.confirmEmail: App\Cron\UserConfirmationEmailsJob
 	cron.syncPhotos: App\Cron\SyncPhotosJob
+	cron.clearTempPhotos: App\Cron\ClearTempPhotosJob
