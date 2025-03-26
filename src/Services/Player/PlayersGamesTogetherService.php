@@ -128,16 +128,16 @@ readonly class PlayersGamesTogetherService
 				}
 			}
 			if (((int)$user1) === $player1->id) {
-				/** @var \App\GameModels\Game\Player $currentPlayer */
 				$currentPlayer = $game->getVestPlayer($vest1);
-				/** @var \App\GameModels\Game\Player $otherPlayer */
 				$otherPlayer = $game->getVestPlayer($vest2);
 			}
 			else {
-				/** @var \App\GameModels\Game\Player $currentPlayer */
 				$currentPlayer = $game->getVestPlayer($vest2);
-				/** @var \App\GameModels\Game\Player $otherPlayer */
 				$otherPlayer = $game->getVestPlayer($vest1);
+			}
+
+			if ($currentPlayer === null || $otherPlayer === null) {
+				continue;
 			}
 
 			$teammates = $team1 === $team2 && $gameRow->type === GameModeType::TEAM;
