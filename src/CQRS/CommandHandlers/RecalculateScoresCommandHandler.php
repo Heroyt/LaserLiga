@@ -26,7 +26,11 @@ final readonly class RecalculateScoresCommandHandler implements CommandHandlerIn
 
         $game->recalculateScores();
         try {
-            return $game->save();
+            if ($game->save()) {
+				$game->clearCache();
+				return true;
+            }
+			return false;
         } catch (Throwable) {
             return false;
         }

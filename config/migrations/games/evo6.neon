@@ -45,6 +45,7 @@ tables:
 			`anti_stalking` tinyint(1) unsigned DEFAULT 0,
 			`blast_shots` tinyint(1) unsigned DEFAULT 0,
 			`trigger_speed` tinyint(2) unsigned DEFAULT 0,
+			`vip_on` bool DEFAULT false,
 			`vip_lives` smallint(5) unsigned DEFAULT 0,
 			`vip_ammo` smallint(5) unsigned DEFAULT 0,
 			`vip_respawn` tinyint(3) unsigned DEFAULT 5,
@@ -53,11 +54,14 @@ tables:
 			`vip_hit_type` tinyint(2) DEFAULT 0,
 			`vip_blast_shots` tinyint(1) unsigned DEFAULT 0,
 			`vip_ignore_teammate_hits` tinyint(1) unsigned DEFAULT 0,
+			`zombie_on` bool DEFAULT false,
 			`zombie_lives` smallint(5) unsigned DEFAULT 0,
 			`zombie_ammo` smallint(5) unsigned DEFAULT 0,
 			`zombie_infect_hits` tinyint(3) unsigned DEFAULT 0,
 			`zombie_special` tinyint(1) unsigned DEFAULT 0,
 			`zombie_team_number` tinyint(2) unsigned DEFAULT 0,
+			`switch_on` bool DEFAULT false,
+			`switch_lives` tinyint(3) unsigned DEFAULT 0,
 			`hit_gain_ammo` tinyint(3) unsigned DEFAULT 0,
 			`hit_gain_lives` tinyint(3) unsigned DEFAULT 0,
 			`respawn_lives` tinyint(3) unsigned DEFAULT 0,
@@ -119,6 +123,11 @@ tables:
 				- 'ADD `photos_secret` varchar(100) DEFAULT NULL'
 			0.3.1:
 				- 'ADD `photos_public` bool DEFAULT false'
+			0.4.0:
+				- 'ADD `switch_on` bool DEFAULT false'
+				- 'ADD `switch_lives` tinyint(3) unsigned DEFAULT 0'
+				- 'ADD `vip_on` bool DEFAULT false'
+				- 'ADD `zombie_on` bool DEFAULT false'
 		foreignKeys:
 			-
 				column: id_music

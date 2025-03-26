@@ -8,8 +8,6 @@ use Lsr\Lg\Results\LaserMaxx\Evo6\HitGainSettings;
 use Lsr\Lg\Results\LaserMaxx\Evo6\RespawnSettings;
 use Lsr\Lg\Results\LaserMaxx\Evo6\Scoring;
 use Lsr\Lg\Results\LaserMaxx\Evo6\TriggerSpeed;
-use Lsr\Lg\Results\LaserMaxx\Evo6\VipSettings;
-use Lsr\Lg\Results\LaserMaxx\Evo6\ZombieSettings;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: 'Evo6GameImport')]
@@ -25,12 +23,7 @@ class GameImportDto extends \App\Models\DataObjects\Import\Lasermaxx\GameImportD
 	public TriggerSpeed $triggerSpeed = TriggerSpeed::FAST;
 
 	#[OA\Property]
-	public GameStyleType $gameStyleType = GameStyleType::TEAM;
-
-	#[OA\Property]
-	public ?VipSettings $vipSettings = null;
-	#[OA\Property]
-	public ?ZombieSettings $zombieSettings = null;
+	public GameStyleType    $gameStyleType   = GameStyleType::TEAM;
 	#[OA\Property]
 	public ?HitGainSettings $hitGainSettings = null;
 	#[OA\Property]

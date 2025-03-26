@@ -268,13 +268,24 @@ tables:
 			`datetime` datetime NOT NULL,
 			`game_code` varchar(50) NOT NULL,
 			`email` varchar(255) NOT NULL,
+			`id_user` int(11) unsigned DEFAULT NULL,
 			PRIMARY KEY (`id_log`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
+		modifications:
+			0.1.0:
+				- 'ADD `id_user` int(11) unsigned DEFAULT NULL'
 		indexes:
 			-
 				name: 'game_code'
 				columns: ['game_code']
+		foreignKeys:
+			-
+				column: 'id_user'
+				refTable: App\Models\Auth\User
+				refColumn: 'id_user'
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
 views:
 	vModesNames: '''
 	SELECT `a`.`id_mode`     AS `id_mode`,

@@ -29,9 +29,31 @@ tables:
 			`scoring_power_invisibility` int(11) DEFAULT NULL,
 			`scoring_power_agent` int(11) DEFAULT NULL,
 			`scoring_power_shield` int(11) DEFAULT NULL,
+			`scoring_highscore` int(11) DEFAULT NULL,
+			`scoring_accuracy_bonus` tinyint(2) unsigned DEFAULT 0,
+			`scoring_accuracy_threshold` tinyint(3) unsigned DEFAULT 0,
+			`scoring_accuracy_threshold_bonus` mediumint(6) DEFAULT 0,
 			`reload_clips` int(11) unsigned DEFAULT 0,
 			`allow_friendly_fire` tinyint(1) unsigned DEFAULT 0,
 			`anti_stalking` tinyint(1) unsigned DEFAULT 0,
+			`blast_shots` tinyint(1) unsigned DEFAULT 0,
+			`vip_on` bool DEFAULT false,
+			`vip_lives` smallint(5) unsigned DEFAULT 0,
+			`vip_ammo` smallint(5) unsigned DEFAULT 0,
+			`vip_respawn` tinyint(3) unsigned DEFAULT 5,
+			`vip_kill_team` tinyint(1) unsigned DEFAULT 0,
+			`vip_hit_score` mediumint(6) DEFAULT 0,
+			`vip_hit_type` tinyint(2) DEFAULT 0,
+			`vip_blast_shots` tinyint(1) unsigned DEFAULT 0,
+			`vip_ignore_teammate_hits` tinyint(1) unsigned DEFAULT 0,
+			`zombie_on` bool DEFAULT false,
+			`zombie_lives` smallint(5) unsigned DEFAULT 0,
+			`zombie_ammo` smallint(5) unsigned DEFAULT 0,
+			`zombie_infect_hits` tinyint(3) unsigned DEFAULT 0,
+			`zombie_special` tinyint(1) unsigned DEFAULT 0,
+			`zombie_team_number` tinyint(2) unsigned DEFAULT 0,
+			`switch_on` bool DEFAULT false,
+			`switch_lives` tinyint(3) unsigned DEFAULT 0,
 			`code` varchar(50) DEFAULT NULL,
 			`respawn` smallint(4) unsigned DEFAULT NULL,
 			`lives` int(10) unsigned DEFAULT NULL,
@@ -71,6 +93,29 @@ tables:
 				- 'ADD `photos_secret` varchar(100) DEFAULT NULL'
 			0.7.1:
 				- 'ADD `photos_public` bool DEFAULT false'
+			0.8.0:
+				- 'ADD `blast_shots` tinyint(1) unsigned DEFAULT 0'
+				- 'ADD `vip_lives` smallint(5) unsigned DEFAULT 0'
+				- 'ADD `vip_ammo` smallint(5) unsigned DEFAULT 0'
+				- 'ADD `vip_respawn` tinyint(3) unsigned DEFAULT 5'
+				- 'ADD `vip_kill_team` tinyint(1) unsigned DEFAULT 0'
+				- 'ADD `vip_hit_score` mediumint(6) DEFAULT 0'
+				- 'ADD `vip_hit_type` tinyint(2) DEFAULT 0'
+				- 'ADD `vip_blast_shots` tinyint(1) unsigned DEFAULT 0'
+				- 'ADD `vip_ignore_teammate_hits` tinyint(1) unsigned DEFAULT 0'
+				- 'ADD `zombie_lives` smallint(5) unsigned DEFAULT 0'
+				- 'ADD `zombie_ammo` smallint(5) unsigned DEFAULT 0'
+				- 'ADD `zombie_infect_hits` tinyint(3) unsigned DEFAULT 0'
+				- 'ADD `zombie_special` tinyint(1) unsigned DEFAULT 0'
+				- 'ADD `zombie_team_number` tinyint(2) unsigned DEFAULT 0'
+				- 'ADD `switch_on` bool DEFAULT false'
+				- 'ADD `switch_lives` tinyint(3) unsigned DEFAULT 0'
+				- 'ADD `vip_on` bool DEFAULT false'
+				- 'ADD `zombie_on` bool DEFAULT false'
+				- 'ADD `scoring_highscore` int(11) DEFAULT NULL'
+				- 'ADD `scoring_accuracy_bonus` tinyint(2) unsigned DEFAULT 0'
+				- 'ADD `scoring_accuracy_threshold` tinyint(3) unsigned DEFAULT 0'
+				- 'ADD `scoring_accuracy_threshold_bonus` mediumint(6) DEFAULT 0'
 		foreignKeys:
 			-
 				column: id_music
@@ -160,6 +205,7 @@ tables:
 			`score_bonus` int(11) NOT NULL DEFAULT 0,
 			`score_powers` int(11) NOT NULL DEFAULT 0,
 			`score_mines` int(11) NOT NULL DEFAULT 0,
+			`score_vip` int(11) NOT NULL DEFAULT 0,
 			`score_accuracy` int(11) NOT NULL DEFAULT 0,
 			`ammo_rest` int(10) unsigned NOT NULL DEFAULT 0,
 			`mines_hits` int(10) unsigned NOT NULL DEFAULT 0,
@@ -197,6 +243,8 @@ tables:
 				- 'ADD `my_lasermaxx` varchar(100) NOT NULL DEFAULT '''''
 			0.5.0:
 				- 'ADD `score_accuracy` int(11) NOT NULL DEFAULT 0'
+			0.5.1:
+				- 'ADD `score_vip` int(11) NOT NULL DEFAULT 0'
 		foreignKeys:
 			-
 				column: id_game
