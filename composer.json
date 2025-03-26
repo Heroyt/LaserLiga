@@ -1,7 +1,8 @@
 {
 	"name": "heroyt/laserliga",
-	"version": "1.2.3",
+  "type": "project",
 	"minimum-stability": "stable",
+  "license": "GPL-3.0-or-later",
 	"repositories": [
 		{
 			"type": "composer",
@@ -19,16 +20,16 @@
     "phpstan": "./vendor/bin/phpstan -c phpstan.neon"
 	},
 	"require": {
-    "tracy/tracy": ">2.10",
-		"dibi/dibi": ">4.2",
-    "latte/latte": ">3.0",
-    "nette/utils": ">4.0",
-		"nette/security": ">3.1",
+    "tracy/tracy": "^2.10",
+		"dibi/dibi": "^5.0",
+    "latte/latte": "^3.0",
+    "nette/utils": "^4.0",
+		"nette/security": "^3.2",
 		"ext-zip": "*",
     "php": "^8.4",
-		"nette/http": ">3.1",
+		"nette/http": "^3.3",
 		"ext-gettext": "*",
-		"nette/di": ">3.0",
+		"nette/di": "^3.2",
 		"ext-mbstring": "*",
 		"ext-fileinfo": "*",
     "lsr/interfaces": "^0.3",
@@ -59,7 +60,8 @@
 		"spatie/dropbox-api": "^1.23",
 		"lsr/cqrs": "^0.1.1",
 		"aws/aws-sdk-php": "^3.342",
-    "ext-exif": "*"
+    "ext-exif": "*",
+		"matomo/matomo-php-tracker": "^3.3"
   },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

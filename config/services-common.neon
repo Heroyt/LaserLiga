@@ -10,16 +10,16 @@ parameters:
 	db:
 		driver: mysqli
 		lazy: true
-		host: db
 		port: 3306
 		charset: utf8mb4
-		database: lac
-		user: root
-		password: 'laser-arena-control'
 	auth:
 		userClass: 'App\Models\Auth\User'
 	templating:
 		tmpPath: '%constants.tempDir%latte'
+	matomo:
+		siteId: 1
+		url: 'https://analytics.laserliga.cz'
+		token: ''
 extensions:
 	cache: Lsr\Caching\DI\CacheExtension
 	decorator: Nette\DI\Extensions\DecoratorExtension
@@ -137,6 +137,11 @@ services:
 		setup:
 			- addExtension(@templating.latte.lac)
 	requestValidationMapper: Lsr\Core\Requests\Validation\RequestValidationMapper
+
+	matomo:
+		create: \MatomoTracker(%matomo.siteId%, %matomo.url%)
+		setup:
+			- setTokenAuth(%matomo.token%)
 search:
 	controllers:
 		in: '%constants.appDir%src/Controllers'

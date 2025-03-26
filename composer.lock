@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "818a65a8044b8a72f10a373622f5862d",
+    "content-hash": "055df1ce9f594d627e02bafd107547e2",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -62,16 +62,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.342.9",
+            "version": "3.342.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "e6c89c32bfb4e4444b05edd05ef9852ae952dc45"
+                "reference": "e0afed3d0e2c89362f6c9b6bf8f278b04a4858b6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/e6c89c32bfb4e4444b05edd05ef9852ae952dc45",
-                "reference": "e6c89c32bfb4e4444b05edd05ef9852ae952dc45",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/e0afed3d0e2c89362f6c9b6bf8f278b04a4858b6",
+                "reference": "e0afed3d0e2c89362f6c9b6bf8f278b04a4858b6",
                 "shasum": ""
             },
             "require": {
@@ -153,9 +153,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.342.9"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.342.11"
             },
-            "time": "2025-03-19T18:50:34+00:00"
+            "time": "2025-03-21T18:11:10+00:00"
         },
         {
             "name": "brick/math",
@@ -1042,16 +1042,16 @@
         },
         {
             "name": "lsr/auth",
-            "version": "0.3.1",
+            "version": "0.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-auth.git",
-                "reference": "3990dfcc72f8df289269a12db07e5aaa8814c627"
+                "reference": "18df47c634924cec0970d2f0f43df2200740b0a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-auth/zipball/3990dfcc72f8df289269a12db07e5aaa8814c627",
-                "reference": "3990dfcc72f8df289269a12db07e5aaa8814c627",
+                "url": "https://api.github.com/repos/Heroyt/lsr-auth/zipball/18df47c634924cec0970d2f0f43df2200740b0a3",
+                "reference": "18df47c634924cec0970d2f0f43df2200740b0a3",
                 "shasum": ""
             },
             "require": {
@@ -1081,10 +1081,10 @@
             ],
             "description": "Laser framework core - Authentication.",
             "support": {
-                "source": "https://github.com/Heroyt/lsr-auth/tree/v0.3.1",
+                "source": "https://github.com/Heroyt/lsr-auth/tree/v0.3.4",
                 "issues": "https://github.com/Heroyt/lsr-auth/issues"
             },
-            "time": "2025-03-20T10:47:06+00:00"
+            "time": "2025-03-21T16:04:21+00:00"
         },
         {
             "name": "lsr/cache",
@@ -1163,16 +1163,16 @@
         },
         {
             "name": "lsr/core",
-            "version": "0.3.9",
+            "version": "0.3.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-core.git",
-                "reference": "cc609019dbf0dc6ad7aa4b041148839df8c26be4"
+                "reference": "9407abdeaa79e8e5cbbffd70f221b8e6cf45323f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-core/zipball/cc609019dbf0dc6ad7aa4b041148839df8c26be4",
-                "reference": "cc609019dbf0dc6ad7aa4b041148839df8c26be4",
+                "url": "https://api.github.com/repos/Heroyt/lsr-core/zipball/9407abdeaa79e8e5cbbffd70f221b8e6cf45323f",
+                "reference": "9407abdeaa79e8e5cbbffd70f221b8e6cf45323f",
                 "shasum": ""
             },
             "require": {
@@ -1244,10 +1244,10 @@
             ],
             "description": "Laser framework core.",
             "support": {
-                "source": "https://github.com/Heroyt/lsr-core/tree/v0.3.9",
+                "source": "https://github.com/Heroyt/lsr-core/tree/v0.3.10",
                 "issues": "https://github.com/Heroyt/lsr-core/issues"
             },
-            "time": "2025-03-19T12:01:23+00:00"
+            "time": "2025-03-22T14:03:03+00:00"
         },
         {
             "name": "lsr/cqrs",
@@ -1565,12 +1565,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-lg-result-parsing.git",
-                "reference": "1bad9da0eb25ed55550224906394840f313cd216"
+                "reference": "13acf766c0dab3d2ae68dbf150d1609e76e9471c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-lg-result-parsing/zipball/1bad9da0eb25ed55550224906394840f313cd216",
-                "reference": "1bad9da0eb25ed55550224906394840f313cd216",
+                "url": "https://api.github.com/repos/Heroyt/lsr-lg-result-parsing/zipball/13acf766c0dab3d2ae68dbf150d1609e76e9471c",
+                "reference": "13acf766c0dab3d2ae68dbf150d1609e76e9471c",
                 "shasum": ""
             },
             "require": {
@@ -1617,7 +1617,7 @@
                 "source": "https://github.com/Heroyt/lsr-lg-result-parsing/tree/master",
                 "issues": "https://github.com/Heroyt/lsr-lg-result-parsing/issues"
             },
-            "time": "2025-03-14T11:32:57+00:00"
+            "time": "2025-03-24T13:38:06+00:00"
         },
         {
             "name": "lsr/logging",
@@ -2077,6 +2077,62 @@
                 "issues": "https://github.com/Heroyt/lsr-serializer/issues"
             },
             "time": "2024-12-15T14:38:57+00:00"
+        },
+        {
+            "name": "matomo/matomo-php-tracker",
+            "version": "3.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/matomo-org/matomo-php-tracker.git",
+                "reference": "949259d7ffc833ae37bdec14394d13748ebccb64"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/matomo-org/matomo-php-tracker/zipball/949259d7ffc833ae37bdec14394d13748ebccb64",
+                "reference": "949259d7ffc833ae37bdec14394d13748ebccb64",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": "^7.2 || ^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.5 || ^9.3 || ^10.1"
+            },
+            "suggest": {
+                "ext-curl": "Using this extension to issue the HTTPS request to Matomo"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "."
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "The Matomo Team",
+                    "email": "hello@matomo.org",
+                    "homepage": "https://matomo.org/team/"
+                }
+            ],
+            "description": "PHP Client for Matomo Analytics Tracking API",
+            "homepage": "https://matomo.org",
+            "keywords": [
+                "analytics",
+                "matomo",
+                "piwik",
+                "tracker"
+            ],
+            "support": {
+                "forum": "https://forum.matomo.org/",
+                "issues": "https://github.com/matomo-org/matomo-php-tracker/issues",
+                "source": "https://github.com/matomo-org/matomo-php-tracker"
+            },
+            "time": "2024-10-09T08:10:30+00:00"
         },
         {
             "name": "minishlink/web-push",
@@ -6533,16 +6589,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.1.8",
+            "version": "2.1.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "f9adff3b87c03b12cc7e46a30a524648e497758f"
+                "reference": "8ca5f79a8f63c49b2359065832a654e1ec70ac30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/f9adff3b87c03b12cc7e46a30a524648e497758f",
-                "reference": "f9adff3b87c03b12cc7e46a30a524648e497758f",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/8ca5f79a8f63c49b2359065832a654e1ec70ac30",
+                "reference": "8ca5f79a8f63c49b2359065832a654e1ec70ac30",
                 "shasum": ""
             },
             "require": {
@@ -6587,7 +6643,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-09T09:30:48+00:00"
+            "time": "2025-03-24T13:45:00+00:00"
         },
         {
             "name": "phpstan/phpstan-dibi",
@@ -7026,16 +7082,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "12.0.9",
+            "version": "12.0.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "7835bb4276780e0bbb385ce0a777b839e03096db"
+                "reference": "6075843014de23bcd6992842d69ca99d25d6a433"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7835bb4276780e0bbb385ce0a777b839e03096db",
-                "reference": "7835bb4276780e0bbb385ce0a777b839e03096db",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/6075843014de23bcd6992842d69ca99d25d6a433",
+                "reference": "6075843014de23bcd6992842d69ca99d25d6a433",
                 "shasum": ""
             },
             "require": {
@@ -7103,7 +7159,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.0.9"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.0.10"
             },
             "funding": [
                 {
@@ -7119,7 +7175,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-19T13:47:33+00:00"
+            "time": "2025-03-23T16:03:59+00:00"
         },
         {
             "name": "roave/security-advisories",
@@ -7127,12 +7183,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "af199f9f0a8c465dd03b06977d83d5b5cbe32a3a"
+                "reference": "786548323f3a9452244ddf83672e34c260d6b717"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/af199f9f0a8c465dd03b06977d83d5b5cbe32a3a",
-                "reference": "af199f9f0a8c465dd03b06977d83d5b5cbe32a3a",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/786548323f3a9452244ddf83672e34c260d6b717",
+                "reference": "786548323f3a9452244ddf83672e34c260d6b717",
                 "shasum": ""
             },
             "conflict": {
@@ -7809,7 +7865,7 @@
                 "t3/dce": "<0.11.5|>=2.2,<2.6.2",
                 "t3g/svg-sanitizer": "<1.0.3",
                 "t3s/content-consent": "<1.0.3|>=2,<2.0.2",
-                "tastyigniter/tastyigniter": "<3.3",
+                "tastyigniter/tastyigniter": "<4",
                 "tcg/voyager": "<=1.8",
                 "tecnickcom/tc-lib-pdf-font": "<2.6.4",
                 "tecnickcom/tcpdf": "<6.8",
@@ -7999,7 +8055,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-19T17:05:08+00:00"
+            "time": "2025-03-21T18:06:15+00:00"
         },
         {
             "name": "sebastian/cli-parser",
