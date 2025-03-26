@@ -1022,6 +1022,10 @@ class Games extends ApiController
 			$dtoInfo = $this->serializer->denormalize($gameInfo, $dtoClass);
 			assert($dtoInfo instanceof GameImportDto);
 			$start = microtime(true);
+			$oldGame = null;
+			if (!empty($dtoInfo->code)) {
+				$oldGame = GameFactory::getByCode($dtoInfo->code);
+			}
 			try {
 				// Parse game
 				$game = $gameClass::fromImportDto($dtoInfo);
@@ -1065,6 +1069,11 @@ class Games extends ApiController
 				);
 			}
 			$parseTime = microtime(true) - $start;
+
+			if ($oldGame !== null) {
+				$game->photosSecret = $oldGame->photosSecret;
+				$game->photosPublic = $oldGame->photosPublic;
+			}
 
 			// Find logged-in users
 			/** @var Player $player */
