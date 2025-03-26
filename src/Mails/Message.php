@@ -14,6 +14,10 @@ class Message extends \Nette\Mail\Message
 	/** @var array<string,mixed> */
 	public array   $params   = [];
 	public ?string $basePath = null;
+
+	/** @var list<array{0:string,1?:string|null}> */
+	protected(set) array $to = [];
+
 	private Logger $logger;
 
 	public function __construct(
@@ -23,14 +27,52 @@ class Message extends \Nette\Mail\Message
 		$this->setFrom('app@laserliga.cz', 'LaserLiga');
 	}
 
-	public function setUser(User $user) : static {
+	public function setUser(User $user): static {
 		$this->params['user'] = $user;
 		$this->addTo($user->email, $user->name);
 
 		return $this;
 	}
 
-	public function prepareContent(Latte $renderer) : void {
+	public function addTo(string $email, ?string $name = null): static {
+		$this->to[] = [$email, $name];
+		return $this;
+	}
+
+	/**
+	 * @param Latte $latte
+	 *
+	 * @return \Generator<Message>
+	 */
+	public function prepareNext(Latte $latte): \Generator {
+		foreach ($this->to as $email) {
+			$this->setHeader('To', $this->formatEmail(...$email));
+			$this->params['recipient'] = $email;
+			$this->prepareContent($latte);
+			yield $this;
+		}
+	}
+
+	/**
+	 * @param string      $email
+	 * @param string|null $name
+	 *
+	 * @return array<string,string>
+	 */
+	private function formatEmail(string $email, ?string $name = null): array {
+		if (!$name && preg_match('#^(.+) +<(.*)>$#D', $email, $matches)) {
+			[, $name, $email] = $matches;
+			$name = stripslashes($name);
+			$tmp = substr($name, 1, -1);
+			if ($name === '"' . $tmp . '"') {
+				$name = $tmp;
+			}
+		}
+
+		return [$email => $name];
+	}
+
+	public function prepareContent(Latte $renderer): void {
 		$this->setDefaultParameters();
 		if (empty($this->template)) {
 			return;

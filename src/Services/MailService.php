@@ -7,12 +7,12 @@ use Lsr\Core\Templating\Latte;
 use Nette\Mail\Mailer;
 use Nette\Mail\SendException;
 
-class MailService
+readonly class MailService
 {
 
 	public function __construct(
-		private readonly Latte  $latte,
-		private readonly Mailer $mailer,
+		private Latte  $latte,
+		private Mailer $mailer,
 	) {
 	}
 
@@ -24,8 +24,9 @@ class MailService
 	 *
 	 */
 	public function send(Message $message) : void {
-		$message->prepareContent($this->latte);
-		$this->mailer->send($message);
+		foreach ($message->prepareNext($this->latte) as $msg) {
+			$this->mailer->send($msg);
+		}
 	}
 
 }

@@ -228,7 +228,7 @@ class PhotosController extends Controller
 				$emails,
 				static fn($email) => is_string($email) && Validators::isEmail($email)
 			)) {
-			return $this->respond(new ErrorResponse('Invalid data', ErrorType::VALIDATION), 400);
+			return $this->respond(new ErrorResponse('Emails are not valid', ErrorType::VALIDATION), 400);
 		}
 
 		$game = GameFactory::getByCode($code);
@@ -240,14 +240,18 @@ class PhotosController extends Controller
 			return $this->respond(new ErrorResponse('Game does not belong to this arena', ErrorType::ACCESS), 403);
 		}
 
+		/** @var list<non-empty-string> $emails */
+		$emails = array_unique(array_map(static fn (string $email) => trim(strtolower($email)), $emails));
+		$user = $this->auth->getLoggedIn();
+		assert($user !== null);
+
 		$url = $this->commandBus->dispatch(
 			new SendPhotosMailCommand(
 				     $arena,
 				     $game,
 				to : $emails,
-				bcc: [
-					     $this->auth->getLoggedIn(),
-				     ],
+				bcc: [$user],
+				currentUser: $user,
 			)
 		);
 		if ($url === false) {

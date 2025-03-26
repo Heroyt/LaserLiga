@@ -42,6 +42,7 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 
 		foreach ($command->to as $to) {
 			$log = new PhotoMailLog();
+			$log->user = $command->currentUser;
 			$log->datetime = new \DateTimeImmutable();
 			$log->gameCode = $command->game->code;
 			if ($to instanceof User || $to instanceof Player) {
@@ -77,6 +78,7 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 
 		$message->params['arena'] = $command->arena;
 		$message->params['game'] = $command->game;
+		$message->params['link'] = $link;
 		$message->params['url'] = $url;
 
 		try {
