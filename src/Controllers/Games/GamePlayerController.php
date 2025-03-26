@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Games;
 
+use App\CQRS\Commands\MatomoTrackCommand;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
@@ -10,8 +11,10 @@ use App\GameModels\Game\Today;
 use App\Models\Auth\User;
 use App\Services\Achievements\AchievementProvider;
 use App\Templates\Games\GamePlayerParameters;
+use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
+use Lsr\CQRS\CommandBus;
 use Lsr\Interfaces\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -68,6 +71,12 @@ class GamePlayerController extends Controller
 		);
 
 		$this->params->achievements = $this->achievementProvider->getForGamePlayer($player);
+
+		$commandBus = App::getServiceByType(CommandBus::class);
+		assert($commandBus instanceof CommandBus);
+		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($game, $player) {
+			$matomo->doTrackPageView($game->arena->name.' - Hra - '.$game->code.' - Hráči - '.$player->name);
+		}));
 
 		return $this->view('pages/game/partials/player')
 		            ->withHeader('Cache-Control', 'max-age=2592000,public');

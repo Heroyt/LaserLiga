@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Games;
 
+use App\CQRS\Commands\MatomoTrackCommand;
 use App\CQRS\Commands\S3\DownloadFilesZipCommand;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
@@ -282,8 +283,13 @@ class GroupController extends Controller
 		}
 
 		if (!$commandBus->dispatch(new DownloadFilesZipCommand($urls, $zip))) {
-			throw new RuntimeException('Cannot download photos');
+			$request->addPassError(lang('Nepodařilo se stáhnout fotky, zkuste to znovu později.', context: 'errors'));
+			return $this->redirect(['game', 'group', $groupid], $request, 307);
 		}
+
+		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request) {
+			$matomo->doTrackAction($request->getUri()->__toString(), 'download');
+		}));
 
 		return new Response(
 			new \Nyholm\Psr7\Response(

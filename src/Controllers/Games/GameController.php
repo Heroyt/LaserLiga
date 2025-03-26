@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers\Games;
 
+use App\CQRS\Commands\MatomoTrackCommand;
 use App\CQRS\Commands\S3\DownloadFilesZipCommand;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
@@ -181,8 +182,13 @@ class GameController extends Controller
 		}
 
 		if (!$commandBus->dispatch(new DownloadFilesZipCommand($urls, $zip))) {
-			throw new \RuntimeException('Cannot download photos');
+			$request->addPassError(lang('Nepodařilo se stáhnout fotky, zkuste to znovu později.', context: 'errors'));
+			return $this->redirect(['game', $code], $request, 307);
 		}
+
+		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request) {
+			$matomo->doTrackAction($request->getUri()->__toString(), 'download');
+		}));
 
 		return new Response(
 			new \Nyholm\Psr7\Response(
@@ -216,6 +222,13 @@ class GameController extends Controller
 		$game->photosPublic = true;
 		$game->save();
 		$game->clearCache();
+
+		$commandBus = App::getServiceByType(CommandBus::class);
+		assert($commandBus instanceof CommandBus);
+		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request, $game) {
+			$matomo->doTrackPageView($game->arena->name.' - Hra - '.$game->code.' - Fotky - public');
+		}));
+
 		return $this->respond(new SuccessResponse());
 	}
 
@@ -236,6 +249,12 @@ class GameController extends Controller
 		$game->photosPublic = false;
 		$game->save();
 		$game->clearCache();
+
+		$commandBus = App::getServiceByType(CommandBus::class);
+		assert($commandBus instanceof CommandBus);
+		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request, $game) {
+			$matomo->doTrackPageView($game->arena->name.' - Hra - '.$game->code.' - Fotky - private');
+		}));
 		return $this->respond(new SuccessResponse());
 	}
 
@@ -440,6 +459,7 @@ class GameController extends Controller
 	}
 
 	private function canDownloadPhotos(Game $game, Request $request) : bool {
+		bdump($request->getGet('photos'));
 		// Check logged-in user
 		$user = $this->auth->getLoggedIn();
 		if ($user !== null) {
