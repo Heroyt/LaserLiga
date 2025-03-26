@@ -14,11 +14,19 @@ class OptionalGameGroup
 {
 
 	/** @var non-empty-string[] */
-	public array $codes {
+	public array  $codes {
 		get => array_map(fn(Game $game) => $game->code, $this->games);
 	}
 	public string $link {
-		get => App::getLink($this->gameGroup !== null ? ['game', 'group', $this->gameGroup->encodedId, 'photos' => $this->games[0]->photosSecret] : ['game', $this->games[0]->code, 'photos' => $this->games[0]->photosSecret]);
+		get {
+			$link = $this->gameGroup !== null ?
+				['game', 'group', $this->gameGroup->encodedId]
+				: ['game', $this->games[0]->code];
+			if (!empty($this->games[0]->photosSecret)) {
+				$link['photos'] = $this->games[0]->photosSecret;
+			}
+			return App::getLink($link);
+		}
 	}
 	/** @var PhotoMailLog[] */
 	public array $mailLog {
