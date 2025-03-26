@@ -1,26 +1,24 @@
-.assign-photos {
-	.unassigned-photos {
-		.photos-wrapper {
-			.photo-select {
-				display: none;
+.photos-wrapper {
+	.select-photo {
+		.photo-select {
+			display: none;
 
-				&:checked + label {
-					background-color: var(--bs-green);
-				}
-			}
-
-			label {
-				cursor: pointer;
+			&:checked + label {
+				background-color: var(--bs-green);
 			}
 		}
-	}
 
-	img {
-		aspect-ratio: 1;
-		width: 150px;
-		object-fit: cover;
-		cursor: pointer;
+		label {
+			cursor: pointer;
+		}
 	}
+}
+
+img {
+	aspect-ratio: 1;
+	width: 150px;
+	object-fit: cover;
+	cursor: pointer;
 }
 
 #photo-dialog {
