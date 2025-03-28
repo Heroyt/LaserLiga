@@ -217,6 +217,7 @@ class StatController extends AbstractUserController
 				->connection
 				->select('COUNT(*) as [count], [id_mode], [modeName], ' . $interval . ' as [date]')
 				->from($query->fluent, 'a')
+				->where('id_mode IS NOT NULL')
 				->groupBy('[date], [id_mode]')
 				->orderBy('[date], [id_mode]')
 		)
