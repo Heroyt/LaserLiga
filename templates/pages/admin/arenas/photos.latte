@@ -43,10 +43,10 @@
                     {_'Stáhnout vybrané fotky'}
                 </button>
             </p>
-            <div class="photos-wrapper d-flex flex-wrap justify-content-between">
+            <div class="photos-wrapper d-flex flex-wrap justify-content-between gap-2">
                 {foreach $photos as $photo}
                     {continueIf $photo->url === null}
-                    <figure class="unassigned-photo select-photo figure m-2" data-id="{$photo->id}">
+                    <figure class="unassigned-photo select-photo figure" data-id="{$photo->id}">
                         <input type="checkbox" name="ids[]" class="photo-select" value="{$photo->id}" id="photo-select-{$photo->id}">
                         <label for="photo-select-{$photo->id}" class="border rounded p-2">
                             <span class="mb-2 text-end d-block">
