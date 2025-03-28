@@ -62,16 +62,16 @@
         },
         {
             "name": "aws/aws-sdk-php",
-            "version": "3.342.11",
+            "version": "3.342.14",
             "source": {
                 "type": "git",
                 "url": "https://github.com/aws/aws-sdk-php.git",
-                "reference": "e0afed3d0e2c89362f6c9b6bf8f278b04a4858b6"
+                "reference": "587475eec402e3d0326e5021cbbc1cb1e8bf4f93"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/e0afed3d0e2c89362f6c9b6bf8f278b04a4858b6",
-                "reference": "e0afed3d0e2c89362f6c9b6bf8f278b04a4858b6",
+                "url": "https://api.github.com/repos/aws/aws-sdk-php/zipball/587475eec402e3d0326e5021cbbc1cb1e8bf4f93",
+                "reference": "587475eec402e3d0326e5021cbbc1cb1e8bf4f93",
                 "shasum": ""
             },
             "require": {
@@ -153,9 +153,9 @@
             "support": {
                 "forum": "https://github.com/aws/aws-sdk-php/discussions",
                 "issues": "https://github.com/aws/aws-sdk-php/issues",
-                "source": "https://github.com/aws/aws-sdk-php/tree/3.342.11"
+                "source": "https://github.com/aws/aws-sdk-php/tree/3.342.14"
             },
-            "time": "2025-03-21T18:11:10+00:00"
+            "time": "2025-03-26T19:03:32+00:00"
         },
         {
             "name": "brick/math",
@@ -631,16 +631,16 @@
         },
         {
             "name": "guzzlehttp/guzzle",
-            "version": "7.9.2",
+            "version": "7.9.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "d281ed313b989f213357e3be1a179f02196ac99b"
+                "reference": "7b2f29fe81dc4da0ca0ea7d42107a0845946ea77"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/d281ed313b989f213357e3be1a179f02196ac99b",
-                "reference": "d281ed313b989f213357e3be1a179f02196ac99b",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/7b2f29fe81dc4da0ca0ea7d42107a0845946ea77",
+                "reference": "7b2f29fe81dc4da0ca0ea7d42107a0845946ea77",
                 "shasum": ""
             },
             "require": {
@@ -737,7 +737,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/guzzle/issues",
-                "source": "https://github.com/guzzle/guzzle/tree/7.9.2"
+                "source": "https://github.com/guzzle/guzzle/tree/7.9.3"
             },
             "funding": [
                 {
@@ -753,20 +753,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-07-24T11:22:20+00:00"
+            "time": "2025-03-27T13:37:11+00:00"
         },
         {
             "name": "guzzlehttp/promises",
-            "version": "2.0.4",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/promises.git",
-                "reference": "f9c436286ab2892c7db7be8c8da4ef61ccf7b455"
+                "reference": "2bbd39386fb5863ee5ce56883e3cca391bf5a672"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/promises/zipball/f9c436286ab2892c7db7be8c8da4ef61ccf7b455",
-                "reference": "f9c436286ab2892c7db7be8c8da4ef61ccf7b455",
+                "url": "https://api.github.com/repos/guzzle/promises/zipball/2bbd39386fb5863ee5ce56883e3cca391bf5a672",
+                "reference": "2bbd39386fb5863ee5ce56883e3cca391bf5a672",
                 "shasum": ""
             },
             "require": {
@@ -820,7 +820,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/promises/issues",
-                "source": "https://github.com/guzzle/promises/tree/2.0.4"
+                "source": "https://github.com/guzzle/promises/tree/2.1.0"
             },
             "funding": [
                 {
@@ -836,20 +836,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-10-17T10:06:22+00:00"
+            "time": "2025-03-27T12:09:23+00:00"
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.7.0",
+            "version": "2.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "a70f5c95fb43bc83f07c9c948baa0dc1829bf201"
+                "reference": "c2270caaabe631b3b44c85f99e5a04bbb8060d16"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/a70f5c95fb43bc83f07c9c948baa0dc1829bf201",
-                "reference": "a70f5c95fb43bc83f07c9c948baa0dc1829bf201",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/c2270caaabe631b3b44c85f99e5a04bbb8060d16",
+                "reference": "c2270caaabe631b3b44c85f99e5a04bbb8060d16",
                 "shasum": ""
             },
             "require": {
@@ -936,7 +936,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.7.0"
+                "source": "https://github.com/guzzle/psr7/tree/2.7.1"
             },
             "funding": [
                 {
@@ -952,7 +952,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-07-18T11:15:46+00:00"
+            "time": "2025-03-27T12:30:47+00:00"
         },
         {
             "name": "latte/latte",
@@ -1565,12 +1565,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-lg-result-parsing.git",
-                "reference": "13acf766c0dab3d2ae68dbf150d1609e76e9471c"
+                "reference": "e78164b1880eed5ef9e9066a16ff008b864e0bae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-lg-result-parsing/zipball/13acf766c0dab3d2ae68dbf150d1609e76e9471c",
-                "reference": "13acf766c0dab3d2ae68dbf150d1609e76e9471c",
+                "url": "https://api.github.com/repos/Heroyt/lsr-lg-result-parsing/zipball/e78164b1880eed5ef9e9066a16ff008b864e0bae",
+                "reference": "e78164b1880eed5ef9e9066a16ff008b864e0bae",
                 "shasum": ""
             },
             "require": {
@@ -1617,7 +1617,7 @@
                 "source": "https://github.com/Heroyt/lsr-lg-result-parsing/tree/master",
                 "issues": "https://github.com/Heroyt/lsr-lg-result-parsing/issues"
             },
-            "time": "2025-03-24T13:38:06+00:00"
+            "time": "2025-03-27T15:12:20+00:00"
         },
         {
             "name": "lsr/logging",
@@ -1765,16 +1765,16 @@
         },
         {
             "name": "lsr/orm",
-            "version": "0.3.7",
+            "version": "0.3.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-orm.git",
-                "reference": "c3c464b37640360ff855810fef104d71dfd3caf9"
+                "reference": "05959303f775cc63c0cbbc9f90b403bc2c9118fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-orm/zipball/c3c464b37640360ff855810fef104d71dfd3caf9",
-                "reference": "c3c464b37640360ff855810fef104d71dfd3caf9",
+                "url": "https://api.github.com/repos/Heroyt/lsr-orm/zipball/05959303f775cc63c0cbbc9f90b403bc2c9118fb",
+                "reference": "05959303f775cc63c0cbbc9f90b403bc2c9118fb",
                 "shasum": ""
             },
             "require": {
@@ -1792,7 +1792,7 @@
                 "phpstan/phpstan": "^2.0",
                 "phpstan/phpstan-dibi": "^2.0",
                 "phpstan/phpstan-nette": "^2.0",
-                "phpunit/phpunit": "^11",
+                "phpunit/phpunit": "^12",
                 "roave/security-advisories": "dev-latest",
                 "squizlabs/php_codesniffer": "^3.11"
             },
@@ -1838,10 +1838,10 @@
             ],
             "description": "Laser framework core - ORM",
             "support": {
-                "source": "https://github.com/Heroyt/lsr-orm/tree/v0.3.7",
+                "source": "https://github.com/Heroyt/lsr-orm/tree/v0.3.8",
                 "issues": "https://github.com/Heroyt/lsr-orm/issues"
             },
-            "time": "2025-01-04T15:06:08+00:00"
+            "time": "2025-03-26T10:54:04+00:00"
         },
         {
             "name": "lsr/request",
@@ -7183,12 +7183,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "786548323f3a9452244ddf83672e34c260d6b717"
+                "reference": "ea5e66cfcb7a8a5b915924fd8eca542397d6f324"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/786548323f3a9452244ddf83672e34c260d6b717",
-                "reference": "786548323f3a9452244ddf83672e34c260d6b717",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/ea5e66cfcb7a8a5b915924fd8eca542397d6f324",
+                "reference": "ea5e66cfcb7a8a5b915924fd8eca542397d6f324",
                 "shasum": ""
             },
             "conflict": {
@@ -7217,7 +7217,7 @@
                 "andrewhaine/silverstripe-form-capture": ">=0.2,<=0.2.3|>=1,<1.0.2|>=2,<2.2.5",
                 "apache-solr-for-typo3/solr": "<2.8.3",
                 "apereo/phpcas": "<1.6",
-                "api-platform/core": ">=2.2,<2.2.10|>=2.3,<2.3.6|>=2.6,<2.7.10|>=3,<3.0.12|>=3.1,<3.1.3",
+                "api-platform/core": ">=2.2,<2.2.10|>=2.3,<2.3.6|>=2.6,<2.7.10|>=3,<3.0.12|>=3.1,<3.1.3|>=3.3.8,<3.3.15",
                 "appwrite/server-ce": "<=1.2.1",
                 "arc/web": "<3",
                 "area17/twill": "<1.2.5|>=2,<2.5.3",
@@ -7691,7 +7691,7 @@
                 "pimcore/ecommerce-framework-bundle": "<1.0.10",
                 "pimcore/perspective-editor": "<1.5.1",
                 "pimcore/pimcore": "<11.5.4",
-                "pixelfed/pixelfed": "<0.11.11",
+                "pixelfed/pixelfed": "<0.12.5",
                 "plotly/plotly.js": "<2.25.2",
                 "pocketmine/bedrock-protocol": "<8.0.2",
                 "pocketmine/pocketmine-mp": "<5.25.2",
@@ -7972,7 +7972,7 @@
                 "yiisoft/yii2": "<2.0.49.4-dev",
                 "yiisoft/yii2-authclient": "<2.2.15",
                 "yiisoft/yii2-bootstrap": "<2.0.4",
-                "yiisoft/yii2-dev": "<2.0.43",
+                "yiisoft/yii2-dev": "<=2.0.45",
                 "yiisoft/yii2-elasticsearch": "<2.0.5",
                 "yiisoft/yii2-gii": "<=2.2.4",
                 "yiisoft/yii2-jui": "<2.0.4",
@@ -8055,7 +8055,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-03-21T18:06:15+00:00"
+            "time": "2025-03-26T15:05:37+00:00"
         },
         {
             "name": "sebastian/cli-parser",
