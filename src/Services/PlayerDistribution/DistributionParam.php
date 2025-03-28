@@ -19,13 +19,13 @@ enum DistributionParam: string
 
 	public function readableName(): string {
 		return match ($this) {
-			self::score    => lang('Skóre'),
-			self::accuracy => lang('Přesnost'),
-			self::hits     => lang('Zásahy'),
-			self::deaths   => lang('Smrti'),
-			self::shots    => lang('Výstřely'),
-			self::rank => lang('Herní úroveň'),
-			self::kd   => lang('Zásahy:Smrti'),
+			self::score    => lang('Skóre', domain: 'results'),
+			self::accuracy => lang('Přesnost', domain: 'results'),
+			self::hits     => lang('Zásahy', domain: 'results'),
+			self::deaths   => lang('Smrti', domain: 'results'),
+			self::shots    => lang('Výstřely', domain: 'results'),
+			self::rank => lang('Herní úroveň', domain: 'results'),
+			self::kd   => lang('Zásahy:Smrti', domain: 'results'),
 		};
 	}
 

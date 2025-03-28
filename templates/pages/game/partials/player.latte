@@ -530,7 +530,7 @@
 
 {define playerScoreDetailPart string $label, int $score}
     <p class="my-1">
-        {lang $label}:
+        {_$label, domain: 'results'}:
         <span n:class="$score > 0 ? text-success, $score < 0 ? text-danger">
 			{if $score > 0}+{/if}{$score|number:0,',','&nbsp;'|noescape}
 			{faSolid 'star'}
@@ -540,14 +540,14 @@
 {define playerSkillDetailPart string $key, int $skill}
     <p class="my-1" n:if="$skill !== 0.0">
         {switch $key}
-            {case 'position'} {lang 'Umístění'}:
-            {case 'hits'} {lang 'Zásahy'}:
-            {case 'teamHits'} {lang 'Zásahy spoluhráčů'}:
-            {case 'kd'} {lang 'K:D'}:
-            {case 'accuracy'} {lang 'Přesnost'}:
-            {case 'bonuses'} {lang 'Bonusy'}:
-            {case 'rounding'} {faSolid 'circle-question', '', ['data-toggle' => 'tooltip', 'title' => lang('Zohlednění vašich protihráčů. Pokud hrajete proti slabším, vaše herní úroveň se sníží. Naopak, pokud hrajete proti silným hráčům, vaše herní úroveň se zvýší.')]}
-            {lang 'Srovnání s protihráči'}:
+            {case 'position'} {_'Umístění', domain: 'results'}:
+            {case 'hits'} {_'Zásahy', domain: 'results'}:
+            {case 'teamHits'} {_'Zásahy spoluhráčů', domain: 'results'}:
+            {case 'kd'} {_'K:D', domain: 'results'}:
+            {case 'accuracy'} {_'Přesnost', domain: 'results'}:
+            {case 'bonuses'} {_'Bonusy', domain: 'results'}:
+            {case 'rounding'} {faSolid 'circle-question', '', ['data-toggle' => 'tooltip', 'title' => lang('Zohlednění vašich protihráčů. Pokud hrajete proti slabším, vaše herní úroveň se sníží. Naopak, pokud hrajete proti silným hráčům, vaše herní úroveň se zvýší.', domain: 'results')]}
+            {_'Srovnání s protihráči', domain: 'results'}:
         {/switch}
         <span n:class="$skill > 0 ? text-success, $skill < 0 ? text-danger">
 			{if $skill > 0}+{/if}{round($skill)|number:0,',','&nbsp;'|noescape}
