@@ -118,6 +118,7 @@ class Games extends Controller
 		}
 		$game->arena = Arena::get((int)$request->getPost('arena'));
 		$game->mode = GameModeFactory::getById((int)$request->getPost('gameMode'));
+		$game->gameType = $game->mode->type;
 		$game->modeName = $game->mode->loadName ?? '';
 		/** @var string $start */
 		$start = $request->getPost('start', date('Y-m-d H:i:s'));
@@ -155,7 +156,7 @@ class Games extends Controller
 		foreach ($teamsData as $id => $data) {
 			/** @var \App\GameModels\Game\Evo5\Team|Team $team */
 			$team = new $game->teamClass;
-			$game->addTeam($team);
+			$game->teams[$id] = $team;
 			$teams[$id] = $team;
 
 			$team->game = $game;
@@ -185,8 +186,8 @@ class Games extends Controller
 			/** @var Evo5Player|Evo6Player $player */
 			$player = new $game->playerClass;
 			$player->team = $teams[(int)$data['team']];
-			$player->team->addPlayer($player);
-			$game->addPlayer($player);
+			$player->team->players[$id] = $player;
+			$game->players[$id] = $player;
 			$player->game = $game;
 			$player->teamNum = $player->team->color;
 			$players[$id] = $player;
