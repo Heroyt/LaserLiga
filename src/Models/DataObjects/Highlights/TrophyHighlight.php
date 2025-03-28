@@ -79,7 +79,7 @@ class TrophyHighlight extends GameHighlight
 		return sprintf(
 			lang('%s získává trofej: %s', context: 'trophy', domain: 'highlights'),
 			'@' . $name . '@',
-			($fields[$this->value] ?? ['name' => lang('Hráč', context: 'results.bests')])['name']
+			($fields[$this->value] ?? ['name' => lang('Hráč', context: 'bests', domain: 'results')])['name']
 		);
 	}
 }
