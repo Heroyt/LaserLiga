@@ -245,6 +245,8 @@ tables:
 				- 'ADD `score_accuracy` int(11) NOT NULL DEFAULT 0'
 			0.5.1:
 				- 'ADD `score_vip` int(11) NOT NULL DEFAULT 0'
+			0.5.2:
+				- 'ADD `lives_rest` smallint(5) unsigned NOT NULL DEFAULT 0'
 		foreignKeys:
 			-
 				column: id_game
@@ -388,7 +390,7 @@ views:
 			   `g`.`game_type`                               AS `game_type`,
 			   timestampdiff(MINUTE, `g`.`start`, `g`.`end`) AS `game_length`,
 			   `t`.`teammates_count`                         AS `teammates`,
-			   `e`.`enemies_count`                           AS `enemies`,
+			   IFNULL(`e`.`enemies_count`,0)                 AS `enemies`,
 			   (SELECT COUNT(*)
 				FROM `evo5_teams` `t`
 				WHERE `t`.`id_game` = `p`.`id_game`)         AS `teams`,
@@ -404,7 +406,7 @@ views:
 					   FROM `evo5_players`
 					   GROUP BY `evo5_players`.`id_team`) `t`
 					  ON `p`.`id_team` = `t`.`id_team`
-				 JOIN (SELECT `evo5_players`.`id_game` AS `id_game`,
+				 LEFT JOIN (SELECT `evo5_players`.`id_game` AS `id_game`,
 							  `evo5_players`.`id_team` AS `id_team`,
 							  COUNT(*)                 AS `enemies_count`
 					   FROM `evo5_players`

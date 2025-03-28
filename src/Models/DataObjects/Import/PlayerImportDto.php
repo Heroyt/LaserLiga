@@ -61,6 +61,8 @@ abstract class PlayerImportDto
 	public ?int  $scoreBonus       = null;
 	#[OA\Property(example: -50)]
 	public ?int  $scoreMines       = null;
+	#[OA\Property(example: 59)]
+	public ?int  $livesRest         = null;
 	#[OA\Property(example: 9899)]
 	public ?int  $ammoRest         = null;
 	#[OA\Property(example: 1)]

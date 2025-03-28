@@ -281,6 +281,8 @@ tables:
 				- 'ADD `birthday` tinyint(1) unsigned NOT NULL DEFAULT 0'
 			0.2:
 				- 'ADD `bonuses` int(10) unsigned NOT NULL DEFAULT 0'
+			0.3.0:
+				- 'ADD `lives_rest` smallint(5) unsigned NOT NULL DEFAULT 0'
 	evo6_hits:
 		order: 8
 		definition: '''
@@ -402,7 +404,7 @@ views:
 			   `g`.`game_type`                               AS `game_type`,
 			   timestampdiff(MINUTE, `g`.`start`, `g`.`end`) AS `game_length`,
 			   `t`.`teammates_count`                         AS `teammates`,
-			   `e`.`enemies_count`                           AS `enemies`,
+			   IFNULL(`e`.`enemies_count`,0)                 AS `enemies`,
 			   (SELECT COUNT(*)
 				FROM `evo6_teams` `t`
 				WHERE `t`.`id_game` = `p`.`id_game`)         AS `teams`,
@@ -418,7 +420,7 @@ views:
 					   FROM `evo6_players`
 					   GROUP BY `evo6_players`.`id_team`) `t`
 					  ON `p`.`id_team` = `t`.`id_team`
-				 JOIN (SELECT `evo6_players`.`id_game` AS `id_game`,
+				 LEFT JOIN (SELECT `evo6_players`.`id_game` AS `id_game`,
 							  `evo6_players`.`id_team` AS `id_team`,
 							  COUNT(*)                 AS `enemies_count`
 					   FROM `evo6_players`
