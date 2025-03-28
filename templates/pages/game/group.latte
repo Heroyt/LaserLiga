@@ -205,7 +205,7 @@
                     <div class="stat">
                         <h5 class="stat-title">
                             {lang 'K:D'}
-                            ({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'}):
+                            ({lang 'Zásahy', domain: 'results', context: 'player'}:{lang 'Smrti', domain: 'results', context: 'player'}):
                         </h5>
                         <div class="stat-value">
                             {if empty($modes)}
@@ -385,7 +385,7 @@
 
                 <div class="hits-my">
                     <h5 class="caption mt-3 fs-3 text-center">
-                        {lang 'Zásahy do hráčů', context: 'results.hits'}
+                        {lang 'Zásahy do hráčů', domain: 'results', context: 'hits'}
                     </h5>
                     <div class="row g-1">
                         {foreach $player->getHitPlayersSorted() as $hit}
@@ -414,7 +414,7 @@
                 </div>
                 <div class="deaths-my ">
                     <h5 class="caption mt-3 fs-3 text-center">
-                        {lang 'Smrti od hráčů', context: 'results.hits'}
+                        {lang 'Smrti od hráčů', domain: 'results', context: 'hits'}
                     </h5>
                     <div class="row g-1">
                         {foreach $player->getDeathPlayersSorted() as $hit}
@@ -533,7 +533,7 @@
                         <div class="stat">
                             <h5 class="stat-title">
                                 {lang 'K:D'}
-                                ({lang 'Zásahy', context:'results.player'}:{lang 'Smrti', context:'results.player'}):
+                                ({lang 'Zásahy', domain: 'results', context: 'player'}:{lang 'Smrti', domain: 'results', context: 'player'}):
                             </h5>
                             <div class="stat-value">
                                 {ratio($team->hitsSum, $team->deathsSum, 0)}
@@ -651,7 +651,7 @@
 
                     <div class="hits-my">
                         <h5 class="caption mt-3 fs-3 text-center">
-                            {lang 'Hry proti dalším týmům', context: 'results.hits'}
+                            {lang 'Hry proti dalším týmům', domain: 'results', context: 'hits'}
                         </h5>
                         <div class="row g-1 justify-content-center">
                             {foreach $teams as $team2}

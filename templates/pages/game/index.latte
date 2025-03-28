@@ -72,9 +72,9 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{lang 'Dnešní pořadí podle', context: 'results.today'}:</h5>
+                    <h5 class="modal-title">{_'Dnešní pořadí podle', domain: 'results', context: 'today'}:</h5>
                     <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
-                            aria-label="{lang 'Close', context: 'actions'}">
+                            aria-label="{_'Zavřít', context: 'actions'}">
                         {faSolid 'xmark'}
                     </button>
                 </div>
@@ -88,9 +88,9 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{lang 'Vysvětlení hodnocení'}:</h5>
+                    <h5 class="modal-title">{_'Vysvětlení hodnocení', domain: 'results', context:'player.ranking.elo'}:</h5>
                     <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
-                            aria-label="{lang 'Close', context: 'actions'}">
+                            aria-label="{_'Zavřít', context: 'actions'}">
                         {faSolid 'xmark'}
                     </button>
                 </div>
@@ -104,9 +104,9 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{lang 'Dostupné trofeje', context: 'results.bests'}:</h5>
+                    <h5 class="modal-title">{_'Dostupné trofeje', domain: 'results', context: 'bests'}:</h5>
                     <button type="button" class="text-dark btn btn-lg" data-bs-dismiss="modal"
-                            aria-label="{lang 'Close', context: 'actions'}">
+                            aria-label="{_'Zavřít', context: 'actions'}">
                         {faSolid 'xmark'}
                     </button>
                 </div>
@@ -140,15 +140,15 @@
     <div class="results-win">
         {if $win === null}
             <div class="print-primary">
-                {lang 'Remíza', context: 'results'}
+                {_'Remíza', domain: 'results'}
             </div>
         {elseif $win instanceof App\GameModels\Game\Team}
             <div class="bg-team-{$win->color}">
-                {lang 'Vítězství', context: 'results'}: {$win->name}
+                {_'Vítězství', domain: 'results'}: {$win->name}
             </div>
         {elseif $win instanceof App\GameModels\Game\Player}
             <div class="{if $game->mode?->isSolo()}print-primary{else}bg-team-{$win->team->color}{/if}">
-                {lang 'Vítězství', context: 'results'}: {$win->name}
+                {_'Vítězství', domain: 'results'}: {$win->name}
             </div>
         {/if}
     </div>
@@ -157,35 +157,35 @@
 {define resultsHeader}
     <div class="results-header text-start row">
         <div class="col-12">
-            <h1 class="text-center fs-3">{lang 'Výsledky laser game'}</h1>
+            <h1 class="text-center fs-3">{_'Výsledky laser game'}</h1>
             <p class="visually-hidden">{$gameDescription}</p>
         </div>
         <div class="col-12 mt-2 game-head">
             <div class="game-info py-3 rounded-10 shadow bg-background-1 text-center d-flex flex-column justify-content-center align-items-center">
-                <h2 class="visually-hidden">{lang 'Informace o hře'}</h2>
-                <a href="{link ['arena', $game->arena?->id]}" aria-label="{lang 'Zobrazit stránku arény'}"
-                   title="{lang 'Zobrazit stránku arény'}" class="text-black">
+                <h2 class="visually-hidden">{_'Informace o hře'}</h2>
+                <a href="{link ['arena', $game->arena?->id]}" aria-label="{_'Zobrazit stránku arény'}"
+                   title="{_'Zobrazit stránku arény'}" class="text-black">
                     {$game->arena?->getLogoHtml()|noescape}
                     <h3 class="visually-hidden">{$game->arena?->name}</h3>
                 </a>
                 <div class="my-1">
-                    <strong>{lang 'Kód hry', context: 'results.info'}:</strong>
+                    <strong>{_'Kód hry', domain: 'results', context: 'info'}:</strong>
                     {$game->code}
                 </div>
                 <div class="my-1">
-                    <strong>{lang 'Datum', context: 'results.info'}:</strong>
+                    <strong>{_'Datum', domain: 'results', context: 'info'}:</strong>
                     <time datetime="{$game->start?->format('c')}">{$game->start?->format('d.m.Y H:i:s')}</time>
                 </div>
                 <div class="my-1">
-                    <strong>{lang 'Herní mód', context: 'results.info'}:</strong>
-                    {lang $game->mode?->name, context: 'gameModes'}
+                    <strong>{_'Herní mód', domain: 'results', context: 'info'}:</strong>
+                    {_$game->mode?->name, context: 'gameModes'}
                 </div>
                 <div n:if="$game->music !== null" class="my-1">
-                    <strong>{lang 'Hudební mód', context: 'results.info'}:</strong>
-                    {lang $game->music?->name, domain: 'music'}
+                    <strong>{_'Hudební mód', domain: 'results', context: 'info'}:</strong>
+                    {_$game->music?->name, domain: 'music'}
                 </div>
                 <div n:if="$game->getGroup() !== null">
-                    <strong>{lang 'Skupina', context: 'results.info'}:</strong>
+                    <strong>{_'Skupina', domain: 'results', context: 'info'}:</strong>
                     {$game->group?->name}
                 </div>
             </div>
@@ -196,7 +196,7 @@
                      href="#scoring-body"
                      tabindex="0" role="button" aria-expanded="false" aria-controls="scoring-body"
                      data-track-content="" data-content-name="Results - Legenda">
-                    <h3 class="m-0 fs-5">{faSolid 'star'} {lang 'Bodování', context: 'results'}</h3>
+                    <h3 class="m-0 fs-5">{faSolid 'star'} {_'Bodování', domain: 'results'}</h3>
                     <div class="collapse-indicator">
                         {faSolid 'angle-down', 'collapse-indicator-collapsed'}
                         {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
@@ -207,69 +207,69 @@
                     <div class="d-flex flex-wrap justify-content-evenly">
                         <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                             <strong class="d-block w-50">
-                                {lang 'Body za zásah', context: 'results.info'}:
+                                {_'Body za zásah', domain: 'results', context: 'info'}:
                             </strong>
                             <div class="w-50 text-end">{$game->scoring->hitOther} {svgIcon 'star', '1em'}</div>
                         </div>
                         <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                             <strong class="d-block w-50">
-                                {lang 'Body za smrt', context: 'results.info'}:
+                                {_'Body za smrt', domain: 'results', context: 'info'}:
                             </strong>
                             <div class="w-50 text-end">{$game->scoring->deathOther} {svgIcon 'star', '1em'}</div>
                         </div>
                         <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                             <strong class="d-block w-50">
-                                {lang 'Body za zásah vlastního', context: 'results.info'}:
+                                {_'Body za zásah vlastního', domain: 'results', context: 'info'}:
                             </strong>
                             <div class="w-50 text-end">{$game->scoring->hitOwn} {svgIcon 'star', '1em'}</div>
                         </div>
                         <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                             <strong class="d-block w-50">
-                                {lang 'Body za smrt od vlastního hráče', context: 'results.info'}:
+                                {_'Body za smrt od vlastního hráče', domain: 'results', context: 'info'}:
                             </strong>
                             <div class="w-50 text-end">{$game->scoring->deathOwn} {svgIcon 'star', '1em'}</div>
                         </div>
                         <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom" n:if="$game->scoring->shot !== 0">
                             <strong class="d-block w-50">
-                                {lang 'Body za výstřel', context: 'results.info'}:
+                                {_'Body za výstřel', domain: 'results', context: 'info'}:
                             </strong>
                             <div class="w-50 text-end">{$game->scoring->shot} {svgIcon 'star', '1em'}</div>
                         </div>
                         {if method_exists($game, 'isMinesOn') && $game->isMinesOn()}
                             <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                                 <strong class="d-block w-50">
-                                    {lang 'Body smrt od miny', context: 'results.info'}:
+                                    {_'Body smrt od miny', domain: 'results', context: 'info'}:
                                 </strong>
                                 <div class="w-50 text-end">{$game->scoring->hitPod} {svgIcon 'star', '1em'}</div>
                             </div>
                             <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                                 <strong class="d-block w-50">
-                                    {lang 'Body za bonus', context: 'results.info'}
-                                    - {lang 'agent', context: 'results.bonus'}
+                                    {_'Body za bonus', domain: 'results', context: 'info'}
+                                    - {_'agent', domain: 'results', context: 'bonus'}
                                     :
                                 </strong>
                                 <div class="w-50 text-end">{$game->scoring->agent} {svgIcon 'star', '1em'}</div>
                             </div>
                             <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                                 <strong class="d-block w-50">
-                                    {lang 'Body za bonus', context: 'results.info'}
-                                    - {lang 'neviditelnost', context: 'results.bonus'}
+                                    {_'Body za bonus', domain: 'results', context: 'info'}
+                                    - {_'neviditelnost', domain: 'results', context: 'bonus'}
                                     :
                                 </strong>
                                 <div class="w-50 text-end">{$game->scoring->invisibility} {svgIcon 'star', '1em'}</div>
                             </div>
                             <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                                 <strong class="d-block w-50">
-                                    {lang 'Body za bonus', context: 'results.info'}
-                                    - {lang 'samopal', context: 'results.bonus'}
+                                    {_'Body za bonus', domain: 'results', context: 'info'}
+                                    - {_'samopal', domain: 'results', context: 'bonus'}
                                     :
                                 </strong>
                                 <div class="w-50 text-end">{$game->scoring->machineGun} {svgIcon 'star', '1em'}</div>
                             </div>
                             <div class="my-1 d-flex py-2 px-3 align-items-center border-bottom col-12 col-md-6">
                                 <strong class="d-block w-50">
-                                    {lang 'Body za bonus', context: 'results.info'}
-                                    - {lang 'štít', context: 'results.bonus'}
+                                    {_'Body za bonus', domain: 'results', context: 'info'}
+                                    - {_'štít', domain: 'results', context: 'bonus'}
                                     :
                                 </strong>
                                 <div class="w-50 text-end">{$game->scoring->shield} {svgIcon 'star', '1em'}</div>
@@ -285,7 +285,7 @@
                      data-bs-target="#legend"
                      tabindex="0" role="button" aria-expanded="false" aria-controls="legend"
                      data-track-content="" data-content-name="Results - Legenda">
-                    <h3 class="m-0 fs-5">{faSolid 'circle-info'} {lang 'Legenda'}</h3>
+                    <h3 class="m-0 fs-5">{faSolid 'circle-info'} {_'Legenda'}</h3>
                     <div class="collapse-indicator">
                         {faSolid 'angle-down', 'collapse-indicator-collapsed'}
                         {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
@@ -295,38 +295,38 @@
                      id="legend">
                     <div class="d-flex flex-wrap justify-content-evenly align-items-center">
                         <div class="legend m-3">
-                            {svgIcon 'star', '', '1em'} - {lang 'Skóre', context: 'results'}
+                            {svgIcon 'star', '', '1em'} - {_'Skóre', domain: 'results'}
                         </div>
                         <div class="legend m-3">
-                            {faSolid 'medal'} - {lang 'Herní úroveň'}
+                            {faSolid 'medal'} - {_'Herní úroveň'}
                         </div>
                         <div class="legend m-3">
-                            {svgIcon 'bullets', '', '1em'} - {lang 'Výstřely', context: 'results'}
+                            {svgIcon 'bullets', '', '1em'} - {_'Výstřely', domain: 'results'}
                         </div>
                         <div class="legend m-3">
-                            {svgIcon 'kill', '', '1em'} - {lang 'Zásahy', context: 'results'}
+                            {svgIcon 'kill', '', '1em'} - {_'Zásahy', domain: 'results'}
                         </div>
                         <div class="legend m-3">
-                            {svgIcon 'skull', '', '1em'} - {lang 'Smrti', context: 'results'}
+                            {svgIcon 'skull', '', '1em'} - {_'Smrti', domain: 'results'}
                         </div>
                         <div class="legend m-3">
-                            {svgIcon 'dead', '', '1em'} - {lang 'Zásahy od/do spoluhráčů', context: 'results'}
+                            {svgIcon 'dead', '', '1em'} - {_'Zásahy od/do spoluhráčů', domain: 'results'}
                         </div>
                         {if method_exists($game, 'isMinesOn') && $game->isMinesOn() && $game->mode?->settings->playerMines}
                             <div class="legend m-3">
-                                {svgIcon 'base_2', '', '1em'} - {lang 'Bonusy', context: 'results'}
+                                {svgIcon 'base_2', '', '1em'} - {_'Bonusy', domain: 'results'}
                             </div>
                             <div class="legend m-3">
-                                {svgIcon 'agent', '', '1em'} - {lang 'Agent', context: 'results.bonus'}
+                                {svgIcon 'agent', '', '1em'} - {_'Agent', domain: 'results', context: 'bonus'}
                             </div>
                             <div class="legend m-3">
-                                {svgIcon 'invisibility', '', '1em'} - {lang 'Neviditelnost', context: 'results.bonus'}
+                                {svgIcon 'invisibility', '', '1em'} - {_'Neviditelnost', domain: 'results', context: 'bonus'}
                             </div>
                             <div class="legend m-3">
-                                {svgIcon 'machine_gun', '', '1em'} - {lang 'Samopal', context: 'results.bonus'}
+                                {svgIcon 'machine_gun', '', '1em'} - {_'Samopal', domain: 'results', context: 'bonus'}
                             </div>
                             <div class="legend m-3">
-                                {svgIcon 'shield', '', '1em'} - {lang 'Štít', context: 'results.bonus'}
+                                {svgIcon 'shield', '', '1em'} - {_'Štít', domain: 'results', context: 'bonus'}
                             </div>
                         {/if}
                     </div>
@@ -339,7 +339,7 @@
                      href="#highlights-body"
                      tabindex="0" role="button" aria-expanded="false" aria-controls="highlights-body"
                      data-track-content="" data-content-name="Results - Analýza hry">
-                    <h3 class="m-0 fs-5">{faSolid 'lightbulb'} {lang 'Analýza hry - zajímavosti'}</h3>
+                    <h3 class="m-0 fs-5">{faSolid 'lightbulb'} {_'Analýza hry - zajímavosti'}</h3>
                     <div class="collapse-indicator">
                         {faSolid 'angle-down', 'collapse-indicator-collapsed'}
                         {faSolid 'angle-up', 'collapse-indicator-not-collapsed'}
@@ -348,7 +348,7 @@
                 <div class="bg-background-1 collapse shadow rounded-bottom-10 text-center"
                      id="highlights-body">
                     <div class="empty text-center">
-                        {lang 'Žádné zajímavosti'}
+                        {_'Žádné zajímavosti'}
                     </div>
                     <div class="top">
                     </div>
@@ -357,11 +357,11 @@
                         <button type="button" class="btn btn-link collapsed"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#highlights-collapse"
-                                data-more="{lang 'více'}"
-                                data-less="{lang 'méně'}"
+                                data-more="{_'více'}"
+                                data-less="{_'méně'}"
                                 aria-expanded="false"
                                 aria-controls="highlights-collapse">
-                            {lang 'Zobrazit'}
+                            {_'Zobrazit'}
                         </button>
                     </p>
                 </div>
@@ -376,7 +376,7 @@
                     data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->mode?->name, context: 'gameModes'), $game->arena?->name)}"
                     data-url="{link $link}">
                 {faSolid 'share'}
-                {lang 'Sdílet'}
+                {_'Sdílet'}
             </button>
         </div>
         <div n:if="$prevUserGame !== '' || $nextUserGame !== ''"
@@ -384,27 +384,27 @@
             <a n:if="!empty($prevUserGame)" href="{link ['game', $prevUserGame, $activeUser->getCode()]}"
                                             class="btn btn-secondary"
                                             data-track-content=""
-                                            aria-label="{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            aria-label="{sprintf(lang('Předchozí hra hráče %s', domain: 'results', context: 'group'), $activeUser->nickname)}"
                                             data-toggle="tooltip"
-                                            title="{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            title="{sprintf(lang('Předchozí hra hráče %s', domain: 'results', context: 'group'), $activeUser->nickname)}"
                                             data-content-name="Results - Previous game"
                                             data-content-piece="Button">
                 {faSolid 'angle-left'}
                 <span class="visually-hidden">
-					{sprintf(lang('Předchozí hra hráče %s', context: 'results.group'), $activeUser->nickname)}
+					{sprintf(lang('Předchozí hra hráče %s', domain: 'results', context: 'group'), $activeUser->nickname)}
 					</span>
             </a>
             <div class="input-group-text text-bg-secondary">{$activeUser->nickname}</div>
             <a n:if="!empty($nextUserGame)" href="{link ['game', $nextUserGame, $activeUser->getCode()]}"
                                             class="btn btn-secondary"
                                             data-track-content=""
-                                            aria-label="{sprintf(lang('Následující hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            aria-label="{sprintf(lang('Následující hra hráče %s', domain: 'results', context: 'group'), $activeUser->nickname)}"
                                             data-toggle="tooltip"
-                                            title="{sprintf(lang('Následující hra hráče %s', context: 'results.group'), $activeUser->nickname)}"
+                                            title="{sprintf(lang('Následující hra hráče %s', domain: 'results', context: 'group'), $activeUser->nickname)}"
                                             data-content-name="Results - Previous game"
                                             data-content-piece="Button">
                     <span class="visually-hidden">
-					{sprintf(lang('Následující hra hráče %s', context: 'results.group'), $activeUser->nickname)}
+					{sprintf(lang('Následující hra hráče %s', domain: 'results', context: 'group'), $activeUser->nickname)}
 					</span>
                 {faSolid 'angle-right'}
             </a>
@@ -413,14 +413,14 @@
             <div class="btn-group btn-group-lg">
                 <a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-primary"
                                             data-track-content=""
-                                            aria-label="{lang 'Předchozí hra', context: 'results.group'}"
+                                            aria-label="{_'Předchozí hra', domain: 'results', context: 'group'}"
                                             data-toggle="tooltip"
-                                            title="{lang 'Předchozí hra', context: 'results.group'}"
+                                            title="{_'Předchozí hra', domain: 'results', context: 'group'}"
                                             data-content-name="Results - Previous game"
                                             data-content-piece="Button">
                     {faSolid 'angle-left'}
                     <span class="visually-hidden">
-					{lang 'Předchozí hra', context: 'results.group'}
+					{_'Předchozí hra', domain: 'results', context: 'group'}
 					</span>
                 </a>
                 <a n:if="$game->getGroup() !== null" href="{link ['game', 'group', $game->getGroup()?->encodedId]}"
@@ -428,23 +428,23 @@
                                           data-track-content="" data-content-name="Results - Group"
                                           data-content-piece="Button">
                     {faSolid 'list'}
-                    {lang 'Skupina'}
+                    {_'Skupina'}
                 </a>
                 <a n:if="$game->getTournamentGame() !== null"
                         href="{link ['tournament', $game->getTournamentGame()->tournament->id]}#results-tab"
                         class="btn btn-secondary"
                         data-track-content="" data-content-name="Results - Tournament" data-content-piece="Button">
                     {faSolid 'trophy'}
-                    {lang 'Turnaj'}
+                    {_'Turnaj'}
                 </a>
                 <a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-secondary"
                                             data-track-content="" data-content-name="Results - Next game"
-                                            aria-label="{lang 'Následující hra', context: 'results.group'}"
+                                            aria-label="{_'Následující hra', domain: 'results', context: 'group'}"
                                             data-toggle="tooltip"
-                                            title="{lang 'Následující hra', context: 'results.group'}"
+                                            title="{_'Následující hra', domain: 'results', context: 'group'}"
                                             data-content-piece="Button">
 					<span class="visually-hidden">
-					{lang 'Následující hra', context: 'results.group'}
+					{_'Následující hra', domain: 'results', context: 'group'}
 					</span>
                     {faSolid 'angle-right'}
                 </a>
@@ -456,11 +456,11 @@
             <input type="radio" class="btn-check" name="result-mode-select" value="players" id="result-mode-players"
                    autocomplete="off" checked>
             <label class="btn btn-outline-primary" for="result-mode-players"
-                   data-content-piece="Players">{lang 'Hráči'}</label>
+                   data-content-piece="Players">{_'Hráči'}</label>
             <input type="radio" class="btn-check" name="result-mode-select" value="teams" id="result-mode-teams"
                    autocomplete="off">
             <label class="btn btn-outline-primary" for="result-mode-teams"
-                   data-content-piece="Teams">{lang 'Týmy'}</label>
+                   data-content-piece="Teams">{_'Týmy'}</label>
         </div>
     </div>
 {/define}
@@ -469,7 +469,7 @@
     {var int $maxShots = $game->players->query()->sortBy('shots')->desc()->first()->shots}
     {var int $count = count($game->players)}
     <section class="results-players">
-        <h2 class="visually-hidden">{lang 'Výsledky hráčů'}</h2>
+        <h2 class="visually-hidden">{_'Výsledky hráčů', domain: 'results'}</h2>
         {foreach $game->playersSorted as $key => $player}
             <div class="results-player rounded-10 my-2 bg-background-1 flex-fill shadow">
                 <a class="player-head collapsed bg-team-{$player->color} p-2 text-decoration-none" data-bs-toggle="collapse"
@@ -493,7 +493,7 @@
                                 {$player->name}
                             </h3>
                             <div class="player-rank">
-                                <span class="visually-hidden">{lang 'Trofej'}:</span>
+                                <span class="visually-hidden">{_'Trofej', domain: 'results'}:</span>
                                 {var array $rank = $player->getBestAt()}
                                 {svgIcon $rank['icon'], '', 15}
                                 <div class="rank-name">{$rank['name']}</div>
@@ -527,14 +527,14 @@
 {define playerScore}
     {varType App\GameModels\Game\Player $player}
     <div class="score-skill d-flex flex-wrap justify-content-end">
-        <div n:if="$game->mode?->settings->playerScore" class="score" data-toggle="tooltip" title="{lang 'Skóre'}">
+        <div n:if="$game->mode?->settings->playerScore" class="score" data-toggle="tooltip" title="{_'Skóre'}">
             {faSolid 'star'}
-            <span class="visually-hidden">{lang 'Skóre'}:</span>
+            <span class="visually-hidden">{_'Skóre', domain: 'results'}:</span>
             <b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
         </div>
-        <div class="skill text-end ps-1" style="max-width:4.5rem;" data-toggle="tooltip" title="{lang 'Herní úroveň'}">
+        <div class="skill text-end ps-1" style="max-width:4.5rem;" data-toggle="tooltip" title="{_'Herní úroveň'}">
             {faSolid 'medal'}
-            <span class="visually-hidden">{lang 'Herní úroveň'}:</span>
+            <span class="visually-hidden">{_'Herní úroveň', domain: 'results'}:</span>
             {$player->getSkill()|number:0,',','&nbsp;'|noescape}
         </div>
     </div>
@@ -544,7 +544,7 @@
     {var int $totalScore = array_sum(array_map(function($team){ return $team->score > 0 ? $team->score : 0;},$game->teams->getAll()))}
     {var App\GameModels\Game\Team|null $win = $game->mode?->getWin($game)}
     <div class="results-teams" data-teams="{count($game->teams)}">
-        <h2 class="visually-hidden">{lang 'Výsledky týmů'}</h2>
+        <h2 class="visually-hidden">{_'Výsledky týmů', domain: 'results'}</h2>
         {foreach $game->teamsSorted as $team}
             {varType App\GameModels\Game\Team $team}
             <div class="team-score rounded bg-team-{$team->color}"
@@ -568,7 +568,7 @@
     <section class="results-hits align-self-end d-none d-md-block">
         <h2 class="caption fs-4">
             {svgIcon 'kill', '', '1rem'}
-            {lang 'Zásahy hráčů', context: 'results.hits'}
+            {_'Zásahy hráčů', domain: 'results', context: 'hits'}
         </h2>
         <div n:foreach="$game->playersSorted as $player"
                 class="player-hits w-100 bg-background-1 rounded py-2 px-3 d-flex mt-1 align-items-center shadow">
@@ -580,11 +580,11 @@
                 <div class="fs-sm">
                     {switch App\Services\GenderService::rankWord($player->name)}
                         {case App\Helpers\Gender::OTHER}
-                        {lang 'Zasáhlo si hráče', context: 'results.hits'}:
+                        {_'Zasáhlo si hráče', domain: 'results', context: 'hits'}:
                         {case App\Helpers\Gender::FEMALE}
-                        {lang 'Zasáhla si hráče', context: 'results.hits'}:
+                        {_'Zasáhla si hráče', domain: 'results', context: 'hits'}:
                         {default}
-                        {lang 'Zasáhl si hráče', context: 'results.hits'}:
+                        {_'Zasáhl si hráče', domain: 'results', context: 'hits'}:
                     {/switch}
                 </div>
             </div>

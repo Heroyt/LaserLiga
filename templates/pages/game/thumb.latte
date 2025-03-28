@@ -47,21 +47,21 @@
 		<text x="{$padding + $headerHeight + 30}" y="{$padding + 30}" text-anchor="start" font-size="20"
 			  font-family="sans-serif" fill="#fff">
 			<tspan font-weight="bold">
-				{lang 'Kód hry', context: 'results.info'}:
+				{lang 'Kód hry', domain: 'results', context: 'info'}:
 			</tspan>
 			{$game->code}
 		</text>
 		<text x="{$padding + $headerHeight + 30}" y="{$padding + ($headerHeight / 2) + 10}" text-anchor="start"
 			  font-size="20" font-family="sans-serif" fill="#fff">
 			<tspan font-weight="bold">
-				{lang 'Datum', context: 'results.info'}:
+				{lang 'Datum', domain: 'results', context: 'info'}:
 			</tspan>
 			{$game->start->format('d.m.Y H:i')}
 		</text>
 		<text x="{$padding + $headerHeight + 30}" y="{$padding + $headerHeight - 10}" text-anchor="start" font-size="20"
 			  font-family="sans-serif" fill="#fff">
 			<tspan font-weight="bold">
-				{lang 'Herní mód', context: 'results.info'}:
+				{lang 'Herní mód', domain: 'results', context: 'info'}:
 			</tspan>
 			{lang $game->getMode()?->name, context: 'gameModes'}
 		</text>
