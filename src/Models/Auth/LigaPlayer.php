@@ -149,6 +149,7 @@ class LigaPlayer extends Player
 		];
 	}
 
+	#[AfterUpdate, AfterInsert, AfterDelete]
 	public function clearCache(): void {
 		parent::clearCache();
 

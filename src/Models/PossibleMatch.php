@@ -7,6 +7,9 @@ use App\GameModels\Game\Game;
 use App\Models\Auth\User;
 use Lsr\Caching\Cache;
 use Lsr\Core\App;
+use Lsr\Orm\Attributes\Hooks\AfterDelete;
+use Lsr\Orm\Attributes\Hooks\AfterInsert;
+use Lsr\Orm\Attributes\Hooks\AfterUpdate;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\Exceptions\ValidationException;
@@ -44,6 +47,7 @@ class PossibleMatch extends BaseModel
 		return $query->cacheTags('user/' . $user->id . '/possibleMatches')->get();
 	}
 
+	#[AfterUpdate, AfterInsert, AfterDelete]
 	public function clearCache(): void {
 		parent::clearCache();
 		/** @var Cache $cache */

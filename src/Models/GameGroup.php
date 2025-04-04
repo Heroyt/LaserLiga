@@ -77,6 +77,7 @@ class GameGroup extends BaseModel implements GameGroupInterface
 		return parent::save();
 	}
 
+	#[AfterUpdate, AfterInsert, AfterDelete]
 	public function clearCache(): void {
 		parent::clearCache();
 		if (isset($this->id)) {
