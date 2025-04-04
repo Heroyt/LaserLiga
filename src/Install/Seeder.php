@@ -3,12 +3,10 @@
 namespace App\Install;
 
 use App\GameModels\Game\GameModes\AbstractMode;
-use App\Models\Auth\User;
 use JsonException;
 use Lsr\Core\Auth\Models\User as UserParent;
 use Lsr\Core\Auth\Models\UserType;
 use Lsr\Db\DB;
-use Nette\Security\Passwords;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Seeder implements InstallInterface
@@ -524,33 +522,6 @@ class Seeder implements InstallInterface
 			if ($fresh) {
 				DB::delete(UserParent::TABLE, ['1=1']);
 				DB::resetAutoIncrement(UserParent::TABLE);
-			}
-			$passwords = null;
-			if (!User::exists(1)) {
-				$passwords = new Passwords();
-				self::printDebug('Creating admin user...', $output);
-				$user = new User();
-				$user->name = 'admin';
-				$user->email = 'admin@admin.cz';
-				$user->type = UserType::get(1);
-				$user->password = $passwords->hash('admin');
-				if (!$user->save()) {
-					self::printError('Failed to create user', $output);
-					return false;
-				}
-			}
-			if (!User::exists(2)) {
-				$passwords ??= new Passwords();
-				self::printDebug('Creating general user...', $output);
-				$user = new User();
-				$user->name = 'user';
-				$user->email = 'user@user.cz';
-				$user->type = UserType::get(2);
-				$user->password = $passwords->hash('user');
-				if (!$user->save()) {
-					self::printError('Failed to create user', $output);
-					return false;
-				}
 			}
 
 			// Game modes
