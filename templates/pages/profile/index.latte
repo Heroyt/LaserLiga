@@ -43,9 +43,15 @@
             <p class="text-muted">{_'Další tituly odemkneš získáním ocenění.'}</p>
             <div class="titles-select">
                 {foreach $titles as $title}
-                    <input class="d-none" type="radio" name="title" id="title-{$title->id}" n:attr="checked: $title->id === $user->player->getTitle()->id" value="{$title->id}" />
-                    <label for="title-{$title->id}" class="player-title rarity-{$title->rarity->value}">
-                        {_$title->name}
+                    <input class="d-none" type="radio" name="title"
+                           id="title-{$title->id}" n:attr="checked: $title->id === $user->player->getTitle()->id"
+                           value="{$title->id}"/>
+                    <label for="title-{$title->id}" class="player-title rarity-{$title->rarity->value}"
+                            {if !empty($title->description)}
+                        data-toggle="tooltip"
+                        title="{_$title->description, domain: 'titles', context: $title->name}"
+                            {/if}>
+                        {_$title->name, domain: 'titles'}
                     </label>
                 {/foreach}
             </div>
@@ -72,7 +78,8 @@
         <div class="form-group mb-3">
             <div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
                 <input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
-                       id="email" placeholder="email@email.cz" autocomplete="email username" required value="{$user->email}">
+                       id="email" placeholder="email@email.cz" autocomplete="email username" required
+                       value="{$user->email}">
                 <label for="email">{lang 'E-mail'}:</label>
             </div>
             <div class="invalid-feedback">
@@ -90,8 +97,11 @@
         </div>
         <div class="form-group mb-3">
             <label for="birthday">{lang 'Datum narození'}:</label>
-            <input type="text" name="birthday" class="form-control date-picker {ifset $errors['birthday']}is-invalid{/ifset}" data-max="{date('d.m.Y', strtotime('-5 years'))}"
-                   id="birthday" placeholder="{date('d.m.Y')}" autocomplete="bday" value="{$user->player->birthday?->format('d.m.Y')}"
+            <input type="text" name="birthday"
+                   class="form-control date-picker {ifset $errors['birthday']}is-invalid{/ifset}"
+                   data-max="{date('d.m.Y', strtotime('-5 years'))}"
+                   id="birthday" placeholder="{date('d.m.Y')}" autocomplete="bday"
+                   value="{$user->player->birthday?->format('d.m.Y')}"
                    aria-describedby="birthday-description">
             <div class="invalid-feedback">
                 {ifset $errors['birthday']}

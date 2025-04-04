@@ -15,7 +15,7 @@
     <h2>Stav vest</h2>
     <ul>
         <li n:foreach="$vests as $vest" style="font-size: 16pt;background:{$vest->status->getColor()|noescape};color:{$vest->status->getContrastColor()|noescape};">
-            <strong>{$vest->vestNum}</strong>: {_$vest->status->getName()}{if !empty($vest->info)} - {$vest->info}{/if}
+            <strong>{$vest->vestNum}</strong>: {_$vest->status->getName(), context: 'vests.status'}{if !empty($vest->info)} - {$vest->info}{/if}
         </li>
     </ul>
 {/block}

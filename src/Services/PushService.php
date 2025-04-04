@@ -224,9 +224,10 @@ class PushService
 			);
 			$names = [];
 			foreach ($achievements as $achievement) {
-				$names[] = $achievement->achievement->rarity->getReadableName() . ': ' . lang(
-						         $achievement->achievement->name,
-						context: 'achievement'
+				$names[] = $achievement->achievement->rarity->getReadableName() . ': ' .
+					lang(
+						$achievement->achievement->name,
+						domain: 'achievements'
 					);
 			}
 			$notification->body = implode(', ', $names);

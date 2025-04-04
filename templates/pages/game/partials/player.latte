@@ -58,8 +58,8 @@
                     <div n:foreach="$achievements as $achievement"
                             class="achievement-card m-2 rarity-{$achievement->achievement->rarity->value} achievement-claimed">
                         {$achievement->getIcon()|noescape}
-                        <h4 class="title">{$achievement->achievement->name}</h4>
-                        <p class="description">{$achievement->achievement->description}</p>
+                        <h4 class="title">{_$achievement->achievement->name, domain: 'achievements'}</h4>
+                        <p class="description">{_$achievement->achievement->description, context: $achievement->achievement->name, domain: 'achievements'}</p>
                     </div>
                 </div>
             {/if}
@@ -68,11 +68,11 @@
     {block playerScoreDetail}
         {var float|null $diff = $player->getRankDifference()}
         <div class="player-score-detail text-center" data-content-piece="Score">
-            <h4>{lang 'Rozpad skóre a herní úrovně'}</h4>
+            <h4>{lang 'Rozpad skóre a herní úrovně', domain: 'results'}</h4>
             <div class="row px-5">
                 <div class="col-12 col-md-6">
                     <h5 class="border-bottom py-2 mt-3" {ifset $diff}style="line-height: 2.4;"{/ifset}>
-                        {lang 'Skóre'}: {$player->score|number:0,',','&nbsp;'|noescape}
+                        {lang 'Skóre', domain: 'results'}: {$player->score|number:0,',','&nbsp;'|noescape}
                         {faSolid 'star'}
                     </h5>
                     {var int $hitScore = ($game->mode->isSolo() || !isset($player->hitsOther) ? $player->hits : $player->hitsOther) * $game->scoring->hitOther}
@@ -101,7 +101,7 @@
                 </div>
                 <div class="col-12 col-md-6">
                     <h5 class="border-bottom py-2 mt-3">
-                        {lang 'Herní úroveň'}: {$player->getSkill()|number:0,',','&nbsp;'|noescape}
+                        {lang 'Herní úroveň', domain: 'results'}: {$player->getSkill()|number:0,',','&nbsp;'|noescape}
                         {faSolid 'medal'}
                         {ifset $diff}
                             <br>
@@ -276,7 +276,7 @@
                 {/if}
             </p>
             <p class="text-center time-dead">
-                <strong>{lang 'Čas mrtvý'}:</strong>
+                <strong>{lang 'Čas mrtvý', domain: 'results'}:</strong>
                 {var int $seconds = $player->deaths * (property_exists($game, 'respawn') ? $game->respawn ?? 5 : 5)}
                 {if $seconds >= 60}
                     {floor($seconds/60)}min
@@ -499,7 +499,7 @@
 
             <h4 class="caption mt-4">
                 {faSolid 'chart-simple'}
-                {lang 'Umístění v žebříčku'}
+                {lang 'Umístění v žebříčku', domain: 'results'}
             </h4>
             <p class="fs-sm">
                 {faSolid 'circle-info'}<br>

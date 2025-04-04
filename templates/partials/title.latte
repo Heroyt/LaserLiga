@@ -1,10 +1,10 @@
 {parameters App\Models\Achievements\Title $title, bool $small = false, bool $edit = false}
 
 <span class="player-title {if $small}player-title-sm{/if} rarity-{$title->rarity->value}"
-      {if !empty($title->description)}data-toggle="tooltip" title="{$title->description|lang}"{/if}>
-    {$title->name|lang}
+      {if !empty($title->description)}data-toggle="tooltip" title="{_$title->description, domain: 'titles', context: $title->name}"{/if}>
+    {_$title->name, domain: 'titles'}
     {if $edit}
-        <a href="{link 'user'}" class="edit btn btn-primary rounded-circle btn-sm" aria-label="{lang 'Upravit'}">
+        <a href="{link 'user'}" class="edit btn btn-primary rounded-circle btn-sm" aria-label="{_'Upravit', context: 'actions'}">
             {faSolid 'pen-to-square'}
         </a>
     {/if}
