@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Controllers\Games;
 
 use App\CQRS\Commands\MatomoTrackCommand;
-use App\CQRS\Commands\S3\DownloadFilesZipCommand;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
@@ -15,7 +14,6 @@ use App\Helpers\Gender;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Game\PlayerGamesGame;
-use App\Models\Photos\Photo;
 use App\Services\GenderService;
 use App\Services\Thumbnails\ThumbnailGenerator;
 use App\Templates\Games\GameParameters;
@@ -37,6 +35,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 class GameController extends Controller
 {
+	use WithPhotos;
 
 	/**
 	 * @param Auth<User> $auth
@@ -141,7 +140,7 @@ class GameController extends Controller
 			}
 		}
 
-		$this->findGamePhotos($game, $request);
+		$this->findPhotos($game, $request);
 
 		/** @var Player $player */
 		$player = new ($game->playerClass);
@@ -165,44 +164,8 @@ class GameController extends Controller
 		if (!$this->canDownloadPhotos($game, $request)) {
 			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
 		}
-		$commandBus = App::getServiceByType(CommandBus::class);
-		assert($commandBus instanceof CommandBus);
-		$zip = UPLOAD_DIR.'photos/';
-		if (!is_dir($zip) && !mkdir($zip, 0777, true)) {
-			throw new \RuntimeException('Cannot create directory for photos');
-		}
-		$zip .= $game->code.'.zip';
 
-		$photos = Photo::findForGame($game);
-		$urls = [];
-		foreach ($photos as $photo) {
-			if ($photo->url !== null) {
-				$urls[] = $photo->url;
-			}
-		}
-
-		if (!$commandBus->dispatch(new DownloadFilesZipCommand($urls, $zip))) {
-			$request->addPassError(lang('Nepodařilo se stáhnout fotky, zkuste to znovu později.', context: 'errors'));
-			return $this->redirect(['game', $code], $request, 307);
-		}
-
-		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request) {
-			$matomo->doTrackAction($request->getUri()->__toString(), 'download');
-		}));
-
-		return new Response(
-			new \Nyholm\Psr7\Response(
-				200,
-				[
-					'Content-Type'        => 'application/octet-stream',
-					'Content-Disposition' => 'attachment; filename="fotky_'.$game->code.'.zip"',
-					'Content-Size' => filesize($zip),
-					'Content-Transfer-Encoding' => 'binary',
-					'Content-Description' => 'File Transfer',
-				],
-				fopen($zip, 'rb'),
-			)
-		);
+		return $this->makePhotosDownload($game, $request);
 	}
 
 	public function makePublic(Request $request, string $code): ResponseInterface {
@@ -431,85 +394,6 @@ class GameController extends Controller
 		}
 
 		return $this->view('pages/game/thumb');
-	}
-
-	private function findGamePhotos(Game $game, Request $request) : void {
-		if (!$this->canShowPhotos($game, $request)) {
-			return;
-		}
-
-		$this->params->photos = Photo::findForGame($game);
-		$this->params->canDownloadPhotos = $this->canDownloadPhotos($game, $request);
-		if (empty($game->photosSecret)) {
-			$game->generatePhotosSecret();
-			$game->save();
-			$game->clearCache();
-		}
-	}
-
-	/**
-	 * Check if the current user has the right to view photos of the game
-	 */
-	private function canShowPhotos(Game $game, Request $request) : bool {
-		if ($game->photosPublic) {
-			return true;
-		}
-
-		return $this->canDownloadPhotos($game, $request);
-	}
-
-	private function canDownloadPhotos(Game $game, Request $request) : bool {
-		bdump($request->getGet('photos'));
-		// Check logged-in user
-		$user = $this->auth->getLoggedIn();
-		if ($user !== null) {
-			// Admin and arena users
-			if (
-				$user->hasRight('view-photos-all')
-				|| (
-					($user->hasRight('manage-photos') || $user->hasRight('view-photos'))
-					&& $user->managesArena($game->arena)
-				)
-			) {
-				return true;
-			}
-
-			// Check if user is in the game
-			foreach ($game->players as $player) {
-				if ($player->user?->id === $user->id) {
-					return true;
-				}
-			}
-		}
-
-		// Check secret
-		if ($game->photosSecret !== null) {
-			/** @var string|string[] $sessionSecrets */
-			$sessionSecrets = $this->session->get('photos', []);
-
-			// Check GET parameter
-			$secret = $request->getGet('photos');
-			if ($secret !== null && $secret === $game->photosSecret) {
-				// Update session
-				if (is_string($sessionSecrets)) {
-					$sessionSecrets = [$sessionSecrets];
-				}
-				$sessionSecrets[] = $secret;
-				$this->session->set('photos', $sessionSecrets);
-
-				return true;
-			}
-
-			// Check session
-			if (is_string($sessionSecrets) && $sessionSecrets === $game->photosSecret) {
-				return true;
-			}
-			if (is_array($sessionSecrets) && in_array($game->photosSecret, $sessionSecrets, true)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 }
