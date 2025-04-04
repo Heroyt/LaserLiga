@@ -317,6 +317,13 @@ tables:
 				name: 'game_code'
 				columns: ['game_code']
 				unique: true
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
 views:
 	vModesNames: '''
 	SELECT `a`.`id_mode`     AS `id_mode`,
