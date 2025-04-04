@@ -5,6 +5,7 @@ namespace App\Controllers\Games;
 
 use App\CQRS\Commands\MatomoTrackCommand;
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\GameModes\CustomPlayerResultsMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\Today;
@@ -78,6 +79,11 @@ class GamePlayerController extends Controller
 			$matomo->doTrackPageView($game->arena->name.' - Hra - '.$game->code.' - Hráči - '.$player->name);
 		}));
 
+		if ($game->mode instanceof CustomPlayerResultsMode && !empty($template = $game->mode->getCustomPlayerTemplate())) {
+			$this->params->mode = $game->mode;
+			return $this->view($template)
+			            ->withHeader('Cache-Control', 'max-age=2592000,public');
+		}
 		return $this->view('pages/game/partials/player')
 		            ->withHeader('Cache-Control', 'max-age=2592000,public');
 	}

@@ -1,0 +1,24 @@
+{templateType App\Templates\Games\GamePlayerParameters}
+{varType App\GameModels\Game\Evo6\GameModes\Gladiator $mode}
+
+{embed '../../partials/player.latte'
+    user: $user,
+    game: $game,
+    player: $player,
+    maxShots: $maxShots,
+    today: $today,
+    achievements: $achievements
+}
+    {block modeStats}
+        <div class="player-lives-detail">
+            <div class="player-respawns">
+                {_'Oživení', domail: 'results', context: 'player'}:
+                {$mode->getRespawns($player)}
+            </div>
+            <div class="player-respawns">
+                {_'Zbývající životy', domail: 'results', context: 'player'}:
+                {$player->livesRest}
+            </div>
+        </div>
+    {/block}
+{/embed}

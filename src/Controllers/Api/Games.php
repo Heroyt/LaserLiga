@@ -11,6 +11,7 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\GameModes\CustomizeAfterImport;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\Models\Arena;
@@ -1091,6 +1092,10 @@ class Games extends ApiController
 
 			// Save game
 			try {
+				if ($game->mode instanceof CustomizeAfterImport) {
+					$game->mode->processImportedGame($game);
+				}
+
 				if ($game->save() === false) {
 					return $this->respond(
 						new ErrorResponse('Failed saving the game', ErrorType::DATABASE),
