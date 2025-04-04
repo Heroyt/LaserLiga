@@ -45,4 +45,12 @@ class Achievement extends BaseModel
 	#[OA\Property]
 	public bool $hidden = false;
 
+	public function jsonSerialize(): array {
+		$data = parent::jsonSerialize();
+		$data['name'] = lang($data['name'], domain: 'achievements');
+		$data['description'] = lang($data['description'], context: $this->name, domain: 'achievements');
+		$data['info'] = lang($data['info'], context: 'info', domain: 'achievements');
+		return $data;
+	}
+
 }
