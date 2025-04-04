@@ -61,7 +61,8 @@
 		"lsr/cqrs": "^0.1.1",
 		"aws/aws-sdk-php": "^3.342",
     "ext-exif": "*",
-		"matomo/matomo-php-tracker": "^3.3"
+		"matomo/matomo-php-tracker": "^3.3",
+		"maestroerror/php-heic-to-jpg": "^1.0"
   },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

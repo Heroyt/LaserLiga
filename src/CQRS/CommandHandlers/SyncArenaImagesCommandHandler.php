@@ -23,6 +23,7 @@ use Lsr\CQRS\CommandInterface;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Logger;
+use Maestroerror\HeicToJpg;
 use Spatie\Dropbox\Client;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -78,7 +79,7 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 				$client,
 				$arena->dropbox->directory ?? '/',
 				true,
-				['jpg', 'jpeg', 'png']
+				['jpg', 'jpeg', 'png', 'heic', 'heif']
 			)
 		);
 
@@ -105,6 +106,21 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 				}
 				$logger->debug('File downloaded ' . $tempFile);
 				$output?->writeln('File downloaded ' . $tempFile);
+
+				// Convert heic to jpg
+				if (($entry->fileType === 'heic' || $entry->fileType === 'heif') && HeicToJpg::isHeic($tempFile)) {
+					$logger->debug('Converting file from HEIC ' . $tempFile);
+					$output?->writeln('Converting file from HEIC ' . $tempFile);
+					$convertedFile = $tempFileBase . '.jpg';
+					if (!HeicToJpg::convert($tempFile, $convertedFile)->saveAs($convertedFile)) {
+						$logger->error('Failed to convert file from HEIC ' . $tempFile);
+						$response->errors[] = 'Failed to convert file from HEIC ' . $tempFile;
+						continue;
+					}
+					unlink($tempFile); // Remove the heic file
+					$tempFile = $convertedFile;
+					$entry->fileType = 'jpg';
+				}
 
 				// Read exif info
 				$exif = exif_read_data($tempFile);
