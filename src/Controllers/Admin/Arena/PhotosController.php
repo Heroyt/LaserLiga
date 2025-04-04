@@ -13,6 +13,7 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\OptionalGameGroup;
 use App\Models\Photos\Photo;
+use App\Models\Photos\PhotoArchive;
 use App\Services\PushService;
 use App\Templates\Admin\ArenaPhotosParameters;
 use DateMalformedStringException;
@@ -93,7 +94,6 @@ class PhotosController extends Controller
 	public function assignPhotos(Arena $arena, string $code, Request $request): ResponseInterface {
 		$photos = $request->getPost('photos', []);
 		if (!is_array($photos) || empty($photos) || !array_all($photos, static fn($photo) => is_numeric($photo))) {
-			bdump($photos);
 			return $this->respond(new ErrorResponse('Invalid data', ErrorType::VALIDATION), 400);
 		}
 
@@ -107,9 +107,7 @@ class PhotosController extends Controller
 		}
 
 		$secret = $request->getPost('secret');
-		bdump($secret);
 		if (empty($secret) || !is_string($secret)) {
-			bdump($game->photosSecret);
 			if (empty($game->photosSecret)) {
 				$secret = $game->generatePhotosSecret();
 				$game->save();
@@ -122,7 +120,6 @@ class PhotosController extends Controller
 			$game->photosSecret = $secret;
 			$game->save();
 		}
-		bdump($secret);
 
 		foreach ($photos as $id) {
 			$photo = Photo::get((int)$id);
@@ -157,6 +154,14 @@ class PhotosController extends Controller
 			}
 		}
 
+		// Update archive
+		$archive = PhotoArchive::getForGame($game);
+		if ($archive !== null) {
+			$archive->recreate = true;
+			$archive->save();
+			$archive::clearQueryCache();
+		}
+
 		return $this->respond(
 			new SuccessResponse(
 				        'Photos assigned',
@@ -175,13 +180,26 @@ class PhotosController extends Controller
 			return $this->respond(new ErrorResponse('Invalid data', ErrorType::VALIDATION), 400);
 		}
 
+		$game = null;
+
 		foreach ($photos as $id) {
 			$photo = Photo::get((int)$id);
+			$game = $photo->game;
 			$photo->game = null;
 			$photo->save();
 			$photo->clearCache();
 		}
 		Photo::clearQueryCache();
+
+		// Update archive
+		if ($game !== null) {
+			$archive = PhotoArchive::getForGame($game);
+			if ($archive !== null) {
+				$archive->recreate = true;
+				$archive->save();
+				$archive::clearQueryCache();
+			}
+		}
 
 		return $this->respond(new SuccessResponse('Photos unassigned',));
 	}

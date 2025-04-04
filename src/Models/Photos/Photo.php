@@ -28,6 +28,7 @@ class Photo extends BaseModel
 	public Arena $arena;
 	public ?string $url      = null;
 	public ?string $gameCode = null;
+	public bool $inArchive = false;
 	public ?DateTimeInterface $exifTime = null;
 
 	/** @var ModelCollection<PhotoVariation> */

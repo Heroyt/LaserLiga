@@ -214,12 +214,15 @@ tables:
 			`url` varchar(512) DEFAULT NULL,
 			`game_code` varchar(50) DEFAULT NULL,
 			`exif_time` datetime DEFAULT NULL,
+			`in_archive` bool NOT NULL DEFAULT false,
 			PRIMARY KEY (`id_photo`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
 		modifications:
 			0.1.0:
 				- 'ADD `id_arena` int(11) unsigned DEFAULT NULL AFTER `id_photo`'
+			0.2.0:
+				- 'ADD `in_archive` bool NOT NULL DEFAULT false'
 		indexes:
 			-
 				name: 'identifier'
@@ -286,6 +289,30 @@ tables:
 				refColumn: 'id_user'
 				onUpdate: 'CASCADE'
 				onDelete: 'SET NULL'
+	App\Models\Photos\PhotoArchive:
+		order: 0
+		definition: '''
+		(
+			`id_archive` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_arena` int(11) unsigned DEFAULT NULL,
+			`identifier` varchar(255) NOT NULL,
+			`url` varchar(512) DEFAULT NULL,
+			`game_code` varchar(50) DEFAULT NULL,
+			`created_at` datetime DEFAULT NULL,
+			`downloaded` smallint(5) unsigned DEFAULT 0,
+			`recreate` bool NOT NULL DEFAULT false,
+			PRIMARY KEY (`id_archive`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'identifier'
+				columns: ['identifier']
+				unique: true
+			-
+				name: 'game_code'
+				columns: ['game_code']
+				unique: true
 views:
 	vModesNames: '''
 	SELECT `a`.`id_mode`     AS `id_mode`,

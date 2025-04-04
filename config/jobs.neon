@@ -38,6 +38,12 @@ scheduler:
 		clearTempPhotos:
 			expression: */30 * * * *
 			callback: [@cron.clearTempPhotos, 'run']
+		preparePhotoArchive:
+			expression: 0 * * * *
+			callback: [@cron.preparePhotoArchive, 'run']
+		recreatePhotoArchive:
+			expression: */10 * * * *
+			callback: [@cron.recreatePhotoArchive, 'run']
 services:
 	# Core scheduler
 	scheduler.logger: Lsr\Logging\Logger(%logger.dir%, 'scheduler')
@@ -62,3 +68,5 @@ services:
 	cron.confirmEmail: App\Cron\UserConfirmationEmailsJob
 	cron.syncPhotos: App\Cron\SyncPhotosJob
 	cron.clearTempPhotos: App\Cron\ClearTempPhotosJob
+	cron.preparePhotoArchive: App\Cron\PreparePhotoArchiveJob
+	cron.recreatePhotoArchive: App\Cron\RecreatePhotoArchiveJob

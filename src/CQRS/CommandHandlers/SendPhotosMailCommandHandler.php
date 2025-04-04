@@ -30,6 +30,14 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 			$command->game->save();
 		}
 
+		// Make sure that every game in a group has the same secret.
+		if ($command->game->group !== null) {
+			foreach ($command->game->group->getGames() as $game) {
+				$game->photosSecret = $command->game->photosSecret;
+				$game->save();
+			}
+		}
+
 		$link = ['game', $command->game->code, 'photos' => $command->game->photosSecret];
 		if ($command->game->group !== null) {
 			$link = ['game', 'group', $command->game->group->encodedId, 'photos' => $command->game->photosSecret];
