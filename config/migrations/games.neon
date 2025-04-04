@@ -197,6 +197,7 @@ tables:
           `datetime` datetime DEFAULT NULL,
           `rarity` int(10) unsigned NOT NULL DEFAULT 0,
           `type` varchar(20) NOT NULL DEFAULT 'other',
+          `lang` varchar(5) NOT NULL DEFAULT 'cs',
           `description` varchar(500) NOT NULL,
           `players` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`players`)),
           `object` blob DEFAULT NULL,
@@ -204,6 +205,9 @@ tables:
           PRIMARY KEY (`code`,`type`,`description`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 		'''
+		modifications:
+			0.1.0:
+				- 'ADD `lang` varchar(5) NOT NULL DEFAULT ''cs'''
 	App\Models\Photos\Photo:
 		order: 0
 		definition: '''

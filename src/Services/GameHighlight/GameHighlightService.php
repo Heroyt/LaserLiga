@@ -154,6 +154,7 @@ class GameHighlightService
 						'code'        => $game->code,
 						'datetime'    => $game->start,
 						'rarity'      => $highlight->rarityScore,
+						'lang'        => App::getInstance()->getLanguage()->id,
 						'type'        => $highlight->type->value,
 						'description' => $highlight->getDescription(),
 						'players'     => json_encode(
@@ -208,7 +209,11 @@ class GameHighlightService
 		$highlights = new HighlightCollection();
 		/** @var string[] $objects */
 		$objects = DB::select($this::TABLE, '[object]')
-		             ->where('[code] = %s && [object] IS NOT NULL', $game->code)
+		             ->where(
+						 '[code] = %s AND [object] IS NOT NULL AND [lang] = %s',
+						 $game->code,
+			             App::getInstance()->getLanguage()->id,
+		             )
 		             ->cacheTags(
 			             'highlights',
 			             'games',
