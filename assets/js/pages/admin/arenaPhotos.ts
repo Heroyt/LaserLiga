@@ -171,6 +171,7 @@ export default function initPhotos() {
             const input = photo.querySelector<HTMLInputElement>(".photo-select");
             const picture = photo.querySelector('picture');
             const deleteBtn = photo.querySelector<HTMLButtonElement>('.delete');
+            const showBtn = photo.querySelector<HTMLButtonElement>('.show');
 
             input.addEventListener("change", () => {
                 if (input.checked) {
@@ -196,6 +197,17 @@ export default function initPhotos() {
                         stopLoading(false);
                         await triggerNotificationError(e);
                     }
+                });
+            }
+
+            if (showBtn) {
+                const image = picture.querySelector('img');
+                const url = image.src;
+                const webp = image.dataset.webp;
+                showBtn.addEventListener("click", () => {
+                    dialogImg.src = url;
+                    dialogWebpSource.srcset = webp;
+                    dialog.showModal();
                 });
             }
         }
@@ -234,6 +246,8 @@ export default function initPhotos() {
     }
 
     function initUnassignDialog() : void {
+        initNativeDialog(unassignDialog);
+
         const form = unassignDialog.querySelector('form');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();

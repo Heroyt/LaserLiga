@@ -66,6 +66,11 @@
                                      loading="lazy" class="figure-img img-fluid rounded"/>
                             </picture>
                             <figcaption class="text-center">{$photo->exifTime|date:'j. n. Y H:i'}</figcaption>
+                            <span class="mt-2 text-center d-block">
+                                <button type="button" class="btn btn-info show" data-toggle="tooltip" title="{_'Zobrazit'}">
+                                    {faSolid 'eye'}
+                                </button>
+                            </span>
                         </label>
                     </figure>
                 {/foreach}
