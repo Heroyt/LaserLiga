@@ -45,8 +45,6 @@ lsr:
 			- 'sk_SK'
 		domains:
 			- 'results'
-			- 'tips'
-			- 'cli'
 			- 'highlights'
 			- 'tournament'
 			- 'privacy'
