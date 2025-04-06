@@ -1,13 +1,5 @@
 {layout '../../@layout.latte'}
-
-{varType Lsr\Core\Controller $page}
-{varType string $groupCode}
-{varType \App\Models\GameGroup $group}
-{varType int[] $modes}
-{varType \App\Models\Auth\User|null $user}
-
-{default string $orderBy = 'start'}
-{default bool $desc = true}
+{templateType App\Templates\Games\GroupParameters}
 
 {define teamColor}
     {default int $teamColor = 0}
@@ -52,7 +44,7 @@
 
     {if count($photos) > 0}
         <section id="photos" class="my-3">
-            {include '../../components/photos.latte', $photos, first($group->getGames()), $canDownloadPhotos, ['game', 'group', $group->encodedId, 'photos']}
+            {include '../../components/photos.latte', $photos, first($group->getGames()), $canDownloadPhotos, ['game', 'group', $group->encodedId, 'photos'], $downloadFileName}
         </section>
     {/if}
 
@@ -74,7 +66,7 @@
                            name="modes[]"
                            {if empty($modes) || in_array($modeId, $modes, true)}checked{/if}>
                     <label class="form-check-label" for="groupModeFilter{$modeId}">
-                        {lang $mode->name, context: 'gameModes'}
+                        {lang $mode->name, domain: 'gameModes'}
                     </label>
                 </div>
             </div>

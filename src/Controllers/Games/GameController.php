@@ -71,7 +71,7 @@ class GameController extends Controller
 		$this->title = 'Výsledky laser game - %s %s (%s)';
 		$this->titleParams = [
 			$game->start?->format('d.m.Y H:i'),
-			lang($game->getMode()?->name, context: 'gameModes'),
+			lang($game->getMode()?->name, domain: 'gameModes'),
 			$game->arena?->name,
 		];
 		$this->params->breadcrumbs = [
@@ -87,7 +87,7 @@ class GameController extends Controller
 		$this->descriptionParams = [
 			$game->start?->format('d.m.Y H:i'),
 			$game->arena?->name,
-			lang($game->getMode()?->name, context: 'gameModes'),
+			lang($game->getMode()?->name, domain: 'gameModes'),
 		];
 
 		if (isset($game->group)) {

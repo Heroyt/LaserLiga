@@ -88,7 +88,7 @@
                                        name="modes[]"
                                        {if empty($modeIds) || in_array($mode->id, $modeIds, true)}checked{/if}>
                                 <label class="form-check-label" for="modeFilter{$mode->id}">
-                                    {lang $mode->name, context: 'gameModes'}
+                                    {lang $mode->name, domain: 'gameModes'}
                                 </label>
                             </div>
                         </div>
@@ -150,7 +150,7 @@
                             </div>
                             <div n:if="$game->getMode() !== null" class="mode">
                                 {faSolid 'gun', 'me-1'}
-                                {lang $game->getMode()->name, context: 'gameModes'}
+                                {lang $game->getMode()->name, domain: 'gameModes'}
                             </div>
                         </div>
                         {$game->arena->getLogoHtml()|noescape}

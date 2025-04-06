@@ -135,7 +135,7 @@
                                 </div>
                                 <div n:if="$game->getMode() !== null" class="mode">
                                     {faSolid 'gun', 'me-1'}
-                                    {lang $game->getMode()->name, context: 'gameModes'}
+                                    {lang $game->getMode()->name, domain: 'gameModes'}
                                 </div>
                             </div>
                             {$game->arena->getLogoHtml()|noescape}

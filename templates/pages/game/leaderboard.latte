@@ -17,7 +17,7 @@
 										class="{if $player->idPlayer === $highlight}table-primary{/if}">
 		<td>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</td>
 		<th scope="col" class="text-center text-uppercase">{$player->name}</th>
-		<td class="text-center">{lang $player->mode, context: 'gameModes'}</td>
+		<td class="text-center">{lang $player->mode, domain: 'gameModes'}</td>
 		<td class="text-end">
 			{$player->value|number:0,',','&nbsp;'|noescape}{$units[$property] ?? ''}
 			{svgIcon $icons[$property] ?? 'star', '', '1em'}

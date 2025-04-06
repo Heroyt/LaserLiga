@@ -132,7 +132,7 @@ class Arenas extends Controller
 		$data = $query->cacheTags('games', 'arena-stats')->fetchPairs('name', 'count');
 		$return = [];
 		foreach ($data as $name => $count) {
-			$return[lang($name, context: 'gameModes')] = $count;
+			$return[lang($name, domain: 'gameModes')] = $count;
 		}
 		return $this->respond($return);
 	}

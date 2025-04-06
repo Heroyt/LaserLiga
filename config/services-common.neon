@@ -52,6 +52,7 @@ lsr:
 			- 'music'
 			- 'titles'
 			- 'achievements'
+			- 'gameModes'
 services:
 	# Core
 	db.connection: Lsr\Db\Connection(config: %db%)

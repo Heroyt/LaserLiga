@@ -261,7 +261,7 @@
                     <time datetime="{$game->start->format('c')}"
                           class="datetime">{$game->start->format('j. n. Y H:i')}</time>
                     <span class="arena">{ifset $game->id_arena}{\App\Models\Arena::get($game->id_arena)->getLogoHtml()|noescape}{/ifset}</span>
-                    <span class="gamemode">{lang $game->game->mode->getName(), context: 'gameModes'}</span>
+                    <span class="gamemode">{lang $game->game->mode->getName(), domain: 'gameModes'}</span>
                     <span class="skill">{$game->skill}&nbsp;{faSolid 'medal'}</span>
                 </a>
             </div>

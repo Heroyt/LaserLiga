@@ -65,7 +65,7 @@
         {include resultsHits}
     {/if}
     {if count($photos) > 0}
-        {include '../../components/photos.latte', $photos, $game, $canDownloadPhotos}
+        {include '../../components/photos.latte', $photos, $game, $canDownloadPhotos, downloadFileName: $downloadFileName}
     {/if}
 
     <div class="modal fade" id="leaderboard-modal" tabindex="-1">
@@ -178,7 +178,7 @@
                 </div>
                 <div class="my-1">
                     <strong>{_'Herní mód', domain: 'results', context: 'info'}:</strong>
-                    {_$game->mode?->name, context: 'gameModes'}
+                    {_$game->mode?->name, domain: 'gameModes'}
                 </div>
                 <div n:if="$game->music !== null" class="my-1">
                     <strong>{_'Hudební mód', domain: 'results', context: 'info'}:</strong>
@@ -373,7 +373,7 @@
                 {do $link['photos'] = $game->photosSecret}
             {/if}
             <button type="button" class="btn-lg btn btn-success d-none my-3" data-trigger="share"
-                    data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->mode?->name, context: 'gameModes'), $game->arena?->name)}"
+                    data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->mode?->name, domain: 'gameModes'), $game->arena?->name)}"
                     data-url="{link $link}">
                 {faSolid 'share'}
                 {_'Sdílet'}

@@ -69,7 +69,7 @@ class StatController extends AbstractUserController
 			->fetchPairs('name', 'count');
 		$return = [];
 		foreach ($data as $name => $count) {
-			$return[lang($name, context: 'gameModes')] = $count;
+			$return[lang($name, domain: 'gameModes')] = $count;
 		}
 		return $this->respond($return, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
