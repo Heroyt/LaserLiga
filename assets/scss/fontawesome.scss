@@ -28,6 +28,18 @@ $fa-font-path: '/assets/fonts';
   font-weight: 400;
 }
 
+.btn {
+	.fas,
+	.far,
+	.fab,
+	.#{$fa-css-prefix}-solid,
+	.#{$fa-css-prefix}-regular,
+	.#{$fa-css-prefix}-brands,
+	.#{$fa-css-prefix} {
+		margin-right: .3em;
+	}
+}
+
 @import '~@fortawesome/fontawesome-free/scss/core';
 
 @each $name, $icon in $icons {
