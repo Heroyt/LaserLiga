@@ -11,7 +11,7 @@
         <h3>
             {$substitute->name} <i>{$substitute->nickname}</i> {$substitute->surname}
         </h3>
-        <ul>
+        <ul class="block-list">
             <li n:if="$substitute->captain">{lang 'Kapitán'}</li>
             <li n:if="$substitute->sub">{lang 'Náhradník'}</li>
             <li n:ifset="$substitute->email">{$substitute->email}</li>

@@ -12,7 +12,7 @@
         <h3>
             {$player->name} <i>{$player->nickname}</i> {$player->surname}
         </h3>
-        <ul>
+        <ul class="block-list">
             <li n:if="$player->captain">{lang 'Kapitán'}</li>
             <li n:if="$player->sub">{lang 'Náhradník'}</li>
             <li n:ifset="$player->email">{$player->email}</li>

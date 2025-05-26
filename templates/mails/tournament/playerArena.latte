@@ -16,7 +16,7 @@
 
     {if $player instanceof App\Models\Events\EventPlayer}
         <h3>{lang 'Termíny'}:</h3>
-        <ul>
+        <ul class="block-list">
             <li n:foreach="$player->dates as $date">
                 {$date->start->format('d.m.Y')}
             </li>
@@ -27,7 +27,7 @@
         <h3>
             {$player->name} <i>{$player->nickname}</i> {$player->surname}
         </h3>
-        <ul>
+        <ul class="block-list">
             <li n:if="$player->captain">{lang 'Kapitán'}</li>
             <li n:if="$player->sub">{lang 'Náhradník'}</li>
             <li n:ifset="$player->email">{$player->email}</li>
