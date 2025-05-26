@@ -24,6 +24,12 @@ tables:
 				`dropbox_refresh_token` text DEFAULT NULL,
 				`dropbox_api_key_valid` datetime DEFAULT NULL,
 				`dropbox_auth_challenge` varchar(128) DEFAULT NULL,
+				`photos_enabled` bool DEFAULT false,
+				`photos_bucket` varchar(255) DEFAULT NULL,
+				`photos_email` varchar(255) DEFAULT NULL,
+				`photos_mail_text` text DEFAULT NULL,
+				`photos_unassigned_photo_ttl` varchar(20) DEFAULT NULL,
+				`photos_assigned_photo_ttl` varchar(20) DEFAULT NULL,
             	PRIMARY KEY (`id_arena`),
             	KEY `id_user` (`id_user`),
             	CONSTRAINT `arenas_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -53,6 +59,13 @@ tables:
 				- 'ADD `dropbox_api_key_valid` datetime DEFAULT NULL'
 			0.3.3:
 				- 'ADD `dropbox_auth_challenge` varchar(128) DEFAULT NULL'
+			0.4.0:
+				- 'ADD `photos_enabled` bool DEFAULT false'
+				- 'ADD `photos_bucket` varchar(255) DEFAULT NULL'
+				- 'ADD `photos_email` varchar(255) DEFAULT NULL'
+				- 'ADD `photos_mail_text` text DEFAULT NULL'
+				- 'ADD `photos_unassigned_photo_ttl` varchar(20) DEFAULT NULL'
+				- 'ADD `photos_assigned_photo_ttl` varchar(20) DEFAULT NULL'
 		foreignKeys:
 			-
 				column: id_user

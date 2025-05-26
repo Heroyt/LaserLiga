@@ -19,6 +19,7 @@ class PhotoMailLog extends BaseModel
 	public DateTimeInterface $datetime;
 	public string $email;
 	public string $gameCode;
+	public ?string $extraMessage = null;
 	#[ManyToOne]
 	public ?User $user = null;
 

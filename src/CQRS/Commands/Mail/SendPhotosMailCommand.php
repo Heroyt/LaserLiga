@@ -26,6 +26,7 @@ final readonly class SendPhotosMailCommand implements CommandInterface
 		public array $to = [],
 		public array $bcc = [],
 		public ?User $currentUser = null,
+		public string $message = '',
 	) {
 	}
 

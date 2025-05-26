@@ -2,31 +2,29 @@
 
 use App\Controllers\Api\Players;
 use App\Controllers\Arenas;
-use App\Controllers\Dashboard;
-use App\Controllers\DistributionController;
 use App\Controllers\EventController;
 use App\Controllers\ForgotPassword;
-use App\Controllers\Games;
-use App\Controllers\Games\GameController;
-use App\Controllers\Games\GameHighlightsController;
-use App\Controllers\Games\GamePlayerController;
-use App\Controllers\Games\GameTeamController;
 use App\Controllers\Games\GameTodayLeaderboardController;
-use App\Controllers\Games\GroupController;
 use App\Controllers\Index;
 use App\Controllers\Lang;
 use App\Controllers\LeagueController;
 use App\Controllers\Login;
 use App\Controllers\MailTestController;
+use App\Controllers\PhotosController;
 use App\Controllers\PrivacyController;
 use App\Controllers\PushController;
 use App\Controllers\Questionnaire;
 use App\Controllers\TournamentController;
 use App\Controllers\WellKnownController;
+use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\CSRFCheck;
+use App\Core\Middleware\NoCacheControl;
+use App\Core\Middleware\RedirectFromDefaultToDesiredLang;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Middleware\LoggedOut;
 use Lsr\Core\Auth\Services\Auth;
+use Lsr\Core\Middleware\DefaultLanguageRedirect;
+use Lsr\Core\Middleware\WithoutCookies;
 use Lsr\Core\Routing\Router;
 
 
@@ -274,6 +272,12 @@ $eventsGroup->get('registration/{eventId}/{registration}', [EventController::cla
             ->post('registration/{eventId}/{registration}', [EventController::class, 'processUpdateRegister'])
             ->name('event-register-update-process')
             ->middleware(new CSRFCheck('event-update-register'));
+
+// Photos proxy
+$this->group('photos')
+     ->middlewareAll(new WithoutCookies())
+     ->get('{arena}/variations/{file}', [PhotosController::class, 'variation'])
+     ->get('{arena}/{file}', [PhotosController::class, 'photo']);
 
 // Push
 $this->group('push')

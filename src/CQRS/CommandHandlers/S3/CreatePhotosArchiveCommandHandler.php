@@ -5,6 +5,7 @@ namespace App\CQRS\CommandHandlers\S3;
 
 use App\CQRS\Commands\S3\CreatePhotosArchiveCommand;
 use App\CQRS\Commands\S3\UploadFileToS3Command;
+use App\CQRS\Enums\S3\StorageClass;
 use App\Models\Photos\PhotoArchive;
 use DateTimeImmutable;
 use GrahamCampbell\GuzzleFactory\GuzzleFactory;
@@ -41,7 +42,7 @@ final readonly class CreatePhotosArchiveCommandHandler implements CommandHandler
 		}
 
 		$downloadDir = TMP_DIR . '/download/';
-		if (!is_dir($downloadDir) && !mkdir($downloadDir, 0777, true)) {
+		if (!is_dir($downloadDir) && !mkdir($downloadDir, 0777, true) && !is_dir($downloadDir)) {
 			$logger->error('Failed to create download directory');
 			return null;
 		}
@@ -64,14 +65,13 @@ final readonly class CreatePhotosArchiveCommandHandler implements CommandHandler
 			$logger->info('Creating archive without a game');
 			$archive = new PhotoArchive();
 			$archive->arena = $command->arena;
-			$archive->identifier = 'archives/' . Strings::webalize($command->arena->name) . '/' . uniqid(
-					'archive_'
-				) . '.zip';
+			$archive->identifier = 'archives/' . Strings::webalize($command->arena->name) . '/' .
+				uniqid('archive_', true) . '.zip';
 			$archive->createdAt = new DateTimeImmutable();
 		}
 
 		// Prepare local zip file
-		$tmpZip = $downloadDir . uniqid('archive_') . '.zip';
+		$tmpZip = $downloadDir . uniqid('archive_', true) . '.zip';
 		$zip = new ZipArchive();
 		if ($zip->open($tmpZip, ZipArchive::OVERWRITE | ZipArchive::CREATE) !== true) {
 			$logger->error('Failed to open zip file');
@@ -101,7 +101,14 @@ final readonly class CreatePhotosArchiveCommandHandler implements CommandHandler
 		}
 
 		// Upload zip file to S3
-		$response = $this->commandBus->dispatch(new UploadFileToS3Command($tmpZip, $archive->identifier));
+		$response = $this->commandBus->dispatch(
+			new UploadFileToS3Command(
+				filename: $tmpZip,
+				identifier: $archive->identifier,
+				bucket: $command->arena->photosSettings->bucket,
+				storageClass: StorageClass::ONE_ZONE_IA,
+			)
+		);
 
 		// Update archive with S3 URL
 		$archive->url = $response->ObjectURL;

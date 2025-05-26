@@ -1,70 +1,266 @@
 {layout '../../../@layout.latte'}
-
-{varType App\Models\Arena $arena}
-{varType Dibi\Row[] $apiKeys}
+{templateType App\Templates\Admin\ArenaDetailParameters}
 
 {block content}
-	<p class="text-start">
-		<a href="{link ['admin', 'arenas']}" class="btn btn-warning">
+    <p class="text-start">
+        <a href="{link ['admin', 'arenas']}" class="btn btn-warning">
             {faSolid 'angle-left'}
             {lang 'Zpět'}
         </a>
-	</p>
-    <form action="{link ['admin', 'arenas', $arena->id]}" method="post" enctype="multipart/form-data" id="arena-form"
+    </p>
+    <div class="me-4 last-save-wrapper text-end position-fixed end-0">
+        {_'Naposledy uloženo:'} <span class="last-save" data-target="#arena-form">{_'nikdy'}</span>
+    </div>
+    <form action="{link ['admin', 'arenas', $arena->id, 'edit']}"
+          method="post"
+          enctype="multipart/form-data"
+          id="arena-form"
+          class="autosave"
           data-arena="{$arena->id}">
-		<div class="form-floating mb-3">
-			<input type="text" name="name" class="form-control" id="arena-name" placeholder="{lang 'Název'}" required
-				   value="{$arena->name}">
-			<label for="arena-name">{lang 'Název'}</label>
-		</div>
-		<div class="input-group mb-3">
-			<div class="form-floating">
-				<input type="text" name="lat" class="form-control" id="arena-lat" placeholder="Lat" required
-					   value="{$arena->lat}">
-				<label for="arena-lat">{lang 'Zeměpisná délka'}</label>
-			</div>
-			<div class="form-floating">
-				<input type="text" name="lng" class="form-control" id="arena-lng" placeholder="Lng" required
-					   value="{$arena->lng}">
-				<label for="arena-lng">{lang 'Zeměpisná šířka'}</label>
-			</div>
-			{* TODO: Google API from address *}
-		</div>
-		<div class="row mb-3">
-			<div class="col-md-6" id="img">
-				{$arena->getLogoHtml()|noescape}
-			</div>
-			<div class="col-md-6">
-				<label for="arena-image" class="form-label">{lang 'Logo'}:</label>
-				<input type="file" class="form-control" name="image" id="arena-image" accept="image/svg+xml">
-				<div class="form-text">{lang 'Vektorový obrázek ve formátu SVG'}</div>
-			</div>
-		</div>
 
-		<h3>{lang 'API klíče'}</h3>
-		<button type="button" class="btn btn-success" id="addApiKey">{faSolid 'plus'}</button>
-		<div id="api-keys">
-			<div n:foreach="$apiKeys as $id => $apiKey" class="input-group mb-2" data-id="{$id}">
-				<input type="text" readonly="readonly"
-					   class="form-control col-9 text-center font-monospace bg-light-grey text-black" id="key-{$id}"
-					   value="{$apiKey->key}">
-				<button type="button" data-action="copy-to-clipboard" data-target="#key-{$id}"
-						class="btn btn-secondary">
-					{faSolid 'clipboard'}
-				</button>
-				<div class="form-floating">
-					<input type="text" name="key[{$id}][name]" class="form-control" id="key-{$id}-name"
-						   placeholder="{lang 'Název'}" required value="{$apiKey->name}">
-					<label for="key-{$id}-name">{lang 'Název'}</label>
-				</div>
-				<button type="button" class="delete btn btn-danger">{faSolid 'trash'}</button>
-			</div>
-		</div>
-
-	</form>
-	<script>
-		const translations = {
-			name: '{lang 'Název'}',
-		};
-	</script>
+        {embed
+            '../../../partials/tabs.latte',
+            tabs: [
+            'info' => [
+            'name' => 'Info',
+            'type' => 'tab',
+            ],
+            'api' => [
+            'name' => 'API',
+            'type' => 'tab',
+            ],
+            'photos' => [
+            'name' => 'Fotky',
+            'type' => 'tab',
+            'condition' => $arena->photosSettings->enabled || $user?->type?->hasRight('enable-photos'),
+            ],
+            ]
+        }
+            {block info-content}
+                <div class="form-floating mb-3">
+                    <input type="text" name="name" class="form-control" id="arena-name" placeholder="{lang 'Název'}"
+                           required
+                           value="{$arena->name}">
+                    <label for="arena-name">{lang 'Název'}</label>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="form-floating">
+                        <input type="text" name="lat" class="form-control" id="arena-lat" placeholder="Lat" required
+                               value="{$arena->lat}">
+                        <label for="arena-lat">{lang 'Zeměpisná délka'}</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="text" name="lng" class="form-control" id="arena-lng" placeholder="Lng" required
+                               value="{$arena->lng}">
+                        <label for="arena-lng">{lang 'Zeměpisná šířka'}</label>
+                    </div>
+                    {* TODO: Google API from address *}
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6" id="img">
+                        {$arena->getLogoHtml()|noescape}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="arena-image" class="form-label">{lang 'Logo'}:</label>
+                        <input type="file" class="form-control" name="image" id="arena-image" accept="image/svg+xml">
+                        <div class="form-text">{lang 'Vektorový obrázek ve formátu SVG'}</div>
+                    </div>
+                </div>
+            {/block}
+            {block api-content}
+                <h3>{lang 'API klíče'}</h3>
+                <button type="button" class="btn btn-success" id="addApiKey">{faSolid 'plus'}</button>
+                <div id="api-keys">
+                    <div n:foreach="$apiKeys as $id => $apiKey" class="input-group mb-2" data-id="{$id}">
+                        <input type="text" readonly="readonly"
+                               class="form-control col-9 text-center font-monospace bg-light-grey text-black"
+                               id="key-{$id}"
+                               value="{$apiKey->key}">
+                        <button type="button" data-action="copy-to-clipboard" data-target="#key-{$id}"
+                                class="btn btn-secondary">
+                            {faSolid 'clipboard'}
+                        </button>
+                        <div class="form-floating">
+                            <input type="text" name="key[{$id}][name]" class="form-control" id="key-{$id}-name"
+                                   placeholder="{lang 'Název'}" required value="{$apiKey->name}">
+                            <label for="key-{$id}-name">{lang 'Název'}</label>
+                        </div>
+                        <button type="button" class="delete btn btn-danger">{faSolid 'trash'}</button>
+                    </div>
+                </div>
+            {/block}
+            {block photos-content}
+                <h3>{_'Fotky'}</h3>
+                <div n:if="$user?->type?->hasRight('enable-photos')" class="form-check form-switch mb-3">
+                    <input
+                            class="form-check-input"
+                            name="photos_enabled"
+                            type="checkbox"
+                            role="switch"
+                            id="photos-enabled"
+                            n:attr="checked: $arena->photosSettings->enabled">
+                    <label class="form-check-label" for="photos-enabled">{_'Povoleno'}</label>
+                </div>
+                <div class="form-floating mb-3" n:if="$user?->type?->hasRight('manage-s3')">
+                    <input type="text" name="photos_bucket" class="form-control" id="photos-bucket"
+                           placeholder="S3 Bucket"
+                           value="{$arena->photosSettings->bucket ?? ''}">
+                    <label for="photos-bucket">S3 Bucket</label>
+                </div>
+                <h4>{_'Odesílání fotek na e-mail'}</h4>
+                <div class="form-floating mb-3">
+                    <input type="email" name="photos_email" class="form-control" id="photos-email"
+                           placeholder="{_'E-mail pro fotky'}"
+                           value="{$arena->photosSettings->email ?? $arena->contactEmail ?? ''}">
+                    <label for="photos-email">{_'E-mail pro fotky'}</label>
+                </div>
+                <div class="form-group mb-3">
+                    <div class="form-floating">
+                        <textarea
+                                name="photos_mail_text"
+                                class="form-control"
+                                rows="10"
+                                style="min-height: 150px"
+                                id="photos-mail_text">{$arena->photosSettings->mailText ?? ''}</textarea>
+                        <label for="photos-mail_text">{_'Dodatečný text v e-mailu pro fotky'}</label>
+                    </div>
+                    <div class="form-text">
+                        {_'Podporuje <a href="%s" target="_blank">Markdown</a> formátování',format: ['https://www.markdownguide.org/basic-syntax/']|noescape}
+                    </div>
+                </div>
+                <h4>{_'Doba uložení'}</h4>
+                <div class="row">
+                    <div class="form-group mb-3 col-md-6">
+                        <div class="form-floating">
+                            <input type="number"
+                                   class="form-control"
+                                   min="7"
+                                   max="90"
+                                   step="1"
+                                   name="photos_unassigned_photo_ttl"
+                                   id="photos-unassigned-photo-ttl"
+                                   placeholder="{_'Doba uložení nepřiřazených fotek (v dnech)'}"
+                                   value="{$arena->photosSettings->unassignedPhotoTTL?->d ?? 14}">
+                            <label for="photos-unassigned-photo-ttl">
+                                {_'Doba uložení nepřiřazených fotek (v dnech)'}
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            {_'Jak dlouho mají nahrané, nepřiřazené fotografie zůstat uložené. (Povolené hodnoty: %s dní)', format: ['7-90']}
+                        </div>
+                    </div>
+                    <div class="form-group mb-3 col-md-6">
+                        <div class="form-floating">
+                            <input type="number"
+                                   class="form-control"
+                                   min="1"
+                                   max="6"
+                                   step="1"
+                                   name="photos_assigned_photo_ttl"
+                                   id="photos-assigned-photo-ttl"
+                                   placeholder="{_'Doba uložení přiřazených fotek (v měsících)'}"
+                                   value="{$arena->photosSettings->assignedPhotoTTL?->m ?? 3}">
+                            <label for="photos-assigned-photo-ttl">
+                                {_'Doba uložení přiřazených fotek (v měsících)'}
+                            </label>
+                        </div>
+                        <div class="form-text">
+                            {_'Jak dlouho mají nahrané, přiřazené fotografie zůstat uložené. (Povolené hodnoty: %s měsíců)', format: ['1-6']}
+                        </div>
+                    </div>
+                </div>
+                <h4>{_'Dropbox synchronizace'}</h4>
+                <p>
+                    {_'Dropbox synchronizace vyžaduje vytvoření <a href="%s">dropbox aplikace</a> pro arénu. Aplikace nemusí být veřejná (v "developement" režimu), ale musí být správně nastavena. (viz níže)', format:['https://www.dropbox.com/developers/apps']|noescape}
+                </p>
+                <div class="form-group mb-3">
+                    <div class="form-floating">
+                        <input type="text" name="dropbox_directory" class="form-control" id="dropbox-directory"
+                               placeholder="{_'Adresář k synchronizaci'}"
+                               value="{$arena->dropbox->directory ?? '/'}">
+                        <label for="dropbox-directory">{_'Adresář k synchronizaci'}</label>
+                    </div>
+                    <div class="form-text">
+                        {_'Cesta k adresáři, kterou chcete synchronizovat. Synchronizace zahrnuje i všechny podaresáře. Nerozlišuje velká a malá písmena. Např. "/fotky/".'}
+                    </div>
+                </div>
+                <h5>{_'Nastavení dropbox aplikace'}</h5>
+                <div class="form-group mb-3">
+                    <div class="form-floating">
+                        <input type="text" name="dropbox_app_id" class="form-control" id="dropbox-app_id"
+                               placeholder="{_'Dropbox APP ID'}"
+                               value="{$arena->dropbox->appId ?? ''}">
+                        <label for="dropbox-app_id">{_'Dropbox APP ID'}</label>
+                    </div>
+                    <div class="form-text">
+                        {_'Hodnota "%s" dropbox aplikace.', format: ['App key']}
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <div class="form-floating">
+                        <input type="text" name="dropbox_app_secret" class="form-control" id="dropbox-app_secret"
+                               placeholder="{_'Dropbox APP Secret'}"
+                               value="{$arena->dropbox->secret ?? ''}">
+                        <label for="dropbox-app_secret">{_'Dropbox APP Secret'}</label>
+                    </div>
+                    <div class="form-text">
+                        {_'Hodnota "%s" dropbox aplikace.', format: ['App secret']}
+                    </div>
+                </div>
+                <p>{_'Následující hodnoty musí být nastaveny v Dropbox aplikaci:'}</p>
+                <ul>
+                    <li>
+                        OAuth 2
+                        <ul>
+                            <li>
+                                <strong>Redirect URIs:</strong>
+                                <code>{link ['dropbox', $arena->id, 'auth']}</code>
+                            </li>
+                            <li>
+                                <strong>Allow public clients</strong>: Allow
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Webhooks
+                        <ul>
+                            <li>
+                                <strong>Webhook URIs:</strong>
+                                <code>{link ['webhook', 'dropbox', $arena->id]}</code>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Permissions ({_'Vyžadované povolení aplikace'})
+                        <ul>
+                            <li><strong>files.content.write</strong></li>
+                            <li><strong>files.content.read</strong></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h5>{_'Registrace aplikace'} (oAuth)</h5>
+                {if !empty($arena->dropbox->appId) && !empty($arena->dropbox->secret)}
+                    <p>{_'Pro správnou funkčnost aplikace je nutné aplikaci registrovat a propojit s účtem Dropbox. To dělejte jen při první instalaci, pokud se měnil Dropbox účet, nebo pokud synchronizace fugunguje správně.'}</p>
+                    <p class="text-muted">{_'Jedna aréna může být propojena jen s jedním účtem Dropbox.'}</p>
+                    <p>
+                        <a href="{link ['dropbox', $arena->id, 'start']}" class="btn btn-primary" target="_blank">
+                            {_'Propojit Dropbox s LaserLigou'}
+                        </a>
+                    </p>
+                {else}
+                    <div class="alert alert-danger">{_'Vyplňte nastavení Dropbox aplikace'}</div>
+                {/if}
+            {/block}
+        {/embed}
+        <p class="text-center">
+            <button type="submit" class="btn btn-success btn-lg">
+                {faSolid 'save'} {_'Uložit', context: 'actions'}
+            </button>
+        </p>
+    </form>
+    <script>
+        const translations = {
+            name: '{lang 'Název'}',
+        };
+    </script>
 {/block}

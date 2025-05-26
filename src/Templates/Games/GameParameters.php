@@ -29,5 +29,9 @@ class GameParameters extends TemplateParameters
 	/** @var Photo[] */
 	public array $photos = [];
 	public bool $canDownloadPhotos = false;
+	public string $downloadFileName = '';
+
+	/** @var string[] */
+	public array $downloadLink = [];
 
 }

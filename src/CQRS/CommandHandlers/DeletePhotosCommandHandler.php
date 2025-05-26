@@ -34,7 +34,7 @@ final readonly class DeletePhotosCommandHandler implements CommandHandlerInterfa
 				$files[$variation->identifier] = $variation;
 			}
 
-			$result = $this->commandBus->dispatch(new RemoveFilesFromS3Command(array_keys($files)));
+			$result = $this->commandBus->dispatch(new RemoveFilesFromS3Command(array_keys($files), $photo->arena->photosSettings->bucket));
 			bdump($result);
 			foreach ($result->Deleted as $deleted) {
 				$file = $files[$deleted->Key] ?? null;

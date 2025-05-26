@@ -3,6 +3,7 @@
     App\GameModels\Game\Game $game,
     bool $canDownloadPhotos = false,
     array $downloadLink = ['game', $game->code, 'photos'],
+    string $downloadFileName = '',
 }
 
 <section class="result-photos" data-track-content="" data-content-name="Results - Photos">
@@ -24,20 +25,28 @@
             {continueIf $photo->url === null}
             <picture class="game-photo">
                 {var App\Models\Photos\PhotoVariation|null $thumbWebp = $photo->findVariation(150,'webp')}
-                <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->url}" type="image/webp">
+                <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->proxyUrl}" type="image/webp">
                 {var App\Models\Photos\PhotoVariation|null $thumb = $photo->findVariation(150,$photo->type)}
-                <source n:if="$thumb?->url !== null" srcset="{$thumb->url}" type="{$photo->mime}">
+                <source n:if="$thumb?->url !== null" srcset="{$thumb->proxyUrl}" type="{$photo->mime}">
                 {var App\Models\Photos\PhotoVariation|null $webp = $photo->findWebpOriginal()}
-                <source n:if="$webp?->url !== null" srcset="{$webp->url}" type="image/webp">
-                <img src="{$photo->url}" data-webp="{$webp?->url}" alt="{_'Fotka ze hry %s', domain: 'results', format: [$game->start?->format('d.m.Y H:i') ?? '']}" loading="lazy">
+                <source n:if="$webp?->url !== null" srcset="{$webp->proxyUrl}" type="image/webp">
+                <img src="{$photo->proxyUrl}" data-webp="{$webp?->proxyUrl}" alt="{_'Fotka ze hry %s', domain: 'results', format: [$game->start?->format('d.m.Y H:i') ?? '']}" loading="lazy">
             </picture>
         {/foreach}
     </div>
 
     <p class="mt-3" n:if="$canDownloadPhotos"  data-track-content="" data-content-name="Results - Photos - actions">
-        <a href="{link $downloadLink}" class="btn btn-primary" data-content-piece="download-photos">
-            {faSolid 'download'}
-            {lang 'Stáhnout fotky', domain: 'results'}
+        <a href="{link $downloadLink}" class="btn btn-primary" data-download data-timeout="90" data-content-piece="download-photos"{* download="{$downloadFileName}"*}>
+            <span class="not-downloading">
+                {faSolid 'download'}
+                {lang 'Stáhnout fotky', domain: 'results'}
+            </span>
+            <span class="downloading d-none">
+                <span class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </span>
+                {_'Stahuji'}&hellip;
+            </span>
         </a>
         <button n:if="!$game->photosPublic" type="button" class="btn btn-info" id="make-photos-public" data-confirm="{_'Opravdu chcete zveřejnit fotky z této hry? Fotky uvidí kdokoliv, kdo si zobrazí výsledky této hry, ale nebude je moci stáhnout.', domain: 'results'}" data-content-piece="make-photos-public">
             {faSolid 'globe'}
@@ -47,6 +56,9 @@
             {faSolid 'eye-slash'}
             {lang 'Zrušit zveřejnění fotek', domain: 'results'}
         </button>
+    </p>
+    <p class="text-muted" n:if="$canDownloadPhotos">
+        {_'Stahování fotek může chvíli trvat. Pokud se stahování nespustí, počkejte několik minut a zkuste to znovu.', domain: 'results'}
     </p>
 
     <dialog id="photo-dialog">

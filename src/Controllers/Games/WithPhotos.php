@@ -10,6 +10,7 @@ use App\GameModels\Game\Game;
 use App\Models\GameGroup;
 use App\Models\Photos\Photo;
 use App\Models\Photos\PhotoArchive;
+use DateTimeImmutable;
 use GrahamCampbell\GuzzleFactory\GuzzleFactory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -33,12 +34,20 @@ trait WithPhotos
 			Photo::findForGame($gameGroup) :
 			Photo::findForGameCodes($gameGroup->getGamesCodes());
 		$this->params->canDownloadPhotos = $this->canDownloadPhotos($gameGroup, $request);
+		$this->params->downloadFileName = $this->getDownloadFileName($gameGroup);
 
 		$game = $gameGroup instanceof Game ? $gameGroup : first($gameGroup->getGames());
 		if ($game !== null && empty($game->photosSecret)) {
 			$game->generatePhotosSecret();
 			$game->save();
 			$game->clearCache();
+		}
+
+		if ($gameGroup instanceof GameGroup) {
+			$this->params->downloadLink = ['game', 'group', $gameGroup->encodedId, 'photos', 'photos' => $game->photosSecret];
+		}
+		else {
+			$this->params->downloadLink = ['game', $gameGroup->code, 'photos', 'photos' => $game->photosSecret];
 		}
 	}
 
@@ -123,8 +132,18 @@ trait WithPhotos
 		return false;
 	}
 
+	protected function getDownloadFileName(GameGroup|Game $gameGroup): string {
+		$group = $gameGroup instanceof GameGroup ? $gameGroup : $gameGroup->group;
+		if ($group !== null) {
+			return 'fotky_' . Strings::webalize($group->name) . '.zip';
+		}
+		return 'fotky_' . Strings::webalize($gameGroup->code) . '.zip';
+	}
+
 	protected function makePhotosDownload(GameGroup|Game $gameGroup, Request $request): ResponseInterface {
 		$logger = new Logger(LOG_DIR, 'user_photo_download');
+
+		$downloadToken = $request->getGet('token');
 
 		$commandBus = App::getServiceByType(CommandBus::class);
 		assert($commandBus instanceof CommandBus);
@@ -134,7 +153,7 @@ trait WithPhotos
 		$logger->info(sprintf('Download triggered: %s', $request->getUri()->getPath()));
 
 		$zip = UPLOAD_DIR . 'photos/';
-		if (!is_dir($zip) && !mkdir($zip, 0777, true)) {
+		if (!is_dir($zip) && !mkdir($zip, 0777, true) && !is_dir($zip)) {
 			$logger->error('Cannot create directory for photos');
 			$request->addPassError(lang('Nepodařilo se stáhnout fotky, zkuste to znovu později.', context: 'errors'));
 			return $this->redirect($request->getUri(), $request, 307);
@@ -172,6 +191,21 @@ trait WithPhotos
 			$archive = $commandBus->dispatch(new CreatePhotosArchiveCommand($photos, $gameGroup->arena));
 		}
 
+		$headers = [
+			'Content-Type'              => 'application/octet-stream',
+			'Content-Disposition'       => 'attachment; filename="' . $filename . '"',
+			'Content-Transfer-Encoding' => 'binary',
+			'Content-Description'       => 'File Transfer',
+			'Cache-Control'             => 'public, max-age=7776000', // 3 months
+			'Expires'                   => gmdate('D, d M Y H:i:s T', time() + 7776000),
+			'Pragma'                    => 'public',
+		];
+		if (!empty($downloadToken)) {
+			$headers['Set-Cookie'] = 'downloadToken=' . $downloadToken . '; path=/; expires=' . gmdate(
+					'D, d M Y H:i:s T',
+					time() + 3600
+				);
+		}
 
 		// If archive wasn't created or is not uploaded to S3, just download the photos
 		if ($archive === null || $archive->url === null) {
@@ -185,31 +219,29 @@ trait WithPhotos
 
 			if (!$commandBus->dispatch(new DownloadFilesZipCommand($urls, $zip))) {
 				$logger->error('Failed to download photos (DownloadFilesZipCommand failed)');
-				$request->addPassError(lang('Nepodařilo se stáhnout fotky, zkuste to znovu později.', context: 'errors'));
+				$request->addPassError(
+					lang('Nepodařilo se stáhnout fotky, zkuste to znovu později.', context: 'errors')
+				);
 				return $this->redirect($request->getUri(), $request, 307);
 			}
 
 			$this->trackDownload($request);
 
+			$headers['Content-Size'] = filesize($zip);
+
 			return new Response(
 				new \Nyholm\Psr7\Response(
 					200,
-					[
-						'Content-Type'              => 'application/octet-stream',
-						'Content-Disposition'       => 'attachment; filename="'.$filename.'"',
-						'Content-Size'              => filesize($zip),
-						'Content-Transfer-Encoding' => 'binary',
-						'Content-Description'       => 'File Transfer',
-					],
+					$headers,
 					fopen($zip, 'rb'),
 				)
 			);
 		}
 
 		$this->trackDownload($request);
+		$archive->lastDownload = new DateTimeImmutable();
 		$archive->downloaded++;
 		$archive->save();
-		$archive->clearCache();
 
 		// Download archive from S3
 		$client = new Client(['handler' => GuzzleFactory::handler()]);
@@ -224,12 +256,6 @@ trait WithPhotos
 
 		$logger->debug('Downloading file from S3', $response->getHeaders());
 
-		$headers = [
-			'Content-Type'              => 'application/octet-stream',
-			'Content-Disposition'       => 'attachment; filename="' . $filename . '"',
-			'Content-Transfer-Encoding' => 'binary',
-			'Content-Description'       => 'File Transfer',
-		];
 		$size = $response->getBody()->getSize();
 		if ($size !== null) {
 			$headers['Content-Size'] = $size;
@@ -243,7 +269,7 @@ trait WithPhotos
 		);
 	}
 
-	protected function trackDownload(Request $request) : void {
+	protected function trackDownload(Request $request): void {
 		$commandBus = App::getServiceByType(CommandBus::class);
 		assert($commandBus instanceof CommandBus);
 

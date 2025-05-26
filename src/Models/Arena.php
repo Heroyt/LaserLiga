@@ -8,6 +8,7 @@ use App\GameModels\Factory\TeamFactory;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\Extensions\DropboxSettings;
+use App\Models\Extensions\PhotosSettings;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\Tournament;
 use DateTimeInterface;
@@ -42,8 +43,7 @@ class Arena extends BaseModel
 	#[OA\Property(example: 14.147773)]
 	public ?float $lng            = null;
 
-	#[Instantiate]
-	#[OA\Property]
+	#[Instantiate, OA\Property]
 	public Address $address;
 	#[OA\Property(example: 'https://laserarenapisek.cz')]
 	public ?string $web          = null;
@@ -60,6 +60,9 @@ class Arena extends BaseModel
 
 	#[Instantiate, OA\Property]
 	public DropboxSettings $dropbox;
+
+	#[Instantiate, OA\Property]
+	public PhotosSettings $photosSettings;
 
 	/** @var array<string,array<string, int[]>> */
 	private array $gameIds = [];

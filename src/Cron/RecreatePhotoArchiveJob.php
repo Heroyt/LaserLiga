@@ -41,7 +41,7 @@ final readonly class RecreatePhotoArchiveJob implements Job
 			}
 
 			$gameCode = $archive->gameCode;
-			$logger->info('Starting photo archive preparation for game code: ' . $gameCode);
+			$logger->info('Starting photo archive preparation for game code (recreate): ' . $gameCode);
 			$game = GameFactory::getByCode($gameCode);
 			if ($game === null) {
 				$logger->error(sprintf('Game with code %s does not exist', $gameCode));
@@ -63,6 +63,11 @@ final readonly class RecreatePhotoArchiveJob implements Job
 			$logger->info(sprintf('Creating new archive for %d photos', count($photos)));
 			$archive = $this->commandBus->dispatch(new CreatePhotosArchiveCommand($photos, $game->arena));
 			$logger->info('Archive created: ' . $archive->identifier . ' (' . $archive->id . ')');
+
+			$archive->recreate = false;
+			if (!$archive->save()) {
+				$logger->error('Failed to save archive: ' . $archive->id);
+			}
 
 			// Update photo flag
 			foreach ($photos as $photo) {

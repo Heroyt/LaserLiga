@@ -5,6 +5,7 @@ namespace App\Controllers\Admin\Arena;
 
 use App\CQRS\Commands\DeletePhotosCommand;
 use App\CQRS\Commands\Mail\SendPhotosMailCommand;
+use App\CQRS\Commands\ProcessPhotoCommand;
 use App\CQRS\Commands\S3\DownloadFilesZipCommand;
 use App\CQRS\Queries\Games\GameListQuery;
 use App\GameModels\Factory\GameFactory;
@@ -27,8 +28,11 @@ use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Requests\Response;
 use Lsr\CQRS\CommandBus;
+use Lsr\Helpers\Tools\Strings;
+use Lsr\Logging\Logger;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Nette\Utils\Validators;
+use Nyholm\Psr7\UploadedFile;
 use Psr\Http\Message\ResponseInterface;
 
 class PhotosController extends Controller
@@ -258,6 +262,11 @@ class PhotosController extends Controller
 			return $this->respond(new ErrorResponse('Game does not belong to this arena', ErrorType::ACCESS), 403);
 		}
 
+		$message = $request->getPost('message', '');
+		if (!is_string($message)) {
+			$message = '';
+		}
+
 		/** @var list<non-empty-string> $emails */
 		$emails = array_unique(array_map(static fn (string $email) => trim(strtolower($email)), $emails));
 		$user = $this->auth->getLoggedIn();
@@ -270,6 +279,7 @@ class PhotosController extends Controller
 				to : $emails,
 				bcc: [$user],
 				currentUser: $user,
+				message: $message,
 			)
 		);
 		if ($url === false) {
@@ -347,7 +357,7 @@ class PhotosController extends Controller
 		}
 
 		$zip = UPLOAD_DIR.'/photos/';
-		if (!is_dir($zip) && !mkdir($zip, 0777, true)) {
+		if (!is_dir($zip) && !mkdir($zip, 0777, true) && !is_dir($zip)) {
 			throw new \RuntimeException('Cannot create directory for photos');
 		}
 		$zip .= 'download.zip';
@@ -368,6 +378,90 @@ class PhotosController extends Controller
 				fopen($zip, 'rb'),
 			)
 		);
+	}
+
+	public function uploadPhotos(Arena $arena, Request $request): ResponseInterface {
+		$logger = new Logger(LOG_DIR, 'image-upload');
+
+		$baseIdentifier = 'photos/' . Strings::webalize($arena->name) . '/';
+
+		$files = $request->getUploadedFiles();
+		if (empty($files)) {
+			return $this->respond(new ErrorResponse('No files uploaded', ErrorType::VALIDATION), 400);
+		}
+		if (!isset($files['photos']) || !is_array($files['photos'])) {
+			return $this->respond(new ErrorResponse('Invalid files', ErrorType::VALIDATION), 400);
+		}
+
+		$logger->info('Uploading photos - '.$arena->name);
+
+		$uploadedPhotos = [];
+		$errors = [];
+
+		/** @var UploadedFile[] $photos */
+		$photos = $files['photos'];
+		foreach ($photos as $file) {
+			$name = basename($file->getClientFilename());
+
+			// Handle form errors
+			if ($file->getError() !== UPLOAD_ERR_OK) {
+				$errors[] = match ($file->getError()) {
+					UPLOAD_ERR_INI_SIZE   => lang('Nahraný soubor je příliš velký', context: 'errors').' - '.$name,
+					UPLOAD_ERR_FORM_SIZE  => lang('Form size is to large', context: 'errors').' - '.$name,
+					UPLOAD_ERR_PARTIAL    => lang(
+							         'The uploaded file was only partially uploaded.',
+							context: 'errors'
+						).' - '.$name,
+					UPLOAD_ERR_CANT_WRITE => lang('Failed to write file to disk.', context: 'errors').' - '.$name,
+					default               => lang('Error while uploading a file.', context: 'errors').' - '.$name,
+				};
+				continue;
+			}
+
+			// Check file type
+			$fileType = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+			if (!in_array($fileType, ['jpg', 'jpeg', 'png', 'heic', 'heif'], true)) {
+				$errors[] = lang('Typ souboru není podporovaný', context: 'errors').' - '.$name;
+				continue;
+			}
+
+			$tempFile = UPLOAD_DIR.'/photos/';
+			if (!is_dir($tempFile) && !mkdir($tempFile, 0777, true) && !is_dir($tempFile)) {
+				throw new \RuntimeException('Cannot create directory for photos');
+			}
+			$tempFileBase = uniqid('photo_', true);
+			$tempFile .= $tempFileBase.'.'.$fileType;
+
+			$file->moveTo($tempFile);
+
+			$photo = $this->commandBus->dispatch(
+				new ProcessPhotoCommand(
+					$arena,
+					$tempFile,
+					fileType: $fileType,
+					filePublicName: $name,
+					logger: $logger,
+				)
+			);
+
+			if (file_exists($tempFile)) {
+				unlink($tempFile);
+			}
+
+			if (is_string($photo)) {
+				$errors[] = $photo;
+				continue;
+			}
+
+			$uploadedPhotos[] = $photo;
+		}
+
+		if (!empty($errors)) {
+			$logger->error('Errors while uploading photos - '.$arena->name, $errors);
+			return $this->respond(new ErrorResponse(lang('Chyba při nahrávání fotek', context: 'errors'), ErrorType::INTERNAL, values: ['errors' => $errors, 'photos' => $uploadedPhotos]), 500);
+		}
+
+		return $this->respond(new SuccessResponse(values: ['photos' => $uploadedPhotos]));
 	}
 
 }

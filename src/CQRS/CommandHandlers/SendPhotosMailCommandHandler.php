@@ -9,6 +9,7 @@ use App\Models\Auth\Player;
 use App\Models\Auth\User;
 use App\Models\Photos\PhotoMailLog;
 use App\Services\MailService;
+use League\CommonMark\MarkdownConverter;
 use Lsr\Core\App;
 use Lsr\CQRS\CommandHandlerInterface;
 use Lsr\CQRS\CommandInterface;
@@ -18,7 +19,9 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 {
 	public function __construct(
 		private MailService $mailService,
-	) {}
+		private MarkdownConverter $markdownConverter,
+	) {
+	}
 
 
 	/**
@@ -46,13 +49,34 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 
 		$message = new Message('mails/photos/mail');
 		$message->setFrom('app@laserliga.cz', 'LaserLiga');
-		$message->setSubject(lang('[%s] Vaše fotky ze hry %s', context: 'mail', format: [$command->arena->name, $command->game->start->format('j. n. Y')]));
+		if ($command->arena->photosSettings->email !== null) {
+			$message->addReplyTo($command->arena->photosSettings->email, $command->arena->name);
+		}
+		$message->setSubject(
+			lang('[%s] Vaše fotky ze hry %s', context: 'mail', format: [
+				$command->arena->name,
+				$command->game->start->format('j. n. Y'),
+			])
+		);
+
+		$arenaMessage = $command->arena->photosSettings->mailText;
+		$arenaMessageHtml = !empty($arenaMessage) ? $this->markdownConverter->convert($arenaMessage) : null;
+		$extraMessage = trim($command->message);
+		$extraMessageHtml = null;
+		if (empty($extraMessage)) {
+			$extraMessage = null;
+		}
+		else {
+			$extraMessageHtml = $this->markdownConverter->convert($extraMessage);
+		}
+
 
 		foreach ($command->to as $to) {
 			$log = new PhotoMailLog();
 			$log->user = $command->currentUser;
 			$log->datetime = new \DateTimeImmutable();
 			$log->gameCode = $command->game->code;
+			$log->extraMessage = $extraMessage;
 			if ($to instanceof User || $to instanceof Player) {
 				$name = $to instanceof User ? $to->name : $to->nickname;
 				$message->addTo($to->email, $name);
@@ -88,6 +112,10 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 		$message->params['game'] = $command->game;
 		$message->params['link'] = $link;
 		$message->params['url'] = $url;
+		$message->params['message'] = $extraMessage;
+		$message->params['messageHtml'] = $extraMessageHtml;
+		$message->params['arenaMessage'] = $arenaMessage;
+		$message->params['arenaMessageHtml'] = $arenaMessageHtml;
 
 		try {
 			$this->mailService->send($message);

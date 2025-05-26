@@ -5,18 +5,38 @@
 {varType string $url}
 {varType string[] $link}
 {default string[] $recipient = []}
+{default string $message = ''}
+{default string $messageHtml = ''}
+{default string $arenaMessage = ''}
+{default string $arenaMessageHtml = ''}
 
 {block body}
-	<h1>{_'Vaše fotky ze hry %s', context: 'mail', format: [$game->start->format('j. n. Y')]}</h1>
-	<p>
-		{_'K Vašim výsledkům ze hry byly přiřazeny fotky.', context: 'mail'}
-	</p>
-	<p>
+    <h1>{_'Vaše fotky ze hry %s', context: 'mail', format: [$game->start->format('j. n. Y')]}</h1>
+    {if !empty($arenaMessage)}
+        <div>
+            {$arenaMessageHtml|noescape}
+        </div>
+        <hr>
+    {/if}
+    {if !empty($message)}
+        <div n:if="!empty($message)">
+            {$messageHtml|noescape}
+        </div>
+    {else}
+        <p>
+            {_'K Vašim výsledkům ze hry byly přiřazeny fotky.', context: 'mail'}
+        </p>
+    {/if}
+    <hr>
+    <p style="text-align:center;">
         {ifset $recipient[0]}
             {do $link['tr_email'] = $recipient[0]}
         {/ifset}
-		<a href="{link $link}" class="btn btn-lg">
-			{_'Výsledky s fotkami', context: 'mail'}
-		</a>
-	</p>
+        <a href="{link $link}" class="btn btn-lg">
+            {_'Výsledky s fotkami', context: 'mail'}
+        </a>
+    </p>
+    <p style="text-align:center">
+        <a href="{link $link}" style="font-size:0.9em;">{link $link}</a>
+    </p>
 {/block}

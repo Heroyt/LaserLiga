@@ -44,6 +44,9 @@ scheduler:
 		recreatePhotoArchive:
 			expression: */10 * * * *
 			callback: [@cron.recreatePhotoArchive, 'run']
+		deleteOldPhotos:
+			expression: 0 1 * * *
+			callback: [@cron.deleteOldPhotos, 'run']
 services:
 	# Core scheduler
 	scheduler.logger: Lsr\Logging\Logger(%logger.dir%, 'scheduler')
@@ -70,3 +73,4 @@ services:
 	cron.clearTempPhotos: App\Cron\ClearTempPhotosJob
 	cron.preparePhotoArchive: App\Cron\PreparePhotoArchiveJob
 	cron.recreatePhotoArchive: App\Cron\RecreatePhotoArchiveJob
+	cron.deleteOldPhotos: App\Cron\DeleteOldPhotosJob

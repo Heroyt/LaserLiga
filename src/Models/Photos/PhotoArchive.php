@@ -32,10 +32,13 @@ class PhotoArchive extends BaseModel
 	public bool $recreate = false;
 
 	public DateTimeInterface $createdAt;
+	public ?DateTimeInterface $lastDownload = null;
 
 	/** @var int<0,max>  */
 	#[IntRange(min:0)]
 	public int $downloaded = 0;
+
+	public bool $keepForever = false;
 
 	#[NoDB]
 	public ?Game $game = null {

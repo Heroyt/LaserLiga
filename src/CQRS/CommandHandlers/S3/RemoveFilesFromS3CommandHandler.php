@@ -32,7 +32,7 @@ final readonly class RemoveFilesFromS3CommandHandler implements CommandHandlerIn
 		}
 		$result = $this->s3Client
 			->deleteObjects([
-				               'Bucket' => $this->config->bucket,
+				               'Bucket' => $command->bucket ?? $this->config->bucket,
 				               'Delete'    => [
 								   'Objects' => $objects,
 				               ],

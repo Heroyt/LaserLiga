@@ -10,7 +10,7 @@
             <div class="card-body text-center">
                 <h5 class="card-title">{$arena->name}</h5>
                 <div class="btn-group mt-3">
-                    <a n:if="($user->hasRight('view-photos') || $user->hasRight('manage-photos')) && $user->managesArena($arena)"
+                    <a n:if="$arena->photosSettings->enabled && ($user->hasRight('view-photos') || $user->hasRight('manage-photos')) && $user->managesArena($arena)"
                             href="{link ['admin', 'arenas', $arena->id, 'photos']}"
                             class="btn btn-primary btn">
                         {faSolid 'images'} {_'Fotky'}

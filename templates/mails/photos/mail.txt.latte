@@ -3,10 +3,26 @@
 {varType App\Models\Arena $arena}
 {varType App\GameModels\Game\Game $game}
 {varType string $url}
+{varType string[] $link}
+{default string[] $recipient = []}
+{default string $message = ''}
+{default string $messageHtml = ''}
+{default string $arenaMessage = ''}
+{default string $arenaMessageHtml = ''}
+
+{ifset $recipient[0]}
+    {do $link['tr_email'] = $recipient[0]}
+{/ifset}
 
 {block body}
     {_'Vaše fotky ze hry %s', context: 'mail', format: [$game->start->format('j. n. Y')]}
-
-    {_'K Vašim výsledkům ze hry byly přiřazeny fotky.', context: 'mail'}
-    {_'Výsledky s fotkami', context: 'mail'}: {$url}
+    {if !empty($message)}
+        {$message}
+    {else}
+        {_'K Vašim výsledkům ze hry byly přiřazeny fotky.', context: 'mail'}
+    {/if}
+    {if !empty($arenaMessage)}
+        {$arenaMessage}
+    {/if}
+    {_'Výsledky s fotkami', context: 'mail'}: {link $link}
 {/block}

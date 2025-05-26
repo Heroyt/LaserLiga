@@ -17,6 +17,19 @@
     </div>
     <h2>{_'Fotky arény'} {$arena->name} - {$date|date:'j. n. Y'}</h2>
 
+    <form action="{link ['admin', 'arenas', $arena->id, 'photos', 'upload']}" enctype="multipart/form-data" id="upload-form"
+          method="post" data-success="{_'Fotky byly úspěšně nahrány.'}"
+          class="text-center">
+        <div class="form-group">
+            <label for="media" class="form-label">{_'Nahrát fotky'}:</label>
+            <input type="file" name="photos[]" accept="image/*" required class="form-control" id="photo-upload" multiple>
+            <button type="submit" class="btn btn-success my-3" name="action" value="upload">
+                {faSolid 'upload'}
+                {_'Nahrát', context: 'actions'}
+            </button>
+        </div>
+    </form>
+
     <label for="selected-date">{_'Datum'}:</label>
     <input id="selected-date" type="text" class="form-control date-picker" value="{$date|date:'d.m.Y'}">
 
@@ -56,12 +69,12 @@
                             </span>
                             <picture class="game-photo">
                                 {var App\Models\Photos\PhotoVariation|null $thumbWebp = $photo->findVariation(150,'webp')}
-                                <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->url}" type="image/webp">
+                                <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->proxyUrl}" type="image/webp">
                                 {var App\Models\Photos\PhotoVariation|null $thumb = $photo->findVariation(150,$photo->type)}
-                                <source n:if="$thumb?->url !== null" srcset="{$thumb->url}" type="{$photo->mime}">
+                                <source n:if="$thumb?->url !== null" srcset="{$thumb->proxyUrl}" type="{$photo->mime}">
                                 {var App\Models\Photos\PhotoVariation|null $webp = $photo->findWebpOriginal()}
-                                <source n:if="$webp?->url !== null" srcset="{$webp->url}" type="image/webp">
-                                <img src="{$photo->url}" data-webp="{$webp?->url}"
+                                <source n:if="$webp?->url !== null" srcset="{$webp->proxyUrl}" type="image/webp">
+                                <img src="{$photo->proxyUrl}" data-webp="{$webp?->proxyUrl}"
                                      alt="{_'Fotka ze hry %s', domain: 'results', format: [$photo->exifTime?->format('d.m.Y H:i') ?? '']}"
                                      loading="lazy" class="figure-img img-fluid rounded"/>
                             </picture>
@@ -116,12 +129,12 @@
                                 {continueIf $photo->url === null}
                                 <picture class="game-photo" data-id="{$photo->id}">
                                     {var App\Models\Photos\PhotoVariation|null $thumbWebp = $photo->findVariation(150,'webp')}
-                                    <source n:if="$thumbWebp?->url !== null" srcset="{$thumbWebp->url}" type="image/webp">
+                                    <source n:if="$thumbWebp?->proxyUrl !== null" srcset="{$thumbWebp->proxyUrl}" type="image/webp">
                                     {var App\Models\Photos\PhotoVariation|null $thumb = $photo->findVariation(150,$photo->type)}
-                                    <source n:if="$thumb?->url !== null" srcset="{$thumb->url}" type="{$photo->mime}">
+                                    <source n:if="$thumb?->proxyUrl !== null" srcset="{$thumb->proxyUrl}" type="{$photo->mime}">
                                     {var App\Models\Photos\PhotoVariation|null $webp = $photo->findWebpOriginal()}
-                                    <source n:if="$webp?->url !== null" srcset="{$webp->url}" type="image/webp">
-                                    <img src="{$photo->url}" data-webp="{$webp?->url}"
+                                    <source n:if="$webp?->proxyUrl !== null" srcset="{$webp->proxyUrl}" type="image/webp">
+                                    <img src="{$photo->proxyUrl}" data-webp="{$webp?->proxyUrl}"
                                          alt="{_'Fotka ze hry %s', domain: 'results', format: [$photo->exifTime?->format('d.m.Y H:i') ?? '']}"
                                          loading="lazy" class="img-fluid rounded"/>
                                 </picture>
@@ -198,7 +211,7 @@
             </button>
         </div>
         <form class="dialog-content needs-validation" novalidate id="mails-form" data-failed="{_'Nepodařilo se odeslat e-maily.'}" data-success="{_'E-maily byly úspěšně odeslány.'}">
-            <label for="mails" class="form-label">
+            <label for="mails" class="form-label required">
                 {_'E-mailové adresy'}:
             </label>
             <textarea
@@ -215,6 +228,21 @@
             </div>
             <div class="form-text">
                 {_'Adresy oddělte čárkou nebo novým řádkem.'}
+            </div>
+
+            <label for="mail-message" class="form-label mt-4">
+                {_'Dodatečná zpráva'}: ({_'volitelné'})
+            </label>
+            <textarea
+                    name="message"
+                    id="mail-message"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Posílám slíbené fotky z oslavy..."
+            ></textarea>
+            <div class="form-text">
+                {_'Přidejte zprávu pro adresáta.'}
+                {_'Podporuje <a href="%s" target="_blank">Markdown</a> formátování',format: ['https://www.markdownguide.org/basic-syntax/']|noescape}
             </div>
 
             <p class="mt-3">

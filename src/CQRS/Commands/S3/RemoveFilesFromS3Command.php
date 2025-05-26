@@ -17,6 +17,7 @@ class RemoveFilesFromS3Command implements CommandInterface
 	 */
 	public function __construct(
 		public array $identifiers,
+		public ?string $bucket = null,
 	) {}
 
 

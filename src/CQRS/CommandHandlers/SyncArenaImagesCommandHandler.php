@@ -4,37 +4,32 @@ declare(strict_types=1);
 namespace App\CQRS\CommandHandlers;
 
 use App\CQRS\CommandResponses\Dropbox\FileMetadata;
-use App\CQRS\CommandResponses\S3\PutObjectResponse;
 use App\CQRS\CommandResponses\SyncArenaImagesResponse;
 use App\CQRS\Commands\Dropbox\DeleteDropboxFileCommand;
 use App\CQRS\Commands\Dropbox\DownloadDropboxFileCommand;
 use App\CQRS\Commands\Dropbox\ListDropboxFilesCommand;
-use App\CQRS\Commands\S3\UploadFileToS3Command;
+use App\CQRS\Commands\ProcessPhotoCommand;
 use App\CQRS\Commands\SyncArenaImagesCommand;
-use App\Exceptions\FileException;
 use App\Models\Photos\Photo;
-use App\Models\Photos\PhotoVariation;
 use App\Services\Dropbox\TokenProvider;
 use App\Services\ImageService;
-use DateTimeImmutable;
 use Lsr\CQRS\CommandBus;
 use Lsr\CQRS\CommandHandlerInterface;
 use Lsr\CQRS\CommandInterface;
-use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Logger;
-use Maestroerror\HeicToJpg;
 use Spatie\Dropbox\Client;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Lock\LockFactory;
+use Throwable;
 
 final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInterface
 {
 	public function __construct(
 		private CommandBus   $commandBus,
 		private ImageService $imageService,
-		private LockFactory $lockFactory,
+		private LockFactory  $lockFactory,
 	) {
 	}
 
@@ -43,8 +38,8 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 	 * @param SyncArenaImagesCommand $command
 	 */
 	public function handle(CommandInterface $command): SyncArenaImagesResponse {
-		$logger = new Logger(LOG_DIR, 'photo-sync-'.Strings::webalize($command->arena->name));
-		$lock = $this->lockFactory->createLock('photo-sync-'.$command->arena->id);
+		$logger = new Logger(LOG_DIR, 'photo-sync-' . Strings::webalize($command->arena->name));
+		$lock = $this->lockFactory->createLock('photo-sync-' . $command->arena->id);
 
 		if (!$lock->acquire()) {
 			$logger->warning('failed to acquire lock');
@@ -93,10 +88,6 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 			$tempFileBase = TMP_DIR . uniqid('dropbox_img_', true);
 			$tempFile = $tempFileBase . '.' . $entry->fileType;
 
-			// Start transaction
-			DB::begin();
-			$commited = false;
-
 			try {
 				if (!$this->commandBus->dispatch(
 					new DownloadDropboxFileCommand($client, $entry->pathDisplay, $tempFile)
@@ -107,105 +98,36 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 				$logger->debug('File downloaded ' . $tempFile);
 				$output?->writeln('File downloaded ' . $tempFile);
 
-				// Convert heic to jpg
-				if (($entry->fileType === 'heic' || $entry->fileType === 'heif') && HeicToJpg::isHeic($tempFile)) {
-					$logger->debug('Converting file from HEIC ' . $tempFile);
-					$output?->writeln('Converting file from HEIC ' . $tempFile);
-					$convertedFile = $tempFileBase . '.jpg';
-					if (!HeicToJpg::convert($tempFile, $convertedFile)->saveAs($convertedFile)) {
-						$logger->error('Failed to convert file from HEIC ' . $tempFile);
-						$response->errors[] = 'Failed to convert file from HEIC ' . $tempFile;
-						continue;
-					}
-					unlink($tempFile); // Remove the heic file
-					$tempFile = $convertedFile;
-					$entry->fileType = 'jpg';
+				// Process downloaded photo
+				// - Convert heic to jpg
+				// - Create photo entity
+				// - Create resized variants
+				// - Upload to S3
+				// - Will not delete the local file
+				$photo = $this->commandBus->dispatch(
+					new ProcessPhotoCommand(
+						arena         : $command->arena,
+						filename      : $tempFile,
+						fileType      : $entry->fileType,
+						filePublicName: $entry->pathDisplay,
+						optimizeSizes : $command->optimizeSizes,
+						output        : $output,
+						logger        : $logger,
+					)
+				);
+
+				// Delete the original file - either processed successfully, or it will be downloaded again.
+				if (file_exists($tempFile)) {
+					unlink($tempFile);
 				}
 
-				// Read exif info
-				$exif = exif_read_data($tempFile);
-				$exifTime = null;
-				if ($exif !== false && isset($exif['DateTime'])) {
-					$exifTime = new DateTimeImmutable($exif['DateTime']);
-					$identifier = $baseIdentifier . strtotime($exif['DateTime']);
-				}
-				else {
-					$exifTime = new DateTimeImmutable();
-					$identifier = $baseIdentifier . uniqid('', true);
-				}
-
-				// Find or create entity
-				$photo = Photo::findOrCreateByIdentifier($identifier . '.' . $entry->fileType);
-				$photo->arena = $command->arena;
-				$photo->exifTime = $exifTime;
-
-				// Upload to S3
-				/** @var PutObjectResponse $putResponse */
-				$putResponse = $this->commandBus->dispatch(new UploadFileToS3Command($tempFile, $photo->identifier));
-				$photo->url = $putResponse->ObjectURL;
-				if (!$photo->save()) {
-					$logger->error('Failed to save photo ' . $entry->pathDisplay);
-					$response->errors[] = 'Failed to save photo ' . $entry->pathDisplay;
-					DB::rollback();
-					continue;
-				}
-				$logger->debug('File uploaded to S3 ' . $photo->identifier);
-				$output?->writeln('File uploaded to S3 ' . $photo->identifier);
-
-				// Optimize image
-				try {
-					$images = $this->imageService->optimize($tempFile, $command->optimizeSizes);
-				} catch (FileException $e) {
-					$logger->error('Failed to optimize image ' . $entry->pathDisplay . ' - ' . $e->getMessage());
-					$response->errors[] = 'Failed to optimize image ' . $entry->pathDisplay . ' - ' . $e->getMessage();
-					DB::rollback();
+				// If photo is a string, it means that the processing failed, and the string contains an error message..
+				if (is_string($photo)) {
+					$response->errors[] = 'Failed to process file ' . $entry->pathDisplay . ' - ' . $photo;
 					continue;
 				}
 
-				$logger->debug('Optimized images:'.count($images));
-				$output?->writeln('Optimized images:'.count($images));
-
-				// Process optimized images
-				foreach ($images as $type => $image) {
-					$ext = pathinfo($image, PATHINFO_EXTENSION);
-					$variation = PhotoVariation::findOrCreateByIdentifier($identifier . '-' . $type . '.' . $ext);
-					$variation->photo = $photo;
-					$variation->type = $ext;
-					$size = getimagesize($image);
-					if ($size === false) {
-						$logger->error('Failed to get image size for optimized image ' . $image . ' (' . $entry->pathDisplay . ')');
-						$response->errors[] = 'Failed to get image size for optimized image ' . $image . ' (' . $entry->pathDisplay . ')';
-						DB::rollback();
-						continue 2;
-					}
-					$variation->size = $size[0];
-
-					// Upload to S3
-					/** @var PutObjectResponse $putResponse */
-					$putResponse = $this->commandBus->dispatch(
-						new UploadFileToS3Command($image, $variation->identifier)
-					);
-					$variation->url = $putResponse->ObjectURL;
-					if (!$variation->save()) {
-						$logger->error('Failed to save photo variation ' . $image . ' (' . $entry->pathDisplay . ')');
-						$response->errors[] = 'Failed to save photo variation ' . $image . ' (' . $entry->pathDisplay . ')';
-						DB::rollback();
-						continue 2;
-					}
-					$output?->writeln('Uploaded image variation ' . $variation->identifier);
-					$photo->variations->add($variation);
-				}
-
-				// Commit DB changes
-				DB::commit();
-				$commited = true;
-
-				// Now, that everything is saved in the DB and uploaded to S3
-				// delete temporary and dropbox files.
-				unlink($tempFile);
-				foreach ($images as $image) {
-					unlink($image);
-				}
+				// Delete the file from Dropbox after successful processing
 				$logger->debug('deleting dropbox file ' . $entry->pathDisplay);
 				$deleteResponse = $this->commandBus->dispatch(
 					new DeleteDropboxFileCommand($client, $entry->pathDisplay)
@@ -217,12 +139,8 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 				}
 				$response->count++;
 				$response->photos[] = $photo;
-			} catch (\Throwable $e) {
+			} catch (Throwable $e) {
 				$logger->exception($e);
-				if (!$commited) {
-					// Cleanup if something went wrong
-					DB::rollback();
-				}
 				if (file_exists($tempFile)) {
 					unlink($tempFile);
 				}

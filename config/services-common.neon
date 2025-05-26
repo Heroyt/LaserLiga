@@ -20,6 +20,9 @@ parameters:
 		siteId: 1
 		url: 'https://analytics.laserliga.cz'
 		token: ''
+	commonmark:
+		html_input: 'strip'
+		allow_unsafe_links: false
 extensions:
 	cache: Lsr\Caching\DI\CacheExtension
 	decorator: Nette\DI\Extensions\DecoratorExtension
@@ -144,6 +147,23 @@ services:
 		create: \MatomoTracker(%matomo.siteId%, %matomo.url%)
 		setup:
 			- setTokenAuth(%matomo.token%)
+
+	commonmark.extension.core: League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension
+	commonmark.extension.noRawHtml: League\CommonMark\Extension\DisallowedRawHtml\DisallowedRawHtmlExtension
+	commonmark.extension.punctuation: League\CommonMark\Extension\SmartPunct\SmartPunctExtension
+	commonmark.extension.tables: League\CommonMark\Extension\Table\TableExtension
+	commonmark.extension.emoji: ElGigi\CommonMarkEmoji\EmojiExtension
+
+	commonmark.environment:
+		create: League\CommonMark\Environment\Environment(%commonmark%)
+		setup:
+			- addExtension(@commonmark.extension.core)
+			- addExtension(@commonmark.extension.noRawHtml)
+			- addExtension(@commonmark.extension.punctuation)
+			- addExtension(@commonmark.extension.tables)
+			- addExtension(@commonmark.extension.emoji)
+	commonmark: League\CommonMark\MarkdownConverter(@commonmark.environment)
+
 search:
 	controllers:
 		in: '%constants.appDir%src/Controllers'

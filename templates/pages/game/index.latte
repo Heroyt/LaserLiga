@@ -65,7 +65,7 @@
         {include resultsHits}
     {/if}
     {if count($photos) > 0}
-        {include '../../components/photos.latte', $photos, $game, $canDownloadPhotos, downloadFileName: $downloadFileName}
+        {include '../../components/photos.latte', $photos, $game, $canDownloadPhotos, $downloadLink, $downloadFileName}
     {/if}
 
     <div class="modal fade" id="leaderboard-modal" tabindex="-1">

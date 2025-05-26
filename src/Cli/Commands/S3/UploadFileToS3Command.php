@@ -31,13 +31,15 @@ class UploadFileToS3Command extends Command
 	protected function configure() : void {
 		$this->addArgument('file', InputArgument::REQUIRED, 'File to upload');
 		$this->addArgument('identifier', InputArgument::OPTIONAL, 'Identifier');
+		$this->addArgument('bucket', InputArgument::OPTIONAL, 'Bucket');
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) : int {
 		$filename = $input->getArgument('file');
 		$identifier = $input->getArgument('identifier');
+		$bucket = $input->getArgument('bucket');
 
-		$result = $this->commandBus->dispatch(new \App\CQRS\Commands\S3\UploadFileToS3Command($filename, $identifier));
+		$result = $this->commandBus->dispatch(new \App\CQRS\Commands\S3\UploadFileToS3Command($filename, $identifier, $bucket));
 
 		$output->writeln($this->serializer->serialize($result, 'json'));
 
