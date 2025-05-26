@@ -1,31 +1,63 @@
 // Font Awesome
 // $fa-font-path: "~@fortawesome/fontawesome-free/webfonts";
 $fa-font-path: '/assets/fonts';
+$fa-font-version: 1;
 
 @import '~@fortawesome/fontawesome-free/scss/functions';
 @import '~@fortawesome/fontawesome-free/scss/variables';
 @import 'fontawesome-icons';
 @import '~@fortawesome/fontawesome-free/scss/mixins';
-@import '~@fortawesome/fontawesome-free/scss/regular';
-@import '~@fortawesome/fontawesome-free/scss/solid';
 
 :root, :host {
-  --#{$fa-css-prefix}-style-family-brands: 'Font Awesome 6 Brands';
-  --#{$fa-css-prefix}-font-brands: normal 400 1em/1 'Font Awesome 6 Brands';
+	--#{$fa-css-prefix}-style-family-brands: 'Font Awesome 6 Brands';
+	--#{$fa-css-prefix}-font-brands: normal 400 1em/1 'Font Awesome 6 Brands';
+	--#{$fa-css-prefix}-style-family-classic: '#{ $fa-style-family }';
+	--#{$fa-css-prefix}-font-regular: normal 400 1em/1 '#{ $fa-style-family }';
+	--#{$fa-css-prefix}-style-family-classic: '#{ $fa-style-family }';
+	--#{$fa-css-prefix}-font-solid: normal 900 1em/1 '#{ $fa-style-family }';
 }
 
 @font-face {
-  font-family: 'Font Awesome 6 Brands';
-  font-style: normal;
-  font-weight: 400;
-  font-display: $fa-font-display;
-  src: url('#{$fa-font-path}/fa-brands-400.woff2') format('woff2'),
-  url('#{$fa-font-path}/fa-brands-400.ttf') format('truetype');
+	font-family: 'Font Awesome 6 Free';
+	font-style: normal;
+	font-weight: 900;
+	font-display: $fa-font-display;
+	src: url('#{$fa-font-path}/fa-solid-900.woff2?v=#{$fa-font-version}') format('woff2'),
+	url('#{$fa-font-path}/fa-solid-900.ttf?v=#{$fa-font-version}') format('truetype');
+}
+
+.fas,
+.#{$fa-css-prefix}-solid {
+	font-weight: 900;
+}
+
+
+@font-face {
+	font-family: 'Font Awesome 6 Free';
+	font-style: normal;
+	font-weight: 400;
+	font-display: $fa-font-display;
+	src: url('#{$fa-font-path}/fa-regular-400.woff2?v=#{$fa-font-version}') format('woff2'),
+	url('#{$fa-font-path}/fa-regular-400.ttf?v=#{$fa-font-version}') format('truetype');
+}
+
+.far,
+.#{$fa-css-prefix}-regular {
+	font-weight: 400;
+}
+
+@font-face {
+	font-family: 'Font Awesome 6 Brands';
+	font-style: normal;
+	font-weight: 400;
+	font-display: $fa-font-display;
+	src: url('#{$fa-font-path}/fa-brands-400.woff2?v=#{$fa-font-version}') format('woff2'),
+	url('#{$fa-font-path}/fa-brands-400.ttf?v=#{$fa-font-version}') format('truetype');
 }
 
 .fab,
 .#{$fa-css-prefix}-brands {
-  font-weight: 400;
+	font-weight: 400;
 }
 
 .btn {
@@ -36,14 +68,16 @@ $fa-font-path: '/assets/fonts';
 	.#{$fa-css-prefix}-regular,
 	.#{$fa-css-prefix}-brands,
 	.#{$fa-css-prefix} {
-		margin-right: .3em;
+		&:not(:only-child) {
+			margin-right: .3em;
+		}
 	}
 }
 
 @import '~@fortawesome/fontawesome-free/scss/core';
 
 @each $name, $icon in $icons {
-  .#{$fa-css-prefix}-#{$name}::before {
-    content: unquote('"#{ $icon }"');
-  }
+	.#{$fa-css-prefix}-#{$name}::before {
+		content: unquote('"#{ $icon }"');
+	}
 }

@@ -1,0 +1,74 @@
+<dialog id="cookieConsentDialog" class="cookie-consent-dialog px-5 py-4">
+    <form method="dialog">
+        <h2>{_'Zpracování souborů cookies', domain: 'privacy', context: 'cookies'}</h2>
+        <p>
+            {_'Tento web využívá soubory cookie k zajištění správné funkčnosti a pro analýzu návštěvnosti. Kliknutím na tlačítko "%s" souhlasíte s jejich využíváním.', domain: 'privacy', context: 'cookies', format: [lang('Přijmout vše', context: 'cookies', domain: 'privacy')]}
+        </p>
+        <p>
+            <a href="{link ['zasady-zpracovani-osobnich-udaju']}" class="text-text">
+                {lang 'Zásady zpracování osobních údajů', context: 'pageTitles'}
+            </a>
+        </p>
+        <div id="cookie-settings" class="collapse hide">
+            <h3>{_'Nastavení souborů cookies', domain: 'privacy', context: 'cookies'}</h3>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" value="necessary" name="cookies" id="necessary-cookies" switch checked disabled>
+                <label class="form-check-label" for="necessary-cookies">
+                    {_'Nezbytné soubory cookies', domain: 'privacy', context: 'cookies'}
+                </label>
+            </div>
+            <p class="form-text">
+                {_'Tyto soubory cookies jsou nezbytné pro správnou funkčnost webu a nelze je vypnout.', domain: 'privacy', context: 'cookies'}
+            </p>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" value="statistics" name="cookies" id="statistics-cookies" switch checked>
+                <label class="form-check-label" for="statistics-cookies">
+                    {_'Analytické soubory cookies', domain: 'privacy', context: 'cookies'}
+                </label>
+            </div>
+            <p class="form-text">
+                {_'Tyto soubory cookies nám pomáhají analyzovat návštěvnost webu a zlepšovat jeho funkčnost.', domain: 'privacy', context: 'cookies'}
+            </p>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" value="preference" name="cookies" id="preference-cookies" switch checked>
+                <label class="form-check-label" for="preference-cookies">
+                    {_'Preferenční soubory cookies', domain: 'privacy', context: 'cookies'}
+                </label>
+            </div>
+            <p class="form-text">
+                {_'Tyto soubory cookies uchovávají vaše preferenční nastavení, jako je jazyk webu, režim zobrazení ap.', domain: 'privacy', context: 'cookies'}
+            </p>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" value="marketing" name="cookies" id="marketing-cookies" switch>
+                <label class="form-check-label" for="marketing-cookies">
+                    {_'Marketingové soubory cookies', domain: 'privacy', context: 'cookies'}
+                </label>
+            </div>
+            <p class="form-text">
+                {_'Tyto soubory cookies uchovávají uchovávají persistentní data o vaší návštěvě a jsou využívány převážně třetími stranami pro sledování Vaší aktivity. LaserLiga se snaží tento typ souborů cookies a závislost na službách třetích stran, které sledují uživatele využívat co nejméně.', domain: 'privacy', context: 'cookies'}
+            </p>
+
+            <p>
+                <button type="submit" class="btn btn-success" id="cookieConsentSave" value="save">
+                    {faSolid 'floppy-disk'}
+                    {_'Uložit nastavení cookies', context: 'cookies', domain: 'privacy'}
+                </button>
+            </p>
+        </div>
+        <div class="text-end border-top mt-3 pt-3">
+            <button id="cookieConsentAccept" class="btn btn-success" value="accept" type="submit">
+                {faSolid 'check'}
+                {_'Přijmout vše', context: 'cookies', domain: 'privacy'}
+            </button>
+            <button id="cookieConsentReject" class="btn btn-outline-danger" value="reject" type="submit">
+                {faSolid 'ban'}
+                {_'Odmítnout vše', context: 'cookies', domain: 'privacy'}
+            </button>
+            <button id="cookieConsentCustomize" class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#cookie-settings" aria-expanded="false" aria-controls="cookie-settings">
+                {faSolid 'cog'}
+                {_'Přizpůsobit', context: 'cookies', domain: 'privacy'}
+            </button>
+        </div>
+    </form>
+</dialog>

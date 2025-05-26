@@ -16,6 +16,7 @@ import { startLoading, stopLoading } from "./loaders";
 import { userSendNewConfirmEmail } from "./api/endpoints/user";
 import { triggerNotification } from "./components/notifications";
 import { initDownloadButton } from "./components/downloadHelper";
+import { initCookieConsent } from "./cookieConsent";
 
 declare global {
     const usr: number | null;
@@ -304,6 +305,9 @@ window.addEventListener("load", () => {
 
     // Pages
     route(page);
+
+    // Cookie Consent Dialog
+    initCookieConsent();
 
     window.triggerNotification = triggerNotification;
 });

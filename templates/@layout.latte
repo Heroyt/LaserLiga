@@ -131,6 +131,7 @@
             <!-- Matomo -->
             <script>
                 let _paq = window._paq = window._paq || [];
+                _paq.push(['requireCookieConsent']);
                 /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
                 {if $auth->loggedIn()}
                 _paq.push(['setUserId', {$auth->getLoggedIn()->email}]);
@@ -225,6 +226,8 @@
             </div>
         {/foreach}
     </div>
+
+    {include components/cookieDialog.latte}
 
     <script>
         const page = {$page->app->getPageInfo()};
