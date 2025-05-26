@@ -1,61 +1,107 @@
 {varType App\Models\DataObjects\Arena\LeaderboardRecord[] $players}
 {varType \DateTime|null $date}
+{varType int $todayGames}
+{varType int $todayPlayers}
+{varType App\Models\Arena $arena}
 
 <h2 class="my-3 text-center">{lang 'Statistiky'}</h2>
 <p class="text-center text-muted">{lang 'Zajímavé statistiky o hrách laser game z této arény.'}</p>
-<div class="row mt-3">
-	<div class="col-md-6">
-		<table n:if="!empty($players)" class="table table-striped caption-top" data-track-content=""
-									   data-content-name="Arena - Top players">
+
+<p class="text-center">
+    <label for="date-select">{lang 'Datum'}:</label>
+    <input type="text" value="{ifset $date}{$date->format('d.m.Y')}{else}{date('d.m.Y')}{/ifset}"
+           class="form-control date-picker mx-auto mb-3 text-center" id="date-select" style="max-width: 10em"
+           data-max="{date('d.m.Y')}">
+</p>
+
+
+<div class="stats mb-4">
+    <div class="stat" style="view-transition-name: arena-stat-users;">
+        {faSolid 'user', ['stat-icon']}
+        <h3 class="stat-title">{lang 'Registrováno hráčů'}</h3>
+        <div class="stat-value">{$arena->getRegisteredPlayerCount()|number:0,',','&nbsp;'|noescape}</div>
+    </div>
+    <div class="stat" style="view-transition-name: arena-stat-games;">
+        {faSolid 'gamepad', ['stat-icon']}
+        <h3 class="stat-title">{lang 'Dnes odehráno her'}</h3>
+        <div class="stat-value">{$todayGames|number:0,',','&nbsp;'|noescape}</div>
+    </div>
+    <div class="stat" style="view-transition-name: arena-stat-players;">
+        {faSolid 'users', ['stat-icon']}
+        <h3 class="stat-title">{lang 'Dnes odehráno hráčů'}</h3>
+        <div class="stat-value">{$todayPlayers|number:0,',','&nbsp;'|noescape}</div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6 col-xl-4">
+        <table class="table table-striped caption-top" data-track-content=""
+               data-content-name="Arena - Top players"
+               style="view-transition-name: arena-stat-top-players;">
             <caption class="text-text fs-4">
                 {lang 'Dnešní nejlepší hráči'}:<br>
                 <span class="fs-6 text-muted">{lang 'Nejlepší dnešní hráči laser game podle jejich herní úrovně.'}</span>
             </caption>
-			<thead>
-			<tr>
-				<th></th>
-				<th class="text-center">{lang 'Hráč', context: 'leaderboard'}</th>
-				<th class="text-end">{lang 'Herní úroveň', context: 'leaderboard'}</th>
-			</tr>
-			</thead>
-			<tbody>
-			<tr n:foreach="$players as $player">
-				<th>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</th>
-				<td class="text-center">
-					{$player->name}
-					{ifset $player->code}
-						<a href="{link ['user', ($player->id_arena ?? 0) . '-' . $player->code]}"
-						   class="btn btn-sm btn-primary ms-2" data-content-piece="Profil" data-toggle="tooltip"
-						   title="{lang 'Profil hráče'}">
-							{faSolid 'user'}
-						</a>
-					{/ifset}
-				</td>
-				<td class="text-end">
-					<a href="{link 'g', $player->game_code}">
-						{$player->skill|number:0,',' . '&nbsp;'|noescape}
-						{faSolid 'medal'}
-					</a>
-				</td>
-			</tr>
-			</tbody>
-		</table>
-	</div>
-	<div class="col-md-6">
-		<label for="graph-filter">{lang 'Období'}:</label>
+            {if count($players) > 0}
+                <thead>
+                <tr>
+                    <th></th>
+                    <th class="text-center">{lang 'Hráč', context: 'leaderboard'}</th>
+                    <th class="text-end">{lang 'Herní úroveň', context: 'leaderboard'}</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr n:foreach="$players as $player">
+                    <th>{$player->better}{if $player->same > 0}-{$player->better + $player->same}{/if}.</th>
+                    <td class="text-center">
+                        {$player->name}
+                        {ifset $player->code}
+                            <a href="{link ['user', ($player->id_arena ?? 0) . '-' . $player->code]}"
+                               class="btn btn-sm btn-primary ms-2" data-content-piece="Profil" data-toggle="tooltip"
+                               title="{lang 'Profil hráče'}">
+                                {faSolid 'user'}
+                            </a>
+                        {/ifset}
+                    </td>
+                    <td class="text-end">
+                        <a href="{link 'g', $player->game_code}">
+                            {$player->skill|number:0,',' . '&nbsp;'|noescape}
+                            {faSolid 'medal'}
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            {else}
+                <thead>
+                <tr>
+                    <td class="text-center border-0">{_'Dnes se zatím nehrály žádné hry'}</td>
+                </tr>
+                </thead>
+            {/if}
+        </table>
+    </div>
+    <div class="col-md-6 col-xl-8">
+        <h3>{_'Grafy'}</h3>
+        <label for="graph-filter">{lang 'Období'}:</label>
         <select id="graph-filter" class="form-select" data-track-content=""
                 data-content-name="Arena - date filter" data-content-piece="Select">
-			<option value="" n:attr="selected: !isset($date)">{lang 'Za celou dobu'}</option>
-			<option value="date" n:attr="selected: isset($date)">{lang 'Den'}</option>
-			<option value="week">{lang 'Tento týden'}</option>
-			<option value="month">{lang 'Tento měsíc'}</option>
-		</select>
+            <option value="" n:attr="selected: !isset($date) || count($players) === 0">{lang 'Od počátku věků'}</option>
+            <option value="date" n:attr="selected: isset($date) && count($players) > 0, disabled: count($players) === 0">{lang 'Den'}</option>
+            <option value="week">{lang 'Tento týden'}</option>
+            <option value="month">{lang 'Tento měsíc'}</option>
+        </select>
         <span class="form-text">{lang 'Období dat pro následující grafy.'}</span>
-        <h3 class="mt-3">{lang 'Herní módy'}:</h3>
-        <p class="text-muted">{lang 'Souhrn herních módů laser game, které se hráli v této aréně.'}</p>
-		<canvas id="gameModes" style="max-height: 350px; width: 100%;"></canvas>
-		<h3 class="mt-2">{lang 'Hudební módy'}:</h3>
-        <p class="text-muted">{lang 'Počet her s daným hudebním módem v této aréně.'}</p>
-		<canvas id="musicModes" style="max-height: 350px; width: 100%;"></canvas>
-	</div>
+        <div class="row">
+            <div class="col-xl-6">
+                <h4 class="mt-3">{lang 'Herní módy'}:</h4>
+                <p class="text-muted">{lang 'Souhrn herních módů laser game, které se hráli v této aréně.'}</p>
+                <canvas id="gameModes" style="max-height: 350px; width: 100%;"></canvas>
+            </div>
+            <div class="col-xl-6">
+                <h4 class="mt-2">{lang 'Hudební módy'}:</h4>
+                <p class="text-muted">{lang 'Počet her s daným hudebním módem v této aréně.'}</p>
+                <canvas id="musicModes" style="max-height: 350px; width: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
 </div>

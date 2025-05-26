@@ -52,6 +52,7 @@ class Arenas extends Controller
 			lang('Arény') => ['arena'],
 			$arena->name  => ['arena', $arena->id],
 		];
+		$this->params->addCss[] = 'pages/arenaDetail.css';
 		$this->title = 'Detail %s';
 		$this->titleParams[] = $arena->name;
 		$this->description = 'Souhrnné statistiky a informace o aréně - %s';

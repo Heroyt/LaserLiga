@@ -13,6 +13,20 @@
 	background-color: #000;
 }
 
+.count-up-stat {
+	background-color: var(--background-1);
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	border-radius: var(--bs-border-radius);
+	width: 12rem;
+	height: 10rem;
+	text-decoration: none;
+	padding: 1rem;
+	margin: .5rem;
+}
+
 @keyframes bg-slide {
 	0% {
 		background-position-x: 0;

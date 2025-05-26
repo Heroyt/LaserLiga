@@ -5,104 +5,118 @@
     {\App\Tools\Color::getGamesColor($games)|noescape}
 {/define}
 
+{define containerClasses}
+    py-5 mb-5 mb-lg-0 arena-detail-page
+{/define}
+
 {block content}
-    <div class="card bg-background-1 px-3 pt-3">
-        {$arena->getLogoHtml()|noescape}
-        <div class="card-header">
-            <h1 class="card-title fs-3 text-center">{$arena->name}</h1>
+    <section class="arena-detail-header">
+        <div class="px-3 pt-3">
+            {$arena->getLogoHtml()|noescape}
+            <h1 class="card-title fs-2 text-center">
+                <span class="visually-hidden">{_'Detail arény'} - </span>
+                {$arena->name}
+            </h1>
             <div class="visually-hidden">
                 {sprintf(lang('Stránka s informacemi o laser game aréně - %s.'), $arena->name)}
             </div>
         </div>
-        <div class="card-body text-center">
-            <p class="text-decoration-none">
-                <strong>{lang 'Registrováno hráčů'}:</strong> {$arena->getRegisteredPlayerCount()}
-            </p>
-            <label for="date-select">{lang 'Datum'}:</label>
-            <input type="text" value="{ifset $date}{$date->format('d.m.Y')}{else}{date('d.m.Y')}{/ifset}"
-                   class="form-control date-picker mx-auto mb-3 text-center" id="date-select" style="max-width: 10em"
-                   data-max="{date('d.m.Y')}">
-            <p class="text-decoration-none"><strong>{lang 'Dnes odehráno her'}:</strong> {$todayGames}</p>
-            <p class="text-decoration-none"><strong>{lang 'Dnes odehráno hráčů'}:</strong> {$todayPlayers}</p>
-        </div>
-    </div>
-    {embed '../../partials/tabs.latte',
-    tabs: [
-    'stats' => [
-    'name' => 'Statistiky',
-    'type' => 'tab',
-    'piece' => 'Stats',
-    'template' => './arena/tabs/stats.latte',
-    'link' => ['arena', $arena->id, 'tab', 'stats'],
-    'params' => [
-    'arena' => $arena,
-    'players' => $players,
-    'date' => $date,
-    ],
-    ],
-    'music' => [
-    'name' => 'Hudební módy',
-    'type' => 'tab',
-    'piece' => 'Music',
-    'template' => './arena/tabs/music.latte',
-    'link' => ['arena', $arena->id, 'tab', 'music'],
-    'params' => [
-    'arena' => $arena,
-    'music' => $music,
-    ],
-    ],
-    'games' => [
-    'name' => 'Všechny hry',
-    'type' => 'tab',
-    'piece' => 'Games',
-    'template' => './arena/tabs/games.latte',
-    'link' => ['arena', $arena->id, 'tab', 'games'],
-    'params' => [
-    'arena' => $arena,
-    'games' => $games,
-    'p' => $p,
-    'pages' => $pages,
-    'limit' => $limit,
-    'total' => $total,
-    'orderBy' => $orderBy,
-    'desc' => $desc,
-    'modeIds' => $modeIds,
-    'date' => $date,
-    'dates' => $dates,
-    ],
-    ],
-    'leaderboard' => [
-    'name' => 'Žebříček',
-    'type' => 'link',
-    'piece' => 'Leaderboard',
-    'link' => ['user', 'leaderboard', $arena->id],
-    ],
-    'tournaments' => [
-    'name' => 'Plánované turnaje',
-    'condition' => count($arena->getPlannedTournaments()) > 0,
-    'type' => 'tab',
-    'piece' => 'Tournaments',
-    'template' => './arena/tabs/tournaments.latte',
-    'link' => ['arena', $arena->id, 'tab', 'tournaments'],
-    'params' => [
-    'arena' => $arena
-    ],
-    ],
-    'info' => [
-    'name' => 'Informace a kontakty',
-    'type' => 'tab',
-    'piece' => 'Info',
-    'template' => './arena/tabs/info.latte',
-    'link' => ['arena', $arena->id, 'tab', 'info'],
-    'params' => [
-    'arena' => $arena
-    ],
-    ]
-    ],
-    id: 'arena-tabs',
-    classes: 'mt-4',
-    activeTab: $tab,
-    }
+    </section>
+    <section class="arena-detail-content position-relative">
+        {embed '../../partials/tabs.latte',
+        tabs: [
+        'stats' => [
+        'name' => 'Statistiky',
+        'icon' => 'chart-simple',
+        'iconClasses' => ['me-1'],
+        'type' => 'tab',
+        'piece' => 'Stats',
+        'template' => './arena/tabs/stats.latte',
+        'link' => ['arena', $arena->id, 'tab', 'stats'],
+        'params' => [
+        'arena' => $arena,
+        'players' => $players,
+        'date' => $date,
+        'todayGames' => $todayGames,
+        'todayPlayers' => $todayPlayers,
+        'arena' => $arena,
+        ],
+        ],
+        'music' => [
+        'name' => 'Hudební módy',
+        'icon' => 'music',
+        'iconClasses' => ['me-1'],
+        'type' => 'tab',
+        'piece' => 'Music',
+        'template' => './arena/tabs/music.latte',
+        'link' => ['arena', $arena->id, 'tab', 'music'],
+        'params' => [
+        'arena' => $arena,
+        'music' => $music,
+        ],
+        ],
+        'games' => [
+        'name' => 'Všechny hry',
+        'icon' => 'gun',
+        'iconClasses' => ['me-1'],
+        'type' => 'tab',
+        'piece' => 'Games',
+        'template' => './arena/tabs/games.latte',
+        'link' => ['arena', $arena->id, 'tab', 'games'],
+        'params' => [
+        'arena' => $arena,
+        'games' => $games,
+        'p' => $p,
+        'pages' => $pages,
+        'limit' => $limit,
+        'total' => $total,
+        'orderBy' => $orderBy,
+        'desc' => $desc,
+        'modeIds' => $modeIds,
+        'date' => $date,
+        'dates' => $dates,
+        ],
+        ],
+        'leaderboard' => [
+        'name' => 'Žebříček',
+        'icon' => 'ranking-star',
+        'iconClasses' => ['me-1'],
+        'type' => 'link',
+        'piece' => 'Leaderboard',
+        'link' => ['user', 'leaderboard', $arena->id],
+        ],
+        'tournaments' => [
+        'name' => 'Plánované turnaje',
+        'icon' => 'calendar',
+        'iconClasses' => ['me-1'],
+        'condition' => count($arena->getPlannedTournaments()) > 0,
+        'type' => 'tab',
+        'piece' => 'Tournaments',
+        'template' => './arena/tabs/tournaments.latte',
+        'link' => ['arena', $arena->id, 'tab', 'tournaments'],
+        'params' => [
+        'arena' => $arena
+        ],
+        ],
+        'info' => [
+        'name' => 'Informace a kontakty',
+        'icon' => 'circle-info',
+        'iconClasses' => ['me-1'],
+        'type' => 'tab',
+        'piece' => 'Info',
+        'template' => './arena/tabs/info.latte',
+        'link' => ['arena', $arena->id, 'tab', 'info'],
+        'params' => [
+        'arena' => $arena
+        ],
+        ]
+        ],
+        id: 'arena-tabs',
+        classes: 'mt-4 position-sticky bg-background',
+        activeTab: $tab,
+        styles: 'top: 0;z-index: 1;'
+        }
 
 	{/embed}
+    </section>
 {/block}

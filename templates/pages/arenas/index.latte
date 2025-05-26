@@ -6,20 +6,23 @@
     <p class="text-center">{lang 'Laser arény zapojené v laser lize. Ve všech těchto arénách sbíráte výsledky do svého profilu.'}</p>
 	<div class="d-flex flex-wrap g-3 align-items-center justify-content-evenly">
 		{var \DateTime $today = new \DateTimeImmutable}
-        <a n:foreach="$arenas as $arena" class="card bg-background-1 text-center p-2 m-3"
+        <a n:foreach="$arenas as $arena" class="card bg-background-1 text-center p-2 m-3 text-decoration-none"
                                          href="{link ['arena', $arena->id]}">
 			{$arena->getLogoHtml()|noescape}
             <h2 class="visually-hidden">{$arena->name}</h2>
 			<div class="card-body text-text">
 				<p class="text-decoration-none">
+                    {faSolid 'user', ['me-1']}
 					<strong>{lang 'Registrováno hráčů'}:</strong>
                     {$arena->getRegisteredPlayerCount()}
 				</p>
 				<p class="text-decoration-none">
+                    {faSolid 'gamepad', ['me-1']}
 					<strong>{lang 'Dnes odehráno her'}:</strong>
                     {$arena->queryGames($today)->count(cache: false)}
 				</p>
 				<p class="text-decoration-none">
+                    {faSolid 'users', ['me-1']}
 					<strong>{lang 'Dnes odehráno hráčů'}:</strong>
                     {$arena->queryPlayers($today, cache: false)->count(cache: false)}
 				</p>

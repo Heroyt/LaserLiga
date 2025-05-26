@@ -3,10 +3,11 @@
     string $id,
     string $name,
     string $classes = '',
-    string $activeTab = ''
+    string $activeTab = '',
+    string $styles = ''
 }
 
-<ul class="nav nav-tabs {$classes}" id="{$id}" role="tablist" data-track-content="" data-content-name="{$name}" data-active="{$activeTab}">
+<ul class="nav nav-tabs {$classes}" n:attr="id: $id, data-content-name: $name, data-active: $activeTab, style: $styles" role="tablist" data-track-content="">
     {foreach $tabs as $tabId => $tabInfo}
         {continueIf !($tabInfo['condition'] ?? true)}
         {block 'tab-'.$tabId}
@@ -14,6 +15,9 @@
                 {if ($tabInfo['type'] ?? '') === 'link'}
                     <a href="{link $tabInfo['link']}" class="nav-link" id="{$tabId}-control"
                        data-content-piece="{$tabInfo['piece'] ?? ''}">
+                        {if !empty($tabInfo['icon'])}
+                            {fa ($tabInfo['iconStyle'] ?? 'solid'), $tabInfo['icon'], $tabInfo['iconClasses'] ?? [], $tabInfo['iconAttributes'] ?? []}
+                        {/if}
                         {lang $tabInfo['name']}
                     </a>
                 {else}
@@ -26,6 +30,9 @@
                             role="tab" aria-controls="{$tabId}" aria-selected="{if $active}true{else}false{/if}"
                             data-content-piece="{$tabInfo['piece'] ?? ''}"
                             n:attr="$tabInfo['buttonAttributes'] ?? []">
+                        {if !empty($tabInfo['icon'])}
+                            {fa ($tabInfo['iconStyle'] ?? 'solid'), $tabInfo['icon'], $tabInfo['iconClasses'] ?? [], $tabInfo['iconAttributes'] ?? []}
+                        {/if}
                         {lang $tabInfo['name']}
                     </a>
                 {/if}

@@ -8,20 +8,24 @@
     <meta itemprop="name" content="{$arena->name}">
     <meta itemprop="url" content="{link 'arena', $arena->id}">
     <p n:ifset="$arena->web">
+        {faSolid 'globe', ['me-1']}
         <strong>{lang 'Web'}:</strong>
         <a itemprop="url" href="{$arena->web}">{$arena->web}</a>
     </p>
     <p n:ifset="$arena->contactEmail">
+        {faSolid 'envelope', ['me-1']}
         <strong>{lang 'E-mail'}:</strong>
         <meta itemprop="email" content="{$arena->contactEmail}">
         <a href="mailto:{$arena->contactEmail}">{$arena->contactEmail}</a>
     </p>
     <p n:ifset="$arena->contactPhone">
+        {faSolid 'phone', ['me-1']}
         <strong>{lang 'Telefon'}:</strong>
         <meta itemprop="telephone" content="{$arena->contactPhone}">
         <a href="tel:{$arena->contactPhone}">{$arena->contactPhone}</a>
     </p>
     <p n:if="$arena->address->isFilled()">
+        {faSolid 'map-marker-alt', ['me-1']}
         <strong>{lang 'Adresa'}:</strong>
         {$arena->address}
     <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
