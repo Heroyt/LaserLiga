@@ -14,6 +14,8 @@ enum Rarity: string
 	case EPIC      = 'epic';
 	case LEGENDARY = 'legendary';
 	case MYTHIC    = 'mythic';
+	case SPECIAL   = 'special';
+	case UNIQUE    = 'unique';
 
 	public function getReadableName(): string {
 		return lang(
@@ -24,6 +26,8 @@ enum Rarity: string
 				self::EPIC      => 'Epický',
 				self::LEGENDARY => 'Legendární',
 				self::MYTHIC    => 'Mýtický',
+				self::SPECIAL   => 'Speciální',
+				self::UNIQUE    => 'Unikátní',
 			},
 			context: 'rarity'
 		);
@@ -31,13 +35,14 @@ enum Rarity: string
 
 	public function getOrder(): int {
 		return match ($this) {
-			self::COMMON    => 5,
-			self::UNCOMMON  => 4,
-			self::RARE      => 3,
-			self::EPIC      => 2,
-			self::LEGENDARY => 1,
-			self::MYTHIC    => 0,
-
+			self::COMMON    => 7,
+			self::UNCOMMON  => 6,
+			self::RARE      => 5,
+			self::EPIC      => 4,
+			self::LEGENDARY => 3,
+			self::MYTHIC    => 2,
+			self::SPECIAL   => 1,
+			self::UNIQUE    => 0,
 		};
 	}
 

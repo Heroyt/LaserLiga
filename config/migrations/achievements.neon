@@ -6,11 +6,14 @@ tables:
 		  `id_title` int(11) unsigned NOT NULL AUTO_INCREMENT,
 		  `name` varchar(50) NOT NULL,
 		  `description` text DEFAULT NULL,
-		  `rarity` enum('common','uncommon','rare','epic','legendary','mythic') NOT NULL DEFAULT 'common',
+		  `rarity` enum('common','uncommon','rare','epic','legendary','mythic','special','unique') NOT NULL DEFAULT 'common',
 		  `unlocked` tinyint(1) NOT NULL DEFAULT 0,
 		  PRIMARY KEY (`id_title`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 		'''
+		modifications:
+			0.1.0:
+				- 'CHANGE `rarity` `rarity` enum(''common'',''uncommon'',''rare'',''epic'',''legendary'',''mythic'') NOT NULL DEFAULT ''common'''
 	App\Models\Achievements\Achievement:
 		order: 1
 		definition: '''
