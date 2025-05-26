@@ -6,15 +6,16 @@ import {
     initTableRowLink,
     initTooltips,
     selectInputDescriptionSetup
-} from './functions';
+} from "./functions";
 import route from "./router";
 import initDatePickers from "./datePickers";
-import {initClearButtons} from "./pages/utils";
-import {Modal, Tab} from 'bootstrap';
-import {checkPush, registerPush, updatePush} from "./push";
-import {startLoading, stopLoading} from "./loaders";
-import {userSendNewConfirmEmail} from "./api/endpoints/user";
-import {triggerNotification} from "./components/notifications";
+import { initClearButtons } from "./pages/utils";
+import { Modal, Tab } from "bootstrap";
+import { checkPush, registerPush, updatePush } from "./push";
+import { startLoading, stopLoading } from "./loaders";
+import { userSendNewConfirmEmail } from "./api/endpoints/user";
+import { triggerNotification } from "./components/notifications";
+import { initDownloadButton } from "./components/downloadHelper";
 
 declare global {
     const usr: number | null;
@@ -133,6 +134,44 @@ window.addEventListener("load", () => {
             }, delay);
         });
     });
+    (document.querySelectorAll<HTMLElement>('[data-toggle="loading"]')).forEach(element => {
+        element.addEventListener('click', () => {
+            element.classList.add('disabled');
+            element.ariaDisabled = 'true';
+            if ('disabled' in element) {
+                element.disabled = true;
+            }
+            const timeout = 'timeout' in element.dataset ? parseInt(element.dataset.timeout)*1000 : 0;
+            const spinner = element.querySelector<HTMLSpanElement>('[class*="spinner"]');
+            if (spinner) {
+                spinner.classList.remove('d-none');
+                if (timeout > 0) {
+                    setTimeout(() => {
+                        spinner.classList.add('d-none');
+                        element.classList.remove('disabled');
+                        element.ariaDisabled = 'false';
+                        if ('disabled' in element) {
+                            element.disabled = false;
+                        }
+                    }, timeout);
+                }
+                return;
+            }
+            const small = 'small' in element.dataset;
+            startLoading(small);
+            if (timeout > 0) {
+                setTimeout(() => {
+                    stopLoading(true, small);
+                    element.classList.remove('disabled');
+                    element.ariaDisabled = 'false';
+                    if ('disabled' in element) {
+                        element.disabled = false;
+                    }
+                }, timeout);
+            }
+        });
+    });
+    (document.querySelectorAll<HTMLAnchorElement>('a[download],a[data-download]')).forEach(initDownloadButton);
 
     // Pull to load
     let _startY = 0;

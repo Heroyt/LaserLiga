@@ -1,4 +1,4 @@
-import {fetchDelete, fetchPost, SuccessResponse} from "../client";
+import { fetchDelete, fetchPost, SuccessResponse } from "../client";
 
 export type ApiKeyInvalidateResponse = { status: string };
 export type GenerateApiKeyResponse = { key: string, id: number, name: string };
@@ -27,8 +27,8 @@ export async function setPhotosPublic(idArena: number, codes: string[], isPublic
     return fetchPost(`/admin/arenas/${idArena}/photos/public`, {codes, 'public': isPublic})
 }
 
-export async function sendPhotosMail(idArena: number, gameCode: string, emails: string[]) : Promise<SuccessResponse> {
-    return fetchPost(`/admin/arenas/${idArena}/photos/${gameCode}/mail`, {emails})
+export async function sendPhotosMail(idArena: number, gameCode: string, emails: string[], message: string = '') : Promise<SuccessResponse> {
+    return fetchPost(`/admin/arenas/${idArena}/photos/${gameCode}/mail`, {emails, message})
 }
 
 export async function deletePhoto(idArena: number, idPhoto: number) : Promise<SuccessResponse> {
@@ -36,4 +36,17 @@ export async function deletePhoto(idArena: number, idPhoto: number) : Promise<Su
 }
 export async function deletePhotos(idArena: number, ids: number[]) : Promise<SuccessResponse> {
     return fetchDelete(`/admin/arenas/${idArena}/photos`, {ids});
+}
+
+export async function uploadPhotos(idArena:number, files: FileList|File) : Promise<SuccessResponse> {
+    const formData = new FormData();
+    if (files instanceof File) {
+        formData.append('photos[]', files);
+    }
+    else {
+        for (let i = 0; i < files.length; i++) {
+            formData.append('photos[]', files[i]);
+        }
+    }
+    return fetchPost(`/admin/arenas/${idArena}/photos/upload`, formData)
 }

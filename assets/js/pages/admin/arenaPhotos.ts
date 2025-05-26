@@ -1,17 +1,18 @@
-import {startLoading, stopLoading} from "../../loaders";
+import { startLoading, stopLoading } from "../../loaders";
 import {
     assignGamePhotos,
     deletePhoto,
     deletePhotos,
     sendPhotosMail,
     setPhotosSecret,
-    unassignGamePhotos
+    unassignGamePhotos,
+    uploadPhotos
 } from "../../api/endpoints/admin";
-import {triggerNotification, triggerNotificationError} from "../../components/notifications";
-import {initNativeDialog} from "../../components/dialog";
+import { triggerNotification, triggerNotificationError } from "../../components/notifications";
+import { initNativeDialog } from "../../components/dialog";
 
 declare global {
-    const arenaId : number;
+    const arenaId: number;
 }
 
 export default function initPhotos() {
@@ -51,13 +52,81 @@ export default function initPhotos() {
     const selectedUnassignedPhotos = new Set<number>();
 
     // Init parts
+    initPhotoUpload();
     initAssignPhotos();
     initGameGroups();
     initMailDialog();
     initUnassignDialog();
 
     // Helper functions
-    function initGameGroups() : void {
+    function initPhotoUpload(): void {
+        const uploadForm = document.getElementById('upload-form') as HTMLFormElement;
+        const uploadInput = document.getElementById("photo-upload") as HTMLInputElement;
+        if (!uploadInput || !uploadForm) {
+            console.log('No upload form or input');
+            return;
+        }
+
+        const submitBtn = uploadForm.querySelector<HTMLButtonElement>('[type="submit"]');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Upload triggered', uploadInput.files);
+            if (uploadInput.files.length === 0) {
+                return;
+            }
+            startLoading(true);
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('disabled');
+            }
+
+            const files = uploadInput.files;
+            let success = true;
+            for (const file of files) {
+                try {
+                    await uploadPhotos(arenaId, file);
+                } catch (err) {
+                    success = false;
+                    console.error(err);
+                    if ('json' in err && typeof err.json === 'function') {
+                        const data = await err.json();
+                        if (data.errors) {
+                            for (const error of data.errors) {
+                                triggerNotification(
+                                    {
+                                        type: 'danger',
+                                        title: file.name,
+                                        content: error,
+                                    },
+                                    false
+                                );
+                            }
+                        }
+                    }
+                    await triggerNotificationError(err, false);
+                }
+            }
+            stopLoading(success, true);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('disabled');
+            }
+            if (success) {
+                triggerNotification(
+                    {
+                        type: 'success',
+                        content: uploadForm.dataset.success,
+                    }
+                )
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        });
+    }
+
+    function initGameGroups(): void {
         for (const gameGroup of gameGroups) {
             const assignPhotosBtn = gameGroup.querySelector<HTMLButtonElement>('.assign-photos');
             const sendEmailBtn = gameGroup.querySelector<HTMLButtonElement>('.send-email');
@@ -107,8 +176,7 @@ export default function initPhotos() {
                     unassignPhotosBtn.disabled = sendEmailBtn.disabled;
                     if (sendEmailBtn.disabled) {
                         showPhotos.classList.add('d-none');
-                    }
-                    else {
+                    } else {
                         showPhotos.classList.remove('d-none');
                     }
                 } catch (e) {
@@ -126,7 +194,7 @@ export default function initPhotos() {
         }
     }
 
-    function unassignPhotosStart(group : HTMLDivElement) : void {
+    function unassignPhotosStart(group: HTMLDivElement): void {
         const photos = group.querySelectorAll<HTMLPictureElement>('.game-photo');
         unassignPhotosWrapper.innerHTML = '';
         selectedUnassignedPhotos.clear();
@@ -137,7 +205,7 @@ export default function initPhotos() {
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.name = 'photos[]';
-            input.id=`photo-select-${id}`;
+            input.id = `photo-select-${id}`;
             input.value = id.toString();
             input.classList.add('photo-select');
             const label = document.createElement('label');
@@ -151,12 +219,11 @@ export default function initPhotos() {
             unassignPhotosWrapper.appendChild(figure);
 
             input.addEventListener('change', (e) => {
-               if (input.checked) {
-                   selectedUnassignedPhotos.add(id);
-               }
-               else {
-                   selectedUnassignedPhotos.delete(id);
-               }
+                if (input.checked) {
+                    selectedUnassignedPhotos.add(id);
+                } else {
+                    selectedUnassignedPhotos.delete(id);
+                }
 
                 unassignPhotosSubmit.disabled = selectedUnassignedPhotos.size === 0;
             });
@@ -165,7 +232,7 @@ export default function initPhotos() {
         unassignDialog.showModal();
     }
 
-    function initAssignPhotos() : void {
+    function initAssignPhotos(): void {
         const photos = document.querySelectorAll<HTMLElement>(".unassigned-photo");
         for (const photo of photos) {
             const input = photo.querySelector<HTMLInputElement>(".photo-select");
@@ -176,8 +243,7 @@ export default function initPhotos() {
             input.addEventListener("change", () => {
                 if (input.checked) {
                     selectedPhotos.add(photo);
-                }
-                else {
+                } else {
                     selectedPhotos.delete(photo);
                 }
                 onPhotoSelect();
@@ -245,7 +311,7 @@ export default function initPhotos() {
         });
     }
 
-    function initUnassignDialog() : void {
+    function initUnassignDialog(): void {
         initNativeDialog(unassignDialog);
 
         const form = unassignDialog.querySelector('form');
@@ -269,14 +335,13 @@ export default function initPhotos() {
 
         const selectAllBtn = unassignDialog.querySelector<HTMLButtonElement>('#unassign-select-all');
         selectAllBtn.addEventListener('click', () => {
-           const inputs = unassignDialog.querySelectorAll('input');
-           const check = inputs.length > selectedUnassignedPhotos.size;
+            const inputs = unassignDialog.querySelectorAll('input');
+            const check = inputs.length > selectedUnassignedPhotos.size;
             for (const input of inputs) {
                 input.checked = check;
                 if (input.checked) {
                     selectedUnassignedPhotos.add(parseInt(input.value));
-                }
-                else {
+                } else {
                     selectedUnassignedPhotos.delete(parseInt(input.value));
                 }
             }
@@ -284,10 +349,11 @@ export default function initPhotos() {
         });
     }
 
-    function initMailDialog() : void {
+    function initMailDialog(): void {
         initNativeDialog(mailDialog);
         const mailsForm = mailDialog.querySelector<HTMLFormElement>('#mails-form');
         const mailInput = mailDialog.querySelector<HTMLTextAreaElement>('#mails');
+        const messageInput = mailDialog.querySelector<HTMLTextAreaElement>('#mail-message');
         const sendMailBtn = mailDialog.querySelector<HTMLButtonElement>('#send-mail');
 
         mailsForm.addEventListener('submit', e => {
@@ -299,7 +365,7 @@ export default function initPhotos() {
             validateEmails();
         });
 
-        function validateEmails() : string[] {
+        function validateEmails(): string[] {
             // Parse emails from input (separator: new line or comma)
             const emails = mailInput.value.split(/[;,\n]/).map((email) => email.trim());
             // Validate emails
@@ -343,12 +409,17 @@ export default function initPhotos() {
                 return;
             }
 
+            let message = '';
+            if (messageInput) {
+                message = messageInput.value.trim();
+            }
+
             startLoading();
             try {
-                await sendPhotosMail(arenaId, selectedGame, emails);
+                await sendPhotosMail(arenaId, selectedGame, emails, message);
                 stopLoading();
                 mailDialog.close();
-                mailInput.value='';
+                mailInput.value = '';
                 mailsForm.classList.remove('was-validated');
                 triggerNotification({
                     type: 'success',
@@ -361,14 +432,14 @@ export default function initPhotos() {
         }
     }
 
-    function onPhotoSelect(){
+    function onPhotoSelect() {
         for (const gameGroup of gameGroups) {
             gameGroup.querySelector<HTMLButtonElement>(".assign-photos").disabled = selectedPhotos.size === 0;
         }
         deleteBulkBtn.disabled = selectedPhotos.size === 0;
     }
 
-    function photoDialog(photo : HTMLImageElement) : void {
+    function photoDialog(photo: HTMLImageElement): void {
         const url = photo.src;
         const webp = photo.dataset.webp;
 
