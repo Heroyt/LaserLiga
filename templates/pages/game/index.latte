@@ -376,7 +376,7 @@
                     data-title="{sprintf(lang('Výsledky ze hry - %s %s'), lang($game->mode?->name, domain: 'gameModes'), $game->arena?->name)}"
                     data-url="{link $link}">
                 {faSolid 'share'}
-                {_'Sdílet'}
+                <span>{_'Sdílet'}</span>
             </button>
         </div>
         <div n:if="$prevUserGame !== '' || $nextUserGame !== ''"
@@ -428,14 +428,14 @@
                                           data-track-content="" data-content-name="Results - Group"
                                           data-content-piece="Button">
                     {faSolid 'list'}
-                    {_'Skupina'}
+                    <span>{_'Skupina'}</span>
                 </a>
                 <a n:if="$game->getTournamentGame() !== null"
                         href="{link ['tournament', $game->getTournamentGame()->tournament->id]}#results-tab"
                         class="btn btn-secondary"
                         data-track-content="" data-content-name="Results - Tournament" data-content-piece="Button">
                     {faSolid 'trophy'}
-                    {_'Turnaj'}
+                    <span>{_'Turnaj'}</span>
                 </a>
                 <a n:if="!empty($nextGame)" href="{link ['game', $nextGame]}" class="btn btn-secondary"
                                             data-track-content="" data-content-name="Results - Next game"

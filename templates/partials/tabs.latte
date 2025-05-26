@@ -18,7 +18,7 @@
                         {if !empty($tabInfo['icon'])}
                             {fa ($tabInfo['iconStyle'] ?? 'solid'), $tabInfo['icon'], $tabInfo['iconClasses'] ?? [], $tabInfo['iconAttributes'] ?? []}
                         {/if}
-                        {lang $tabInfo['name']}
+                        <span>{lang $tabInfo['name']}</span>
                     </a>
                 {else}
                 {var bool $active = ($activeTab === $tabId || (empty($activeTab) && $iterator->first))}
@@ -33,7 +33,7 @@
                         {if !empty($tabInfo['icon'])}
                             {fa ($tabInfo['iconStyle'] ?? 'solid'), $tabInfo['icon'], $tabInfo['iconClasses'] ?? [], $tabInfo['iconAttributes'] ?? []}
                         {/if}
-                        {lang $tabInfo['name']}
+                        <span>{lang $tabInfo['name']}</span>
                     </a>
                 {/if}
             </li>

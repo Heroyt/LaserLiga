@@ -5,7 +5,7 @@
     <p class="text-start">
         <a href="{link ['admin', 'arenas']}" class="btn btn-warning">
             {faSolid 'angle-left'}
-            {lang 'Zpět'}
+            <span>{lang 'Zpět'}</span>
         </a>
     </p>
     <div class="me-4 last-save-wrapper text-end position-fixed end-0">
@@ -254,7 +254,7 @@
         {/embed}
         <p class="text-center">
             <button type="submit" class="btn btn-success btn-lg">
-                {faSolid 'save'} {_'Uložit', context: 'actions'}
+                {faSolid 'save'} <span>{_'Uložit', context: 'actions'}</span>
             </button>
         </p>
     </form>

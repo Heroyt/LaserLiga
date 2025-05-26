@@ -24,11 +24,11 @@
     <p class="text-start">
         <a n:ifset="$event->league" href="{$event->league->getUrl()}" class="btn btn-secondary">
             {faSolid 'angle-left'}
-            {lang 'Zpět na ligu'}
+            <span>{lang 'Zpět na ligu'}</span>
         </a>
         <a href="{link 'events'}" class="btn btn-secondary">
             {faSolid 'angle-left'}
-            {lang 'Zpět na plánované akce'}
+            <span>{lang 'Zpět na plánované akce'}</span>
         </a>
     </p>
     <img n:ifset="$event->image" src="{$event->getImageUrl()}" srcset="{$event->getImageSrcSet()}"

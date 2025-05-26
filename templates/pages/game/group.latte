@@ -36,7 +36,7 @@
                     data-title="{sprintf(lang('Skupina - %s'), $group->name)}"
                     data-url="{link 'game', 'group', $groupCode}">
                 {faSolid 'share'}
-                {lang 'Sdílet'}
+                <span>{lang 'Sdílet'}</span>
             </button>
         </div>
     </header>
@@ -74,11 +74,11 @@
 			<span class="btn-group">
 				<button type="submit" class="btn btn-success">
                     {faSolid 'filter'}
-                    {lang 'Filtrovat', context: 'actions'}
+                    <span>{lang 'Filtrovat', context: 'actions'}</span>
                 </button>
 				<button type="reset" class="btn btn-danger">
                     {faSolid 'cancel'}
-                    {lang 'Smazat', context: 'actions'}
+                    <span>{lang 'Smazat', context: 'actions'}</span>
                 </button>
 			</span>
             </p>

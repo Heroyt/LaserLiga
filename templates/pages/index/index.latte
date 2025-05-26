@@ -20,11 +20,11 @@
             <p class="text-start">
                 <a href="{link 'login'}" class="btn btn-primary mt-2 btn-lg">
                     {faSolid 'right-to-bracket'}
-                    {lang 'Přihlásit'}
+                    <span>{lang 'Přihlásit'}</span>
                 </a>
                 <br>
                 <a href="{link 'register'}" class="btn btn-secondary mt-2">
-                    {lang 'Registrovat'}
+                    <span>{lang 'Registrovat'}</span>
                 </a>
             </p>
         </div>
@@ -67,7 +67,7 @@
             <p class="text-end">{lang 'Ačkoliv bychom chtěli, Laser ligu zatím nepodporují úplně všechny laser arény v česku. Snažíme se, ale naši komunitu hráčů laser game rozšířit.'}</p>
             <a href="{link 'arena'}" class="btn btn-secondary btn-lg mb-2">
                 {faSolid 'location-dot'}
-                {lang 'Zobrazit'}
+                <span>{lang 'Zobrazit'}</span>
             </a>
             <p class="text-muted text-end">{sprintf(lang('Chybí tu Vaše aréna? Řekněte jí, ať nás kontaktuje na e-mail: %s'), '<a href="mailto:info@laserliga.cz">info@laserliga.cz</a>')|noescape}</p>
         </div>
@@ -86,7 +86,7 @@
         <p class="text-start">{lang 'Při registraci si vybereš domovskou arénu, přezdívku a dostaneš přiřazený tvůj unikátní kód.'}</p>
 		<a href="{link 'register'}" class="btn btn-primary">
 			{faSolid 'right-to-bracket'}
-			{lang 'Registrovat se'}
+            <span>{lang 'Registrovat se'}</span>
 		</a>
 		<h3 class="mt-4 text-start">
 			<span class="text-center d-inline-block fs-4 bg-blue-400 text-black-forced rounded-circle"
@@ -98,7 +98,7 @@
         <p class="text-start">{lang 'Obsluze nahlásíš, že jsi registrovaný a ona si tě najde pomocí tvé přezdívky, nebo kódu.'}</p>
 		<a href="{link 'arena'}" class="btn btn-primary">
 			{faSolid 'location-dot'}
-			{lang 'Podporované arény'}
+            <span>{lang 'Podporované arény'}</span>
 		</a>
 		<h3 class="mt-4 text-start">
 			<span class="text-center d-inline-block fs-4 bg-blue-500 text-black-forced rounded-circle"
@@ -109,7 +109,7 @@
         <p class="text-start">{lang 'Hned po hře vidíš výsledky na svém profilu! Z her sbíráš body, které tě posouvají v žebříčku všech hráčů laser game.'}</p>
 		<a href="{link 'user', 'leaderboard'}" class="btn btn-primary">
 			{faSolid 'ranking-star'}
-			{lang 'Žebříček'}
+            <span>{lang 'Žebříček'}</span>
 		</a>
 	</section>
 {/block}

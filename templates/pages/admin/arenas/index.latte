@@ -13,12 +13,12 @@
                     <a n:if="$arena->photosSettings->enabled && ($user->hasRight('view-photos') || $user->hasRight('manage-photos')) && $user->managesArena($arena)"
                             href="{link ['admin', 'arenas', $arena->id, 'photos']}"
                             class="btn btn-primary btn">
-                        {faSolid 'images'} {_'Fotky'}
+                        {faSolid 'images'} <span>{_'Fotky'}</span>
                     </a>
                     <a n:if="($user->hasRight('edit-arena') || $user->hasRight('manage-arena')) && $user->managesArena($arena)"
                             href="{link ['admin', 'arenas', $arena->id, 'edit']}"
                             class="btn btn-info">
-                        {faSolid 'pencil'} {_'Upravit'}
+                        {faSolid 'pencil'} <span>{_'Upravit'}</span>
                     </a>
                 </div>
             </div>

@@ -12,7 +12,7 @@
     <div>
         <a href="{link ['admin', 'arenas']}" class="btn btn-warning mb-4">
             {faSolid 'angle-left'}
-            {_'Zpět'}
+            <span>{_'Zpět'}</span>
         </a>
     </div>
     <h2>{_'Fotky arény'} {$arena->name} - {$date|date:'j. n. Y'}</h2>
@@ -25,7 +25,7 @@
             <input type="file" name="photos[]" accept="image/*" required class="form-control" id="photo-upload" multiple>
             <button type="submit" class="btn btn-success my-3" name="action" value="upload">
                 {faSolid 'upload'}
-                {_'Nahrát', context: 'actions'}
+                <span>{_'Nahrát', context: 'actions'}</span>
             </button>
         </div>
     </form>
@@ -45,15 +45,15 @@
             <p class="my-3">
                 <button disabled type="button" class="btn btn-danger" id="delete-bulk" data-confirm="{_'Opravdu chcete smazat %d fotek?'}">
                     {faSolid 'trash'}
-                    {_'Smazat vybrané fotky'}
+                    <span>{_'Smazat vybrané fotky'}</span>
                 </button>
                 <button class="btn btn-success" id="select-all" type="button">
                     {faSolid 'check-square'}
-                    {_'Vybrat vše'}
+                    <span>{_'Vybrat vše'}</span>
                 </button>
                 <button class="btn btn-primary" type="submit">
                     {faSolid 'download'}
-                    {_'Stáhnout vybrané fotky'}
+                    <span>{_'Stáhnout vybrané fotky'}</span>
                 </button>
             </p>
             <div class="photos-wrapper d-flex flex-wrap justify-content-between gap-2">
@@ -120,7 +120,7 @@
                     <div n:class="text-center, show-photos, count($group->photos) === 0 ? 'd-none'">
                         <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#group-photos-{$key}">
                             {faSolid 'angle-down'}
-                            {_'Zobrazi/Skrýt fotky'}
+                            <span>{_'Zobrazi/Skrýt fotky'}</span>
                         </button>
                     </div>
                     <div class="collapse" id="group-photos-{$key}">
@@ -144,7 +144,7 @@
                     <div class="group-actions text-center mt-3">
                         <a href="{$group->link}" class="btn btn-info m-1">
                             {faSolid 'eye'}
-                            {_'Výsledky'}
+                            <span>{_'Výsledky'}</span>
                         </a>
                         <button disabled type="button" class="btn btn-primary assign-photos m-1"
                                 data-code="{$group->games[0]->code}" data-codes="{$group->codes|json}">
@@ -156,13 +156,13 @@
                                 class="btn btn-secondary send-email m-1"
                                 data-link="{$group->link}">
                             {faSolid 'envelope'}
-                            {_'Odeslat na e-mail'}
+                            <span>{_'Odeslat na e-mail'}</span>
                         </button>
                         <button n:attr="disabled: count($group->photos) === 0"
                                 type="button"
                                 class="btn btn-danger unassign-photos m-1">
                             {faSolid 'ban'}
-                            {_'Zrušit přiřazení fotek'}
+                            <span>{_'Zrušit přiřazení fotek'}</span>
                         </button>
                     </div>
                     <div class="mail-log mt-3" n:if="count($group->mailLog) > 0">
