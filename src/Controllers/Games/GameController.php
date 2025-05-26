@@ -151,76 +151,6 @@ class GameController extends Controller
 		            ->withAddedHeader('Cache-Control', 'max-age=2592000,public');
 	}
 
-	public function downloadPhotos(Request $request, string $code): ResponseInterface {
-		$game = GameFactory::getByCode($code);
-		if (!isset($game)) {
-			$this->title = 'Hra nenalezena';
-			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
-
-			return $this->view('pages/game/empty')
-			            ->withStatus(404);
-		}
-
-		if (!$this->canDownloadPhotos($game, $request)) {
-			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
-		}
-
-		return $this->makePhotosDownload($game, $request);
-	}
-
-	public function makePublic(Request $request, string $code): ResponseInterface {
-		$game = GameFactory::getByCode($code);
-		if (!isset($game)) {
-			$this->title = 'Hra nenalezena';
-			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
-
-			return $this->view('pages/game/empty')
-			            ->withStatus(404);
-		}
-
-		if (!$this->canDownloadPhotos($game, $request)) {
-			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
-		}
-
-		$game->photosPublic = true;
-		$game->save();
-		$game->clearCache();
-
-		$commandBus = App::getServiceByType(CommandBus::class);
-		assert($commandBus instanceof CommandBus);
-		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request, $game) {
-			$matomo->doTrackPageView($game->arena->name.' - Hra - '.$game->code.' - Fotky - public');
-		}));
-
-		return $this->respond(new SuccessResponse());
-	}
-
-	public function makeHidden(Request $request, string $code): ResponseInterface {
-		$game = GameFactory::getByCode($code);
-		if (!isset($game)) {
-			$this->title = 'Hra nenalezena';
-			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
-
-			return $this->view('pages/game/empty')
-			            ->withStatus(404);
-		}
-
-		if (!$this->canDownloadPhotos($game, $request)) {
-			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
-		}
-
-		$game->photosPublic = false;
-		$game->save();
-		$game->clearCache();
-
-		$commandBus = App::getServiceByType(CommandBus::class);
-		assert($commandBus instanceof CommandBus);
-		$commandBus->dispatchAsync(new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request, $game) {
-			$matomo->doTrackPageView($game->arena->name.' - Hra - '.$game->code.' - Fotky - private');
-		}));
-		return $this->respond(new SuccessResponse());
-	}
-
 	private function getGameDescription(Game $game): string {
 		assert($game->arena !== null && $game->start !== null, 'Invalid game');
 		$description = sprintf(
@@ -350,6 +280,80 @@ class GameController extends Controller
 		return $schema;
 	}
 
+	public function downloadPhotos(Request $request, string $code): ResponseInterface {
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->title = 'Hra nenalezena';
+			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
+
+			return $this->view('pages/game/empty')
+			            ->withStatus(404);
+		}
+
+		if (!$this->canDownloadPhotos($game, $request)) {
+			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
+		}
+
+		return $this->makePhotosDownload($game, $request);
+	}
+
+	public function makePublic(Request $request, string $code): ResponseInterface {
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->title = 'Hra nenalezena';
+			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
+
+			return $this->view('pages/game/empty')
+			            ->withStatus(404);
+		}
+
+		if (!$this->canDownloadPhotos($game, $request)) {
+			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
+		}
+
+		$game->photosPublic = true;
+		$game->save();
+		$game->clearCache();
+
+		$commandBus = App::getServiceByType(CommandBus::class);
+		assert($commandBus instanceof CommandBus);
+		$commandBus->dispatchAsync(
+			new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request, $game) {
+				$matomo->doTrackPageView($game->arena->name . ' - Hra - ' . $game->code . ' - Fotky - public');
+			})
+		);
+
+		return $this->respond(new SuccessResponse());
+	}
+
+	public function makeHidden(Request $request, string $code): ResponseInterface {
+		$game = GameFactory::getByCode($code);
+		if (!isset($game)) {
+			$this->title = 'Hra nenalezena';
+			$this->description = 'Nepodařilo se nám najít výsledky z této hry.';
+
+			return $this->view('pages/game/empty')
+			            ->withStatus(404);
+		}
+
+		if (!$this->canDownloadPhotos($game, $request)) {
+			throw new AccessDeniedException(lang('Nelze zobrazit fotografie z této hry.'));
+		}
+
+		$game->photosPublic = false;
+		$game->save();
+		$game->clearCache();
+
+		$commandBus = App::getServiceByType(CommandBus::class);
+		assert($commandBus instanceof CommandBus);
+		$commandBus->dispatchAsync(
+			new MatomoTrackCommand(static function (\MatomoTracker $matomo) use ($request, $game) {
+				$matomo->doTrackPageView($game->arena->name . ' - Hra - ' . $game->code . ' - Fotky - private');
+			})
+		);
+		return $this->respond(new SuccessResponse());
+	}
+
 	public function thumb(string $code, Request $request): ResponseInterface {
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
@@ -393,7 +397,10 @@ class GameController extends Controller
 				->withAddedHeader('Content-Disposition', 'inline; filename=' . $this->params->game->code . '.png');
 		}
 
-		return $this->view('pages/game/thumb');
+		return $this->view('pages/game/thumb')
+		            ->withHeader('Cache-Control', 'max-age=86400,public')
+		            ->withAddedHeader('Content-Type', 'image/svg+xml')
+		            ->withAddedHeader('Content-Disposition', 'inline; filename=' . $this->params->game->code . '.svg');
 	}
 
 }
