@@ -10,29 +10,35 @@ use App\Controllers\Api\TournamentsController;
 use App\Controllers\Api\VestController;
 use App\Controllers\User\UserGameController;
 use App\Core\Middleware\ApiToken;
+use App\Core\Middleware\CacheControl;
+use App\Core\Middleware\NoCacheControl;
+use Lsr\Core\Middleware\WithoutCookies;
 use Lsr\Core\Routing\Router;
 
 /** @var Router $this */
 
-$apiToken = new ApiToken();
 
-$apiGroup = $this->group('api')->middlewareAll($apiToken);
+$noCacheControl = new NoCacheControl();
+$apiGroup = $this->group('api')
+                 ->middlewareAll(new ApiToken(), new WithoutCookies());
 
 // Games
 $gamesGroup = $apiGroup->group('games')
-                       ->get('', [Games::class, 'listGames'])
-                       ->post('', [Games::class, 'import'])
-                       ->get('skills', [Games::class, 'recalcMultipleGameSkills']);
+                       ->middlewareAll($noCacheControl);
+$gamesGroup->get('', [Games::class, 'listGames']);
+$gamesGroup->post('', [Games::class, 'import']);
+$gamesGroup->get('skills', [Games::class, 'recalcMultipleGameSkills']);
 
 
-$gameCodeGroup = $gamesGroup->group('{code}');
+$gameCodeGroup = $gamesGroup->group('{code}')
+                            ->middlewareAll(new CacheControl(3600)); // 1 hour
 $gameCodeGroup->get('', [Games::class, 'getGame']);
 $gameCodeGroup->get('highlights', [Games::class, 'highlights']);
 $gameCodeGroup->get('users', [Games::class, 'getGameUsers']);
-$gameCodeGroup->get('skills', [Games::class, 'recalcGameSkill']);
-$gameCodeGroup->get('recalc', [Games::class, 'recalcGame']);
 $gameCodeGroup->post('mode', [Games::class, 'changeGameMode']);
 $gameCodeGroup->post('group', [Games::class, 'setGroup']);
+$gameCodeGroup->post('skills', [Games::class, 'recalcGameSkill']);
+$gameCodeGroup->post('recalc', [Games::class, 'recalcGame']);
 
 $gamesGroup->group('stats')
            ->get('', [Games::class, 'stats']);

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use App\Controllers\Dropbox\DropboxAuthController;
+use App\Core\Middleware\CanManageArena;
 use App\Core\Middleware\LoggedIn;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
@@ -12,9 +13,11 @@ use Lsr\Core\Routing\Router;
 $auth = App::getService('auth');
 assert($auth instanceof Auth);
 
-$loggedIn = new LoggedIn($auth);
-
-$dropbox = $this->group('dropbox')->middlewareAll($loggedIn);
+$dropbox = $this->group('dropbox')
+                ->middlewareAll(
+	                new LoggedIn($auth, ['manage-arena']),
+	                new CanManageArena([['manage-arena']])
+                );
 
 $dropboxArena = $dropbox->group('{id}');
 $dropboxArena->get('start', [DropboxAuthController::class, 'redirectToAuth']);

@@ -10,10 +10,15 @@ use App\Controllers\User\UserHistoryController;
 use App\Controllers\User\UserPrivacyController;
 use App\Controllers\User\UserSettingsController;
 use App\Controllers\User\UserTournamentController;
+use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\CSRFCheck;
 use App\Core\Middleware\LoggedIn;
+use App\Core\Middleware\NoCacheControl;
+use App\Core\Middleware\RedirectFromDefaultToDesiredLang;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
+use Lsr\Core\Middleware\DefaultLanguageRedirect;
+use Lsr\Core\Middleware\WithoutCookies;
 use Lsr\Core\Routing\Router;
 
 $auth = App::getService('auth');
@@ -22,15 +27,19 @@ assert($auth instanceof Auth);
 /** @var Router $this */
 
 $loggedIn = new LoggedIn($auth);
+$withoutCookies = new WithoutCookies();
+$noCacheControl = new NoCacheControl();
 
-$routes = $this->group()
-               ->middlewareAll($loggedIn)
+$langGroup = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new RedirectFromDefaultToDesiredLang(), new ContentLanguageHeader());
+
+$routes = $langGroup->group('')
+               ->middlewareAll($loggedIn, $noCacheControl)
                ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
 
 $privacyGroup = $routes->group('user/privacy')
                        ->get('agree', [UserPrivacyController::class, 'agree']);
 
-$publicUserRoutes = $this->group('/user')
+$publicUserRoutes = $langGroup->group('/user')
                          ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
                          ->get('/leaderboard/{arenaId}', [LeaderboardController::class, 'show'])->name(
 		'player-leaderboard-arena'
@@ -39,14 +48,15 @@ $publicUserRoutes = $this->group('/user')
 $publicUserIdGroup = $publicUserRoutes
 	->group('/{code}')
 	->get('/', [UserController::class, 'show'])->name('public-profile')
-	->get('/img', [UserController::class, 'thumb'])
-	->get('/img.png', [UserController::class, 'thumb'])
-	->get('/avatar', [UserController::class, 'avatar'])
+	->get('/img', [UserController::class, 'thumb'])->middleware($withoutCookies)
+	->get('/img.png', [UserController::class, 'thumb'])->middleware($withoutCookies)
+	->get('/avatar', [UserController::class, 'avatar'])->middleware($withoutCookies)
 	->post('/avatar', [UserSettingsController::class, 'updateAvatar'])
-	->get('/title/svg', [UserController::class, 'title'])
+	->get('/title/svg', [UserController::class, 'title'])->middleware($withoutCookies)
 	->get('/history', [UserHistoryController::class, 'show'])->name('player-game-history')
 	->get('/tournaments', [UserTournamentController::class, 'myTournaments'])->name('player-tournaments')
 	->group('stats')
+	->middlewareAll($withoutCookies)
 	->get('trends', [UserController::class, 'getTrends'])
 	->get('rankhistory', [StatController::class, 'rankHistory'])
 	->get('rankorderhistory', [StatController::class, 'rankOrderHistory'])

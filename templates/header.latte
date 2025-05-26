@@ -35,11 +35,14 @@
                     ]}
             </button>
             <ul class="dropdown-menu bg-white" style="min-width: 5rem;left:auto;margin-left: 0;top:3rem;width:100%;">
+                {var array $path = $page->app->getRequest()->getPath()}
                 {foreach $page->app->translations->supportedLanguages as $lang => $country}
                     {continueIf $selectedLang === $lang}
+                    {do $path['lang'] = $lang}
                     <li>
                         <a class="dropdown-item"
-                           href="{link ['lang', $lang, 'redirect' => $page->app->getRequest()->getPath()]}"
+                           href="{link $path}"
+                           hreflang="{$lang}-{$country}"
                            data-set-lang="{$lang}">
                             {img
                                 'assets/flags/'.\Lsr\Core\Constants::COUNTRIES[$country].'.png',
@@ -97,11 +100,14 @@
                         ]}
                 </button>
                 <ul class="dropdown-menu bg-white" style="min-width: 5rem;left:auto;margin-left: 0;top:3rem;">
+                    {var array $path = $page->app->getRequest()->getPath()}
                     {foreach $page->app->translations->supportedLanguages as $lang => $country}
                         {continueIf $selectedLang === $lang}
+                        {do $path['lang'] = $lang}
                         <li>
                             <a class="dropdown-item"
-                               href="{link ['lang', $lang, 'redirect' => $page->app->getRequest()->getPath()]}"
+                               href="{link $path}"
+                               hreflang="{$lang}-{$country}"
                                data-set-lang="{$lang}">
                                 {img
                                     'assets/flags/'.\Lsr\Core\Constants::COUNTRIES[$country].'.png',

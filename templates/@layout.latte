@@ -65,6 +65,14 @@
               content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <meta name="seobility" content="36aefeb049a215aadb2892ba279d1f71">
+        <meta name="ahrefs-site-verification" content="c919fb2a02d4d73c4e1743bd3630bd8b9365e404259383b0df5ddb06069872ac">
+        {var array $path = $page->app->getRequest()->getPath()}
+        {do $path['lang'] = $page->app->translations->getDefaultLangId()}
+       <link rel="alternate" hreflang="x-default" href="{link $path}">
+        {foreach $page->app->translations->supportedLanguages as $lang => $country}
+            {do $path['lang'] = $lang}
+            <link rel="alternate" hreflang="{$lang}" href="{link $path}">
+        {/foreach}
         <!-- Favicon -->
         <link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/favicon/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/favicon/android-chrome-192x192.png">

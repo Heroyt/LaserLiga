@@ -56,8 +56,12 @@ lsr:
 			- 'titles'
 			- 'achievements'
 			- 'gameModes'
+	links:
+		modifiers:
+			- @lang.prefixer
 services:
 	# Core
+	lang.prefixer: Lsr\Core\Links\LanguagePrefixer
 	db.connection: Lsr\Db\Connection(config: %db%)
 
 	lsr.session:

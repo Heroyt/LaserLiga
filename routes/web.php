@@ -31,150 +31,102 @@ use Lsr\Core\Routing\Router;
 $auth = App::getService('auth');
 assert($auth instanceof Auth);
 
+$noCacheControl = new NoCacheControl();
+
 /** @var Router $this */
 
 // TODO: Remove test route
 $this->get('mailtest/123', [MailTestController::class, 'sendTestMail']);
 $this->get('mailtest/123/show', [MailTestController::class, 'showTestMail']);
 
-$this->get('', [Index::class, 'show'])->name('index');
+$routes = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new RedirectFromDefaultToDesiredLang(), new ContentLanguageHeader());
 
-$this->get('zasady-zpracovani-osobnich-udaju', [PrivacyController::class, 'index'])->name('privacy-policy');
-$this->get('privacy-policy', [PrivacyController::class, 'index']);
+$routes->get('', [Index::class, 'show'])->name('index');
 
-$gameGroup = $this->group('game');
+$routes->get('zasady-zpracovani-osobnich-udaju', [PrivacyController::class, 'index'])
+       ->name('privacy-policy');
+//$this->get('privacy-policy', [PrivacyController::class, 'index']);
 
-$gameGroup->get('', [GameController::class, 'show'])->name('game-empty');    // This will result in HTTP 404 error
+$routes->group('players')
+       ->get('find', [Players::class, 'find'])
+       ->get('leaderboard', [GameTodayLeaderboardController::class, 'show'])
+       ->get('leaderboard/{system}', [GameTodayLeaderboardController::class, 'show'])
+       ->get('leaderboard/{system}/{date}', [GameTodayLeaderboardController::class, 'show'])
+       ->get('leaderboard/{system}/{date}/{property}', [GameTodayLeaderboardController::class, 'show'])
+       ->name('today-leaderboard');
 
-$gameCodeGroup = $gameGroup->group('{code}');
-
-$gameCodeGroup->get('', [GameController::class, 'show'])->name('game')
-              ->get('{user}', [GameController::class, 'show'])->name('user-game')
-              ->get('photos', [GameController::class, 'downloadPhotos'])
-              ->post('photos/public', [GameController::class, 'makePublic'])
-              ->post('photos/hidden', [GameController::class, 'makeHidden'])
-              ->get('thumb', [GameController::class, 'thumb'])
-              ->get('thumb.png', [GameController::class, 'thumb'])
-              ->get('highlights', [GameHighlightsController::class, 'show']);
-
-$gameCodeGroup->group('player')
-              ->group('{id}')
-              ->get('', [GamePlayerController::class, 'show'])
-              ->get('distribution/{param}', [DistributionController::class, 'distribution',])
-              ->get('elo', [Games\GamePlayerEloController::class, 'show']);
-
-$gameCodeGroup->group('team')
-              ->get('{id}', [GameTeamController::class, 'show']);
-
-$gameGroupGroup = $gameGroup->group('group');
-$gameGroupIdGroup = $gameGroupGroup->group('{groupid}');
-$gameGroupIdGroup->get('', [GroupController::class, 'group'])->name('group-results');
-$gameGroupIdGroup->get('thumb', [GroupController::class, 'thumbGroup']);
-$gameGroupIdGroup->get('photos', [GroupController::class, 'downloadPhotos']);
-$gameGroupIdGroup->post('photos/public', [GroupController::class, 'makePublic']);
-$gameGroupIdGroup->post('photos/hidden', [GroupController::class, 'makeHidden']);
-
-// Alias to 'game' group
-$this->group('g')
-     ->get('', [GameController::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
-     ->get('abcdefghij', [Dashboard::class, 'bp'])
-     ->get('{code}', [GameController::class, 'show'])->name('game-alias')
-     ->get('{code}/photos', [GameController::class, 'downloadPhotos'])
-     ->get('{code}/thumb', [GameController::class, 'thumb']);
-
-$this->group('players')
-     ->get('find', [Players::class, 'find'])
-     ->get('leaderboard', [GameTodayLeaderboardController::class, 'show'])
-     ->get('leaderboard/{system}', [GameTodayLeaderboardController::class, 'show'])
-     ->get('leaderboard/{system}/{date}', [GameTodayLeaderboardController::class, 'show'])
-     ->get('leaderboard/{system}/{date}/{property}', [GameTodayLeaderboardController::class, 'show'])
-     ->name('today-leaderboard');
-
-$this->get('lang/{lang}', [Lang::class, 'setLang']);
+$routes->get('lang/{lang}', [Lang::class, 'setLang']);
 
 // Questionnaire
-$this->group('questionnaire')
-     ->group('results')
-     ->get('', [Questionnaire::class, 'resultsList'])
-     ->name(
-	     'questionnaire-results'
-     )
-     ->get('stats', [Questionnaire::class, 'resultsStats'])
-     ->name('questionnaire-results-stats')
-     ->get(
-	     '{id}',
-	     [
-		     Questionnaire::class,
-		     'resultsUser',
-	     ]
-     )
-     ->name('questionnaire-results-user')
-     ->endGroup()
-     ->group('question')
-     ->get('', [Questionnaire::class, 'getQuestion'])
-     ->name('questionnaire-question')
-     ->get('{key}', [Questionnaire::class, 'getQuestion'])
-     ->endGroup()
-     ->post('save', [Questionnaire::class, 'save'])
-     ->name('questionnaire-save')
-     ->post('done', [Questionnaire::class, 'done'])
-     ->name('questionnaire-done')
-     ->post('select', [Questionnaire::class, 'selectQuestionnaire'])
-     ->post('select/{id}', [Questionnaire::class, 'selectQuestionnaire'])
-     ->post('show_later', [Questionnaire::class, 'showLater'])
-     ->post('dont_show', [Questionnaire::class, 'dontShowAgain']);
+$routes->group('questionnaire')
+       ->group('results')
+       ->get('', [Questionnaire::class, 'resultsList'])
+       ->name('questionnaire-results')
+       ->get('stats', [Questionnaire::class, 'resultsStats'])
+       ->name('questionnaire-results-stats')
+       ->get('{id}', [Questionnaire::class, 'resultsUser',])
+       ->name('questionnaire-results-user')
+       ->endGroup()
+       ->group('question')
+       ->get('', [Questionnaire::class, 'getQuestion'])
+       ->name('questionnaire-question')
+       ->get('{key}', [Questionnaire::class, 'getQuestion'])
+       ->endGroup()
+       ->post('save', [Questionnaire::class, 'save'])
+       ->name('questionnaire-save')
+       ->post('done', [Questionnaire::class, 'done'])
+       ->name('questionnaire-done')
+       ->post('select', [Questionnaire::class, 'selectQuestionnaire'])
+       ->post('select/{id}', [Questionnaire::class, 'selectQuestionnaire'])
+       ->post('show_later', [Questionnaire::class, 'showLater'])
+       ->post('dont_show', [Questionnaire::class, 'dontShowAgain']);
 
 // Arena
-$this->group('arena')
-     ->get('', [Arenas::class, 'list'])
-     ->name('arenas-list')
-     ->group('{id}')
-     ->get('', [Arenas::class, 'show'])
-     ->name('arenas-detail')
-     ->group('tab')
-     ->get('stats', [Arenas::class, 'show'])->name('arena-detail-stats')
-     ->get('music', [Arenas::class, 'show'])->name('arena-detail-music')
-     ->get('games', [Arenas::class, 'show'])->name('arena-detail-games')
-     ->get('tournaments', [Arenas::class, 'show'])->name('arena-detail-tournaments')
-     ->get('info', [Arenas::class, 'show'])->name('arena-detail-info')
-     ->endGroup()
-     ->get('games', [Arenas::class, 'games'])
-     ->group('stats')
-     ->get('modes', [Arenas::class, 'gameModesStats'])
-     ->get('music', [Arenas::class, 'musicModesStats'])
-     ->endGroup()
-     ->endGroup();
+$routes->group('arena')
+       ->get('', [Arenas::class, 'list'])
+       ->name('arenas-list')
+       ->group('{id}')
+       ->get('', [Arenas::class, 'show'])
+       ->name('arenas-detail')
+       ->group('tab')
+       ->get('stats', [Arenas::class, 'show'])->name('arena-detail-stats')
+       ->get('music', [Arenas::class, 'show'])->name('arena-detail-music')
+       ->get('games', [Arenas::class, 'show'])->name('arena-detail-games')
+       ->get('tournaments', [Arenas::class, 'show'])->name('arena-detail-tournaments')
+       ->get('info', [Arenas::class, 'show'])->name('arena-detail-info')
+       ->endGroup()
+       ->get('games', [Arenas::class, 'games'])
+       ->group('stats')
+       ->get('modes', [Arenas::class, 'gameModesStats'])
+       ->get('music', [Arenas::class, 'musicModesStats'])
+       ->endGroup()
+       ->endGroup();
 
 // Login
-$this->group()
-     ->middlewareAll(new LoggedOut($auth, 'dashboard'))
-     ->get('login', [Login::class, 'show'])
-     ->name('login')
-     ->post('login', [Login::class, 'process'])
-     ->get('login/forgot', [ForgotPassword::class, 'forgot'])
-     ->name('forgot-password')
-     ->post('login/forgot', [ForgotPassword::class, 'forgot',])
-     ->middleware(new CSRFCheck('forgot'))
-     ->get('login/forgot/reset', [ForgotPassword::class, 'reset'])
-     ->name('reset-password')
-     ->post('login/forgot/reset', [ForgotPassword::class, 'reset'])
-     ->middleware(new CSRFCheck('reset'))
-     ->get('register', [Login::class, 'register',])
-     ->name('register')
-     ->post('register', [Login::class, 'processRegister']);
+$loggedOut = new LoggedOut($auth, 'dashboard');
+$routes->group('login')
+       ->middlewareAll($loggedOut, $noCacheControl)
+       ->get('', [Login::class, 'show'])->name('login')
+       ->post('', [Login::class, 'process'])
+       ->get('forgot', [ForgotPassword::class, 'forgot'])->name('forgot-password')
+       ->post('forgot', [ForgotPassword::class, 'forgot'])->middleware(new CSRFCheck('forgot'))
+       ->get('forgot/reset', [ForgotPassword::class, 'reset'])->name('reset-password')
+       ->post('forgot/reset', [ForgotPassword::class, 'reset'])->middleware(new CSRFCheck('reset'));
+$routes->group('register')
+       ->middlewareAll($loggedOut, $noCacheControl)
+       ->get('', [Login::class, 'register'])->name('register')
+       ->post('', [Login::class, 'processRegister']);
 
-$this->get('login/confirm', [Login::class, 'confirm']);
+$routes->get('login/confirm', [Login::class, 'confirm']);
 
 // Tournament
-$tournamentGroup = $this->group('tournament');
+$tournamentGroup = $routes->group('tournament');
 $tournamentGroup->get('', [TournamentController::class, 'show'])->name('tournaments');
 $tournamentGroup->get('history', [TournamentController::class, 'history'])->name('tournament-history');
 $tournamentIdGroup = $tournamentGroup->group('{id}');
 $tournamentIdGroup->get('', [TournamentController::class, 'detail'])->name('tournament-detail');
 $tournamentIdGroup->get('register', [TournamentController::class, 'register'])->name('tournament-register');
-$tournamentIdGroup->post('register', [TournamentController::class, 'processRegister'])->name(
-	'tournament-register-process'
-)->middleware(new CSRFCheck('tournament-register'));
+$tournamentIdGroup->post('register', [TournamentController::class, 'processRegister'])->name('tournament-register-process')->middleware(new CSRFCheck('tournament-register'));
 
 $tournamentGroup->get('registration/{tournamentId}/{registration}', [TournamentController::class, 'updateRegistration'])
                 ->name('tournament-register-update')
@@ -190,7 +142,7 @@ $tournamentGroup->get('registration/{tournamentId}/{registration}', [TournamentC
                 ->name('tournament-register-update-process')
                 ->middleware(new CSRFCheck('tournament-update-register'));
 
-$this->group('league')
+$routes->group('league')
      ->get('', [LeagueController::class, 'show'])
      ->name('leagues')
      ->get(
@@ -241,7 +193,7 @@ $this->group('league')
      ->middleware(new CSRFCheck('league-register-substitute'));
 
 // League - alias
-$this->group('liga')
+$routes->group('liga')
      ->get('', [LeagueController::class, 'show'])
      ->get('{slug}', [LeagueController::class, 'detailSlug'])
      ->get('{slug}/register', [LeagueController::class, 'registerSlug'])
@@ -255,7 +207,7 @@ $this->group('liga')
      ->name('league-register-substitute-slug-process')
      ->middleware(new CSRFCheck('league-register-substitute'));
 
-$eventsGroup = $this->group('events');
+$eventsGroup = $routes->group('events');
 $eventsGroup->get('', [EventController::class, 'show'])->name('events');
 $eventsGroup->get('history', [EventController::class, 'history'])->name('events-history');
 $eventsIdGroup = $eventsGroup->group('{id}');
@@ -280,7 +232,8 @@ $this->group('photos')
      ->get('{arena}/{file}', [PhotosController::class, 'photo']);
 
 // Push
-$this->group('push')
+$routes->group('push')
+     ->middlewareAll(new WithoutCookies(), $noCacheControl)
      ->get('test', [PushController::class, 'sendTest'])
      ->get(
 	     'subscribed',

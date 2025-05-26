@@ -6,14 +6,18 @@ use App\Controllers\Admin\Debug;
 use App\Controllers\Admin\Games;
 use App\Controllers\Admin\TournamentStats;
 use App\Core\Middleware\CanManageArena;
+use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\LoggedIn;
+use App\Core\Middleware\RedirectFromDefaultToDesiredLang;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
+use Lsr\Core\Middleware\DefaultLanguageRedirect;
 use Lsr\Core\Routing\Router;
 
 /** @var Router $this */
 
-$adminGroup = $this->group('/admin');
+$langGroup = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new RedirectFromDefaultToDesiredLang(), new ContentLanguageHeader());
+$adminGroup = $langGroup->group('/admin');
 
 $auth = App::getService('auth');
 assert($auth instanceof Auth);
@@ -28,8 +32,8 @@ $photosMiddleware = new CanManageArena([['manage-photos', 'manage-arena']]);
 
 $adminGroup->group('tracy')
            ->middlewareAll(new LoggedIn($auth, ['debug']))
-           ->get('on', [Debug::class, 'turnOnTracy'])
-           ->get('off', [Debug::class, 'turnOffTracy']);
+           ->get('on', [Debug::class, 'turnOnTracy'])->name('tracy-on')
+           ->get('off', [Debug::class, 'turnOffTracy'])->name('tracy-off');
 
 $arenasAdminGroup = $adminGroup->group('/arenas')
                                ->middlewareAll($arenasMiddleware);
