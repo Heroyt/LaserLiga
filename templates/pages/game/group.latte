@@ -90,8 +90,8 @@
     <section id="groupPlayers" class="d-flex flex-column">
         <div n:foreach="$players as $player" class="group-player rounded-10 my-2 bg-white flex-fill shadow">
             <div class="player-head collapsed text-bg-primary py-2 px-3" data-bs-toggle="collapse"
-                 data-bs-target="#player-body-{$player->asciiName|replace:' ','_'}"
-                 id="player-{$player->asciiName|replace:' ','_'}">
+                 data-bs-target="#player-body-{$player->asciiName|replace:[' ', '#'],['_','*']}"
+                 id="player-{$player->asciiName|replace:[' ', '#'],['_','*']}">
                 <div class="position">
                     {$iterator->counter}.
                 </div>
@@ -137,7 +137,7 @@
                 </div>
             </div>
             <div class="player-body rounded-bottom-10 collapse bg-background-1 p-3"
-                 id="player-body-{$player->asciiName|replace:' ','_'}">
+                 id="player-body-{$player->asciiName|replace:[' ', '#'],['_','*']}">
                 <div class="stats my-3" style="--min-stat-width: 200px;">
                     <div class="stat">
                         <h5 class="stat-title">{lang 'Oblíbená vesta'}</h5>
