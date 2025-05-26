@@ -18,8 +18,8 @@ assert($fontawesome instanceof FontAwesomeManager, 'Invalid service type from DI
 
 if (!empty($user->player?->getTournaments() ?? [])) {
 	$nav[] = [
-		'name' => lang('Moje turnaje'),
-		'icon' => $fontawesome->solid('trophy'),
+		'name'  => lang('Moje turnaje'),
+		'icon'  => $fontawesome->solid('trophy'),
 		'route' => 'my-tournaments',
 	];
 }
@@ -33,14 +33,14 @@ if (($user->hasRight('view-arena') || $user->hasRight('manage-arena') || $user->
 }
 
 $nav[] = [
-	'name' => lang('Nastavení'),
-	'icon' => $fontawesome->solid('gear'),
+	'name'  => lang('Nastavení'),
+	'icon'  => $fontawesome->solid('gear'),
 	'route' => 'profile',
 ];
 $nav[] = [
-	'name' => lang('Odhlásit'),
-	'icon' => $fontawesome->solid('right-from-bracket'),
-	'route' => 'logout',
+	'name'  => lang('Odhlásit'),
+	'icon'  => $fontawesome->solid('right-from-bracket'),
+	'path' => ['logout'],
 ];
 
 return $nav;
