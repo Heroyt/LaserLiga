@@ -1,0 +1,119 @@
+{parameters
+    App\Models\Auth\User $user,
+    string[] $errors,
+    App\Models\Arena[] $arenas,
+}
+
+<h3>{lang 'Údaje'}</h3>
+<div class="form-group mb-3">
+    <div class="form-floating {ifset $errors['name']}is-invalid{/ifset}">
+        <input type="text" name="name" class="form-control {ifset $errors['name']}is-invalid{/ifset}"
+               id="loginName" placeholder="Player" aria-describedby="loginName-description"
+               autocomplete="nickname" required value="{$user->name}">
+        <label for="loginName">{lang 'Jméno'}:</label>
+    </div>
+    <div class="invalid-feedback">
+        {ifset $errors['name']}
+            {$errors['name']}
+        {/ifset}
+    </div>
+    <div class="form-text" id="loginName-description">
+        {lang 'Vaše jméno/přezdívka do hry.'}
+    </div>
+</div>
+<div class="form-group mb-3">
+    <div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
+        <input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
+               id="email" placeholder="email@email.cz" autocomplete="email username" required
+               value="{$user->email}">
+        <label for="email">{lang 'E-mail'}:</label>
+    </div>
+    <div class="invalid-feedback">
+        {ifset $errors['email']}
+            {$errors['email']}
+        {/ifset}
+    </div>
+</div>
+<div n:if="!$user->isConfirmed" class="alert alert-danger">
+    {_'Tvůj e-mail, není potvrzený. Zkontroluj svou schránku, nebo si nech potvrzovací e-mail'}
+    <button type="button" class="btn btn-outline-danger" id="confirmEmail">
+        {faSolid 'repeat'}
+        {_'Poslat znovu'}
+    </button>
+</div>
+<div class="form-group mb-3">
+    <label for="birthday">{lang 'Datum narození'}:</label>
+    <input type="text" name="birthday"
+           class="form-control date-picker {ifset $errors['birthday']}is-invalid{/ifset}"
+           data-max="{date('d.m.Y', strtotime('-5 years'))}"
+           id="birthday" placeholder="{date('d.m.Y')}" autocomplete="bday"
+           value="{$user->player?->birthday?->format('d.m.Y')}"
+           aria-describedby="birthday-description">
+    <div class="invalid-feedback">
+        {ifset $errors['birthday']}
+            {$errors['birthday']}
+        {/ifset}
+    </div>
+    <div class="form-text" id="birthday-description">
+        {lang 'Pokud vyplníte datum narození, mužete získat narozenové ocenění a některé zapojené arény mohou mít pro oslavence sleciální akce.'}
+    </div>
+</div>
+<div class="form-group mb-3">
+    <div class="form-floating {ifset $errors['arena']}is-invalid{/ifset}">
+        {* TODO: Replace with searchable select *}
+        <select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"
+                id="loginArena">
+            <option value="" n:if="!isset($user->player, $user->player->arena)">{lang 'Žádná'}</option>
+            <option n:foreach="$arenas as $arena" {if isset($user->player, $user->player->arena) && $user->player->arena->id === $arena->id}selected{/if}
+                    value="{$arena->id}">
+                {$arena->name}
+            </option>
+        </select>
+        <label for="loginArena">{lang 'Domovská aréna'}:</label>
+    </div>
+    <div class="invalid-feedback">
+        {ifset $errors['arena']}
+            {$errors['arena']}
+        {/ifset}
+    </div>
+    <div class="form-text" id="loginArena-description">
+        {lang 'Domovskou arénu sice vyplňovat nemusíte, ale pokud je na seznamu, doporučujeme jí vyplnit.'}
+    </div>
+</div>
+
+<p class="text-center">
+    <button class="btn btn-primary my-3" type="button" data-bs-toggle="collapse"
+            data-bs-target="#password-collapse">
+        {lang 'Změna hesla'}
+    </button>
+</p>
+<div class="collapse" id="password-collapse">
+    <div class="form-group mb-3">
+        <div class="form-floating {ifset $errors['oldPassword']}is-invalid{/ifset}">
+            <input type="password" name="oldPassword"
+                   class="form-control {ifset $errors['oldPassword']}is-invalid{/ifset}" id="oldLoginPassword"
+                   placeholder="****"
+                   autocomplete="current-password">
+            <label for="oldLoginPassword">{lang 'Aktuální heslo'}:</label>
+        </div>
+        <div class="invalid-feedback">
+            {ifset $errors['oldPassword']}
+                {$errors['oldPassword']}
+            {/ifset}
+        </div>
+    </div>
+    <div class="form-group mb-3">
+        <div class="form-floating {ifset $errors['password']}is-invalid{/ifset}">
+            <input type="password" name="password"
+                   class="form-control {ifset $errors['password']}is-invalid{/ifset}" id="loginPassword"
+                   placeholder="****"
+                   autocomplete="new-password">
+            <label for="loginPassword">{lang 'Nové heslo'}:</label>
+        </div>
+        <div class="invalid-feedback">
+            {ifset $errors['password']}
+                {$errors['password']}
+            {/ifset}
+        </div>
+    </div>
+</div>

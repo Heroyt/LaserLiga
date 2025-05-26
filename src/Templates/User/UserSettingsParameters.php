@@ -19,4 +19,5 @@ class UserSettingsParameters extends TemplateParameters
 	public array $arenas = [];
 	/** @var Title[] */
 	public array $titles = [];
+	public string $tab = 'settings';
 }

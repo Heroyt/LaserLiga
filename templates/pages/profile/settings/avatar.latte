@@ -1,0 +1,41 @@
+{parameters
+    App\Models\Auth\LigaPlayer $user,
+}
+
+<h3>{lang 'Avatar'}</h3>
+<p class="text-muted">{_'Avatara si nemůžeš přímo vybrat, ale generují se náhodně. Můžeš si vybrat z několika různých stylů a pokud chceš ovlivnit jaký avatar se vygeneruje, můžeš zkusit měnit kód avatara.'}</p>
+<p>
+    <label for="avatarSeed" class="form-label">{lang 'Kód avatara'}:</label>
+    <input type="text" id="avatarSeed" class="form-control" name="seed"
+           value="{$user->avatarSeed ?? $user->getCode()}">
+    <span class="form-text">
+        {_'Podle čeho se avatar generuje. Ideálně tvůj kód hráče, nebo přezdívka.'}
+        {_'Změnou kódu uvidíš okamžitě náhled všech vygenerovaných avatarů.'}
+    </span>
+</p>
+<div>
+    <h4>{lang 'Styl'}:</h4>
+    <p class="text-muted">
+        {_'Vyber si styl svého avatara.'}
+    </p>
+    <div class="avatar-types">
+        <div class="avatar-type" n:foreach="App\Services\Avatar\AvatarType::cases() as $type"
+             data-type="{\Lsr\Helpers\Tools\Strings::toCamelCase(str_replace('-', '_', $type->value))}"
+             data-backgrounds="{implode(',', $type->getBackgroundColors())}"
+        >
+            <input type="radio" name="type" value="{$type->value}" id="avatar-{$type->value}-radio" n:attr="checked: $user->avatarStyle !== null && $user->avatarStyle === $type->value">
+            <label for="avatar-{$type->value}-radio" id="avatar-{$type->value}">
+                <img src="" alt="{$type->getReadableName()}" loading="lazy">
+                <span class="avatar-type-name">
+                    {$type->getReadableName()}
+                </span>
+                <a target="_blank" href="{$type->getLicenseNoticeUrl()}">{_'Oficiální zdroj stylu'}</a>
+            </label>
+        </div>
+    </div>
+</div>
+<p class="mt-3 text-center d-none">
+    <button type="button" class="btn btn-primary" id="avatarSave" data-action="{link 'user', $user->getCode(), 'avatar'}">
+        {lang 'Uložit avatar'}
+    </button>
+</p>

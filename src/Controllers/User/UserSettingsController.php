@@ -8,6 +8,7 @@ use App\Models\Arena;
 use App\Models\Auth\Enums\ConnectionType;
 use App\Models\Auth\User;
 use App\Models\Auth\UserConnection;
+use App\Request\User\UserSettingsRequest;
 use App\Services\Achievements\TitleProvider;
 use App\Services\Avatar\AvatarService;
 use App\Services\Avatar\AvatarType;
@@ -18,12 +19,13 @@ use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
+use Lsr\Core\Requests\Validation\RequestValidationMapper;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\ObjectValidation\Exceptions\ValidationMultiException;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Security\Passwords;
-use Nette\Utils\Validators;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -51,7 +53,7 @@ class UserSettingsController extends AbstractUserController
 		$this->params->loggedInUser = $this->auth->getLoggedIn();
 	}
 
-	public function show(): ResponseInterface {
+	public function show(Request $request): ResponseInterface {
 		$this->params->addCss = ['pages/playerSettings.css'];
 		/** @var User $user */
 		$user = $this->auth->getLoggedIn();
@@ -70,10 +72,12 @@ class UserSettingsController extends AbstractUserController
 		$this->descriptionParams[] = $user->name;
 		$this->params->titles = $this->titleProvider->getForUser($user->player);
 
+		$this->params->tab = $request->getGet('tab', 'settings');
+
 		return $this->view('pages/profile/index');
 	}
 
-	public function process(Request $request): ResponseInterface {
+	public function process(RequestValidationMapper $mapper, Request $request): ResponseInterface {
 		if (!empty($request->getErrors())) {
 			return $this->respondForm($request, statusCode: 403);
 		}
@@ -81,56 +85,46 @@ class UserSettingsController extends AbstractUserController
 		/** @var User $user */
 		$user = $this->auth->getLoggedIn();
 
-		/** @var string $name */
-		$name = $request->getPost('name', '');
-		/** @var string $email */
-		$email = $request->getPost('email', '');
-		$birthday = $request->getPost('birthday');
-		if (!is_string($birthday)) {
-			$birthday = null;
+		try {
+			$data = $mapper->setRequest($request)->mapBodyToObject(UserSettingsRequest::class);
+		} catch (ValidationMultiException $e) {
+			foreach ($e->exceptions as $error) {
+				$request->errors[$error->property] = lang($error->getMessage(), context: 'errors');
+			}
+			return $this->respondForm($request, statusCode: 400);
+		} catch (ValidationException $error) {
+			$request->errors[$error->property] = lang($error->getMessage(), context: 'errors');
+			return $this->respondForm($request, statusCode: 400);
 		}
+
 		$arena = null;
 
-		if (empty($name)) {
-			$request->passErrors['name'] = lang('Jméno je povinné', context: 'errors');
+		// Check duplicate emails
+		$email = $data->email;
+		$test = User::getByEmail($email);
+		if (isset($test) && $test->id !== $user->id) {
+			$request->passErrors['email'] = lang('E-mail již používá jiný hráč', context: 'errors');
 		}
-		if (empty($email)) {
-			$request->passErrors['email'] = lang('E-mail je povinný', context: 'errors');
-		}
-		else if (!Validators::isEmail($email)) {
-			$request->passErrors['email'] = lang('E-mail nemá správný formát', context: 'errors');
-		}
-		else {
-			$test = User::getByEmail($email);
-			if (isset($test) && $test->id !== $user->id) {
-				$request->passErrors['email'] = lang('E-mail již používá jiný hráč', context: 'errors');
-			}
-		}
+
+		// Check home arena
 		try {
-			$arenaId = (int)$request->getPost('arena', 0);
-			if (!empty($arenaId)) {
-				$arena = Arena::get($arenaId);
+			if (!empty($data->arena)) {
+				$arena = Arena::get($data->arena);
 			}
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			$request->passErrors['arena'] = lang('Aréna neexistuje', context: 'errors');
 		}
-		if ($birthday !== null) {
-			try {
-				$birthday = new \DateTimeImmutable($birthday);
-				// Do not allow dates smaller than 5 years ago
-				if ((int) $birthday->format('Y') > (((int) date('Y')) - 5)) {
-					$birthday = null;
-				}
-			} catch (\DateMalformedStringException $e) {
-				$request->passErrors['birthday'] = lang('Datum narození nemá správný formát', context: 'errors');
-				$birthday = null;
-			}
+
+		// Do not allow dates smaller than 5 years ago
+		if (($data->birthday !== null) && (int)$data->birthday->format('Y') > (((int)date('Y')) - 5)) {
+			$data->birthday = null;
 		}
 
 		$player = $user->createOrGetPlayer($arena);
 
+		// Title
 		$title = null;
-		$titleId = (int)$request->getPost('title', 0);
+		$titleId = $data->title;
 		if ($titleId > 0) {
 			try {
 				$title = Title::get($titleId);
@@ -142,8 +136,25 @@ class UserSettingsController extends AbstractUserController
 			}
 		}
 
-		/** @var string|null $laserMaxx */
-		$laserMaxx = $request->getPost('mylasermaxx');
+		// Avatar
+		$type = AvatarType::tryFrom($data->type);
+		if ($type === null) {
+			// If no type is set, use random type
+			$type = AvatarType::getRandom();
+		}
+		// Default seed value
+		if (empty($data->seed)) {
+			$data->seed = $player->getCode();
+		}
+		// Update avatar only if it changed
+		if ($type->value !== $player->avatarStyle || $data->seed !== $player->avatarSeed) {
+			$player->avatar = $this->avatarService->getAvatar($data->seed, $type);
+			$player->avatarStyle = $type->value;
+			$player->avatarSeed = $data->seed;
+		}
+
+		// Connections - LaserMaxx
+		$laserMaxx = $data->mylasermaxx;
 		$laserMaxxConnection = $user->getConnectionByType(ConnectionType::MY_LASERMAXX);
 		if (empty($laserMaxx) && isset($laserMaxxConnection)) {
 			$user->removeConnection($laserMaxxConnection);
@@ -158,8 +169,8 @@ class UserSettingsController extends AbstractUserController
 			$laserMaxxConnection->identifier = $laserMaxx;
 		}
 
-		/** @var string|null $laserForce */
-		$laserForce = $request->getPost('laserforce');
+		// Connections - LaserForce
+		$laserForce = $data->laserforce;
 		$laserForceConnection = $user->getConnectionByType(ConnectionType::LASER_FORCE);
 		if (empty($laserForce) && isset($laserForceConnection)) {
 			$user->removeConnection($laserForceConnection);
@@ -174,16 +185,19 @@ class UserSettingsController extends AbstractUserController
 			$laserForceConnection->identifier = $laserForce;
 		}
 
+		// Handle errors
 		if (!empty($request->passErrors)) {
 			return $this->respondForm($request, statusCode: 400);
 		}
 
-		$user->name = $name;
-		$emailChanged = $user->email !== $email;
-		$user->email = $email;
-		$player->email = $email;
-		$player->nickname = $name;
-		$player->birthday = $birthday;
+		// Update values
+		$user->name = $data->name;
+		$player->nickname = $data->name;
+
+		$emailChanged = $user->email !== $data->email;
+		$user->email = $data->email;
+		$player->email = $data->email;
+		$player->birthday = $data->birthday;
 		if (isset($arena)) {
 			$player->arena = $arena;
 		}
@@ -213,10 +227,8 @@ class UserSettingsController extends AbstractUserController
 			'title'   => lang('Formulář'),
 		];
 
-		/** @var string $oldPassword */
-		$oldPassword = $request->getPost('oldPassword', '');
-		/** @var string $password */
-		$password = $request->getPost('password', '');
+		$oldPassword = $data->oldPassword;
+		$password = $data->password;
 		if (!empty($password) && !empty($oldPassword) && !$request->isAjax()) {
 			if (!$this->auth->login($user->email, $oldPassword)) {
 				$request->passErrors['oldPassword'] = lang('Aktuální heslo není správné');

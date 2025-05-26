@@ -21,3 +21,41 @@
     }
   }
 }
+
+.avatar-types {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+	gap: 1rem;
+
+	label {
+		cursor: pointer;
+		outline-offset: .2rem;
+		padding: .5rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: .2rem;
+
+		&:hover {
+			outline: 2px solid var(--bs-success-text-emphasis);
+		}
+	}
+
+	input {
+		display: none;
+
+		&:checked + label,
+		&:checked + label:hover {
+			outline: 2px solid var(--bs-success);
+		}
+	}
+
+	img {
+		display: block;
+		margin: 0 auto;
+		width: 8rem;
+		height: 8rem;
+	}
+
+}

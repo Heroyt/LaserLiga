@@ -18,6 +18,9 @@ class AvatarService
 	 */
 	public function getAvatar(string $seed, AvatarType $type): string {
 		$url = $this::BASE_API . $type->value . '/svg?seed=' . urlencode($seed) . '&radius=50';
+		if (!empty($type->getBackgroundColors())) {
+			$url .= '&backgroundColor=' . implode(',', $type->getBackgroundColors());
+		}
 		$ch = \curl_init($url);
 		\curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$response = \curl_exec($ch);

@@ -1,0 +1,30 @@
+{parameters
+    App\Models\Auth\User $user
+}
+
+<section class="my-4 d-none" id="notification-settings">
+    <h3>{lang 'Notifikace'}</h3>
+    <p class="text-center">
+        <button type="button" class="btn btn-lg btn-success"
+                id="registerSubscription">{lang 'Zapnout notifikace'}</button>
+        <button type="button" class="btn btn-lg btn-danger"
+                id="unregisterSubscription">{lang 'Obnovit notifikace'}</button>
+        <button type="button" class="btn btn-lg btn-info test-notification-btn" id="testNotification">
+            {lang 'Odeslat testovací notifikaci'}
+        </button>
+        {if $user->type->superAdmin}
+            <button type="button" class="btn btn-lg btn-info test-notification-btn" data-type="rank_change">
+                {lang 'Odeslat testovací notifikaci'} - rank_change
+            </button>
+            <button type="button" class="btn btn-lg btn-info test-notification-btn" data-type="achievement">
+                {lang 'Odeslat testovací notifikaci'} - achievement
+            </button>
+            <button type="button" class="btn btn-lg btn-info test-notification-btn" data-type="photos">
+                {lang 'Odeslat testovací notifikaci'} - photos
+            </button>
+            <button type="button" class="btn btn-lg btn-info test-notification-btn" data-type="game">
+                {lang 'Odeslat testovací notifikaci'} - game
+            </button>
+        {/if}
+    </p>
+</section>

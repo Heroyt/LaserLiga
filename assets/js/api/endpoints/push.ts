@@ -1,12 +1,12 @@
-import {fetchGet, fetchPost} from "../client";
+import { fetchGet, fetchPost } from "../client";
 
 export type PushTestResponse = { status: string };
 
 export type PushSubscribedResponse = { subscribed: boolean, id: number | null };
 export type PushSubscribeResponse = { status?: string, error?: string };
 
-export async function sendPushTestNotification(): Promise<PushTestResponse> {
-    return fetchGet('/push/test');
+export async function sendPushTestNotification(type : string = 'test'): Promise<PushTestResponse> {
+    return fetchGet('/push/test', {type});
 }
 
 export async function checkPushSubscribed(endpoint: string): Promise<PushSubscribedResponse> {

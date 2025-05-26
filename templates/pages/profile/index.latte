@@ -6,188 +6,71 @@
 
     <h2 n:ifset="$user->player">{lang 'Unikátní kód hráče'}: {$user->player->getCode()}</h2>
 
-    {ifset $user->player}
-        <hr class="my-4">
-        <h3>{lang 'Avatar'}</h3>
-        <p class="text-muted">{_'Avatara si nemůžeš přímo vybrat, ale generují se náhodně. Můžeš si vybrat z několika různých stylů a pokud chceš ovlivnit jaký avatar se vygeneruje, můžeš zkusit měnit seed.'}</p>
-        <img src="{link 'user', $user->player->getCode(), 'avatar'}" alt="Avatar" class="avatar-preview"
-             id="avatarPreview" style="max-height: 8rem;">
-        <p>
-            <label for="avatarType" class="form-label">{lang 'Typ avatara'}:</label>
-            <select id="avatarType" class="form-select" data-trigger-description="true">
-                <option value="" disabled selected>{lang Vyberte}</option>
-                <option n:foreach="App\Services\Avatar\AvatarType::cases() as $type"
-                        value="{$type->value}"
-                        data-description='<a target="_blank" href="{$type->getLicenseNoticeUrl()}">{_'Oficiální zdroj stylu'}</a>'
-                        n:attr="selected: isset($user->player->avatarStyle) && $user->player->avatarStyle === $type->value">
-                    {$type->getReadableName()}
-                </option>
-            </select>
-            <span class="form-text select-description" data-target="#avatarType"></span>
-        </p>
-        <p>
-            <label for="avatarSeed" class="form-label">{lang 'Seed'}:</label>
-            <input type="text" id="avatarSeed" class="form-control"
-                   value="{$user->player->avatarSeed ?? $user->player->getCode()}">
-            <span class="form-text">{lang 'Podle čeho se avatar generuje. Ideálně tvůj kód hráče, nebo přezdívka.'}</span>
-        </p>
-        <p>
-            <button type="button" class="btn btn-primary" id="avatarSave"
-                    data-action="{link 'user', $user->player->getCode(), 'avatar'}">{lang 'Uložit avatar'}</button>
-        </p>
-        <hr class="my-4">
-    {/ifset}
     <form action="{link ['user']}" id="profile-form" method="post" class="position-relative">
-        {ifset $user->player}
-            <div class="fs-3">{_'Titul'}</div>
-            <p class="text-muted">{_'Další tituly odemkneš získáním ocenění.'}</p>
-            <div class="titles-select">
-                {foreach $titles as $title}
-                    <input class="d-none" type="radio" name="title"
-                           id="title-{$title->id}" n:attr="checked: $title->id === $user->player->getTitle()->id"
-                           value="{$title->id}"/>
-                    <label for="title-{$title->id}" class="player-title rarity-{$title->rarity->value}"
-                            {if !empty($title->description)}
-                        data-toggle="tooltip"
-                        title="{_$title->description, domain: 'titles', context: $title->name}"
-                            {/if}>
-                        {_$title->name, domain: 'titles'}
-                    </label>
-                {/foreach}
-            </div>
-            <hr class="my-4">
-        {/ifset}
-        <h3>{lang 'Údaje'}</h3>
         {csrfInput 'user-profile'}
-        <div class="form-group mb-3">
-            <div class="form-floating {ifset $errors['name']}is-invalid{/ifset}">
-                <input type="text" name="name" class="form-control {ifset $errors['name']}is-invalid{/ifset}"
-                       id="loginName" placeholder="Player" aria-describedby="loginName-description"
-                       autocomplete="nickname" required value="{$user->name}">
-                <label for="loginName">{lang 'Jméno'}:</label>
-            </div>
-            <div class="invalid-feedback">
-                {ifset $errors['name']}
-                    {$errors['name']}
-                {/ifset}
-            </div>
-            <div class="form-text" id="loginName-description">
-                {lang 'Vaše jméno/přezdívka do hry.'}
-            </div>
-        </div>
-        <div class="form-group mb-3">
-            <div class="form-floating {ifset $errors['email']}is-invalid{/ifset}">
-                <input type="email" name="email" class="form-control {ifset $errors['email']}is-invalid{/ifset}"
-                       id="email" placeholder="email@email.cz" autocomplete="email username" required
-                       value="{$user->email}">
-                <label for="email">{lang 'E-mail'}:</label>
-            </div>
-            <div class="invalid-feedback">
-                {ifset $errors['email']}
-                    {$errors['email']}
-                {/ifset}
-            </div>
-        </div>
-        <div n:if="!$user->isConfirmed" class="alert alert-danger">
-            {_'Tvůj e-mail, není potvrzený. Zkontroluj svou schránku, nebo si nech potvrzovací e-mail'}
-            <button type="button" class="btn btn-outline-danger" id="confirmEmail">
-                {faSolid 'repeat'}
-                {_'Poslat znovu'}
-            </button>
-        </div>
-        <div class="form-group mb-3">
-            <label for="birthday">{lang 'Datum narození'}:</label>
-            <input type="text" name="birthday"
-                   class="form-control date-picker {ifset $errors['birthday']}is-invalid{/ifset}"
-                   data-max="{date('d.m.Y', strtotime('-5 years'))}"
-                   id="birthday" placeholder="{date('d.m.Y')}" autocomplete="bday"
-                   value="{$user->player->birthday?->format('d.m.Y')}"
-                   aria-describedby="birthday-description">
-            <div class="invalid-feedback">
-                {ifset $errors['birthday']}
-                    {$errors['birthday']}
-                {/ifset}
-            </div>
-            <div class="form-text" id="birthday-description">
-                {lang 'Pokud vyplníte datum narození, mužete získat narozenové ocenění a některé zapojené arény mohou mít pro oslavence sleciální akce.'}
-            </div>
-        </div>
-        <div class="form-group mb-3">
-            <div class="form-floating {ifset $errors['arena']}is-invalid{/ifset}">
-                {* TODO: Replace with searchable select *}
-                <select name="arena" class="form-control {ifset $errors['arena']}is-invalid{/ifset}"
-                        id="loginArena">
-                    <option value="" n:if="!isset($user->player, $user->player->arena)">{lang 'Žádná'}</option>
-                    <option n:foreach="$arenas as $arena" {if isset($user->player, $user->player->arena) && $user->player->arena->id === $arena->id}selected{/if}
-                            value="{$arena->id}">
-                        {$arena->name}
-                    </option>
-                </select>
-                <label for="loginArena">{lang 'Domovská aréna'}:</label>
-            </div>
-            <div class="invalid-feedback">
-                {ifset $errors['arena']}
-                    {$errors['arena']}
-                {/ifset}
-            </div>
-            <div class="form-text" id="loginArena-description">
-                {lang 'Domovskou arénu sice vyplňovat nemusíte, ale pokud je na seznamu, doporučujeme jí vyplnit.'}
-            </div>
-        </div>
-
-        <p class="text-center">
-            <button class="btn btn-primary my-3" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#password-collapse">
-                {lang 'Změna hesla'}
-            </button>
-        </p>
-        <div class="collapse" id="password-collapse">
-            <div class="form-group mb-3">
-                <div class="form-floating {ifset $errors['oldPassword']}is-invalid{/ifset}">
-                    <input type="password" name="oldPassword"
-                           class="form-control {ifset $errors['oldPassword']}is-invalid{/ifset}" id="oldLoginPassword"
-                           placeholder="****"
-                           autocomplete="current-password">
-                    <label for="oldLoginPassword">{lang 'Aktuální heslo'}:</label>
-                </div>
-                <div class="invalid-feedback">
-                    {ifset $errors['oldPassword']}
-                        {$errors['oldPassword']}
-                    {/ifset}
-                </div>
-            </div>
-            <div class="form-group mb-3">
-                <div class="form-floating {ifset $errors['password']}is-invalid{/ifset}">
-                    <input type="password" name="password"
-                           class="form-control {ifset $errors['password']}is-invalid{/ifset}" id="loginPassword"
-                           placeholder="****"
-                           autocomplete="new-password">
-                    <label for="loginPassword">{lang 'Nové heslo'}:</label>
-                </div>
-                <div class="invalid-feedback">
-                    {ifset $errors['password']}
-                        {$errors['password']}
-                    {/ifset}
-                </div>
-            </div>
-        </div>
-
-        <section class="my-4" id="connected-accounts">
-            <h3>{lang 'Další Laser game účty'}</h3>
-
-            <div class="form-group mb-3">
-                <label for="mylasermaxx" class="form-label">My LaserMaxx</label>
-                <input class="form-control" type="url" name="mylasermaxx" id="mylasermaxx"
-                       value="{$user->getConnectionByType(App\Models\Auth\Enums\ConnectionType::MY_LASERMAXX)?->identifier}">
-                <div class="form-text">{lang 'Zadejte URL vašeho profilu ve formátu https://my.lasermaxx.com/profile/0000000000.'}</div>
-            </div>
-            <div n:syntax="double" class="form-group mb-3">
-                <label for="laserforce" class="form-label">LaserForce</label>
-                <input class="form-control" type="text" pattern="\d{2,}-\d{1,}-\d{3,}" name="laserforce" id="laserforce"
-                       value="{{$user->getConnectionByType(App\Models\Auth\Enums\ConnectionType::LASER_FORCE)?->identifier}}">
-                <div class="form-text">{{lang 'Zadejte Váš kód hráče ve formátu 00-0-000.'}}</div>
-            </div>
-        </section>
+        {embed '../../partials/tabs.latte',
+        tabs: [
+            'settings' => [
+                'name' => 'Údaje',
+                'type' => 'tab',
+                'piece' => 'Settings',
+                'template' => '../pages/profile/settings/settings.latte',
+                'params' => [
+                    'user' => $user,
+                    'arenas' => $arenas,
+                    'errors' => $errors,
+                ],
+            ],
+            'avatar' => [
+                'name' => 'Avatar',
+                'type' => 'tab',
+                'piece' => 'Avatar',
+                'template' => '../pages/profile/settings/avatar.latte',
+                'params' => [
+                    'user' => $user->player,
+                ],
+            ],
+            'title' => [
+                'name' => 'Tituly',
+                'type' => 'tab',
+                'piece' => 'Title',
+                'template' => '../pages/profile/settings/title.latte',
+                'params' => [
+                    'user' => $user->player,
+                    'titles' => $titles,
+                ],
+            ],
+            'connected-accounts' => [
+                'name' => 'Další Laser game účty',
+                'type' => 'tab',
+                'piece' => 'ConnectedAccounts',
+                'template' => '../pages/profile/settings/connectedAccounts.latte',
+                'params' => [
+                    'user' => $user,
+                ],
+            ],
+            'notifications' => [
+                'name' => 'Notifikace',
+                'type' => 'tab',
+                'piece' => 'Notifications',
+                'template' => '../pages/profile/settings/notifications.latte',
+                'params' => [
+                    'user' => $user,
+                ],
+            ],
+            'other' => [
+                'name' => 'Ostatní',
+                'type' => 'tab',
+                'piece' => 'Other',
+                'template' => '../pages/profile/settings/other.latte',
+                'params' => [
+                    'page' => $page,
+                ],
+            ],
+        ],
+        activeTab: $tab,
+        }
+        {/embed}
 
         <div class="text-center position-sticky py-4 bottom-0 w-100 bg-background-0 z-3">
             <button type="submit" class="btn btn-success btn-lg">
@@ -195,84 +78,5 @@
             </button>
         </div>
     </form>
-
-    <section class="my-4 d-none" id="notification-settings">
-        <h3>{lang 'Notifikace'}</h3>
-        <hr class="mb-4">
-        <p class="text-center">
-            <button type="button" class="btn btn-lg btn-success"
-                    id="registerSubscription">{lang 'Zapnout notifikace'}</button>
-            <button type="button" class="btn btn-lg btn-danger"
-                    id="unregisterSubscription">{lang 'Obnovit notifikace'}</button>
-            <button type="button" class="btn btn-lg btn-info"
-                    id="testNotification">{lang 'Odeslat testovací notifikaci'}</button>
-        </p>
-    </section>
-    <section class="my-4">
-        <h3>{lang 'Ostatní'}</h3>
-        <div class="text-center mb-3">
-            <button class="btn {if isset($_COOKIE['mode']) && $_COOKIE['mode'] === 'light'}btn-dark{else}btn-light{/if}"
-                    type="button" id="modeSwitch">
-                {faSolid 'moon'}
-                {faSolid 'sun'}
-            </button>
-        </div>
-        <script>
-            const modeSwitch = document.getElementById('modeSwitch');
-            console.log(currentColorScheme, modeSwitch.classList.entries());
-            document.documentElement.setAttribute('data-bs-theme', currentColorScheme);
-            if (currentColorScheme === 'dark') {
-                modeSwitch.classList.remove('btn-dark');
-                modeSwitch.classList.add('btn-light');
-            } else {
-                modeSwitch.classList.add('btn-dark');
-                modeSwitch.classList.remove('btn-light');
-            }
-            modeSwitch.addEventListener('click', () => {
-                if (currentColorScheme === 'dark') {
-                    modeSwitch.classList.add('btn-dark');
-                    modeSwitch.classList.remove('btn-light');
-                    document.body.classList.remove('darkMode');
-                    document.body.classList.add('lightMode');
-                    currentColorScheme = 'light';
-                } else {
-                    modeSwitch.classList.remove('btn-dark');
-                    modeSwitch.classList.add('btn-light');
-                    document.body.classList.add('darkMode');
-                    document.body.classList.remove('lightMode');
-                    currentColorScheme = 'dark';
-                }
-                document.documentElement.setAttribute('data-bs-theme', currentColorScheme);
-                document.cookie = `mode=` + currentColorScheme;
-            });
-        </script>
-        {var string $selectedLang = $page->app->translations->getLangId()}
-        {var string $selectedCountry = $page->app->translations->getCountry()}
-        <div class="text-center">
-            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                <img src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]|escapeUrl}.png"
-                     style="height: 2rem; width: 2rem;"
-                     data-lang="{$selectedLang}"
-                     data-country="{$selectedCountry}"
-                     alt="{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]}">
-            </button>
-            <ul class="dropdown-menu bg-white" style="min-width: 5rem;left:auto;margin-left: 2.8rem;top:3rem;">
-                {foreach $page->app->translations->supportedLanguages as $lang => $country}
-                    {continueIf $selectedLang === $lang}
-                    <li>
-                        <a class="dropdown-item"
-                           href="{link ['lang', $lang, 'redirect' => $page->app->getRequest()->getPath()]}"
-                           data-set-lang="{$lang}">
-                            <img class="mx-auto d-block"
-                                 src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$country]|escapeUrl}.png"
-                                 style="height: 2rem; width: 2rem;"
-                                 alt="{\Lsr\Core\Constants::COUNTRIES[$country]}">
-                        </a>
-                    </li>
-                {/foreach}
-            </ul>
-        </div>
-    </section>
 
 {/block}

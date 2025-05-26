@@ -68,6 +68,37 @@ enum AvatarType: string
 		};
 	}
 
+	/**
+	 * @return string[]
+	 */
+	public function getBackgroundColors(): array {
+		return match ($this) {
+			self::CROODLES_NEUTRAL,
+			self::LORELEI_NEUTRAL,
+			self::NOTIONISTS,
+			self::NOTIONISTS_NEUTRAL,
+			self::THUMBS
+			                        => ['b6e3f4', 'c0aede', 'd1d4f9', 'ffd5dc', 'ffdfbf', 'ffffff'],
+			self::DYLAN             => ['b6e3f4', 'c0aede', 'd1d4f9', 'ffd5dc', 'ffdfbf'],
+			self::PIXEL_ART_NEUTRAL => [
+				'8d5524',
+				'a26d3d',
+				'b68655',
+				'cb9e6e',
+				'e0b687',
+				'eac393',
+				'f5cfa0',
+				'ffdbac',
+				'b6e3f4',
+				'c0aede',
+				'd1d4f9',
+				'ffd5dc',
+				'ffdfbf',
+			],
+			default                 => [],
+		};
+	}
+
 	public function getLicenseNoticeUrl(): string {
 		return match ($this) {
 			self::ADVENTURER, self::ADVENTURER_NEUTRAL => 'https://www.figma.com/community/file/1184595184137881796',

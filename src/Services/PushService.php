@@ -29,7 +29,7 @@ class PushService
 	}
 
 	/**
-	 * @param Player $player
+	 * @param Player     $player
 	 * @param PlayerUser $user
 	 *
 	 * @return void
@@ -43,8 +43,11 @@ class PushService
 
 			$notification->user = $this->getUser($user);
 			$notification->title = lang('Výsledky ze hry');
-			$notification->action = App::getLink(['g', $player->game->code, 'refer' => 'push']);
-			$notification->body = sprintf(lang('%d místo', '%d místo', $player->position), $player->position) . ' ' . sprintf(lang('%d skóre'), $player->score);
+			$notification->action = App::getLink(['g', $player->game->code, 'mtm_campaign' => 'push']);
+			$notification->body = sprintf(
+					lang('%d místo', '%d místo', $player->position),
+					$player->position
+				) . ' ' . sprintf(lang('%d skóre'), $player->score);
 
 			$diff = $player->getRankDifference();
 			if (isset($diff)) {
@@ -61,6 +64,19 @@ class PushService
 		}
 	}
 
+	private function checkSubscriptionSetting(PlayerUser $user, string $setting): bool {
+		$row = DB::select(Subscription::TABLE, '*')->where('id_user = %i', $user->id)->fetch(false);
+		$key = 'setting_' . $setting;
+		return isset($row, $row->$key) && $row->$key === 1;
+	}
+
+	private function getUser(PlayerUser $player): User {
+		if ($player instanceof LigaPlayer) {
+			return $player->user;
+		}
+		return User::get($player->id);
+	}
+
 	public function send(Notification $notification): void {
 		$logger = new Logger(LOG_DIR, 'push');
 
@@ -68,7 +84,7 @@ class PushService
 		$subscriptions = array_values(Subscription::query()->where('[id_user] = %i', $notification->user->id)->get());
 
 		$data = [
-			'title' => $notification->title,
+			'title'   => $notification->title,
 			'options' => [
 				'body' => $notification->body,
 			],
@@ -93,8 +109,8 @@ class PushService
 			[
 				'VAPID' => [
 					'privateKey' => $privateKeyRaw,
-					'publicKey' => $publicKey,
-					'subject' => 'mailto:info@laserliga.cz',
+					'publicKey'  => $publicKey,
+					'subject'    => 'mailto:info@laserliga.cz',
 				],
 			],
 			[
@@ -133,6 +149,7 @@ class PushService
 	/**
 	 * @param PlayerRank[] $ranksBefore
 	 * @param PlayerRank[] $ranksNow
+	 *
 	 * @return void
 	 */
 	public function sendRankChangeNotifications(array $ranksBefore, array $ranksNow): void {
@@ -151,8 +168,9 @@ class PushService
 
 	/**
 	 * @param PlayerUser $user
-	 * @param int $difference
-	 * @param string $position
+	 * @param int        $difference
+	 * @param string     $position
+	 *
 	 * @return void
 	 */
 	public function sendRankChangeNotification(PlayerUser $user, int $difference, string $position): void {
@@ -168,15 +186,25 @@ class PushService
 				[
 					'user',
 					'leaderboard',
-					'search'  => $user->getCode(),
-					'orderBy' => 'rank',
-					'dir'     => 'desc',
-					'refer'   => 'push']);
+					'search'        => $user->getCode(),
+					'orderBy'       => 'rank',
+					'dir'           => 'desc',
+					'mtm_campaign' => 'push',
+				]
+			);
 			$absDiff = abs($difference);
 			$notification->body = sprintf(
 				$difference < 0 ?
-					lang('Posunul si se o %d místo nahoru a teď jsi %s.', 'Posunul si se o %d míst nahoru a teď jsi %s', $absDiff) :
-					lang('Posunul si se o %d místo dolů a teď jsi %s.', 'Posunul si se o %d míst dolů a teď jsi %s', $absDiff),
+					lang(
+						'Posunul si se o %d místo nahoru a teď jsi %s.',
+						'Posunul si se o %d míst nahoru a teď jsi %s',
+						$absDiff
+					) :
+					lang(
+						'Posunul si se o %d místo dolů a teď jsi %s.',
+						'Posunul si se o %d míst dolů a teď jsi %s',
+						$absDiff
+					),
 				$absDiff,
 				$position
 			);
@@ -202,12 +230,6 @@ class PushService
 		return DB::select(Subscription::TABLE, 'COUNT(*)')->where('id_user = %i', $user->id)->fetchSingle(false) > 0;
 	}
 
-	private function checkSubscriptionSetting(PlayerUser $user, string $setting): bool {
-		$row = DB::select(Subscription::TABLE, '*')->where('id_user = %i', $user->id)->fetch(false);
-		$key = 'setting_' . $setting;
-		return isset($row, $row->$key) && $row->$key === 1;
-	}
-
 	public function sendAchievementNotification(PlayerAchievement ...$achievements): void {
 		if (!$this->checkSubscriptionSetting($achievements[0]->player, 'achievement')) {
 			return;
@@ -226,13 +248,13 @@ class PushService
 			foreach ($achievements as $achievement) {
 				$names[] = $achievement->achievement->rarity->getReadableName() . ': ' .
 					lang(
-						$achievement->achievement->name,
+						        $achievement->achievement->name,
 						domain: 'achievements'
 					);
 			}
 			$notification->body = implode(', ', $names);
 			$notification->action = App::getLink(
-				['user', $achievements[0]->player->getCode(), 'tab' => 'achievements-stats-tab', 'refer' => 'push']
+				['user', $achievements[0]->player->getCode(), 'tab' => 'achievements-stats-tab', 'mtm_campaign' => 'push']
 			);
 
 			$this->send($notification);
@@ -241,23 +263,23 @@ class PushService
 		}
 	}
 
-	private function getUser(PlayerUser $player): User {
-		if ($player instanceof LigaPlayer) {
-			return $player->user;
-		}
-		return User::get($player->id);
-	}
-
-	public function sendPhotosNotification(PlayerUser $user, Game $game, string $url) : void {
+	public function sendPhotosNotification(PlayerUser $user, Game $game, string $url): void {
 		if (!$this->checkSubscriptionSetting($user, 'photos')) {
 			return;
 		}
 		try {
+			// Add tracking to URL
+			$url .= str_contains($url, '?') ? '&mtm_campaign=push' : '?mtm_campaign=push';
+
 			$notification = new Notification();
 			$notification->user = $this->getUser($user);
 			$notification->title = lang('Nové fotky!', context: 'notification');
 			$notification->action = $url;
-			$notification->body = lang('Na tvé hře z %s přibyly fotky!', context: 'notification', format: [$game->start->format('j. n. Y')]);
+			$notification->body = lang(
+				         'Na tvé hře z %s přibyly fotky!',
+				context: 'notification',
+				format : [$game->start->format('j. n. Y')]
+			);
 			$this->send($notification);
 			$notification->save();
 		} catch (Throwable) {

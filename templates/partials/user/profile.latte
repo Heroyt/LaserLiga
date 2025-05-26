@@ -82,12 +82,12 @@
                     "interactionType": {
                         "@type": "PlayAction",
                         "name": {_'Odehráno her'}
-                    },
-                    "userInteractionCount": {$user->player->stats->gamesPlayed}
-                }
-            ],
-            "image": [
-                "{link 'user', $user->player->getCode(), 'avatar'}",
+    },
+    "userInteractionCount": {$user->player->stats->gamesPlayed}
+    }
+],
+"image": [
+    "{link 'user', $user->player->getCode(), 'avatar'}",
                 "{link 'user', $user->player->getCode(), 'img.png'}"
             ]
         }
@@ -108,29 +108,36 @@
                 {faSolid 'circle-question', 'fs-4', ['style' => 'line-height: 2.5rem;vertical-align: middle;']}
             </button>
         </h2>
-        {include '../title.latte', $user->player->getTitle(), false, $currentUser}
+        {include '../title.latte', $user->player->getTitle(), false, false}
         <p class="text-center mt-3 text-muted">
             {$abstract}
         </p>
-        <p class="mt-3 text-center">
-            <button n:if="$currentUser" type="button" class="btn btn-secondary" data-bs-toggle="modal"
-                                        data-bs-target="#user-help-modal">
-                {faSolid 'circle-question'} {lang 'Nápověda'}
-            </button>
-            <button type="button" class="btn btn-success my-3" data-bs-toggle="modal" data-bs-target="#shareModal">
-                {faSolid 'share'}
-                {lang 'Sdílet'}
-            </button>
-            {var App\Models\Tournament\Tournament[] $tournaments = $user->player?->getTournaments() ?? []}
-            {if !empty($tournaments)}
-                <a href="{link 'user', $user->player->getCode(), 'tournaments'}" class="btn btn-info">
-                    {faSolid 'trophy'}
-                    {lang 'Turnaje'} ({$tournaments|length})
+        <div class="text-center">
+            <div n:if="$currentUser" class="btn-group mt-2">
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
+                        data-bs-target="#user-help-modal">
+                    {faSolid 'circle-question'} {lang 'Nápověda'}
+                </button>
+                <a href="{link 'user'}" class="edit btn btn-primary" aria-label="{_'Upravit', context: 'actions'}">
+                    {faSolid 'gear'} {_'Nastavení'}
                 </a>
-            {/if}
-        </p>
+            </div>
+            <div class="btn-group mt-2">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#shareModal">
+                    {faSolid 'share'}
+                    {lang 'Sdílet'}
+                </button>
+                {var App\Models\Tournament\Tournament[] $tournaments = $user->player?->getTournaments() ?? []}
+                {if !empty($tournaments)}
+                    <a href="{link 'user', $user->player->getCode(), 'tournaments'}" class="btn btn-info">
+                        {faSolid 'trophy'}
+                        {lang 'Turnaje'} ({$tournaments|length})
+                    </a>
+                {/if}
+            </div>
+        </div>
         {var App\Models\Auth\UserConnection[] $connections = $user->getPublicConnections()}
-        <div n:if="count($connections) > 0" class="my-3 text-center">
+        <div n:if="count($connections) > 0" class="my-4 text-center">
             <h3 class="fs-5">{lang 'Další Laser game účty'}</h3>
             {foreach $connections as $connection}
                 {continueIf empty($connection->identifier)}

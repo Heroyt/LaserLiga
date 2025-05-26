@@ -1,0 +1,21 @@
+{parameters
+    App\Models\Auth\LigaPlayer $user,
+    App\Models\Achievements\Title[] $titles,
+}
+
+<div class="fs-3">{_'Titul'}</div>
+<p class="text-muted">{_'Další tituly odemkneš získáním ocenění.'}</p>
+<div class="titles-select">
+    {foreach $titles as $title}
+        <input class="d-none" type="radio" name="title"
+               id="title-{$title->id}" n:attr="checked: $title->id === $user->getTitle()->id"
+               value="{$title->id}"/>
+        <label for="title-{$title->id}" class="player-title rarity-{$title->rarity->value}"
+                {if !empty($title->description)}
+            data-toggle="tooltip"
+            title="{_$title->description, domain: 'titles', context: $title->name}"
+                {/if}>
+            {_$title->name, domain: 'titles'}
+        </label>
+    {/foreach}
+</div>
