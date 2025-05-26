@@ -8,13 +8,6 @@ services:
 	cqrs.asyncBus: App\CQRS\AsyncCommandBus
 	cqrs.asyncDispatcher: App\CQRS\AsyncDispatcher(logger: @cqrs.logger)
 search:
-	cqrs.queries:
-		in: '%constants.appDir%src/CQRS/Queries'
-		implements:
-			- Lsr\CQRS\QueryInterface
-		tags:
-			- cqrs
-			- cqrs.query
 	cqrs.command.handlers:
 		in: '%constants.appDir%src/CQRS/CommandHandlers'
 		implements:
