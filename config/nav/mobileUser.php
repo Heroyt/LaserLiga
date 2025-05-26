@@ -32,6 +32,19 @@ if (($user->hasRight('view-arena') || $user->hasRight('manage-arena') || $user->
 	];
 }
 
+if ($user->type->superAdmin) {
+	$nav[] = [
+		'name'  => 'Tracy off',
+		'route' => 'tracy-off',
+		'icon'  => $fontawesome->solid('bug'),
+	];
+	$nav[] = [
+		'name'  => 'Tracy on',
+		'route' => 'tracy-on',
+		'icon'  => $fontawesome->solid('bug'),
+	];
+}
+
 $nav[] = [
 	'name'  => lang('Nastavení'),
 	'icon'  => $fontawesome->solid('gear'),
