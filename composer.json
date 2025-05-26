@@ -62,7 +62,9 @@
 		"aws/aws-sdk-php": "^3.342",
     "ext-exif": "*",
 		"matomo/matomo-php-tracker": "^3.3",
-		"maestroerror/php-heic-to-jpg": "^1.0"
+		"maestroerror/php-heic-to-jpg": "^1.0",
+		"league/commonmark": "^2.6",
+		"elgigi/commonmark-emoji": "^2.0"
   },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",
