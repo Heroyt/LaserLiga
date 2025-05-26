@@ -24,9 +24,9 @@ use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Requests\Response;
 use Lsr\Core\Routing\Exceptions\AccessDeniedException;
-use Lsr\Core\Session;
 use Lsr\CQRS\CommandBus;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Interfaces\SessionInterface;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 
@@ -43,7 +43,7 @@ class GameController extends Controller
 	public function __construct(
 		private readonly Auth               $auth,
 		private readonly ThumbnailGenerator $thumbnailGenerator,
-		private readonly Session 		   $session,
+		private readonly SessionInterface   $session,
 	) {
 		parent::__construct();
 		$this->params = new GameParameters();

@@ -11,6 +11,7 @@ use App\Services\UserRegistrationService;
 use App\Templates\Login\LoginParams;
 use DateTimeImmutable;
 use Dibi\Exception;
+use Lsr\Core\App;
 use Lsr\Core\Auth\Exceptions\DuplicateEmailException;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
@@ -18,11 +19,12 @@ use Lsr\Core\Requests\Dto\SuccessResponse;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Attributes\Get;
 use Lsr\Core\Routing\Attributes\Post;
-use Lsr\Core\Session;
 use Lsr\Db\DB;
 use Lsr\Helpers\Csrf\TokenHelper;
 use Lsr\Interfaces\RequestInterface;
+use Lsr\Interfaces\SessionInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Logging\Logger;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Security\Passwords;
@@ -38,6 +40,8 @@ class Login extends Controller
 {
 	use CaptchaValidation;
 
+	private ?Logger $logger = null;
+
 	/**
 	 * @param Auth<User> $auth
 	 */
@@ -46,8 +50,8 @@ class Login extends Controller
 		private readonly Passwords               $passwords,
 		private readonly Turnstile               $turnstile,
 		private readonly UserRegistrationService $userRegistration,
-		private readonly Session $session,
-		private readonly TokenHelper $tokenHelper,
+		private readonly SessionInterface        $session,
+		private readonly TokenHelper             $tokenHelper,
 	) {
 		parent::__construct();
 		$this->params = new LoginParams();
@@ -76,30 +80,35 @@ class Login extends Controller
 		];
 		$this->description = 'Vytvořte si nový hráčský účet v systému Laser liga.';
 
+		$this->getLogger()->info('New registration attempt');
+
 		$token = (string)$request->getPost('_csrf_token', '');
 		if (!$this->tokenHelper->formValid('register-user', $token)) {
 			$this->params->errors[] = lang('Požadavek vypršel, zkuste znovu načíst stránku.', context: 'errors');
 			$this->params->arenas = Arena::getAll();
+			$this->getLogger()->info('Registration CSRF failed', ['data' => $request->getParsedBody(), 'ip' => $request->getIp()]);
 			return $this->view('pages/login/register');
 		}
 
 		if (!$this->validateCaptcha($request)) {
 			$this->params->arenas = Arena::getAll();
+			$this->getLogger()->debug('Registration captcha validation failed');
 			return $this->view('pages/login/register');
 		}
 
 		$botTest = $request->getPost('password_confirmation', '');
 
 		if (!empty($botTest)) {
-			$this->getApp()->getLogger()->notice(
+			$context = [
+				'path'   => $request->getPath(),
+				'body'   => $request->getParsedBody(),
+				'ip'     => $request->getIp(),
+				'cookie' => $request->getCookieParams(),
+				'errors' => $this->params->errors,
+			];
+			$this->getLogger()->notice(
 				'Detected bot registration',
-				[
-					'path'   => $request->getPath(),
-					'body'   => $request->getParsedBody(),
-					'ip'     => $request->getIp(),
-					'cookie' => $request->getCookieParams(),
-					'errors' => $this->params->errors,
-				]
+				$context
 			);
 			return $this->respond(new SuccessResponse()); // Fake response
 		}
@@ -145,6 +154,7 @@ class Login extends Controller
 			$this->params->errors['arena'] = lang('Aréna neexistuje', context: 'errors');
 		}
 		if (!empty($this->params->errors)) {
+			$this->getLogger()->debug('Registration attept failed', $this->params->errors);
 			$this->params->arenas = Arena::getAll();
 			return $this->view('pages/login/register');
 		}
@@ -154,11 +164,15 @@ class Login extends Controller
 		} catch (UserRegistrationException|Exception|RandomException $e) {
 			$this->params->arenas = Arena::getAll();
 			$this->params->errors[] = lang('Něco se pokazilo.', context: 'errors');
+			$this->getLogger()->debug('Registration attept failed', $this->params->errors);
+			$this->getLogger()->exception($e);
 			Debugger::log($e);
 			return $this->view('pages/login/register');
 		} catch (DuplicateEmailException $e) {
 			$this->params->arenas = Arena::getAll();
 			$this->params->errors[] = lang('Uživatel s tímto e-mailem již existuje.', context: 'errors');
+			$this->getLogger()->debug('Registration attept failed', $this->params->errors);
+			$this->getLogger()->exception($e);
 			Debugger::log($e);
 			return $this->view('pages/login/register');
 		}
@@ -166,6 +180,13 @@ class Login extends Controller
 		// Login user
 		$this->auth->setLoggedIn($user);
 		return $this->app->redirect('dashboard', $request);
+	}
+
+	private function containsUrl(string $string): bool {
+		return preg_match(
+				'/\b(?:https?|ftp|www)(:\/\/)*[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i',
+				$string
+			) === 1;
 	}
 
 	public function register(): ResponseInterface {
@@ -193,7 +214,15 @@ class Login extends Controller
 		$password = $request->getPost('password', '');
 		$rememberMe = !empty($request->getPost('remember'));
 
-		$this->validateCaptcha($request);
+
+		$this->getLogger()->info('New login attempt', [
+			'email' => $email,
+			'ip'    => $request->getIp(),
+		]);
+
+		if (!$this->validateCaptcha($request)) {
+			$this->logger->debug('Captcha failed', ['token' => $this->turnstileToken]);
+		}
 
 		if (empty($email)) {
 			$this->params->errors['email'] = lang('E-mail je povinný', context: 'errors');
@@ -205,13 +234,16 @@ class Login extends Controller
 			$this->params->errors['password'] = lang('Heslo je povinné', context: 'errors');
 		}
 		if (!empty($this->params->errors)) {
+			$this->getLogger()->debug('Login attept failed', $this->params->errors);
 			return $this->view('pages/login/index');
 		}
 
 		if (!$this->auth->login($email, $password, $rememberMe)) {
 			$this->params->errors['login'] = lang('E-mail nebo heslo není správné.', context: 'errors');
+			$this->getLogger()->debug('Login attept failed', $this->params->errors);
 			return $this->view('pages/login/index');
 		}
+		$cookieJar = App::cookieJar();
 		if ($rememberMe) {
 			$token = bin2hex(random_bytes(16));
 			$validator = bin2hex(random_bytes(32));
@@ -224,10 +256,11 @@ class Login extends Controller
 					'expire'    => new DateTimeImmutable('+ 30 days'),
 				]
 			);
-			setcookie('rememberme', $token . ':' . $validator, time() + (30 * 24 * 3600));
+			$cookieJar->set('rememberme', $token . ':' . $validator, time() + (30 * 24 * 3600));
 		}
 
 		$request->passNotices[] = ['type' => 'info', 'content' => lang('Přihlášení bylo úspěšné.')];
+		$this->getLogger()->info('User logged in', ['user' => $this->auth->getLoggedIn()?->id, 'ip' => $request->getIp(), 'remember' => $cookieJar->get('rememberme')]);
 		return $this->app->redirect('dashboard', $request);
 	}
 
@@ -246,15 +279,15 @@ class Login extends Controller
 			$response = $this->app->redirect(['kiosk', $arenaId], $request);
 		}
 
-		$cookies = $request->getCookieParams();
+		$cookieJar = App::cookieJar();
+		$cookies = $cookieJar->all();
 		if (isset($cookies['rememberme'])) {
 			$ex = explode(':', $cookies['rememberme']);
 			if (count($ex) === 2) {
 				[$token, $validator] = $ex;
 				DB::delete('user_tokens', ['[token] = %s', $token]);
 			}
-			// Unset cookie
-			$response = $response->withHeader('Set-Cookie', 'rememberme=; expires=Thu, 01 Jan 1970 00:00:00 GMT');
+			$cookieJar->delete('rememberme');
 		}
 
 		return $response;
@@ -310,8 +343,9 @@ class Login extends Controller
 		            ->withStatus($code);
 	}
 
-	private function containsUrl(string $string) : bool {
-		return preg_match('/\b(?:https?|ftp|www)(:\/\/)*[-A-Z0-9+&@#\/%?=~_|$!:,.;]*[A-Z0-9+&@#\/%=~_|$]/i', $string) === 1;
+	private function getLogger() : Logger {
+		$this->logger ??= new Logger(LOG_DIR, 'login');
+		return $this->logger;
 	}
 
 }

@@ -43,6 +43,7 @@ if (PHP_SAPI === 'cli') {
 	}
 }
 
+session_cache_limiter('');
 require_once ROOT . "include/load.php";
 
 $app = App::getInstance();
@@ -65,6 +66,8 @@ try {
 		$response = $e->getResponse();
 	} catch (MethodNotAllowedException $e) {
 		$response = new \Lsr\Core\Requests\Response(new Response(405, ['Content-Type' => 'text/plain'], $e->getMessage()));
+	} catch (\Lsr\Core\Routing\Exceptions\AccessDeniedException $e) {
+		$response = \Lsr\Core\Requests\Response::create(403, [], $e->getMessage());
 	}
 } catch (JsonException $e) {
 	$request = new Request(new ServerRequest($_SERVER['REQUEST_METHOD'], $_SERVER['SCRIPT_URI']));

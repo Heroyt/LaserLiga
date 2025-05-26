@@ -60,6 +60,11 @@ services:
 	# Core
 	db.connection: Lsr\Db\Connection(config: %db%)
 
+	lsr.session:
+		create: App\Core\RedisSession(@redis)
+		setup:
+			- init()
+
 	- App\Services\Maths\RegressionCalculator
 	- App\Services\PushService
 

@@ -15,8 +15,8 @@ use App\Templates\Kiosk\DashboardType;
 use DateTimeImmutable;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Session;
 use Lsr\Db\DB;
+use Lsr\Interfaces\SessionInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class Dashboard extends Controller
@@ -26,13 +26,13 @@ class Dashboard extends Controller
 	protected const int DEFAULT_GAMES_LIMIT = 5;
 
 	public function __construct(
-		private readonly Session $session,
+		private readonly SessionInterface     $session,
 		private readonly ArenaStatsAggregator $statsAggregator,
 	) {
 		parent::__construct();
 	}
 
-	public function exit() : ResponseInterface {
+	public function exit(): ResponseInterface {
 		$this->session->delete('kiosk');
 		$this->session->delete('kioskArena');
 		return $this->app->redirect([]);
@@ -87,10 +87,10 @@ class Dashboard extends Controller
 		$type = '%i';
 		$orderByField = 'rank';
 		$allowedOrderFields = [
-			'nickname' => '%s',
-			'code' => '%s',
+			'nickname'     => '%s',
+			'code'         => '%s',
 			'games_played' => '%i',
-			'rank' => '%i',
+			'rank'         => '%i',
 		];
 
 		$orderBy = $request->getGet('orderBy', 'rank');
@@ -120,10 +120,10 @@ class Dashboard extends Controller
 		$search = $request->getGet('search', '');
 		$page = $request->getGet('p', 1);
 		assert(is_numeric($page));
-		$page = (int) $page;
+		$page = (int)$page;
 		$limit = $request->getGet('l', 15);
 		assert(is_numeric($limit));
-		$limit = (int) $limit;
+		$limit = (int)$limit;
 
 		if (!empty($search) && is_string($search)) {
 			/** @var LigaPlayer|null $player */
