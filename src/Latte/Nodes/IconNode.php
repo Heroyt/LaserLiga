@@ -52,14 +52,14 @@ class IconNode extends StatementNode
 
         }
 
-        return self::createNode($node);
+        return self::createNode($node, 1);
     }
 
-    private static function createNode(IconNode $node): Node {
+    private static function createNode(IconNode $node, int $offset = 0): Node {
         $args = $node->args->toArguments();
-        $node->icon = isset($args[0]) ? $args[0]->value : new StringNode('');
-        $node->classes = isset($args[1]) ? $args[1]->value : new ArrayNode();
-		$node->attributes = isset($args[2]) ? $args[2]->value : new ArrayNode();
+        $node->icon = isset($args[$offset]) ? $args[$offset]->value : new StringNode('');
+        $node->classes = isset($args[$offset + 1]) ? $args[$offset + 1]->value : new ArrayNode();
+		$node->attributes = isset($args[$offset + 2]) ? $args[$offset + 2]->value : new ArrayNode();
 
         $icon = null;
         try {
@@ -135,7 +135,7 @@ class IconNode extends StatementNode
             $this->position,
         );
         if ($this->addDynamic) {
-            return $icon . App::class.'::getService(\'fontawesome\')->addIcon($ʟ_style,$ʟ_icon);'."\n";
+            return $icon . App::class.'::getService(\'fontawesome\')->addIcon(is_string($ʟ_style) ? \App\Models\DataObjects\FontAwesome\IconType::from($ʟ_style) : $ʟ_style,$ʟ_icon);'."\n";
         }
 
         return $icon;

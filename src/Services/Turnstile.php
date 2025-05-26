@@ -50,7 +50,7 @@ final readonly class Turnstile
 		$data = curl_exec($ch);
 		/** @var array{success: bool} $result */
 		$result = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
-		($logger)->info('Validate token '.$token, $result);
+		$logger->info('Validate token '.$token, $result);
 		curl_close($ch);
 		return $result['success'];
 	}

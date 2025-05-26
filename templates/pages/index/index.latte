@@ -116,9 +116,8 @@
 
 {define countUpStat, string $id, string $label, int $value, int $duration = 1000, int $start = 0, string $color = '', array $link = []}
     <div n:tag="empty($link) ? 'div' : 'a'" {if !empty($link)}href="{link $link}"{/if}
-            class="m-2 bg-background-1 text-center p-3 rounded text-decoration-none {if !empty($color)}text-{$color}{/if}"
-            id="{$id}"
-            style="width: 190px;">
+            class="count-up-stat {if !empty($color)}text-{$color}{/if}"
+            id="{$id}">
         <div class="countUp fs-1 fw-bold" data-start="{$start}" data-target="{$value}"
              data-duration="{$duration}">{$value|number:0,',','&nbsp;'|noescape}</div>
         <h3 class="description fs-5">{lang $label}</h3>

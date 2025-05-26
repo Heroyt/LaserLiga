@@ -25,8 +25,8 @@
             class="tab-pane py-4 fade {if $iterator->first}show active{/if} text-center"
             id="event-date-tab-{$date->id}" role="tabpanel"
             aria-labelledby="event-date-tab-{$date->id}-control"
-            data-track-content="" data-content-name="League {$date->name} tournaments" tabindex="0">
-        {var App\Models\Events\EventPlayer[] $players = $date->players}
+            data-track-content="" data-content-name="League {$date->event->name} tournaments" tabindex="0">
+        {var App\Models\Events\EventPlayer[] $players = $date->getPlayers()}
         {if $date->canceled}
             <h4 class="text-danger text-center">{lang 'Termín je zrušený'}</h4>
         {elseif count($players) > 0}

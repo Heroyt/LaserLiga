@@ -55,7 +55,7 @@ trait MatrixOperations
 			$divisor = $matrix[$j][$j];
 			$matrix[$j][$j] = 1;
 
-			if ($divisor !== 0.0) {
+			if (((int) $divisor) !== 0) {
 				for ($k = 0; $k < $n; $k++) {
 					$matrix[$j][$k] /= $divisor;
 					$identity[$j][$k] /= $divisor;

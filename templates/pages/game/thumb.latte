@@ -8,10 +8,16 @@
 {var int $contentWidth = 1200 - ($padding * 2)}
 {var int $contentHeight = 600 - ($padding * 2) - $headerHeight - $playerMargin}
 {var int $maxPerRow = 6}
-{var int $playerRows = ceil($playerCount / $maxPerRow)}
+{var int $playerRows = (int) ceil($playerCount / $maxPerRow)}
+{if $playerRows === 0}
+    {do $playerRows = 1}
+{/if}
 {var int $playerColumns = $playerCount < $maxPerRow ? $playerCount : ceil($playerCount / $playerRows)}
-{var int $playerHeight = ($contentHeight / $playerRows) - ($playerMargin * ($playerRows - 1))}
-{var int $playerWidth = (($contentWidth - ($playerMargin * ($playerColumns - 1))) / $playerColumns)}
+{if $playerColumns === 0}
+    {do $playerColumns = 1}
+{/if}
+{var int $playerHeight = $playerRows === 0 ? 0 : ($contentHeight / $playerRows) - ($playerMargin * ($playerRows - 1))}
+{var int $playerWidth = $playerColumns === 0 ? 0 : (($contentWidth - ($playerMargin * ($playerColumns - 1))) / $playerColumns)}
 {var array[] $images = [
 ['assets/images/img-laser.jpeg', 1200, 1600, 0, -600],
 ['assets/images/img-vesta-zbran.jpeg', 1200, 800, 0, -50],
@@ -27,7 +33,7 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600"
      data-width="{$contentWidth}" data-height="{$contentHeight}"
-	 data-cols="{$playerColumns}" data-rows="{$playerRows}" data-player-width="{($contentWidth / $playerColumns)}">
+	 data-cols="{$playerColumns}" data-rows="{$playerRows}" data-player-width="{$playerColumns === 0 ? $contentWidth : ($contentWidth / $playerColumns)}">
     <image x="{$image[3]}" y="{$image[4]}" width="{$image[1]}" height="{$image[2]}"
            href="data:image/jpeg;base64,{base64_encode(file_get_contents(ROOT.$image[0]))}"/>
 	<defs>

@@ -8,6 +8,7 @@ use Lsr\Db\DB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToMany;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\ModelCollection;
 
 #[PrimaryKey('id_player')]
 class EventPlayer extends EventPlayerBase
@@ -24,9 +25,9 @@ class EventPlayer extends EventPlayerBase
 	#[ManyToOne]
 	public ?EventTeam $team = null;
 
-	/** @var EventDate[] */
+	/** @var ModelCollection<EventDate> */
 	#[ManyToMany('event_player_date', class: EventDate::class)]
-	public array $dates = [];
+	public ModelCollection $dates;
 
 	public function save(): bool {
 		$success = parent::save();
