@@ -34,11 +34,15 @@
                 </div>
                 <div class="col-md-4 text-end">
                     <a href="{link ['zasady-zpracovani-osobnich-udaju']}" class="text-text">{lang 'Zásady zpracování osobních údajů', context: 'pageTitles'}</a>
+                    <button type="button" class="btn btn-secondary mt-2" id="openCookieSettings" data-toggle="cookieConsent">
+                        {faSolid 'cookie-bite'}
+                        {_'Nastavení cookies', context: 'cookies', domain: 'privacy'}
+                    </button>
                     <h4 class="mb-2 mt-3">{lang 'Kontakt'}</h4>
                     <a href="mailto:info@laserliga.cz" class="text-text text-decoration-none">info@laserliga.cz</a>
                 </div>
             </div>
-            <div class="text-center text-muted" id="copy">&copy; Laser liga 2023</div>
+            <div class="text-center text-muted" id="copy">&copy; Laser liga {date('Y')}</div>
         </div>
 	</footer>
 {/define}

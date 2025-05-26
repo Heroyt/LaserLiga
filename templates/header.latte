@@ -62,6 +62,24 @@
                 {/foreach}
             </ul>
         </div>
+        <div class="mobile-footer">
+            <div class="text-center">
+                <a href="https://discord.gg/2ZM6VMuGBY" class="btn btn-primary btn-lg fs-3" target="_blank"
+                   aria-label="Discord">
+                    {faBrand 'discord'}
+                </a>
+            </div>
+            <div class="text-center my-4">
+                <a href="{link ['zasady-zpracovani-osobnich-udaju']}" class="text-text d-block">{lang 'Zásady zpracování osobních údajů', context: 'pageTitles'}</a>
+                <button type="button" class="btn btn-secondary mt-2" id="openCookieSettings" data-toggle="cookieConsent">
+                    {faSolid 'cookie-bite'}
+                    <span>{_'Nastavení cookies', context: 'cookies', domain: 'privacy'}</span>
+                </button>
+                <h4 class="mb-2 mt-3">{lang 'Kontakt'}</h4>
+                <a href="mailto:info@laserliga.cz" class="text-text text-decoration-none">info@laserliga.cz</a>
+            </div>
+            <div class="text-center text-muted" id="copy">&copy; Laser liga {date('Y')}</div>
+        </div>
     </nav>
     <header class="navbar d-none navbar-expand-lg d-lg-block navbar-light position-sticky shadow"
             style="top:0;z-index:100;">

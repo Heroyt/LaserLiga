@@ -87,10 +87,11 @@
 #mobile-menu-full {
 	@extend %mobile-menu;
 
-	align-items: flex-start;
+	align-items: center;
 	display: flex;
+	flex-direction: column;
 	height: 100vh;
-	justify-content: center;
+	justify-content: start;
 	max-height: 0;
 	overflow-y: auto;
 	transition: max-height 500ms ease;
@@ -109,6 +110,7 @@
 		justify-content: center;
 		align-items: stretch;
 		position: relative;
+		margin-top: 1rem;
 
 		@media screen and (width >= 600px) {
 			max-width: 900px;
@@ -133,6 +135,15 @@
 			gap: .5rem;
 			border: none;
 		}
+	}
+
+	.mobile-footer {
+		margin-top: 2rem;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: end;
+		align-items: center;
 	}
 
 	.mobile-nav-item {
