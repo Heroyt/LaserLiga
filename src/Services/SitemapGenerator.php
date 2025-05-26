@@ -14,6 +14,7 @@ use App\Models\Tournament\Tournament;
 use Dibi\Exception;
 use Iterator;
 use Lsr\Core\App;
+use Lsr\Core\Exceptions\InvalidLanguageException;
 use Lsr\Core\Routing\Route;
 use Lsr\Core\Routing\Router;
 use Lsr\Enums\RequestMethod;
@@ -44,6 +45,7 @@ class SitemapGenerator
 		'push',
 		'mailtest',
 		'dashboard',
+		'lang',
 	];
 	public const array  USER_IGNORE_PATHS = ['stats', 'rank', 'img', 'img.png', 'compare', 'avatar', 'title'];
 
@@ -79,7 +81,7 @@ class SitemapGenerator
 
 	public static function generateGamesSitemap(): string {
 		$xmlGames = new SimpleXMLElement(
-			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"></urlset>'
+			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>'
 		);
 
 		$routesRaw = Router::$availableRoutes;
@@ -91,6 +93,11 @@ class SitemapGenerator
 				continue;
 			}
 			$path = array_values($route->getPath());
+
+			if (preg_match('/\[lang(?:=[^\[]*)?\]/', $path[0])) {
+				array_shift($path);
+			}
+
 			if (($path[0] ?? '') !== 'game') {
 				continue;
 			}
@@ -151,13 +158,20 @@ class SitemapGenerator
 
 		foreach (self::$groups as $group) {
 			$path[2] = $group->encodedId;
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
+			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, count($path) > 3 ? '0.6' : '0.8');
 		}
 	}
 
-	private static function findOrCreateUrl(string $url, SimpleXMLElement $parent): SimpleXMLElement {
+	/**
+	 * @param array<string|int, string|numeric> $path
+	 * @param SimpleXMLElement                  $parent
+	 * @param bool                              $includeLang
+	 *
+	 * @return SimpleXMLElement
+	 * @throws InvalidLanguageException
+	 */
+	private static function findOrCreateUrl(array $path, SimpleXMLElement $parent, bool $includeLang = true): SimpleXMLElement {
 		/*foreach ($parent->children() as $child) {
 			foreach ($child->children() as $name => $value) {
 				if ($name === 'loc' && ((string)$value) === $url) {
@@ -166,14 +180,24 @@ class SitemapGenerator
 			}
 		}*/
 
+		$url = App::getLink($path);
 		$new = $parent->addChild('url');
 		assert($new !== null);
 		$new->addChild('loc', $url);
 		$new->addChild('lastmod', date('c'));
+		if ($includeLang) {
+			$translations = App::getInstance()->translations;
+			foreach ($translations->supportedLanguages as $lang => $country) {
+				$path['lang'] = $lang;
+				$alt = $new->addChild('link', App::getLink($path), 'http://www.w3.org/1999/xhtml');
+				$alt->addAttribute('rel', 'alternate');
+				$alt->addAttribute('hreflang', $lang . '_' . $country);
+			}
+		}
 		return $new;
 	}
 
-	private static function updateUrl(SimpleXMLElement $element, string $priority = '1.0', string $changeFreq = 'monthly', ?string $lastMod = null): void {
+	private static function updateUrl(SimpleXMLElement $element, string $priority = '1.0', string $changeFreq = 'monthly', ?string $lastMod = null, bool $includeLang = true): void {
 		$hasModifiedAt = $hasPriority = $hasChangeFrequency = false;
 		$lastMod ??= date('c');
 		foreach ($element->children() as $name => $child) {
@@ -214,8 +238,7 @@ class SitemapGenerator
 		$i = 0;
 		foreach (self::getLastGames() as $row) {
 			$path[1] = $row->code;
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
+			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, '0.6', 'never', $row->end->format('c'));
 
 			$imgPath = $path;
@@ -249,7 +272,7 @@ class SitemapGenerator
 
 	public static function generateUsersSitemap(): string {
 		$xmlUsers = new SimpleXMLElement(
-			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"></urlset>'
+			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>'
 		);
 
 		$routesRaw = Router::$availableRoutes;
@@ -261,6 +284,11 @@ class SitemapGenerator
 				continue;
 			}
 			$path = array_values($route->getPath());
+
+			if (preg_match('/\[lang(?:=[^\[]*)?\]/', $path[0])) {
+				array_shift($path);
+			}
+
 			if (
 				$path[0] !== 'user'
 				|| $path[1] !== '{code}'
@@ -290,8 +318,7 @@ class SitemapGenerator
 
 		foreach (self::$users as $player) {
 			$path[1] = $player->getCode();
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
+			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, count($path) > 3 ? '0.6' : '0.8');
 			if (count($path) === 2) {
 				$imgPath = $path;
@@ -315,6 +342,11 @@ class SitemapGenerator
 				continue;
 			}
 			$path = array_values($route->getPath());
+
+			if (preg_match('/\[lang(?:=[^\[]*)?\]/', $path[0])) {
+				array_shift($path);
+			}
+
 			//echo json_encode($path).PHP_EOL;
 			if (in_array($path[0], self::IGNORE_PATHS, true)) {
 				continue;
@@ -324,7 +356,7 @@ class SitemapGenerator
 					break;
 				case 'arena':
 					if (!isset($path[1])) {
-						self::updateUrl(self::findOrCreateUrl(App::getLink(['arena']), $xml), '0.9');
+						self::updateUrl(self::findOrCreateUrl(['arena'], $xml), '0.9');
 						break;
 					}
 					if ($path[1] === '{id}' && !isset($path[2])) {
@@ -333,7 +365,7 @@ class SitemapGenerator
 					break;
 				case 'tournament':
 					if (!isset($path[1])) {
-						self::updateUrl(self::findOrCreateUrl(App::getLink(['tournament']), $xml), '0.9');
+						self::updateUrl(self::findOrCreateUrl(['tournament'], $xml), '0.9');
 						break;
 					}
 					if ($path[1] === '{id}') {
@@ -342,7 +374,7 @@ class SitemapGenerator
 					break;
 				case 'events':
 					if (!isset($path[1])) {
-						self::updateUrl(self::findOrCreateUrl(App::getLink(['events']), $xml), '0.9');
+						self::updateUrl(self::findOrCreateUrl(['events'], $xml), '0.9');
 						break;
 					}
 					if ($path[1] === '{id}') {
@@ -354,7 +386,7 @@ class SitemapGenerator
 						break;
 					}
 					if (!isset($path[1])) {
-						self::updateUrl(self::findOrCreateUrl(App::getLink(['league']), $xml), '0.9');
+						self::updateUrl(self::findOrCreateUrl(['league'], $xml), '0.9');
 						break;
 					}
 					if ($path[1] === '{id}') {
@@ -363,7 +395,7 @@ class SitemapGenerator
 					break;
 				case 'liga':
 					if (!isset($path[1])) {
-						self::updateUrl(self::findOrCreateUrl(App::getLink(['liga']), $xml), '0.9');
+						self::updateUrl(self::findOrCreateUrl(['liga'], $xml), '0.9');
 						break;
 					}
 					if ($path[1] === '{slug}') {
@@ -381,22 +413,22 @@ class SitemapGenerator
 							foreach ($arenas as $arena) {
 								assert($arena->id !== null);
 								$path[2] = (string)$arena->id;
-								$elem = self::findOrCreateUrl(App::getLink($path), $xml);
+								$elem = self::findOrCreateUrl($path, $xml);
 								self::updateUrl($elem);
 							}
 							break;
 						}
-						$elem = self::findOrCreateUrl(App::getLink($path), $xml);
+						$elem = self::findOrCreateUrl($path, $xml);
 						self::updateUrl($elem);
 					}
 					break;
 				case 'login':
-					if (count($path) > 2) {
+					if (count($path) > 2 || ($path[1] ?? '') === 'confirm') {
 						break;
 					}
 				default:
 					try {
-						$elem = self::findOrCreateUrl(App::getLink($path), $xml);
+						$elem = self::findOrCreateUrl($path, $xml);
 						self::updateUrl($elem);
 					} catch (RuntimeException) {
 					}
@@ -424,8 +456,7 @@ class SitemapGenerator
 		foreach (self::$arenas as $arena) {
 			assert($arena->id !== null);
 			$path[1] = (string)$arena->id;
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
+			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, '0.8', 'daily');
 		}
 	}
@@ -443,8 +474,7 @@ class SitemapGenerator
 		foreach (self::$tournaments as $tournament) {
 			assert($tournament->id !== null);
 			$path[1] = (string)$tournament->id;
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
+			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, '0.8', 'weekly');
 		}
 	}
@@ -462,8 +492,7 @@ class SitemapGenerator
 		foreach (self::$events as $event) {
 			assert($event->id !== null);
 			$path[1] = (string)$event->id;
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
+			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, '0.8', 'weekly');
 		}
 	}
@@ -479,19 +508,18 @@ class SitemapGenerator
 		self::$leagues ??= League::getAll();
 
 		foreach (self::$leagues as $league) {
-			assert($league->id !== null);
-			$path[1] = (string)$league->id;
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
-			self::updateUrl($element, '0.8');
+//			assert($league->id !== null);
+//			$path[1] = (string)$league->id;
+//			$url = App::getLink($path);
+//			$element = self::findOrCreateUrl($url, $parent);
+//			self::updateUrl($element, '0.8');
 
 			$teams = LeagueTeam::query()->where('id_league = %i', $league->id)->get();
-			$path[2] = 'team';
+			$path[1] = 'team';
 			foreach ($teams as $team) {
 				assert($team->id !== null);
-				$path[3] = (string)$team->id;
-				$url = App::getLink($path);
-				$element = self::findOrCreateUrl($url, $parent);
+				$path[2] = (string)$team->id;
+				$element = self::findOrCreateUrl($path, $parent);
 				self::updateUrl($element, '0.8');
 			}
 		}
@@ -512,8 +540,7 @@ class SitemapGenerator
 				continue;
 			}
 			$path[1] = $league->slug;
-			$url = App::getLink($path);
-			$element = self::findOrCreateUrl($url, $parent);
+			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, '0.8');
 		}
 	}
