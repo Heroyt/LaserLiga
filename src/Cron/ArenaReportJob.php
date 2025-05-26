@@ -6,6 +6,7 @@ namespace App\Cron;
 use App\GameModels\Vest;
 use App\Mails\Message;
 use App\Models\Arena;
+use App\Models\System;
 use App\Services\ArenaStatsAggregator;
 use App\Services\MailService;
 use Orisai\Scheduler\Job\Job;
@@ -49,10 +50,15 @@ final readonly class ArenaReportJob implements Job
 				}
 			}
 
+			$systems = System::getActive($arena);
+			$message->params['vests'] = [];
+			foreach ($systems as $system) {
+				$message->params['vests'][$system->name] = Vest::getForSystem($system, $arena);
+			}
+
 			$message->params['date'] = $date;
 			$message->params['games'] = $this->statsAggregator->getArenaDateGameCount($arena, $date);
 			$message->params['players'] = $this->statsAggregator->getArenaDatePlayerCount($arena, $date);
-			$message->params['vests'] = Vest::getForArena($arena);
 
 			$this->mailService->send($message);
 		}

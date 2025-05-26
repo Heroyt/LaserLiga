@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\GameModels\Game\Evo5\Game;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(type: 'string')]
 enum SystemType : string
 {
 

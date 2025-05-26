@@ -54,7 +54,7 @@ abstract class GameImportDto
 	public ?GroupImportDto $group = null;
 
 	/** @var array<string,mixed>|null  */
-	#[OA\Property]
+	#[OA\Property(type: 'object')]
 	public ?array $metaData = null;
 
 	public function addTeam(TeamImportDto $team): void {

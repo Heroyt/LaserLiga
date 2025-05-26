@@ -1024,6 +1024,7 @@ class Games extends ApiController
 			assert($dtoInfo instanceof GameImportDto);
 			$start = microtime(true);
 			$oldGame = null;
+			$game = null;
 			if (!empty($dtoInfo->code)) {
 				$oldGame = GameFactory::getByCode($dtoInfo->code);
 			}
@@ -1096,9 +1097,10 @@ class Games extends ApiController
 					$game->mode->processImportedGame($game);
 				}
 
+				$logger->debug('Save game - '.(isset($game->code) ? $game->code : '<no-code>'), ['dto' => $dtoInfo, 'oldGame' => $oldGame !== null]);
 				if ($game->save() === false) {
 					return $this->respond(
-						new ErrorResponse('Failed saving the game', ErrorType::DATABASE),
+						new ErrorResponse('Failed saving the game - '.(isset($game->code) ? $game->code : '<no-code>'), ErrorType::DATABASE),
 						500
 					);
 				}

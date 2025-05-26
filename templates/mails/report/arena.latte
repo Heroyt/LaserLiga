@@ -3,19 +3,21 @@
 {varType \DateTimeInterface $date}
 {varType int $games}
 {varType int $players}
-{varType App\GameModels\Vest[] $vests}
+{varType App\GameModels\Vest[][] $vests}
 
 {block body}
     <h1>LaserLiga report {$date->format('j. n. Y')}</h1>
     <h2>Odehráno her</h2>
-    <ul>
+    <ul class="block-list">
         <li><strong>Her:</strong> {$games}</li>
         <li><strong>Hráčů:</strong> {$players}</li>
     </ul>
-    <h2>Stav vest</h2>
-    <ul>
-        <li n:foreach="$vests as $vest" style="font-size: 16pt;background:{$vest->status->getColor()|noescape};color:{$vest->status->getContrastColor()|noescape};">
-            <strong>{$vest->vestNum}</strong>: {_$vest->status->getName(), context: 'vests.status'}{if !empty($vest->info)} - {$vest->info}{/if}
-        </li>
-    </ul>
+    {foreach $vests as $system => $systemVests}
+        <h2>Stav vest - {$system}</h2>
+        <ul class="block-list">
+            <li n:foreach="$systemVests as $vest" style="font-size: 16pt;background:{$vest->status->getColor()|noescape};color:{$vest->status->getContrastColor()|noescape};">
+                <strong>{$vest->vestNum}</strong>: {_$vest->status->getName(), context: 'vests.status'}{if !empty($vest->info)} - {$vest->info}{/if}
+            </li>
+        </ul>
+    {/foreach}
 {/block}

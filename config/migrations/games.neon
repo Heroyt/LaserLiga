@@ -9,21 +9,35 @@ tables:
 			`id_system` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			`name` varchar(100) NOT NULL,
 			`type` varchar(100) NOT NULL,
-			`system_ip` varchar(100) NOT NULL DEFAULT '',
-			`results_dir` varchar(255) NOT NULL DEFAULT '',
-			`game_load_dir` varchar(255) NOT NULL DEFAULT '',
-			`music_dir` varchar(255) NOT NULL DEFAULT '',
-			`column_count` tinyint(3) unsigned NOT NULL DEFAULT 15,
-			`row_count` tinyint(3) unsigned NOT NULL DEFAULT 15,
-			`default` bool NOT NULL DEFAULT false,
-			`active` bool NOT NULL DEFAULT true,
 			PRIMARY KEY (`id_system`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
 		modifications:
-			0.1:
-				- 'ADD `column_count` tinyint(3) unsigned NOT NULL DEFAULT 15'
-				- 'ADD `row_count` tinyint(3) unsigned NOT NULL DEFAULT 15'
+	App\Models\ArenaSystem:
+		order: 4
+		definition: '''
+		(
+			`id_arena_system` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_arena` int(11) unsigned NOT NULL,
+			`id_system` int(11) unsigned NOT NULL,
+			`default` bool DEFAULT false,
+			`active` bool DEFAULT true,
+			PRIMARY KEY (`id_arena_system`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_system
+				refTable: App\Models\System
+				refColumn: id_system
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
 	App\Models\MusicMode:
 		order: 3
 		definition: '''
@@ -138,9 +152,8 @@ tables:
 			(
 				`id_vest` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`vest_num` int(11) NOT NULL,
+				`id_arena` int(11) unsigned DEFAULT NULL,
 				`id_system` int(11) unsigned DEFAULT NULL,
-				`grid_col` int(10) unsigned DEFAULT NULL,
-				`grid_row` int(10) unsigned DEFAULT NULL,
 				`status` enum('ok','playable','broken') NOT NULL DEFAULT 'ok',
 				`info` text DEFAULT NULL,
 				`updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
@@ -165,6 +178,18 @@ tables:
 				refTable: App\Models\System
 				refColumn: id_system
 				onDelete: 'SET NULL'
+				onUpdate: 'CASCADE'
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onDelete: 'CASCADE'
+				onUpdate: 'CASCADE'
+		indexes:
+			-
+				unique: true
+				name: 'num_system_arena'
+				columns: ['vest_num', 'id_system', 'id_arena']
 	possible_matches:
 		order: 2
 		definition: '''
@@ -219,6 +244,8 @@ tables:
 			`game_code` varchar(50) DEFAULT NULL,
 			`exif_time` datetime DEFAULT NULL,
 			`in_archive` bool NOT NULL DEFAULT false,
+			`created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+			`keep_forever` bool NOT NULL DEFAULT false,
 			PRIMARY KEY (`id_photo`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
@@ -227,6 +254,10 @@ tables:
 				- 'ADD `id_arena` int(11) unsigned DEFAULT NULL AFTER `id_photo`'
 			0.2.0:
 				- 'ADD `in_archive` bool NOT NULL DEFAULT false'
+			0.3.0:
+				- 'ADD `created_at` datetime DEFAULT CURRENT_TIMESTAMP'
+			0.4.0:
+				- 'ADD `keep_forever` bool NOT NULL DEFAULT false'
 		indexes:
 			-
 				name: 'identifier'
@@ -276,12 +307,15 @@ tables:
 			`game_code` varchar(50) NOT NULL,
 			`email` varchar(255) NOT NULL,
 			`id_user` int(11) unsigned DEFAULT NULL,
+			`extra_message` text DEFAULT NULL,
 			PRIMARY KEY (`id_log`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
 		modifications:
 			0.1.0:
 				- 'ADD `id_user` int(11) unsigned DEFAULT NULL'
+			0.2.0:
+				- 'ADD `extra_message` text DEFAULT NULL'
 		indexes:
 			-
 				name: 'game_code'
@@ -302,12 +336,18 @@ tables:
 			`identifier` varchar(255) NOT NULL,
 			`url` varchar(512) DEFAULT NULL,
 			`game_code` varchar(50) DEFAULT NULL,
-			`created_at` datetime DEFAULT NULL,
+			`created_at` datetime DEFAULT CURRENT_TIMESTAMP,
 			`downloaded` smallint(5) unsigned DEFAULT 0,
 			`recreate` bool NOT NULL DEFAULT false,
+			`last_download` datetime DEFAULT NULL,
+			`keep_forever` bool NOT NULL DEFAULT false,
 			PRIMARY KEY (`id_archive`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
+		modifications:
+			0.1.0:
+				- 'ADD `last_download` datetime DEFAULT NULL'
+				- 'ADD `keep_forever` bool NOT NULL DEFAULT false'
 		indexes:
 			-
 				name: 'identifier'

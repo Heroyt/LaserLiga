@@ -1358,6 +1358,7 @@ paths:
     post:
       tags:
         - Vests
+        - Import
       summary: 'Import vest information.'
       description: 'This method imports vest information from LaserArenaControl.'
       operationId: vestSync
@@ -1366,13 +1367,7 @@ paths:
         content:
           application/json:
             schema:
-              required:
-                - vest
-              properties:
-                vest:
-                  type: array
-                  items: { required: [vestNum, system, status], properties: { vestNum: { type: string, example: '1' }, system: { type: string, example: evo5 }, status: { $ref: '#/components/schemas/VestStatus' }, info: { type: string, example: 'Zbraň vynechává', nullable: true } }, type: object }
-              type: object
+              $ref: '#/components/schemas/VestImportRequest'
       responses:
         '200':
           description: 'Successful import'
@@ -1487,6 +1482,13 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
+    VestImportRequest:
+      properties:
+        vest:
+          type: array
+          items:
+            $ref: '#/components/schemas/VestImport'
+      type: object
     GamesListResponse:
       type: array
       items:
@@ -1562,8 +1564,6 @@ components:
               type: integer
             calories:
               type: integer
-            scoreVip:
-              type: integer
             scoreActivity:
               type: integer
             scoreEncouragement:
@@ -1620,6 +1620,7 @@ components:
         timing:
           nullable: true
         code:
+          description: ''
           type: string
         mode:
           oneOf:
@@ -1646,6 +1647,11 @@ components:
         finished:
           type: boolean
         visited:
+          type: boolean
+        photosSecret:
+          type: string
+          nullable: true
+        photosPublic:
           type: boolean
       type: object
     AbstractMode:
@@ -1695,6 +1701,12 @@ components:
               type: boolean
             antiStalking:
               type: boolean
+            blastShots:
+              type: boolean
+            switchOn:
+              type: boolean
+            switchLives:
+              type: integer
           type: object
     LasermaxxPlayer:
       description: 'LaserMaxx player model'
@@ -1711,10 +1723,14 @@ components:
           type: integer
         ammoRest:
           type: integer
+        livesRest:
+          type: integer
         minesHits:
           type: integer
         vip:
           type: boolean
+        scoreVip:
+          type: integer
         myLasermaxx:
           type: string
           format: url
@@ -1799,11 +1815,18 @@ components:
           type: string
           example: 'Zbraň vynechává'
           nullable: true
+        type:
+          $ref: '#/components/schemas/VestType'
         updatedAt:
           type: string
           format: date-time
           nullable: true
       type: object
+    VestType:
+      type: string
+      enum:
+        - vest
+        - gun
     Gender:
       type: string
       enum:
@@ -1949,6 +1972,10 @@ components:
           type: string
           example: '+420 776 606 631'
           nullable: true
+        dropbox:
+          $ref: '#/components/schemas/DropboxSettings'
+        photosSettings:
+          $ref: '#/components/schemas/PhotosSettings'
       type: object
     LigaPlayer:
       description: 'Same as the regular player, but with the addition of the arena and user parameters'
@@ -2033,12 +2060,20 @@ components:
           properties:
             blastShots:
               type: boolean
+            switchOn:
+              type: boolean
+            switchLives:
+              type: integer
             reloadClips:
               type: integer
             allowFriendlyFire:
               type: boolean
             antiStalking:
               type: boolean
+            vipSettings:
+              nullable: true
+            zombieSettings:
+              nullable: true
             scoring:
               nullable: true
             players:
@@ -2077,12 +2112,20 @@ components:
           properties:
             blastShots:
               type: boolean
+            switchOn:
+              type: boolean
+            switchLives:
+              type: integer
             reloadClips:
               type: integer
             allowFriendlyFire:
               type: boolean
             antiStalking:
               type: boolean
+            vipSettings:
+              nullable: true
+            zombieSettings:
+              nullable: true
             scoring:
               nullable: true
             players:
@@ -2091,10 +2134,6 @@ components:
                 $ref: '#/components/schemas/Evo6PlayerImport'
             triggerSpeed: {  }
             gameStyleType: {  }
-            vipSettings:
-              nullable: true
-            zombieSettings:
-              nullable: true
             hitGainSettings:
               nullable: true
             respawnSettings:
@@ -2224,6 +2263,9 @@ components:
             -
               $ref: '#/components/schemas/GroupImport'
           nullable: true
+        metaData:
+          description: ''
+          type: object
       type: object
     GroupImport:
       properties:
@@ -2375,6 +2417,10 @@ components:
           type: integer
           example: -50
           nullable: true
+        livesRest:
+          type: integer
+          example: 59
+          nullable: true
         ammoRest:
           type: integer
           example: 9899
@@ -2383,6 +2429,17 @@ components:
           type: integer
           example: 1
           nullable: true
+      type: object
+    SystemImport:
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/SystemType'
+        active:
+          type: boolean
+        default:
+          type: boolean
       type: object
     TeamColorImport:
       properties:
@@ -2427,6 +2484,16 @@ components:
         bonus:
           type: integer
           example: 500
+          nullable: true
+      type: object
+    VestImport:
+      properties:
+        vestNum:
+          type: string
+        system: {  }
+        status: {  }
+        info:
+          type: string
           nullable: true
       type: object
     PlayerRadarData:
@@ -2529,6 +2596,38 @@ components:
         active:
           type: boolean
       type: object
+    DropboxSettings:
+      properties:
+        directory:
+          type: string
+          nullable: true
+        appId:
+          type: string
+          nullable: true
+        apiKeyValid:
+          type: DateTimeInterface
+          nullable: true
+      type: object
+    PhotosSettings:
+      properties:
+        enabled:
+          type: boolean
+        bucket:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        mailText:
+          type: string
+          nullable: true
+        unassignedPhotoTTL:
+          type: DateInterval
+          nullable: true
+        assignedPhotoTTL:
+          type: DateInterval
+          nullable: true
+      type: object
     MusicMode:
       properties:
         name:
@@ -2546,6 +2645,12 @@ components:
           type: integer
         previewStart:
           type: integer
+        backgroundImage:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
       type: object
     Rarity:
       type: string
@@ -2556,6 +2661,21 @@ components:
         - epic
         - legendary
         - mythic
+        - special
+        - unique
+    System:
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/SystemType'
+      type: object
+    SystemType:
+      type: string
+      enum:
+        - evo5
+        - evo6
+        - laserforce
     EventPriceGroup:
       properties:
         description:
