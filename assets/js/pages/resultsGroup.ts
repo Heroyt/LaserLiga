@@ -1,8 +1,9 @@
-import {initSetMeGroup} from "../userPlayer";
-import {initDataTableForm} from "../components/dataTable";
-import {startLoading, stopLoading} from "../loaders";
-import {makePhotosHiddenGroup, makePhotosPublicGroup} from "../api/endpoints/game";
-import {triggerNotificationError} from "../components/notifications";
+import { initSetMeGroup } from "../userPlayer";
+import { initDataTableForm } from "../components/dataTable";
+import { startLoading, stopLoading } from "../loaders";
+import { makePhotosHiddenGroup, makePhotosPublicGroup } from "../api/endpoints/game";
+import { triggerNotificationError } from "../components/notifications";
+import { initGallery } from "../components/gallery";
 
 declare global {
     const groupId : string;
@@ -26,23 +27,7 @@ function initPhotos() {
         return;
     }
 
-    const dialogImg = dialog.querySelector('img');
-    const dialogWebpSource = dialog.querySelector<HTMLSourceElement>('.webp-source');
-
-    for (const photo of photos) {
-        const url = photo.src;
-        const webp = photo.dataset.webp;
-
-        photo.addEventListener('click', () => {
-            dialogImg.src = url;
-            dialogWebpSource.srcset = webp;
-            dialog.showModal();
-        });
-    }
-
-    dialog.addEventListener('click', () => {
-        dialog.close();
-    });
+    initGallery(photos, dialog);
 
     const makePublic = document.getElementById('make-photos-public') as HTMLButtonElement;
     if (makePublic) {

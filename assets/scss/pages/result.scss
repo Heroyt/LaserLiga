@@ -366,24 +366,6 @@
 				cursor: pointer;
 			}
 		}
-
-		#photo-dialog {
-			.dialog-content {
-				display: flex;
-				justify-content: center;
-				align-items: center;
-			}
-
-			img {
-				max-width: 80vw;
-				max-height: 80vh;
-			}
-
-			&::backdrop {
-				background-color: rgb(0 0 0 / 50%);
-				cursor: pointer;
-			}
-		}
 	}
 
   @import '../components/results/accuracy';
