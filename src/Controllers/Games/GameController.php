@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers\Games;
 
 use App\CQRS\Commands\MatomoTrackCommand;
+use App\Exceptions\InvalidUserCodeException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
@@ -110,7 +111,11 @@ class GameController extends Controller
 
 		$player = null;
 		if (!empty($user)) {
-			$player = LigaPlayer::getByCode($user);
+			try {
+				$player = LigaPlayer::getByCode($user);
+			} catch (InvalidUserCodeException $e) {
+				// Ignore
+			}
 		}
 		else if (isset($this->params->user)) {
 			foreach ($game->players as $gamePlayer) {

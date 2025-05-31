@@ -3,6 +3,7 @@
 namespace App\Models\Auth;
 
 use App\Core\Info;
+use App\Exceptions\InvalidUserCodeException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game;
@@ -19,7 +20,6 @@ use App\Services\GenderService;
 use App\Services\NameInflectionService;
 use DateTimeInterface;
 use Dibi\Row;
-use InvalidArgumentException;
 use Lsr\Core\App;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
@@ -159,7 +159,7 @@ class Player extends BaseModel implements PlayerInterface
 	public static function getByCode(string $code): ?static {
 		$code = strtoupper(trim($code));
 		if (preg_match('/(\d)+-([A-Z\d]{5})/', $code, $matches) !== 1) {
-			throw new InvalidArgumentException('Code is not valid');
+			throw new InvalidUserCodeException('Code is not valid');
 		}
 		if (((int)$matches[1]) === 0) {
 			return static::query()->where('[id_arena] IS NULL AND [code] = %s', $matches[2])->first();
