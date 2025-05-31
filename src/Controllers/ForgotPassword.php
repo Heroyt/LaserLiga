@@ -71,6 +71,10 @@ class ForgotPassword extends Controller
 						$logger->exception($e);
 					}
 				}
+				else {
+					// If user does not exist, we still send a message to prevent email enumeration
+					$logger->warning('Password reset requested for non-existing user: '.$email);
+				}
 				if (empty($this->params['errors'])) {
 					$this->params['notices'][] = [
 						'type'    => 'success',
@@ -84,6 +88,7 @@ class ForgotPassword extends Controller
 			}
 			else {
 				$this->params['errors']['email'] = lang('E-mail není platný', context: 'errors');
+				$logger->warning('Invalid email format for password reset', ['email' => $email]);
 			}
 		}
 		return $this->view('pages/login/forgot');
