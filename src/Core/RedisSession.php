@@ -44,9 +44,9 @@ class RedisSession implements SessionInterface, SessionStorage
 	 * @inheritDoc
 	 */
 	public function init(): void {
-		App::getInstance()->getLogger()->debug(
-			'Session init',
-			['request' => App::getInstance()->getRequest()->getUri()->getPath(), 'method' => App::getInstance()->getRequest()->getMethod()]);
+//		App::getInstance()->getLogger()->debug(
+//			'Session init',
+//			['request' => App::getInstance()->getRequest()->getUri()->getPath(), 'method' => App::getInstance()->getRequest()->getMethod()]);
 		// Get session cookie from request
 		$cookies = App::cookieJar();
 		// Check if session exists in Redis
@@ -137,6 +137,7 @@ class RedisSession implements SessionInterface, SessionStorage
 		}
 		$this->data[$key] = $value;
 		$_SESSION[$key] = $value;
+		$this->setCookie();
 	}
 
 	private function generateSessionId(): string {

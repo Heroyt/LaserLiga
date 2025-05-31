@@ -105,7 +105,9 @@ function sendResponse(ResponseInterface $response): void {
 
 	// Send headers
 	foreach ($response->getHeaders() as $name => $values) {
-		header(sprintf('%s: %s', $name, $response->getHeaderLine($name)), false);
+		foreach ($values as $value) {
+			header(sprintf('%s: %s', $name, $value), false);
+		}
 	}
 
 	// Send body
