@@ -678,7 +678,7 @@ class Games extends ApiController
 	 * @throws Throwable
 	 * @pre Must be authorized
 	 */
-	#[OA\Get(
+	#[OA\Post(
 		path       : "/api/games/{code}/skills",
 		operationId: "recalcGameSkill",
 		description: "This method recalculates skills of a player for a single game.",
@@ -765,7 +765,7 @@ class Games extends ApiController
 			$playerSkills[$player->vest] = [
 				'name'  => $player->name,
 				'skill' => $player->skill,
-				'user'  => $player->user?->stats->rank ?? $player->skill,
+				'user'  => $player->user?->stats->rank ?? ($game->getGroup() !== null ? $this->rankCalculator->getPlayerGroupRank($player, $game->getGroup()) : $player->skill),
 			];
 			$sumSkill += $playerSkills[$player->vest]['skill'];
 			$sumUserSkill += $playerSkills[$player->vest]['user'];

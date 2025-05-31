@@ -14,6 +14,7 @@ use App\Models\DataObjects\Ranking\PlayerGameRating;
 use App\Models\DataObjects\Ranking\PlayerRankDiffResult;
 use App\Models\DataObjects\Ranking\PlayerType;
 use App\Models\DataObjects\Ranking\RankingPlayer;
+use App\Models\GameGroup;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Dibi\Exception;
@@ -117,7 +118,7 @@ class RankCalculator
 				}
 
 				if (!isset($player->id_user) && isset($group)) {
-					$player->rank = $group->getPlayerByName($player->name)?->getSkill();
+					$player->rank = $this->getPlayerGroupRank($player, $group);
 				}
 
 				if ($player->id_user === $user->id) {
@@ -139,7 +140,7 @@ class RankCalculator
 					}
 
 					if (!isset($player->id_user) && isset($group)) {
-						$player->rank = $group->getPlayerByName($player->name)?->getSkill();
+						$player->rank = $this->getPlayerGroupRank($player, $group);
 					}
 
 					if (!$foundPlayer && $player->id_user === $user->id) {
@@ -399,6 +400,21 @@ class RankCalculator
 	}
 
 	/**
+	 * Calculates a weighted average of the unregistered player's rank in a group
+	 */
+	public function getPlayerGroupRank(GamePlayer|RankingPlayer $player, GameGroup $group): ?int {
+		try {
+			$groupPlayer = $group->getPlayerByName($player->name);
+		} catch (Throwable) {
+			return null;
+		}
+		if ($groupPlayer === null) {
+			return null;
+		}
+		return (int)(($player->skill * 0.6) + (0.4 * $groupPlayer->getSkill()));
+	}
+
+	/**
 	 * Re-calculates all player ratings for given game.
 	 *
 	 * @template T of Team
@@ -439,13 +455,12 @@ class RankCalculator
 			if (!isset($teams[$team->id])) {
 				$teams[$team->id] = [];
 			}
-			$teams[$team->id][$player->id] = RankingPlayer::fromGamePlayer($player);
+			$rankingPlayer = RankingPlayer::fromGamePlayer($player);
+			$teams[$team->id][$player->id] = $rankingPlayer;
 
 			try {
-				if (!isset($teams[$team->id][$player->id]->id_user) && $game->getGroup() !== null) {
-					$teams[$team->id][$player->id]->rank = $game->getGroup()
-					                                            ->getPlayerByName($player->name)
-					                                            ?->getSkill();
+				if (!isset($rankingPlayer->id_user) && $game->getGroup() !== null) {
+					$rankingPlayer->rank = $this->getPlayerGroupRank($rankingPlayer, $game->getGroup());
 				}
 			} catch (Throwable) {
 			}
