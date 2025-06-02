@@ -9,10 +9,10 @@ class GenderService
 {
 
 	private const array SCORED_WORDS = [
-		'pan'   => 5,
+		'pan'   => 20,
 		'boy'   => 5,
 		'guy'   => 5,
-		'pani'  => -5,
+		'pani'  => -20,
 		'girl'  => -5,
 		'david' => 5,
 		'tomáš' => 5,
@@ -39,13 +39,14 @@ class GenderService
 
 		$score = 0;
 		foreach ($words as $word) {
+			$weight = strlen($word) < 3 ? 0.5 : 1;
 			$score += self::checkWords($word);
 			switch (self::checkSuffix($word)) {
 				case Gender::MALE:
-					++$score;
+					$score += $weight;
 					break;
 				case Gender::FEMALE:
-					--$score;
+					$score -= $weight;
 					break;
 				case Gender::OTHER:
 					break;

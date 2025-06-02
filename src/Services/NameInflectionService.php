@@ -77,15 +77,21 @@ class NameInflectionService
 			self::$memory[$memoryKey][$case] = $name;
 			return $name;
 		}
-		$key = mb_strtolower($name, 'UTF-8');
 		$gender = GenderService::rankWord($name);
 
-		[$match, $suffix] = self::getMatchingSuffix($key, self::getSuffixes($gender, $case));
+		// Inflect each word separately
+		$words = explode(' ', $name);
+		foreach ($words as $i => $word) {
+			$key = mb_strtolower($word, 'UTF-8');
+			[$match, $suffix] = self::getMatchingSuffix($key, self::getSuffixes($gender, $case));
 
-		if ($match) {
-			$name = mb_substr($name, 0, -1 * mb_strlen($match));
+			if ($match) {
+				$word = mb_substr($word, 0, -1 * mb_strlen($match));
+			}
+			$word .= $suffix . $numbers;
+			$words[$i] = $word;
 		}
-		$name .= $suffix . $numbers;
+		$name = implode(' ', $words);
 		if ($isUppercase) {
 			$name = mb_strtoupper($name);
 		}
