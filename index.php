@@ -23,6 +23,7 @@ use Lsr\Core\Requests\Request;
 use Lsr\Core\Routing\Exceptions\MethodNotAllowedException;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Netpromotion\Profiler\Profiler;
 use Nyholm\Psr7\Response;
 use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\ResponseInterface;
@@ -52,6 +53,7 @@ Timer::start('app');
 
 try {
 	$app->getRequest(); // Test request parse
+	Profiler::start('Run');
 	try {
 		$response = $app->run();
 	} catch (RouteNotFoundException|ModelNotFoundException|\Lsr\Core\Routing\Exceptions\ModelNotFoundException $e) {
@@ -69,6 +71,7 @@ try {
 	} catch (\Lsr\Core\Routing\Exceptions\AccessDeniedException $e) {
 		$response = \Lsr\Core\Requests\Response::create(403, [], $e->getMessage());
 	}
+	Profiler::finish('Run');
 } catch (JsonException $e) {
 	$request = new Request(new ServerRequest($_SERVER['REQUEST_METHOD'], $_SERVER['SCRIPT_URI']));
 	$controller = App::getContainer()->getByType(E400::class);
@@ -77,7 +80,10 @@ try {
 }
 Timer::stop('app');
 
+Profiler::finish('Request');
+Profiler::start('Response');
 sendResponse($response);
+Profiler::start('Response');
 Debugger::shutdownHandler();
 $app->session->close();
 fastcgi_finish_request();
@@ -95,6 +101,17 @@ assert($dispatcher instanceof AsyncDispatcher, 'Invalid async dispatcher instanc
 $dispatcher->dispatchAsyncQueue();
 
 function sendResponse(ResponseInterface $response): void {
+//	if (App::getInstance()->getRequest()->getUri()->getPath() === '/login') {
+//		new \Lsr\Logging\Logger(LOG_DIR, 'loginResponse')->debug(
+//			'Login response', [
+//			'request' => ['path' => App::getInstance()->getRequest()->getUri()->getPath(), 'method' => App::getInstance()->getRequest()->getMethod()],
+//				'response' => [
+//					'status' => $response->getStatusCode(),
+//					'headers' => $response->getHeaders(),
+//					'size' => $response->getBody()->getSize(),
+//				],
+//			]);
+//	}
 	// Check if something is not already sent
 	if (headers_sent()) {
 		throw new RuntimeException('Headers were already sent. The response could not be emitted!');
@@ -104,6 +121,7 @@ function sendResponse(ResponseInterface $response): void {
 	http_response_code($response->getStatusCode());
 
 	// Send headers
+//	bdump($response->getHeaders());
 	foreach ($response->getHeaders() as $name => $values) {
 		foreach ($values as $value) {
 			header(sprintf('%s: %s', $name, $value), false);
