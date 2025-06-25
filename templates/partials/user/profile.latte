@@ -95,7 +95,13 @@
 </script>
 <div class="player-profile">
     <header>
-        {$user->player->getAvatar()|noescape}
+        {if $currentUser}
+            <a href="{link ['user', 'tab' => 'avatar']}">
+                {$user->player->getAvatar()|noescape}
+            </a>
+        {else}
+            {$user->player->getAvatar()|noescape}
+        {/if}
         <h1 class="mt-2">
             <span class="visually-hidden">{lang 'Profil uživatele'}:</span>
             <span>{$user->name}</span>
@@ -108,7 +114,7 @@
                 {faSolid 'circle-question', 'fs-4', ['style' => 'line-height: 2.5rem;vertical-align: middle;']}
             </button>
         </h2>
-        {include '../title.latte', $user->player->getTitle(), false, false}
+        {include '../title.latte', $user->player->getTitle(), false, $currentUser}
         <p class="text-center mt-3 text-muted">
             {$abstract}
         </p>
@@ -151,21 +157,25 @@
         <h2 class="visually-hidden">{lang 'Základní statistiky'}</h2>
         <div class="stats">
             <div class="stat">
+                {faSolid 'ranking-star', ['stat-icon']}
                 <h3 class="stat-title">{lang 'Pozice v žebříčku'}</h3>
                 <div class="stat-value">{($rankOrder->positionFormatted ?? '')|replace:'. - ','-'}</div>
             </div>
             <div class="stat" data-toggle="tooltip"
                  title="{lang 'Herní úroveň se zvyšuje a klesá s každou odehranou klasickou hrou. Při výpočtu se přihlíží k úrovni protihráčů - pokud hrajete schválně se slabšími spoluhráči, herní úroveň roste pomalu.'}">
+                {faSolid 'medal', ['stat-icon']}
                 <h3 class="stat-title">{lang 'Úroveň'} {faSolid 'circle-question'}</h3>
                 <div class="stat-value">
-                    {$user->player?->stats->rank ?? 100} {faSolid 'medal'}
+                    {$user->player?->stats->rank ?? 100}
                 </div>
             </div>
             <div class="stat">
+                {faSolid 'gamepad', ['stat-icon']}
                 <h3 class="stat-title">{lang 'Odehráno her'}</h3>
                 <div class="stat-value">{$user->player?->stats->gamesPlayed ?? 0}</div>
             </div>
             <div n:ifset="$user->player->arena" class="stat">
+                {faSolid 'house', ['stat-icon']}
                 <h3 class="stat-title">{lang 'Domovská aréna'}</h3>
                 <a class="stat-value" href="{link ['arena', $user->player->arena->id]}"
                    aria-label="{lang 'Zobrazit statistiky domovské arény'}">

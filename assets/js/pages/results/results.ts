@@ -4,7 +4,7 @@ import { TeamModuleInterface } from "./teamModules";
 import { getGameHighlights, makePhotosHidden, makePhotosPublic } from "../../api/endpoints/game";
 import { startLoading, stopLoading } from "../../loaders";
 import { triggerNotificationError } from "../../components/notifications";
-import { initGallery } from "../../components/gallery";
+import { initGallery, initLazyPhoto } from "../../components/gallery";
 
 declare global {
     const gameCode: string;
@@ -156,6 +156,7 @@ function initPhotos() {
     }
 
     initGallery(photos, dialog);
+    initLazyPhoto();
 
     const makePublic = document.getElementById('make-photos-public') as HTMLButtonElement;
     if (makePublic) {

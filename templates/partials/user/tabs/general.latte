@@ -5,25 +5,29 @@
 <h3 class="mt-3 text-center">{lang 'Souhrnné statistiky'}</h3>
 <div class="stats mb-3" style="--min-stat-width: 200px;">
     <div class="stat">
+        {faSolid 'hourglass', ['stat-icon']}
         <h4 class="stat-title">{lang 'Čas ve hře'}</h4>
         <div class="stat-value">
             {convertMinutesToPartsReadableString($user->player?->stats->totalMinutes ?? 0)}
         </div>
     </div>
     <div class="stat">
+        {faSolid 'location-pin', ['stat-icon']}
         <h4 class="stat-title">{lang 'Navštíveno arén'}</h4>
         <div class="stat-value">{$user->player?->stats->arenasPlayed ?? 0}</div>
     </div>
     <div class="stat">
+        {svgIcon 'kill', '', '2rem'}
         <h4 class="stat-title">{lang 'Zasaženo hráčů'}</h4>
         <div class="stat-value">
-            {($user->player?->stats->hits ?? 0)|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'kill', '', '1em'}
+            {($user->player?->stats->hits ?? 0)|number:0,',','&nbsp;'|noescape}
         </div>
     </div>
     <div class="stat">
+        {svgIcon 'skull', '', '2rem'}
         <h4 class="stat-title">{lang 'Smrtí'}</h4>
         <div class="stat-value">
-            {($user->player?->stats->deaths ?? 0)|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'skull', '', '1em'}
+            {($user->player?->stats->deaths ?? 0)|number:0,',','&nbsp;'|noescape}
         </div>
     </div>
 </div>
@@ -33,73 +37,81 @@
     </div>
     <div class="stats" style="--min-stat-width: 200px;">
         <div class="stat">
+            {svgIcon 'bullets', '', '2rem'}
             <h4 class="stat-title">{lang 'Vystřeleno nábojů'}</h4>
             <div class="stat-value">
-                {($user->player?->stats->shots ?? 0)|number:0,',','&nbsp;'|noescape}&nbsp;{svgIcon 'bullets', '', '1em'}
+                {($user->player?->stats->shots ?? 0)|number:0,',','&nbsp;'|noescape}
             </div>
         </div>
         <div class="stat" data-toggle="tooltip"
 			 title="{lang 'Poměr zabití a smrtí. Např. hodnota 2 znamená, že máš 2x tolik zásahů než smrtí.'}">
+            {svgIcon 'balance', '', '2rem'}
             <h4 class="stat-title">{lang 'K:D'} {faSolid 'circle-question'}</h4>
             <div class="stat-value">
 				{$user->player?->stats->kd|number:2,',',''}
 			</div>
 		</div>
         <div class="stat">
+            {faSolid 'star', ['stat-icon']}
             <h4 class="stat-title">{lang 'Průměrná pozice'}</h4>
             <div class="stat-value">
 				{$user->player?->stats->averagePosition|number:2,',',''}
 			</div>
 		</div>
         <div class="stat">
+            {svgIcon 'target', '', '2rem'}
             <h4 class="stat-title">{lang 'Průměrná přesnost'}</h4>
             <div class="stat-value">
 				{$user->player?->stats->averageAccuracy|number:2,',',''}&nbsp;%
 			</div>
 		</div>
         <div class="stat">
+            {svgIcon 'bullets', '', '2rem'}
             <h4 class="stat-title">{lang 'Průměrný počet výstřelů'}</h4>
             <div class="stat-value">
-				{$user->player?->stats->averageShots|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1em'}
+				{$user->player?->stats->averageShots|number:2,',',''}
 			</div>
 		</div>
         <div class="stat">
+            {svgIcon 'bullets', '', '2rem'}
             <h4 class="stat-title">{lang 'Průměrný počet výstřelů za minutu'}</h4>
             <div class="stat-value">
-				{$user->player?->stats->averageShotsPerMinute|number:2,',',''}&nbsp;{svgIcon 'bullets', '', '1em'}
+				{$user->player?->stats->averageShotsPerMinute|number:2,',',''}
 			</div>
 		</div>
         <div class="stat">
+            {svgIcon 'kill', '', '2rem'}
             <h4 class="stat-title">{lang 'Průměrný počet zásahů za minutu'}</h4>
             <div class="stat-value">
 				{($user->player?->stats->totalMinutes > 0 ? ($user->player?->stats->hits / $user->player?->stats->totalMinutes) : 0)|number:2,',',''}
-				&nbsp;{svgIcon 'kill', '', '1em'}
 			</div>
 		</div>
         <div class="stat">
+            {svgIcon 'skull', '', '2rem'}
             <h4 class="stat-title">{lang 'Průměrný počet smrtí za minutu'}</h4>
             <div class="stat-value">
 				{($user->player?->stats->totalMinutes > 0 ? ($user->player?->stats->deaths / $user->player?->stats->totalMinutes) : 0)|number:2,',',''}
-				&nbsp;{svgIcon 'skull', '', '1em'}
 			</div>
 		</div>
         <div class="stat">
+            {svgIcon 'target', '', '2rem'}
             <h4 class="stat-title">{lang 'Nejlepší přesnost'}</h4>
             <div class="stat-value">
 				{$user->player?->stats->maxAccuracy}&nbsp;%
 			</div>
 		</div>
         <div class="stat">
+            {faSolid 'star', ['stat-icon']}
             <h4 class="stat-title">{lang 'Nejlepší skóre'}</h4>
             <div class="stat-value">
 				{$user->player?->stats->maxScore|number:0,',','&nbsp;'|noescape}
-                {faSolid 'star'}
 			</div>
 		</div>
         <div class="stat">
+            {faSolid 'medal', ['stat-icon']}
             <h4 class="stat-title">{lang 'Nejlepší hodnocení hráče ve hře'}</h4>
             <div class="stat-value">
-                {$user->player?->stats->maxSkill|number:0,',','&nbsp;'|noescape} {faSolid 'medal'}
+                {$user->player?->stats->maxSkill|number:0,',','&nbsp;'|noescape}
 			</div>
 		</div>
 	</div>
@@ -132,7 +144,9 @@
 </p>
 <canvas id="rankHistory" data-content-piece="Rank history graph" data-user="{$user->player->getCode()}"
 		data-label="{$user->name} ({$user->player->getCode()})"
+        aria-label="{_'Graf historie úrovně hráče'}" role="img"
 		style="max-height: 350px; width: 100%;"></canvas>
 <h3>{lang 'Herní módy'}</h3>
 <canvas id="gameModes" data-user="{$user->player->getCode()}" data-content-piece="Game modes graph"
+        aria-label="{_'Graf herních módů hráče'}" role="img"
 		style="max-height: 350px; width: 100%;"></canvas>

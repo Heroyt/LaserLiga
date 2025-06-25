@@ -414,7 +414,7 @@
         </div>
         <div n:if="$game->getGroup() !== null || $game->getTournamentGame() !== null" class="col-12 mt-3 text-center">
             <div class="btn-group btn-group-lg">
-                <a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-primary"
+                <a n:if="!empty($prevGame)" href="{link ['game', $prevGame]}" class="btn btn-secondary"
                                             data-track-content=""
                                             aria-label="{_'Předchozí hra', domain: 'results', context: 'group'}"
                                             data-toggle="tooltip"
@@ -469,8 +469,6 @@
 {/define}
 
 {define resultsPlayers}
-    {var int $maxShots = $game->players->query()->sortBy('shots')->desc()->first()->shots}
-    {var int $count = count($game->players)}
     <section class="results-players">
         <h2 class="visually-hidden">{_'Výsledky hráčů', domain: 'results'}</h2>
         {foreach $game->playersSorted as $key => $player}

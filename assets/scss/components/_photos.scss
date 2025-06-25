@@ -1,0 +1,17 @@
+.lazy-photo:not(.complete) {
+	position: relative;
+
+	&::before {
+		content: '';
+		display: block;
+		position: absolute;
+		border-radius: 50%;
+		top: calc(50% - 1rem);
+		left: calc(50% - 2rem);
+		width: 2rem;
+		height: 2rem;
+		border: .4rem solid var(--text);
+		border-right-color: transparent;
+		animation: spinner-border linear infinite 500ms;
+	}
+}

@@ -1,11 +1,7 @@
 {parameters App\Models\Achievements\Title $title, bool $small = false, bool $edit = false}
 
-<span class="player-title {if $small}player-title-sm{/if} rarity-{$title->rarity->value}"
+<span n:tag="($edit ? 'a' : 'span')" n:class="'player-title', 'text-decoration-none', $small ? 'player-title-sm', 'rarity-'.$title->rarity->value"
+n:attr="href: $edit ? link(['user', 'tab' => 'title']) : null"
       {if !empty($title->description)}data-toggle="tooltip" title="{_$title->description, domain: 'titles', context: $title->name}"{/if}>
     {_$title->name, domain: 'titles'}
-    {if $edit}
-        <a href="{link 'user'}" class="edit btn btn-primary rounded-circle btn-sm" aria-label="{_'Upravit', context: 'actions'}">
-            {faSolid 'pen-to-square'}
-        </a>
-    {/if}
 </span>

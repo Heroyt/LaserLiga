@@ -38,7 +38,7 @@ class PlayerAchievement implements JsonSerializable
 	}
 
 	public function getIcon(): string {
-		return isset($this->achievement->icon) ? str_replace(
+		return !empty($this->achievement->icon) ? str_replace(
 			"\n",
 			'',
 			svgIcon($this->achievement->icon, 'auto', '2rem')

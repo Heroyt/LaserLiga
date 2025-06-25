@@ -2,8 +2,10 @@
 
 namespace App\Controllers\User;
 
+use App\Exceptions\InvalidUserCodeException;
 use App\GameModels\Game\PlayerTrophy;
 use App\Models\Auth\LigaPlayer;
+use App\Models\Auth\User;
 use App\Models\DataObjects\Game\ModeCounts;
 use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Models\DataObjects\Player\PlayerDateRank;
@@ -71,6 +73,7 @@ class StatController extends AbstractUserController
 		foreach ($data as $name => $count) {
 			$return[lang($name, domain: 'gameModes')] = $count;
 		}
+		array_filter($return, static fn(string $key) => !empty($key), ARRAY_FILTER_USE_KEY);
 		return $this->respond($return, headers: ['Cache-Control' => 'max-age=86400,no-cache']);
 	}
 
@@ -303,12 +306,16 @@ class StatController extends AbstractUserController
 				$compareCodes = [$compareCodes];
 			}
 			foreach ($compareCodes as $compareCode) {
-				$user = $this->getUser($compareCode);
-				/** @var LigaPlayer $player */
-				$player = $user->player;
-				$response[$player->nickname . ' (' . strtoupper($compareCode) . ')'] = $this->getPlayerRadarData(
-					$player
-				);
+				try {
+					$user = User::getByCode(strtoupper($compareCode));
+					/** @var LigaPlayer $player */
+					$player = $user->player;
+					$response[$player->nickname . ' (' . strtoupper($compareCode) . ')'] = $this->getPlayerRadarData(
+						$player
+					);
+				} catch (InvalidUserCodeException) {
+					// Ignore
+				}
 			}
 		}
 

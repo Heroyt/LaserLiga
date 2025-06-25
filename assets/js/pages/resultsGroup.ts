@@ -3,7 +3,7 @@ import { initDataTableForm } from "../components/dataTable";
 import { startLoading, stopLoading } from "../loaders";
 import { makePhotosHiddenGroup, makePhotosPublicGroup } from "../api/endpoints/game";
 import { triggerNotificationError } from "../components/notifications";
-import { initGallery } from "../components/gallery";
+import { initGallery, initLazyPhoto } from "../components/gallery";
 
 declare global {
     const groupId : string;
@@ -28,6 +28,7 @@ function initPhotos() {
     }
 
     initGallery(photos, dialog);
+    initLazyPhoto();
 
     const makePublic = document.getElementById('make-photos-public') as HTMLButtonElement;
     if (makePublic) {

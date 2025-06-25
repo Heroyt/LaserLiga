@@ -47,7 +47,7 @@
     {include content}
 {else}
     <!DOCTYPE html>
-    <html lang="{$page->app->translations->getLangId()}" data-bs-theme="{$mode}">
+    <html lang="{$page->app->translations->getLangId()}" data-lang-country="{$page->app->translations->getCountry()}" data-bs-theme="{$mode}">
     <head>
         <!-- Matomo Tag Manager -->
         <link rel="dns-prefetch" href="https://analytics.laserliga.cz">
@@ -112,6 +112,7 @@
             <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"
                   rel="stylesheet">
         </noscript>
+        <link rel="preload" href="/assets/fonts/fa-solid-900.woff2?v=5" as="font" type="font/woff2">
         <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
               href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
         <noscript>
@@ -157,6 +158,9 @@
                 });
             </script>
             <!-- End Matomo Code -->
+            <!-- Cloudflare Web Analytics -->
+            <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "4982202ae6e1494caab93c10ebd1dfef"}'></script>
+            <!-- End Cloudflare Web Analytics -->
         {/block}
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     </head>
@@ -240,6 +244,27 @@
         {
           "prerender": [
             {
+              "eagerness": "eager",
+              "where": {
+                "and": [
+                  {
+                    "or": [
+                      {"href_matches": "/dashboard"},
+                      {"href_matches": "/user/*/history"},
+                      {"href_matches": "/user/leaderboard"},
+                      {"href_matches": "/arena"},
+                      {"href_matches": "/arena/*"},
+                      {"selector_matches": ".prerender"}
+                    ]
+                  },
+                  { "not": { "href_matches": "/lang/*" } },
+                  { "not": { "selector_matches": ".no-prerender" } },
+                  { "not": { "selector_matches": "[rel~=nofollow]" } }
+                ]
+              }
+            },
+            {
+              "eagerness": "moderate",
               "where": {
                 "and": [
                   { "href_matches": "/*" },
@@ -254,7 +279,7 @@
     </script>
 
     <script defer type="module" src="{getUrl}dist/main.js?{$page->app->getCacheVersion()}"></script>
-    <script defer src="https://npmcdn.com/flatpickr/dist/l10n/{$page->app->translations->getLangId()}.js"></script>
+    <script defer src="{getUrl}dist/locales/flatpickr/{$page->app->translations->getLangId()}.js"></script>
     <script n:foreach="$addJs as $js" src="{getUrl}dist/{$js}?v={$page->app->getCacheVersion()}" type="module"
                                       defer></script>
     {include svgSymbols}

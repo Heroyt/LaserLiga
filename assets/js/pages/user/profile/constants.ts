@@ -11,3 +11,15 @@ export const graphColors = [
     'rgb(208,55,55)',
     'rgb(57,190,36)',
 ];
+
+export function labelColors() : string[] {
+    return graphColors.map(labelColor);
+}
+
+export function labelColor(background: string): string {
+    const rgb = background.match(/\d+/g);
+    if (!rgb) return 'black';
+    const [r, g, b] = rgb.map(Number);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 125 ? 'black' : 'white';
+}

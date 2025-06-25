@@ -6,6 +6,7 @@
 @import '../mixins';
 @import '../components/achievements';
 @import '../components/titles';
+@import '../components/photos';
 
 %results-teams-column {
   flex-direction: column;
@@ -114,8 +115,8 @@
       text-align: center;
       margin: 0 1rem;
 
-      //border-radius: 10px;
-      //box-shadow: 0 0 10px var(--primary);
+      // border-radius: 10px;
+      // box-shadow: 0 0 10px var(--primary);
       border-bottom: 1px solid var(--background-2);
     }
   }

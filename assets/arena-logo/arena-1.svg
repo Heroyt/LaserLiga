@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg" class="arena-logo" id="arena-logo-1" viewBox="60 60 880 880" version="1.1"
-	 xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+	 xml:space="preserve" style="view-transition-name: arena-1-logo;fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
     <g id="Text">
         <g transform="matrix(-7.55208,0,0,7.55208,770.204,-4891.21)">
             <path d="M50.871,745.536L73.038,745.536L71.134,748.472L52.792,748.472L50.871,745.536Z" fill="black"

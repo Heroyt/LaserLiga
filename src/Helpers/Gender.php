@@ -15,4 +15,12 @@ enum Gender: string
 	case FEMALE = 'f';
 	case OTHER  = 'o';
 
+	public function getReadable() : string {
+		return match ($this) {
+			self::MALE   => 'Male',
+			self::FEMALE => 'Female',
+			self::OTHER  => 'Neuter',
+		};
+	}
+
 }

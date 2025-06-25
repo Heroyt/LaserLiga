@@ -102,6 +102,10 @@ class UserHighlightChecker implements PlayerHighlightChecker
 	 */
 	private function checkPlayerShots(PlayerInterface $player, GameInterface $game, HighlightCollection $highlights): void {
 		assert($player instanceof Player && $game instanceof Game);
+		if (($player->user->stats->averageShotsPerMinute) === 0.0) {
+			return; // No average shots per minute, no highlight
+		}
+
 		$shotsDiff = ($player->shots / $game->getRealGameLength()) / $player->user->stats->averageShotsPerMinute;
 		if ($shotsDiff > $this->minThreshold) {
 			$highlights->add(

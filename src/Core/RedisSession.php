@@ -249,7 +249,10 @@ class RedisSession implements SessionInterface, SessionStorage
 		if (!isset($this->data[self::SESSION_FLASH_KEY]) || !is_array($this->data[self::SESSION_FLASH_KEY])) {
 			$this->data[self::SESSION_FLASH_KEY] = [];
 		}
-		return $this->data[self::SESSION_FLASH_KEY][$key] ?? $default;
+		$value = $this->data[self::SESSION_FLASH_KEY][$key] ?? $default;
+		// Remove the flash data after retrieving it
+		unset($this->data[self::SESSION_FLASH_KEY][$key]);
+		return $value;
 	}
 
 	/**
@@ -263,6 +266,7 @@ class RedisSession implements SessionInterface, SessionStorage
 			$this->data[self::SESSION_FLASH_KEY] = [];
 		}
 		$this->data[self::SESSION_FLASH_KEY][$key] = $value;
+		$this->setCookie();
 	}
 
 	public function getCookieHeader(): string {

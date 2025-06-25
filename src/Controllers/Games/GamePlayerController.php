@@ -63,6 +63,9 @@ class GamePlayerController extends Controller
 		$this->params->player = $player;
 
 		$this->params->maxShots = $game->players->query()->sortBy('shots')->desc()->first()->shots ?? 1000;
+		if ($this->params->maxShots <= 0) {
+			$this->params->maxShots = 1000; // Fallback in case of no shots - import error or similar
+		}
 		/** @var Team $team */
 		$team = new ($game->teamClass);
 		$this->params->today = new Today(

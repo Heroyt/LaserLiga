@@ -29,7 +29,7 @@ class Index extends Controller
 		$this->description = 'Portál pro hráče laser game. Výsledky ze hry, turnaje, statistiky...';
 		$this->params->addCss[] = 'pages/index.css';
 		$this->params->playerCount = LigaPlayer::query()->count();
-		$this->params->arenaCount = Arena::query()->count();
+		$this->params->arenaCount = Arena::query()->where('hidden = 0')->count();
 		$this->params->tournamentCount = Tournament::query()->count();
 		$this->params->gameCount = GameFactory::queryGames(true)->count();
 		return $this->view('pages/index/index');

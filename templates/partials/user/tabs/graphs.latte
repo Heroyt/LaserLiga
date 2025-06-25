@@ -18,11 +18,13 @@
 	</select>
     <h4 class="my-3 text-center">{lang 'Počet her'}:</h4>
 	<canvas id="games-graphs-graph" data-content-piece="Games graph"
+            aria-label="{_'Graf počtu her'}" role="img"
 			style="max-height: 350px; width: 100%;" class="mb-3">
 	</canvas>
 	<hr>
     <h4 class="my-3 text-center">{lang 'Vývoj pozice v žebříčku'}:</h4>
 	<canvas id="rank-order-graph" data-content-piece="Rank order graph" data-label="{lang 'Pozice v žebříčku'}"
+            aria-label="{_'Graf pozice v žebříčku v čase'}" role="img"
 			style="max-height: 350px; width: 100%;" class="mb-3">
 	</canvas>
 	<hr>
@@ -32,6 +34,7 @@
         {lang 'Umístění na grafu je relativní vůči ostatním hráčům a vyjadřuje váš percentil (kolik % hráčů je lepší, nebo horší, než váš průměr).'}
 	</p>
 	<canvas id="radar-graphs-graph" data-content-piece="Radar graph"
+            aria-label="{_'Radar graf statistik hráče'}" role="img"
 			{if isset($loggedInUser) && $loggedInUser->id !== $user->id}data-compare="{$loggedInUser->player?->getCode()}"{/if}
 			data-categories="{json_encode([
 			'rank' => lang('Herní úroveň'),

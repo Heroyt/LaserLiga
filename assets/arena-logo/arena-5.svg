@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" class="arena-logo" viewBox="-50 -100 990 726" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+<svg class="arena-logo" viewBox="-50 -100 990 726" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
+     style="view-transition-name: arena-5-logo;fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
     <g>
         <path d="M17.401,344.952l0,63.208l63.988,0l-0,16.58l-80.679,-0l-0,-16.58l0.112,0l0,-63.208l16.579,0Z" fill="black" style="fill-rule:nonzero;"/>
         <path d="M143.258,399.48l8.012,16.467l-36.054,0c-2.821,5.792 -4.229,8.721 -4.229,8.792l-18.583,-0c1.854,-3.704 2.891,-5.784 3.116,-6.229l1.221,-2.563l4.342,-8.787l13.129,-26.821l13.133,-26.817l4.23,-8.571l12.462,0c1.113,2.304 2.521,5.159 4.229,8.571l13.242,26.817l13.242,26.821l4.341,8.787c0.517,1.042 0.925,1.896 1.221,2.563c0.225,0.445 1.3,2.525 3.229,6.229l-18.696,-0c-1.708,-3.409 -3.375,-6.821 -5.008,-10.238l-13.242,-26.816l-8.791,-17.805l-8.679,17.805l-5.788,11.795l19.921,0Z" fill="black" style="fill-rule:nonzero;"/>

@@ -84,71 +84,88 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+window.triggerNotification = triggerNotification;
+
 window.addEventListener("load", () => {
-    // Auto-format tel
-    (document.querySelectorAll('input[type="tel"]') as NodeListOf<HTMLInputElement>).forEach(input => {
-        if (input.classList.contains('not-format')) {
-            return;
-        }
-        input.value = formatPhoneNumber(input.value);
-        input.addEventListener("keydown", () => {
+    deferIdle(() => {
+        // Auto-format tel
+        (document.querySelectorAll('input[type="tel"]') as NodeListOf<HTMLInputElement>).forEach(input => {
+            if (input.classList.contains('not-format')) {
+                return;
+            }
             input.value = formatPhoneNumber(input.value);
+            input.addEventListener("keydown", () => {
+                input.value = formatPhoneNumber(input.value);
+            });
+            input.addEventListener("change", () => {
+                input.value = formatPhoneNumber(input.value);
+            });
         });
-        input.addEventListener("change", () => {
-            input.value = formatPhoneNumber(input.value);
+
+        // Utils
+        initClearButtons();
+
+        // Datepicker
+        initDatePickers();
+
+        // Tooltips
+        initTooltips(document);
+
+        // Auto-save
+        initAutoSaveForm();
+
+        // Popovers
+        initPopovers(document);
+
+        // Table row links
+        initTableRowLink(document);
+
+        // Toggles
+        (document.querySelectorAll('[data-toggle="submit"]') as NodeListOf<HTMLButtonElement>).forEach(element => {
+            element.addEventListener("change", () => {
+                (element.findParentElement("form") as HTMLFormElement).submit();
+            });
         });
-    });
-
-    // Utils
-    initClearButtons();
-
-    // Datepicker
-    initDatePickers();
-
-    // Tooltips
-    initTooltips(document);
-
-    // Auto-save
-    initAutoSaveForm();
-
-    // Popovers
-    initPopovers(document);
-
-    // Table row links
-    initTableRowLink(document);
-
-    // Toggles
-    (document.querySelectorAll('[data-toggle="submit"]') as NodeListOf<HTMLButtonElement>).forEach(element => {
-        element.addEventListener("change", () => {
-            (element.findParentElement("form") as HTMLFormElement).submit();
+        (document.querySelectorAll('[data-toggle="scroll-to"]') as NodeListOf<HTMLElement>).forEach(element => {
+            const delay = parseInt(element.dataset.delay ?? "0");
+            element.addEventListener('click', () => {
+                setTimeout(() => {
+                    const target = document.querySelector(element.dataset.target);
+                    if (!target) {
+                        return;
+                    }
+                    window.scrollTo(0, target.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop));
+                }, delay);
+            });
         });
-    });
-    (document.querySelectorAll('[data-toggle="scroll-to"]') as NodeListOf<HTMLElement>).forEach(element => {
-        const delay = parseInt(element.dataset.delay ?? "0");
-        element.addEventListener('click', () => {
-            setTimeout(() => {
-                const target = document.querySelector(element.dataset.target);
-                if (!target) {
+        (document.querySelectorAll<HTMLElement>('[data-toggle="loading"]')).forEach(element => {
+            element.addEventListener('click', () => {
+                element.classList.add('disabled');
+                element.ariaDisabled = 'true';
+                if ('disabled' in element) {
+                    element.disabled = true;
+                }
+                const timeout = 'timeout' in element.dataset ? parseInt(element.dataset.timeout)*1000 : 0;
+                const spinner = element.querySelector<HTMLSpanElement>('[class*="spinner"]');
+                if (spinner) {
+                    spinner.classList.remove('d-none');
+                    if (timeout > 0) {
+                        setTimeout(() => {
+                            spinner.classList.add('d-none');
+                            element.classList.remove('disabled');
+                            element.ariaDisabled = 'false';
+                            if ('disabled' in element) {
+                                element.disabled = false;
+                            }
+                        }, timeout);
+                    }
                     return;
                 }
-                window.scrollTo(0, target.getBoundingClientRect().top + (window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop));
-            }, delay);
-        });
-    });
-    (document.querySelectorAll<HTMLElement>('[data-toggle="loading"]')).forEach(element => {
-        element.addEventListener('click', () => {
-            element.classList.add('disabled');
-            element.ariaDisabled = 'true';
-            if ('disabled' in element) {
-                element.disabled = true;
-            }
-            const timeout = 'timeout' in element.dataset ? parseInt(element.dataset.timeout)*1000 : 0;
-            const spinner = element.querySelector<HTMLSpanElement>('[class*="spinner"]');
-            if (spinner) {
-                spinner.classList.remove('d-none');
+                const small = 'small' in element.dataset;
+                startLoading(small);
                 if (timeout > 0) {
                     setTimeout(() => {
-                        spinner.classList.add('d-none');
+                        stopLoading(true, small);
                         element.classList.remove('disabled');
                         element.ariaDisabled = 'false';
                         if ('disabled' in element) {
@@ -156,77 +173,113 @@ window.addEventListener("load", () => {
                         }
                     }, timeout);
                 }
-                return;
-            }
-            const small = 'small' in element.dataset;
-            startLoading(small);
-            if (timeout > 0) {
-                setTimeout(() => {
-                    stopLoading(true, small);
-                    element.classList.remove('disabled');
-                    element.ariaDisabled = 'false';
-                    if ('disabled' in element) {
-                        element.disabled = false;
-                    }
-                }, timeout);
-            }
-        });
-    });
-    (document.querySelectorAll<HTMLAnchorElement>('a[download],a[data-download]')).forEach(initDownloadButton);
-
-    // Pull to load
-    let _startY = 0;
-    document.addEventListener('touchstart', e => {
-        _startY = e.touches[0].pageY;
-    }, {passive: true});
-
-    document.addEventListener('touchend', e => {
-        if (document.body.classList.contains('refreshing')) {
-            window.location.reload();
-        }
-    });
-
-    document.addEventListener('touchmove', e => {
-        const y = e.touches[0].pageY;
-        console.log(y, _startY);
-        // Activate custom pull-to-refresh effects when at the top fo the container
-        // and user is scrolling up.
-        if (document.scrollingElement.scrollTop === 0 && y > _startY && !document.body.classList.contains('refreshing')) {
-            document.body.classList.add('refreshing');
-        } else if (document.body.classList.contains('refreshing') && y > 0) {
-            document.body.classList.remove('refreshing');
-        }
-    }, {passive: true});
-
-    // Tabs activate
-    (document.querySelectorAll('[role="tablist"]') as NodeListOf<HTMLDivElement>).forEach(wrap => {
-        const tabs = wrap.querySelectorAll('[data-bs-toggle="tab"]') as NodeListOf<HTMLElement>;
-        console.log(wrap, window.location.hash);
-        const params = new URLSearchParams(window.location.search);
-        const currentTab = params.get('tab');
-        tabs.forEach(tabEl => {
-            const target = tabEl.dataset.bsTarget ?? tabEl.getAttribute('href');
-            const tab = Tab.getOrCreateInstance(tabEl);
-            console.log(target, tab, tabEl);
-            if (currentTab === target || window.location.hash === target) {
-                setTimeout(() => {
-                    tab.show();
-                }, 500);
-            }
-            tabEl.addEventListener('shown.bs.tab', () => {
-                const url = new URL(tabEl.dataset.link ? tabEl.dataset.link : window.location.href);
-                if (!tabEl.dataset.link) {
-                    url.searchParams.set('tab', target.replace('#', ''));
-                }
-                window.history.replaceState(undefined, '', url)
-                //window.location.hash = target;
             });
         });
+        (document.querySelectorAll<HTMLAnchorElement>('a[download],a[data-download]')).forEach(initDownloadButton);
+
+        // Pull to load
+        let _startY = 0;
+        document.addEventListener('touchstart', e => {
+            _startY = e.touches[0].pageY;
+        }, {passive: true});
+
+        document.addEventListener('touchend', e => {
+            if (document.body.classList.contains('refreshing')) {
+                window.location.reload();
+            }
+        });
+
+        document.addEventListener('touchmove', e => {
+            const y = e.touches[0].pageY;
+            console.log(y, _startY);
+            // Activate custom pull-to-refresh effects when at the top fo the container
+            // and user is scrolling up.
+            if (document.scrollingElement.scrollTop === 0 && y > _startY && !document.body.classList.contains('refreshing')) {
+                document.body.classList.add('refreshing');
+            } else if (document.body.classList.contains('refreshing') && y > 0) {
+                document.body.classList.remove('refreshing');
+            }
+        }, {passive: true});
+
+        // Tabs activate
+        (document.querySelectorAll('[role="tablist"]') as NodeListOf<HTMLDivElement>).forEach(wrap => {
+            const tabs = wrap.querySelectorAll('[data-bs-toggle="tab"]') as NodeListOf<HTMLElement>;
+            console.log(wrap, window.location.hash);
+            const params = new URLSearchParams(window.location.search);
+            const currentTab = params.get('tab');
+            tabs.forEach(tabEl => {
+                const target = tabEl.dataset.bsTarget ?? tabEl.getAttribute('href');
+                const tab = Tab.getOrCreateInstance(tabEl);
+                console.log(target, tab, tabEl);
+                if (currentTab === target || window.location.hash === target) {
+                    setTimeout(() => {
+                        tab.show();
+                    }, 500);
+                }
+                tabEl.addEventListener('shown.bs.tab', () => {
+                    const url = new URL(tabEl.dataset.link ? tabEl.dataset.link : window.location.href);
+                    if (!tabEl.dataset.link) {
+                        url.searchParams.set('tab', target.replace('#', ''));
+                    }
+                    window.history.replaceState(undefined, '', url)
+                    //window.location.hash = target;
+                });
+            });
+        });
+
+        initCopyToClipboard();
+
+        document.querySelectorAll<HTMLSelectElement>('select[data-trigger-description]').forEach(selectInputDescriptionSetup)
+
+        // Share buttons
+        if (navigator.share) {
+            (document.querySelectorAll('[data-trigger="share"]') as NodeListOf<HTMLButtonElement>).forEach(btn => {
+                const title = btn.dataset.title ?? document.title;
+                const text = btn.dataset.text ?? '';
+                const url = btn.dataset.url ?? window.location.href;
+                let shareData: ShareData = {};
+                if (title !== '') {
+                    shareData.title = title;
+                }
+                if (text !== '') {
+                    shareData.text = text;
+                }
+                if (url !== '') {
+                    shareData.url = url;
+                }
+
+                btn.classList.remove('d-none');
+
+                btn.addEventListener('click', async () => {
+                    _mtm.push({share: `${title} - ${text} (${url})`});
+                    _paq.push(['trackEvent', 'Interaction', 'Share', title, url]);
+                    await navigator.share(shareData);
+                });
+            });
+        }
+
+        const confirmEmail = document.getElementById('confirmEmail') as HTMLButtonElement;
+        if (confirmEmail) {
+            confirmEmail.addEventListener('click', () => {
+                startLoading(true);
+                userSendNewConfirmEmail()
+                    .then(res => {
+                        stopLoading(true, true);
+                        triggerNotification({
+                            content: res.message,
+                            type: 'success',
+                        })
+                    })
+                    .catch(e => {
+                        stopLoading(false, true);
+                        triggerNotification(e);
+                    })
+            })
+        }
+
+        // Cookie Consent Dialog
+        initCookieConsent();
     });
-
-    initCopyToClipboard();
-
-    document.querySelectorAll<HTMLSelectElement>('select[data-trigger-description]').forEach(selectInputDescriptionSetup)
 
     // Mobile nav
     const mainNav = document.getElementById('mobile-menu-full') as HTMLDivElement;
@@ -252,62 +305,19 @@ window.addEventListener("load", () => {
         }
     }
 
-    // Share buttons
-    if (navigator.share) {
-        (document.querySelectorAll('[data-trigger="share"]') as NodeListOf<HTMLButtonElement>).forEach(btn => {
-            const title = btn.dataset.title ?? document.title;
-            const text = btn.dataset.text ?? '';
-            const url = btn.dataset.url ?? window.location.href;
-            let shareData: ShareData = {};
-            if (title !== '') {
-                shareData.title = title;
-            }
-            if (text !== '') {
-                shareData.text = text;
-            }
-            if (url !== '') {
-                shareData.url = url;
-            }
-
-            btn.classList.remove('d-none');
-
-            btn.addEventListener('click', async () => {
-                _mtm.push({share: `${title} - ${text} (${url})`});
-                _paq.push(['trackEvent', 'Interaction', 'Share', title, url]);
-                await navigator.share(shareData);
-            });
-        });
-    }
-
-    const confirmEmail = document.getElementById('confirmEmail') as HTMLButtonElement;
-    if (confirmEmail) {
-        confirmEmail.addEventListener('click', () => {
-            startLoading(true);
-            userSendNewConfirmEmail()
-                .then(res => {
-                    stopLoading(true, true);
-                    triggerNotification({
-                        content: res.message,
-                        type: 'success',
-                    })
-                })
-                .catch(e => {
-                    stopLoading(false, true);
-                    triggerNotification(e);
-                })
-        })
-    }
-
     // Modal auto-open
     document.querySelectorAll<HTMLElement>('.modal[data-bs-auto-open="true"]').forEach(modal => {
         Modal.getOrCreateInstance(modal).show();
     });
 
     // Pages
-    route(page);
-
-    // Cookie Consent Dialog
-    initCookieConsent();
-
-    window.triggerNotification = triggerNotification;
+    deferIdle(() => route(page), 1000);
 });
+
+function deferIdle(fn: () => void, timeout = 2000): void {
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(fn);
+    } else {
+        setTimeout(fn, timeout);
+    }
+}

@@ -584,7 +584,7 @@ class RankCalculator
 			$playerData = RankingPlayer::fromGamePlayer($gamePlayer);
 
 			if (!isset($playerData->id_user) && $game->group !== null) {
-				$playerData->rank = $game->group->getPlayerByName($playerData->name)?->getSkill();
+				$playerData->rank = $this->getPlayerGroupRank($playerData, $game->group);
 			}
 			if ($gamePlayer->team->id !== $player->team->id || $game->mode?->isSolo()) {
 				$enemies[] = $playerData;

@@ -23,7 +23,7 @@ abstract class AbstractUserController extends Controller
 			if ($this->request->isAjax()) {
 				$this->params['errors'][] = 'User not found';
 				throw DispatchBreakException::create(
-					new ErrorResponse('User not found', ErrorType::NOT_FOUND, detail: $this->params['errors']),
+					new ErrorResponse('User not found', ErrorType::NOT_FOUND, values: $this->params['errors']),
 					404
 				);
 			}

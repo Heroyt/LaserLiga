@@ -30,4 +30,15 @@ class UserSettingsRequest
 	public string $type = '';
 	public string $seed = '';
 
+	public function setBirthday(\DateTimeImmutable|string|null $date): void
+	{
+		if ($date instanceof \DateTimeImmutable) {
+			$this->birthday = $date;
+		} elseif (is_string($date) && $date !== '') {
+			$this->birthday = new \DateTimeImmutable($date);
+		} else {
+			$this->birthday = null;
+		}
+	}
+
 }

@@ -229,7 +229,7 @@ class Arena extends BaseModel
 				ROOT,
 				App::getInstance()->getBaseUrl(),
 				$image
-			) . '" class="img-fluid arena-logo" alt="' . $this->name . ' - Logo" id="arena-logo-' . $this->id . '" />';
+			) . '" class="img-fluid arena-logo" alt="' . $this->name . ' - Logo" id="arena-logo-' . $this->id . '" style="view-transition-name: arena-'.$this->id.'-logo;" />';
 	}
 
 	public function queryPlayers(?DateTimeInterface $date = null, ?string $system = null, bool $cache = true): Fluent {

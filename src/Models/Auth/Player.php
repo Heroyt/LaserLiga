@@ -20,6 +20,7 @@ use App\Services\GenderService;
 use App\Services\NameInflectionService;
 use DateTimeInterface;
 use Dibi\Row;
+use Lsr\Caching\Cache;
 use Lsr\Core\App;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
@@ -210,8 +211,27 @@ class Player extends BaseModel implements PlayerInterface
 
 	public function getTitle(): Title {
 		if (!isset($this->title)) {
-			$titleProvider = App::getServiceByType(TitleProvider::class);
-			$this->title = first($titleProvider->getForUser($this));
+			$cache = App::getService('cache');
+			assert($cache instanceof Cache);
+			$this->title = $cache->load(
+				'user.' . $this->id . '.title',
+				function () {
+					/** @var TitleProvider $titleProvider */
+					$titleProvider = App::getServiceByType(TitleProvider::class);
+					$titles = $titleProvider->getForUser($this);
+					if (empty($titles)) {
+						return null;
+					}
+					return first($titles);
+				},
+				[
+					$cache::Tags => [
+						'user/' . $this->id . '/achievements',
+						'user/' . $this->id . '/title',
+						$this::TABLE . '/' . $this->id,
+					],
+				]
+			);
 		}
 		return $this->title;
 	}

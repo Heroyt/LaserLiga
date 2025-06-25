@@ -139,7 +139,7 @@ class GroupController extends Controller
 			$tmpdir = TMP_DIR . 'thumbsGroup/';
 			$cache = $request->getGet('nocache') === null;
 			$thumbnail = $this->thumbnailGenerator->generateThumbnail(
-				'thumb_' . $this->params->group->id,
+				'thumb_' . $this->params->group->id.'_'.$this->getApp()->translations->getLangId(),
 				'pages/game/groupThumb',
 				$this->params,
 				$tmpdir,

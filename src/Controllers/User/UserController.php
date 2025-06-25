@@ -101,7 +101,7 @@ class UserController extends AbstractUserController
 			$tmpdir = TMP_DIR . 'thumbs/';
 			$cache = $request->getGet('nocache') === null;
 			$thumbnail = $this->thumbnailGenerator->generateThumbnail(
-				$user->player->getCode(),
+				$user->player->getCode().'_'.$this->getApp()->translations->getLangId(),
 				'pages/profile/thumb',
 				$this->params,
 				$tmpdir,
