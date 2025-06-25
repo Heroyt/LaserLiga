@@ -157,7 +157,10 @@
 {define resultsHeader}
     <div class="results-header text-start row">
         <div class="col-12">
-            <h1 class="text-center fs-3">{_'Výsledky laser game'}</h1>
+            <div class="text-end d-lg-none mb-3">
+                {include '../../components/languageSwitch.latte', 'btn btn-white btn-lg'}
+            </div>
+            <h1 class="text-center fs-2">{_'Výsledky laser game'}</h1>
             <p class="visually-hidden">{$gameDescription}</p>
         </div>
         <div class="col-12 mt-2 game-head">
