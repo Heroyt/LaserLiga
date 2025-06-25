@@ -14,7 +14,6 @@ use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\CSRFCheck;
 use App\Core\Middleware\LoggedIn;
 use App\Core\Middleware\NoCacheControl;
-use App\Core\Middleware\RedirectFromDefaultToDesiredLang;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Middleware\DefaultLanguageRedirect;
@@ -30,18 +29,18 @@ $loggedIn = new LoggedIn($auth);
 $withoutCookies = new WithoutCookies();
 $noCacheControl = new NoCacheControl();
 
-$langGroup = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new RedirectFromDefaultToDesiredLang(), new ContentLanguageHeader());
+$langGroup = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
 
 $routes = $langGroup->group('')
-               ->middlewareAll($loggedIn, $noCacheControl)
-               ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
+                    ->middlewareAll($loggedIn, $noCacheControl)
+                    ->get('/dashboard', [Dashboard::class, 'show'])->name('dashboard');
 
 $privacyGroup = $routes->group('user/privacy')
                        ->get('agree', [UserPrivacyController::class, 'agree']);
 
 $publicUserRoutes = $langGroup->group('/user')
-                         ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
-                         ->get('/leaderboard/{arenaId}', [LeaderboardController::class, 'show'])->name(
+                              ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
+                              ->get('/leaderboard/{arenaId}', [LeaderboardController::class, 'show'])->name(
 		'player-leaderboard-arena'
 	);
 

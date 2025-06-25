@@ -8,7 +8,6 @@ use App\Controllers\Admin\TournamentStats;
 use App\Core\Middleware\CanManageArena;
 use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\LoggedIn;
-use App\Core\Middleware\RedirectFromDefaultToDesiredLang;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Middleware\DefaultLanguageRedirect;
@@ -16,7 +15,7 @@ use Lsr\Core\Routing\Router;
 
 /** @var Router $this */
 
-$langGroup = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new RedirectFromDefaultToDesiredLang(), new ContentLanguageHeader());
+$langGroup = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
 $adminGroup = $langGroup->group('/admin');
 
 $auth = App::getService('auth');
@@ -49,17 +48,17 @@ $arenasAdminGroup->group('{arenaId}')
                  ->post('apikey', [Arenas::class, 'generateApiKey'])->middleware($manageArena);
 
 $arenasAdminPhotosGroup = $arenasAdminGroup->group('{arenaId}/photos')
-	->middlewareAll($photosMiddleware)
-	->get('', [PhotosController::class, 'show'])->name('admin-arenas-photos')
-	->post('download', [PhotosController::class, 'downloadPhotos'])
-	->post('{code}', [PhotosController::class, 'assignPhotos'])
-	->post('unassign', [PhotosController::class, 'unassignPhotos'])
-	->post('secret', [PhotosController::class, 'setPhotoSecret'])
-	->post('public', [PhotosController::class, 'setPhotoPublic'])
-	->post('{code}/mail', [PhotosController::class, 'sendPhotoMail'])
-	->delete('delete/{photoId}', [PhotosController::class, 'deletePhoto'])
-	->delete('', [PhotosController::class, 'deletePhotos'])
-	->post('upload', [PhotosController::class, 'uploadPhotos']);
+                                           ->middlewareAll($photosMiddleware)
+                                           ->get('', [PhotosController::class, 'show'])->name('admin-arenas-photos')
+                                           ->post('download', [PhotosController::class, 'downloadPhotos'])
+                                           ->post('{code}', [PhotosController::class, 'assignPhotos'])
+                                           ->post('unassign', [PhotosController::class, 'unassignPhotos'])
+                                           ->post('secret', [PhotosController::class, 'setPhotoSecret'])
+                                           ->post('public', [PhotosController::class, 'setPhotoPublic'])
+                                           ->post('{code}/mail', [PhotosController::class, 'sendPhotoMail'])
+                                           ->delete('delete/{photoId}', [PhotosController::class, 'deletePhoto'])
+                                           ->delete('', [PhotosController::class, 'deletePhotos'])
+                                           ->post('upload', [PhotosController::class, 'uploadPhotos']);
 
 
 $adminGroup->group('games')

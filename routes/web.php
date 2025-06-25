@@ -15,11 +15,11 @@ use App\Controllers\PrivacyController;
 use App\Controllers\PushController;
 use App\Controllers\Questionnaire;
 use App\Controllers\TournamentController;
+use App\Controllers\TrackingRedirect;
 use App\Controllers\WellKnownController;
 use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\CSRFCheck;
 use App\Core\Middleware\NoCacheControl;
-use App\Core\Middleware\RedirectFromDefaultToDesiredLang;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Middleware\LoggedOut;
 use Lsr\Core\Auth\Services\Auth;
@@ -39,9 +39,12 @@ $noCacheControl = new NoCacheControl();
 $this->get('mailtest/123', [MailTestController::class, 'sendTestMail']);
 $this->get('mailtest/123/show', [MailTestController::class, 'showTestMail']);
 
-$routes = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new RedirectFromDefaultToDesiredLang(), new ContentLanguageHeader());
+$routes = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
 
 $routes->get('', [Index::class, 'show'])->name('index');
+
+$routes->get('dotaznik', [TrackingRedirect::class, 'dotaznik']);
+$routes->get('dotaznik/{source}', [TrackingRedirect::class, 'dotaznik']);
 
 $routes->get('zasady-zpracovani-osobnich-udaju', [PrivacyController::class, 'index'])
        ->name('privacy-policy');

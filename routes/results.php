@@ -12,7 +12,6 @@ use App\Controllers\Games\GroupController;
 use App\Core\Middleware\CacheControl;
 use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\NoCacheControl;
-use App\Core\Middleware\RedirectFromDefaultToDesiredLang;
 use Lsr\Core\Middleware\DefaultLanguageRedirect;
 use Lsr\Core\Routing\Router;
 
@@ -23,7 +22,7 @@ $cacheControl7days = new CacheControl(604800);
 $cacheControl1Day = new CacheControl(86400);
 
 // /game
-$routes = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new RedirectFromDefaultToDesiredLang(), new ContentLanguageHeader());
+$routes = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
 $gameGroup = $routes->group('game');
 
 $gameGroup->get('', [GameController::class, 'show'])->name('game-empty');    // This will result in HTTP 404 error
@@ -85,8 +84,8 @@ $gameGroupIdGroup->post('photos/hidden', [GroupController::class, 'makeHidden'])
 // Alias to 'game' group
 // /g
 $routes->group('g')
-     ->get('', [GameController::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
-     ->get('abcdefghij', [Dashboard::class, 'bp'])
-     ->get('{code}', [GameController::class, 'show'])->name('game-alias')->middleware($noCacheControl)
-     ->get('{code}/photos', [GameController::class, 'downloadPhotos'])
-     ->get('{code}/thumb', [GameController::class, 'thumb'])->middleware($cacheControl7days);
+       ->get('', [GameController::class, 'show'])->name('game-empty-alias') // This will result in HTTP 404 error
+       ->get('abcdefghij', [Dashboard::class, 'bp'])
+       ->get('{code}', [GameController::class, 'show'])->name('game-alias')->middleware($noCacheControl)
+       ->get('{code}/photos', [GameController::class, 'downloadPhotos'])
+       ->get('{code}/thumb', [GameController::class, 'thumb'])->middleware($cacheControl7days);
