@@ -1,4 +1,7 @@
+@import '~@fortawesome/fontawesome-free/scss/mixins';
+@import '~@fortawesome/fontawesome-free/scss/functions';
 @import '~@fortawesome/fontawesome-free/scss/variables';
+
 $icons: (
 	'angle-down': $fa-var-angle-down,
 	'angle-left': $fa-var-angle-left,
@@ -16,6 +19,7 @@ $icons: (
 	'circle-info': $fa-var-circle-info,
 	'circle-question': $fa-var-circle-question,
 	'clipboard': $fa-var-clipboard,
+	'clipboard-question': $fa-var-clipboard-question,
 	'cog': $fa-var-cog,
 	'cookie-bite': $fa-var-cookie-bite,
 	'discord': $fa-var-discord,
