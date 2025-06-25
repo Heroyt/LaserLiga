@@ -54,18 +54,28 @@
 {/define}
 
 {define content}
+    {do Netpromotion\Profiler\Profiler::start('Render header')}
     {include resultsHeader}
+    {do Netpromotion\Profiler\Profiler::finish('Render header')}
     {if $game->mode?->isTeam() && $game->mode?->settings?->partTeams}
+        {do Netpromotion\Profiler\Profiler::start('Render teams')}
         {include resultsTeams}
+        {do Netpromotion\Profiler\Profiler::finish('Render teams')}
     {/if}
     {if $game->mode?->settings?->partPlayers}
+        {do Netpromotion\Profiler\Profiler::start('Render players')}
         {include resultsPlayers}
+        {do Netpromotion\Profiler\Profiler::finish('Render players')}
     {/if}
     {if $game->mode?->settings?->partHits}
+        {do Netpromotion\Profiler\Profiler::start('Render hits')}
         {include resultsHits}
+        {do Netpromotion\Profiler\Profiler::finish('Render hits')}
     {/if}
     {if count($photos) > 0}
+        {do Netpromotion\Profiler\Profiler::start('Render photos')}
         {include '../../components/photos.latte', $photos, $game, $canDownloadPhotos, $downloadLink, $downloadFileName}
+        {do Netpromotion\Profiler\Profiler::finish('Render photos')}
     {/if}
 
     <div class="modal fade" id="leaderboard-modal" tabindex="-1">
@@ -483,7 +493,6 @@
                     <div class="position">
                         {$iterator->counter}.
                     </div>
-
                     {ifset $player->user}
                         {$player->user->getAvatar()|noescape}
                     {/ifset}

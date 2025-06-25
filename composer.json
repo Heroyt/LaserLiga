@@ -64,7 +64,8 @@
 		"matomo/matomo-php-tracker": "^3.3",
 		"maestroerror/php-heic-to-jpg": "^1.0",
 		"league/commonmark": "^2.6",
-		"elgigi/commonmark-emoji": "^2.0"
+		"elgigi/commonmark-emoji": "^2.0",
+		"netpromotion/profiler": "^1.1"
   },
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",

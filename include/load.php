@@ -18,7 +18,8 @@ use Lsr\Core\App;
 use Lsr\Core\Tracy\RoutingTracyPanel;
 use Lsr\Core\Tracy\TranslationTracyPanel;
 use Lsr\Db\DB;
-use Lsr\Helpers\Tools\Timer;
+use Netpromotion\Profiler\Adapter\TracyBarAdapter;
+use Netpromotion\Profiler\Profiler;
 use Nette\Bridges\DITracy\ContainerPanel;
 use Nette\Bridges\HttpTracy\SessionPanel;
 use Nette\Mail\Mailer;
@@ -35,10 +36,12 @@ date_default_timezone_set('Europe/Prague');
 // Autoload libraries
 require_once ROOT . 'vendor/autoload.php';
 
+Profiler::enable();
+Profiler::start('Request');
+Profiler::start('Load');
+
 // Load all globals and constants
 require_once ROOT . 'include/config.php';
-
-Timer::start('core.init');
 
 if (!is_dir(LOG_DIR) && !mkdir(LOG_DIR) && (!file_exists(LOG_DIR) || !is_dir(LOG_DIR))) {
 	throw new RuntimeException(sprintf('Directory "%s" was not created', LOG_DIR));
@@ -57,7 +60,8 @@ Debugger::getBar()
 //        ->addPanel(new CacheTracyPanel())
 //        ->addPanel(new DbTracyPanel())
         ->addPanel(new TranslationTracyPanel())
-        ->addPanel(new RoutingTracyPanel());
+        ->addPanel(new RoutingTracyPanel())
+        ->addPanel(new TracyBarAdapter());
 
 Loader::init();
 
@@ -72,19 +76,19 @@ if (isset($_COOKIE['tracy-debug']) && $auth->loggedIn() && $auth->getLoggedIn()-
 if (isset($config['ENV']['TRACY_MAIL']) && is_string($config['ENV']['TRACY_MAIL'])) {
 	$logger = Debugger::getLogger();
 	assert($logger instanceof Logger);
-	$logger->email = (string) $config['ENV']['TRACY_MAIL'];
+	$logger->email = (string)$config['ENV']['TRACY_MAIL'];
 	$mailer = App::getService('mailer');
 	assert($mailer instanceof Mailer);
-	$logger->mailer = static function($message, string $email) use ($mailer, $logger) {
+	$logger->mailer = static function ($message, string $email) use ($mailer, $logger) {
 		$mailSender = new MailSender($mailer, $logger->email, App::getInstance()->getBaseUrl());
 		$mailSender->send($message, $email);
 	};
 }
 
-define('CHECK_TRANSLATIONS', (bool) ($config['General']['TRANSLATIONS'] ?? false));
+define('CHECK_TRANSLATIONS', (bool)($config['General']['TRANSLATIONS'] ?? false));
 define(
 	'TRANSLATIONS_COMMENTS',
-	(bool) ($config['General']['TRANSLATIONS_COMMENTS'] ?? false)
+	(bool)($config['General']['TRANSLATIONS_COMMENTS'] ?? false)
 );
 
 if (defined('INDEX') && PHP_SAPI !== 'cli') {
@@ -94,11 +98,11 @@ if (defined('INDEX') && PHP_SAPI !== 'cli') {
 	}
 	if (Debugger::isEnabled()) {
 		Debugger::getBar()
-				->addPanel(new CacheTracyPanel(App::getService('cache'))) // @phpstan-ignore-line
+		        ->addPanel(new CacheTracyPanel(App::getService('cache'))) // @phpstan-ignore-line
 		        ->addPanel(new ContainerPanel(App::getContainer()))
 		        ->addPanel(new LattePanel(App::getService('templating.latte.engine'))) // @phpstan-ignore-line
 		        ->addPanel(new SessionPanel());
 	}
 }
 
-Timer::stop('core.init');
+Profiler::finish('Load');
