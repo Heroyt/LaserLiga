@@ -173,6 +173,8 @@ services:
 			- addExtension(@commonmark.extension.emoji)
 	commonmark: League\CommonMark\MarkdownConverter(@commonmark.environment)
 
+	reporting: App\Services\Reporting
+
 search:
 	controllers:
 		in: '%constants.appDir%src/Controllers'

@@ -4,20 +4,21 @@ declare(strict_types=1);
 namespace App\Cron;
 
 use App\Models\Arena;
-use App\Reporting\DailyArenaReport;
+use App\Reporting\MonthlyArenaReport;
 use App\Services\Reporting;
 use Orisai\Scheduler\Job\Job;
 use Orisai\Scheduler\Job\JobLock;
 
-final readonly class ArenaReportJob implements Job
+final readonly class ArenaMonthlyReportJob implements Job
 {
 
 	public function __construct(
 		private Reporting $reporting,
-	){}
+	) {
+	}
 
 	public function getName(): string {
-		return 'Arena report';
+		return 'Arena monthly report';
 	}
 
 	public function run(JobLock $lock): void {
@@ -28,13 +29,13 @@ final readonly class ArenaReportJob implements Job
 			}
 
 			$recipients = [
-				['email' => $arena->contactEmail, 'name' => $arena->name],
 				['email' => 'heroyt@hotnet.cz', 'name' => 'Heroyt'], // TODO: Refactor to more global setting
+				['email' => $arena->contactEmail, 'name' => $arena->name],
 			];
 
 			if (isset($arena->reportEmails)) {
 				$emails = explode(',', $arena->reportEmails);
-				foreach($emails as $email) {
+				foreach ($emails as $email) {
 					$email = trim($email);
 					if ($email === '') {
 						continue;
@@ -42,11 +43,15 @@ final readonly class ArenaReportJob implements Job
 					$recipients[] = ['email' => $email];
 				}
 			}
+
+			$today = new \DateTimeImmutable('- 1 month');
+
 			$this->reporting->sendReport(
-				new DailyArenaReport(
+				new MonthlyArenaReport(
 					recipients: $recipients,
-					arena:      $arena,
-					date:       new \DateTimeImmutable(),
+					arena     : $arena,
+					month     : (int)$today->format('m'),
+					year      : (int)$today->format('Y'),
 				),
 			);
 		}

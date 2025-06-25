@@ -1,0 +1,25 @@
+{templateType App\Reporting\MonthlyArenaReport}
+{layout '../@layout.txt.latte'}
+
+{var int $gamesDiff = $games - $lastMonthGames}
+{var int $gamesDiffYear = $games - $lastYearGames}
+{var int $playersDiff = $players - $lastMonthPlayers}
+{var int $playersDiffYear = $players - $lastYearPlayers}
+
+{block body}
+    LaserLiga report {\Lsr\Core\Constants::MONTH_NAMES[$month]} {$year}
+
+    Odehráno her
+    - Her: {$games}
+        - {if $gamesDiff >= 0}+{/if}{$gamesDiff} {_'proti předchozímu měsíci', context: 'report'}
+        - {if $gamesDiffYear >= 0}+{/if}{$gamesDiffYear} proti {\Lsr\Core\Constants::MONTH_NAMES[$month]} {$year-1}
+    - Hráčů: {$players}
+        - {if $playersDiff >= 0}+{/if}{$playersDiff} {_'proti předchozímu měsíci', context: 'report'}
+        - {if $playersDiffYear >= 0}+{/if}{$playersDiffYear} proti {\Lsr\Core\Constants::MONTH_NAMES[$month]} {$year-1}
+
+    Počet hráčů v průběhu měsíce:
+    {foreach $weeklyPlayers as $date => $count}
+        {var int $diff = $count - ($lastYearWeeklyPlayers[$date] ?? 0)}
+        - {$date}: {$count} ({if $diff >= 0}+{/if}{$diff} proti předchozímu roku)
+    {/foreach}
+{/block}

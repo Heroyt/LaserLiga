@@ -1,9 +1,5 @@
+{templateType App\Reporting\DailyArenaReport}
 {layout '../@layout.latte'}
-
-{varType \DateTimeInterface $date}
-{varType int $games}
-{varType int $players}
-{varType App\GameModels\Vest[][] $vests}
 
 {block body}
     <h1>LaserLiga report {$date->format('j. n. Y')}</h1>

@@ -1,0 +1,18 @@
+{templateType App\Reporting\WeeklyArenaReport}
+{layout '../@layout.txt.latte'}
+
+{var int $gamesDiff = $games - $lastWeekGames}
+{var int $playersDiff = $players - $lastWeekPlayers}
+
+{block body}
+    LaserLiga report {$dateFrom->format('j. n.')} - {$dateTo->format('j. n. Y')}
+
+    Odehráno her
+    - Her: {$games} ({if $gamesDiff >= 0}+{/if}{$gamesDiff} {_'srovnání s minulým týdnem', context: 'report'})
+    - Hráčů: {$players} ({if $playersDiff >= 0}+{/if}{$playersDiff} {_'srovnání s minulým týdnem', context: 'report'})
+
+    Počet hráčů v průběhu týdne:
+    {foreach $dailyPlayers as $day => $count}
+        - {$weekDays[$day]}: {$count}
+    {/foreach}
+{/block}

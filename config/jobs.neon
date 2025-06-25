@@ -11,6 +11,12 @@ scheduler:
 		arenaReport:
 			expression: 0 23 * * *
 			callback: [@cron.arenaReport, 'run']
+		arenaWeekly:
+			expression: 0 7 * * 1
+			callback: [@cron.arenaWeeklyReport, 'run']
+		arenaMonthly:
+			expression: 2 7 1 * *
+			callback: [@cron.arenaMonthlyReport, 'run']
 		regressionUpdate:
 			expression: 0 3 * * *
 			callback: [@cron.regressionUpdate, 'run']
@@ -60,8 +66,11 @@ services:
 		alteration: true
 
 	# Cron jobs
-	cron.logArchive: App\Cron\LogArchiveJob
 	cron.arenaReport: App\Cron\ArenaReportJob
+	cron.arenaWeeklyReport: App\Cron\ArenaWeeklyReportJob
+	cron.arenaMonthlyReport: App\Cron\ArenaMonthlyReportJob
+
+	cron.logArchive: App\Cron\LogArchiveJob
 	cron.regressionUpdate: App\Cron\RegressionUpdateJob
 	cron.playerRankUpdate: App\Cron\PlayerRankUpdateJob
 	cron.playerAchievementCheck: App\Cron\PlayerAchievementCheckJob

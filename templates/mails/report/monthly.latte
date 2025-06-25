@@ -1,0 +1,79 @@
+{templateType App\Reporting\MonthlyArenaReport}
+{layout '../@layout.latte'}
+
+{var int $graphHeight = 300}
+{var int $gamesDiff = $games - $lastMonthGames}
+{var int $gamesDiffYear = $games - $lastYearGames}
+{var int $playersDiff = $players - $lastMonthPlayers}
+{var int $playersDiffYear = $players - $lastYearPlayers}
+{var int $maxPlayers = max($maxWeeklyPlayers, $maxLastYearWeeklyPlayers)}
+
+{block body}
+    <h1>LaserLiga report: {\Lsr\Core\Constants::MONTH_NAMES[$month]} {$year}</h1>
+    <h2>Odehráno her</h2>
+    <ul class="block-list">
+        <li>
+            <strong>Her:</strong> {$games}
+            <br>
+            <span {if $gamesDiff !== 0}style="color: {if $gamesDiff > 0}green{else}red{/if};"{/if}>
+                    {if $gamesDiff >= 0}+{/if}{$gamesDiff} {_'proti předchozímu měsíci', context: 'report'}
+                </span>
+            {if $lastYearGames > 0}
+                <br>
+                <span {if $gamesDiffYear !== 0}style="color: {if $gamesDiffYear > 0}green{else}red{/if};"{/if}>
+                    {if $gamesDiffYear >= 0}+{/if}{$gamesDiffYear} proti {\Lsr\Core\Constants::MONTH_NAMES[$month]} {$year-1}
+                </span>
+            {/if}
+        </li>
+        <li><strong>Hráčů:</strong> {$players}
+            <br>
+            <span {if $playersDiff !== 0}style="color: {if $playersDiff > 0}green{else}red{/if};"{/if}>
+                    {if $playersDiff >= 0}+{/if}{$playersDiff} {_'proti předchozímu měsíci', context: 'report'}
+                </span>
+            {if $lastYearGames > 0}
+                <br>
+                <span {if $playersDiffYear !== 0}style="color: {if $playersDiffYear > 0}green{else}red{/if};"{/if}>
+                    {if $playersDiffYear >= 0}+{/if}{$playersDiffYear} proti {\Lsr\Core\Constants::MONTH_NAMES[$month]} {$year-1}
+                </span>
+            {/if}
+        </li>
+    </ul>
+
+    <h2>Počet hráčů v průběhu měsíce{if $lastYearGames > 0} (červeně srovnání s předchozím rokem){/if}:</h2>
+    <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 16px;">
+        <tbody>
+        <tr>
+            {foreach $weeklyPlayers as $date => $count}
+                <td style="height: {$graphHeight}px; border: none;">
+                    {var int $height = (int) round($graphHeight * $count / $maxPlayers)}
+                    <div style="background-color: #1847d5; border: 1px solid #fff; height: {$height}px; margin-top: {$graphHeight - $height}px; width:100%;"></div>
+                </td>
+                <td n:if="$lastYearGames > 0" style="height: {$graphHeight}px; border: none;">
+                    {var int $lastYearCount = $lastYearWeeklyPlayers[$date] ?? 0}
+                    {do $height = (int) round($graphHeight * $lastYearCount / $maxPlayers)}
+                    <div style="background-color: #d5183b; border: 1px solid #fff; height: {$height}px; margin-top: {$graphHeight - $height}px; width:100%;"></div>
+                </td>
+            {/foreach}
+        </tr>
+        <tr>
+            {foreach $weeklyPlayers as $date => $count}
+                <td style="text-align: center; border: none; padding: 8px 16px;">
+                    {$count}
+                </td>
+                <td n:if="$lastYearGames > 0" style="text-align: center; border: none; padding: 8px 16px;">
+                    {$lastYearWeeklyPlayers[$date] ?? 0}
+                    <br>
+                    (minulý rok)
+                </td>
+            {/foreach}
+        </tr>
+        <tr>
+            <th n:foreach="$weeklyPlayers as $date => $count"
+                    {if $lastYearGames > 0}colspan="2"{/if}
+                    style="text-align: center; border: none; padding: 8px 16px;">
+                <strong>{$date}</strong>
+            </th>
+        </tr>
+        </tbody>
+    </table>
+{/block}

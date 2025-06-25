@@ -1,0 +1,59 @@
+{templateType App\Reporting\WeeklyArenaReport}
+{layout '../@layout.latte'}
+
+{var int $graphHeight = 300}
+{var int $maxPlayers = max($maxDailyPlayers, $maxLastWeekDailyPlayers)}
+{var int $gamesDiff = $games - $lastWeekGames}
+
+{block body}
+    <h1>LaserLiga report: týden {$dateFrom->format('j. n.')} - {$dateTo->format('j. n. Y')}</h1>
+    <h2>Odehráno her</h2>
+    <ul class="block-list">
+        <li>
+            <strong>Her:</strong> {$games}
+            <br>
+            <span {if $gamesDiff !== 0}style="color: {if $gamesDiff > 0}green{else}red{/if};"{/if}>{if $gamesDiff >= 0}+{/if}{$gamesDiff} {_'proti předchozímu týdnu', context: 'report'}</span>
+        </li>
+        {var int $playersDiff = $players - $lastWeekPlayers}
+        <li>
+            <strong>Hráčů:</strong> {$players}
+            <br>
+            <span {if $playersDiff !== 0}style="color: {if $playersDiff > 0}green{else}red{/if};"{/if}>{if $playersDiff >= 0}+{/if}{$playersDiff} {_'proti předchozímu týdnu', context: 'report'}</span>
+        </li>
+    </ul>
+
+    <h2>Počet hráčů v průběhu týdne{if $lastWeekGames > 0} (červeně srovnání s předchozím týdnem){/if}:</h2>
+    <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 16px;">
+        <tbody>
+        <tr>
+            {foreach $dailyPlayers as $day => $count}
+                <td style="height: {$graphHeight}px; border: none;">
+                    {var int $height = (int) round($graphHeight * $count / $maxPlayers)}
+                    <div style="background-color: #1847d5; border: 1px solid #fff; height: {$height}px; margin-top: {$graphHeight - $height}px; width:100%;"></div>
+                </td>
+                <td n:if="$lastWeekGames > 0" style="height: {$graphHeight}px; border: none;">
+                    {do $height = (int) round($graphHeight * ($lastWeekDailyPlayers[$day] ?? 0) / $maxPlayers)}
+                    <div style="background-color: #d5183b; border: 1px solid #fff; height: {$height}px; margin-top: {$graphHeight - $height}px; width:100%;"></div>
+                </td>
+            {/foreach}
+        </tr>
+        <tr>
+            {foreach $dailyPlayers as $day => $count}
+                <td style="text-align: center; border: none; padding: 8px 16px;">
+                    {$count}
+                </td>
+                <td n:if="$lastWeekGames > 0" style="text-align: center; border: none; padding: 8px 16px;">
+                    {$lastWeekDailyPlayers[$day] ?? 0}
+                </td>
+            {/foreach}
+        </tr>
+        <tr>
+            <th n:foreach="$dailyPlayers as $day => $count"
+                    {if $lastWeekGames > 0}colspan="2"{/if}
+                    style="text-align: center; border: none; padding: 8px 16px;">
+                {$weekDays[$day]}
+            </th>
+        </tr>
+        </tbody>
+    </table>
+{/block}

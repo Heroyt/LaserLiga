@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\PlayerFactory;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
 use App\Models\DataObjects\Game\LeaderboardRecord;
 use DateTimeInterface;
+use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
 
@@ -91,6 +93,114 @@ class ArenaStatsAggregator
 			             'arena/' . $arena->id . '/games/' . $date->format('Y-m-d'),
 		             )
 		             ->count();
+	}
+
+	public function getArenaGameCount(Arena $arena, DateTimeInterface $dateFrom, DateTimeInterface $dateTo): int {
+		return $arena->queryGames()
+		             ->where('DATE([start]) BETWEEN %d AND %d', $dateFrom, $dateTo)
+		             ->cacheTags(
+			             'games',
+			             'games-' . $dateFrom->format('Y-m-d') . '-' . $dateTo->format('Y-m-d'),
+			             'arena/' . $arena->id . '/games/' . $dateFrom->format('Y-m-d') . '/' . $dateTo->format(
+				             'Y-m-d'
+			             ),
+		             )
+		             ->count();
+	}
+
+	public function getArenaPlayerCount(Arena $arena, DateTimeInterface $dateFrom, DateTimeInterface $dateTo): int {
+		$query = $arena->queryGames()
+		               ->where('DATE([start]) BETWEEN %d AND %d', $dateFrom, $dateTo)
+		               ->cacheTags(
+			               'games',
+			               'games-' . $dateFrom->format('Y-m-d') . '-' . $dateTo->format('Y-m-d'),
+			               'arena/' . $arena->id . '/games/' . $dateFrom->format('Y-m-d') . '/' . $dateTo->format(
+				               'Y-m-d'
+			               ),
+		               );
+		/** @var array<string,array<int,Row>> $rows */
+		$rows = $query->fetchAssoc('system|id_game');
+		$gameIds = array_map(static fn($games) => array_keys($games), $rows);
+
+		return PlayerFactory::queryPlayers($gameIds)
+		                    ->cacheTags(
+			                    'players',
+			                    'games-' . $dateFrom->format('Y-m-d') . '-' . $dateTo->format('Y-m-d'),
+			                    'arena/' . $arena->id . '/games/' . $dateFrom->format('Y-m-d') . '/' . $dateTo->format(
+				                    'Y-m-d'
+			                    ),
+		                    )
+		                    ->count();
+	}
+
+	/**
+	 * Get player counts for each day in the given date range.
+	 *
+	 * @return array<string, int>
+	 */
+	public function getArenaPlayerCounts(Arena $arena, DateTimeInterface $dateFrom, DateTimeInterface $dateTo): array {
+		$counts = [];
+		$rows = DB::select(null, 'DATE([start]) AS [date], COUNT(*) AS [count]')
+		            ->from(
+			            '%sql as [players]',
+			            PlayerFactory::queryPlayersWithGames()
+				            ->where('id_arena = %i', $arena->id)
+				            ->where('DATE([start]) BETWEEN %d AND %d', $dateFrom, $dateTo)
+		            )
+		            ->groupBy('DATE([start])')
+		            ->cacheTags(
+			            'players',
+			            'games-' . $dateFrom->format('Y-m-d') . '-' . $dateTo->format('Y-m-d'),
+			            'arena/' . $arena->id . '/games/' . $dateFrom->format('Y-m-d') . '/' . $dateTo->format(
+				            'Y-m-d'
+			            ),
+		            )
+		            ->fetchAll();
+		$date = $dateFrom;
+		while ($date <= $dateTo) {
+			$dateStr = $date->format('Y-m-d');
+			$counts[$dateStr] = 0;
+			$date = $date->modify('+1 day');
+		}
+		foreach($rows as $row) {
+			$dateStr = $row->date->format('Y-m-d');
+			$counts[$dateStr] = (int)$row->count;
+		}
+		return $counts;
+	}
+
+	/**
+	 * Get player counts for each day in the given date range.
+	 *
+	 * @return array<string, int>
+	 */
+	public function getArenaGameCounts(Arena $arena, DateTimeInterface $dateFrom, DateTimeInterface $dateTo): array {
+		$counts = [];
+		$rows = DB::select(null, 'DATE([start]) AS [date], COUNT(*) AS [count]')
+		            ->from(
+			            '%sql as [players]',
+			            $arena->queryGames()->where('DATE([start]) BETWEEN %d AND %d', $dateFrom, $dateTo)
+		            )
+		            ->groupBy('DATE([start])')
+		            ->cacheTags(
+			            'players',
+			            'games-' . $dateFrom->format('Y-m-d') . '-' . $dateTo->format('Y-m-d'),
+			            'arena/' . $arena->id . '/games/' . $dateFrom->format('Y-m-d') . '/' . $dateTo->format(
+				            'Y-m-d'
+			            ),
+		            )
+		            ->fetchAll();
+		$date = $dateFrom;
+		while ($date <= $dateTo) {
+			$dateStr = $date->format('Y-m-d');
+			$counts[$dateStr] = 0;
+			$date = $date->modify('+1 day');
+		}
+		foreach($rows as $row) {
+			$dateStr = $row->date->format('Y-m-d');
+			$counts[$dateStr] = (int)$row->count;
+		}
+		return $counts;
 	}
 
 	public function getArenaDatePlayerCount(Arena $arena, DateTimeInterface $date): int {
