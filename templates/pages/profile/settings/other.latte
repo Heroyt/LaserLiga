@@ -37,30 +37,6 @@
         document.cookie = `mode=` + currentColorScheme;
     });
 </script>
-{var string $selectedLang = $page->app->translations->getLangId()}
-{var string $selectedCountry = $page->app->translations->getCountry()}
 <div class="text-center">
-    <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
-            aria-expanded="false">
-        <img src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]|escapeUrl}.png"
-             style="height: 2rem; width: 2rem;"
-             data-lang="{$selectedLang}"
-             data-country="{$selectedCountry}"
-             alt="{\Lsr\Core\Constants::COUNTRIES[$selectedCountry]}">
-    </button>
-    <ul class="dropdown-menu bg-white" style="min-width: 5rem;left:auto;margin-left: 2.8rem;top:3rem;">
-        {foreach $page->app->translations->supportedLanguages as $lang => $country}
-            {continueIf $selectedLang === $lang}
-            <li>
-                <a class="dropdown-item"
-                   href="{link ['lang', $lang, 'redirect' => $page->app->getRequest()->getPath()]}"
-                   data-set-lang="{$lang}">
-                    <img class="mx-auto d-block"
-                         src="{getUrl}assets/flags/{\Lsr\Core\Constants::COUNTRIES[$country]|escapeUrl}.png"
-                         style="height: 2rem; width: 2rem;"
-                         alt="{\Lsr\Core\Constants::COUNTRIES[$country]}">
-                </a>
-            </li>
-        {/foreach}
-    </ul>
+    {include '../../../components/languageSwitch.latte'}
 </div>
