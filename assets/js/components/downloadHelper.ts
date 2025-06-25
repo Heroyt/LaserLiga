@@ -4,6 +4,11 @@ export function initDownloadButton(button : HTMLAnchorElement) {
     const downloadingContent = button.querySelector<HTMLSpanElement>('.downloading');
     let downloadCheckTimer : NodeJS.Timeout;
 
+    let manualDownload : HTMLElement|null = null;
+    if (button.dataset.manualDownload) {
+        manualDownload = document.querySelector<HTMLElement>(button.dataset.manualDownload);
+    }
+
     // Update the href adding the download token to the query parameters
     const token = generateDownloadToken();
     url.searchParams.set('token', token);
@@ -16,6 +21,10 @@ export function initDownloadButton(button : HTMLAnchorElement) {
         if (notDownloadingContent && downloadingContent) {
             notDownloadingContent.classList.add('d-none');
             downloadingContent.classList.remove('d-none');
+        }
+
+        if (manualDownload) {
+            manualDownload.classList.remove('d-none');
         }
 
         let attempts = 'timeout' in button.dataset ? parseInt(button.dataset.timeout) : 60;

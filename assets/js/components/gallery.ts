@@ -1,4 +1,4 @@
-import {initNativeDialog} from "./dialog";
+import { initNativeDialog } from "./dialog";
 
 const supportsWebp = document.createElement("canvas").toDataURL("image/webp").indexOf("data:image/webp") === 0;
 
@@ -114,5 +114,18 @@ export function initGallery(photos: NodeListOf<HTMLImageElement>, dialog: HTMLDi
             })
         dialog.showModal();
         currentImage = i;
+    }
+}
+
+export function initLazyPhoto(wrapper : HTMLElement|Document = document) {
+    for (const photo of wrapper.querySelectorAll<HTMLElement>('.lazy-photo')) {
+        const img = photo.querySelector<HTMLImageElement>('img');
+        if (img.complete) {
+            photo.classList.add('complete');
+            return;
+        }
+        img.addEventListener('load', () => {
+            photo.classList.add('complete');
+        });
     }
 }
