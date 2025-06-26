@@ -194,15 +194,15 @@ export function initPopovers(dom: HTMLElement | Document) {
     [...popoverTriggerList].map(popoverTriggerEl => new Popover(popoverTriggerEl));
 }
 
-export function initAutoSaveForm() {
+export function initAutoSaveForm(dom : HTMLElement | Document = document) {
     // Autosave form
-    (document.querySelectorAll('form.autosave') as NodeListOf<HTMLFormElement>).forEach(form => {
+    (dom.querySelectorAll('form.autosave') as NodeListOf<HTMLFormElement>).forEach(form => {
         const method = form.method.toUpperCase() as RequestMethod;
         const url = form.action;
 
         let lastData = new FormData(form);
         let autosaving = 0;
-        const lastSave = document.querySelectorAll(`.last-save[data-target="#${form.id}"]`) as NodeListOf<HTMLDivElement>;
+        const lastSave = dom.querySelectorAll(`.last-save[data-target="#${form.id}"]`) as NodeListOf<HTMLDivElement>;
         const saveButtons = form.querySelectorAll(`[data-action="autosave"]`) as NodeListOf<HTMLButtonElement>;
         const save = (smallLoader = true) => {
             let newData = new FormData(form);
