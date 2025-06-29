@@ -1,0 +1,131 @@
+tables:
+  App\Models\Blog\Post:
+    order: 2
+    definition: '''
+      (
+        `id_post` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        `title` varchar(255) NOT NULL,
+        `slug` varchar(255) NOT NULL,
+        `id_author` int(11) unsigned NOT NULL,
+        `abstract` text NOT NULL,
+        `markdownContent` longtext NOT NULL,
+        `htmlContent` longtext NOT NULL,
+        `image` varchar(255) DEFAULT NULL,
+        `imageAlt` varchar(255) DEFAULT NULL,
+        `status` enum('draft','published','archived') NOT NULL DEFAULT 'draft',
+        `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` datetime DEFAULT NULL,
+        PRIMARY KEY (`id_post`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    '''
+    indexes:
+      -
+        name: 'slug'
+        columns: ['slug']
+        unique: true
+    foreignKeys:
+      -
+        column: id_author
+        refTable: App\Models\Auth\User
+        refColumn: id_user
+        onUpdate: 'CASCADE'
+        onDelete: 'CASCADE'
+  App\Models\Blog\Tag:
+    order: 1
+    definition: '''
+      (
+        `id_tag` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        `name` varchar(100) NOT NULL,
+        `slug` varchar(100) NOT NULL,
+        `icon` varchar(255) DEFAULT NULL,
+        `id_parent_tag` int(11) unsigned DEFAULT NULL,
+        PRIMARY KEY (`id_tag`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    '''
+    indexes:
+      -
+        name: 'slug'
+        columns: ['slug']
+        unique: true
+      -
+        name: 'id_parent_tag'
+        columns: ['id_parent_tag']
+    foreignKeys:
+      -
+        column: id_parent_tag
+        refTable: App\Models\Blog\Tag
+        refColumn: id_tag
+        onUpdate: 'CASCADE'
+        onDelete: 'SET NULL'
+  App\Models\Blog\PostTranslation:
+    order: 3
+    definition: '''
+      (
+        `id_post_translation` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        `id_post` int(11) unsigned NOT NULL,
+        `language` varchar(10) NOT NULL,
+        `title` varchar(255) NOT NULL,
+        `abstract` text NOT NULL,
+        `markdownContent` longtext NOT NULL,
+        `htmlContent` longtext NOT NULL,
+        `imageAlt` varchar(255) DEFAULT NULL,
+        PRIMARY KEY (`id_post_translation`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    '''
+    indexes:
+      -
+        name: 'post_language'
+        columns: ['id_post', 'language']
+        unique: true
+    foreignKeys:
+      -
+        column: id_post
+        refTable: App\Models\Blog\Post
+        refColumn: id_post
+        onUpdate: 'CASCADE'
+        onDelete: 'CASCADE'
+  App\Models\Blog\TagTranslation:
+    order: 2
+    definition: '''
+      (
+        `id_tag_translation` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        `id_tag` int(11) unsigned NOT NULL,
+        `language` varchar(10) NOT NULL,
+        `name` varchar(100) NOT NULL,
+        PRIMARY KEY (`id_tag_translation`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    '''
+    indexes:
+      -
+        name: 'tag_language'
+        columns: ['id_tag', 'language']
+        unique: true
+    foreignKeys:
+      -
+        column: id_tag
+        refTable: App\Models\Blog\Tag
+        refColumn: id_tag
+        onUpdate: 'CASCADE'
+        onDelete: 'CASCADE'
+  blog_post_tags:
+    order: 3
+    definition: '''
+      (
+        `id_post` int(11) unsigned NOT NULL,
+        `id_tag` int(11) unsigned NOT NULL,
+        PRIMARY KEY (`id_post`, `id_tag`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    '''
+    foreignKeys:
+      -
+        column: id_post
+        refTable: App\Models\Blog\Post
+        refColumn: id_post
+        onUpdate: 'CASCADE'
+        onDelete: 'CASCADE'
+      -
+        column: id_tag
+        refTable: App\Models\Blog\Tag
+        refColumn: id_tag
+        onUpdate: 'CASCADE'
+        onDelete: 'CASCADE'

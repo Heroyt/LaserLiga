@@ -9,6 +9,7 @@ includes:
 	- config/migrations/tournaments/league.neon
 	- config/migrations/tournaments/tournaments.neon
 	- config/migrations/gameGroups.neon
+	- config/migrations/blog.neon
 tables:
 	page_info:
 		order: 0
