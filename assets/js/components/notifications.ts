@@ -1,5 +1,5 @@
-import {Toast} from 'bootstrap';
-import {ErrorResponse, ResponseError} from '../api/client';
+import { Toast } from "bootstrap";
+import { ErrorResponse, ResponseError } from "../api/client";
 
 export type ToastData = {
 	title?: string,
@@ -49,38 +49,50 @@ export function triggerNotification(data: ToastData, autohide : boolean = true):
 export async function triggerNotificationError(error : Error|ResponseError, autohide: boolean = true) : Promise<void> {
 	console.error(error);
 	if (error instanceof ResponseError) {
-		const data = await error.data as ErrorResponse | object;
-		if ('title' in data && 'detail' in data) {
-			triggerNotification(
-				{
-					type: 'danger',
-					title: data.title,
-					content: data.detail,
-				},
-				autohide,
-			);
-			return;
-		}
-		if ('title' in data) {
-			triggerNotification(
-				{
-					type: 'danger',
-					content: data.title,
-				},
-				autohide,
-			);
-			return;
-		}
-		if ('error' in data && typeof data.error === 'string') {
-			triggerNotification(
-				{
-					type: 'danger',
-					content: data.error,
-				},
-				autohide,
-			);
-			return;
-		}
+		const data = await error.data as ErrorResponse | object | string;
+        if (typeof data === 'object') {
+            if ("title" in data && "detail" in data) {
+                triggerNotification(
+                    {
+                        type: "danger",
+                        title: data.title,
+                        content: data.detail
+                    },
+                    autohide
+                );
+                return;
+            }
+            if ("title" in data) {
+                triggerNotification(
+                    {
+                        type: "danger",
+                        content: data.title
+                    },
+                    autohide
+                );
+                return;
+            }
+            if ("error" in data && typeof data.error === "string") {
+                triggerNotification(
+                    {
+                        type: "danger",
+                        content: data.error
+                    },
+                    autohide
+                );
+                return;
+            }
+        }
+        if (typeof data === 'string' && data.length > 0) {
+            triggerNotification(
+                {
+                    type: 'danger',
+                    content: data,
+                },
+                autohide
+            );
+            return;
+        }
 	}
 
 	// Generic error

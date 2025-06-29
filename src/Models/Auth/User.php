@@ -6,6 +6,7 @@ use App\Models\Arena;
 use App\Models\Auth\Enums\ConnectionType;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Lsr\Core\Auth\Models\UserType as BaseUserType;
 use Lsr\Core\Models\WithCacheClear;
 use Lsr\Db\DB;
 use Lsr\Orm\Attributes\NoDB;
@@ -27,6 +28,10 @@ class User extends \Lsr\Core\Auth\Models\User
 	public ?User $parent = null;
 
 	public int $id_user_type; // TODO: Figure out the error when this is deleted
+
+	/** @var UserType */
+	#[ManyToOne(class: UserType::class)]
+	public BaseUserType $type;
 
 	/** @var ModelCollection<UserConnection> */
 	#[OneToMany(class: UserConnection::class)]

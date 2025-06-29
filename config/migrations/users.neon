@@ -10,6 +10,28 @@ tables:
           PRIMARY KEY (`id_user_type`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 		'''
+	user_type_hierarchy:
+		order: 1
+		definition: '''
+		(
+			`id_user_type` int(11) unsigned NOT NULL,
+			`id_managed_type` int(11) unsigned NOT NULL,
+			PRIMARY KEY (`id_user_type`,`id_managed_type`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_user_type
+				refTable: Lsr\Core\Auth\Models\UserType
+				refColumn: id_user_type
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_managed_type
+				refTable: Lsr\Core\Auth\Models\UserType
+				refColumn: id_user_type
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
 	rights:
 		order: 0
 		definition: '''

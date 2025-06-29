@@ -1,0 +1,44 @@
+{layout '../../../@layout.latte'}
+{templateType App\Templates\Admin\ArenaUsersParameters}
+
+{block content}
+    <p class="text-start">
+        <a href="{link ['admin', 'arenas']}" class="btn btn-warning">
+            {faSolid 'angle-left'}
+            <span>{lang 'Zpět'}</span>
+        </a>
+    </p>
+
+    <h2 class="text-center">{lang 'Uživatelé arény'}</h2>
+
+    <div class="my-4">
+        <label for="user-search" class="form-label">
+            {faSolid 'magnifying-glass'} {_'Hledat'}
+        </label>
+        <input type="search" name="user-search" id="user-search" class="form-control" data-arena="{$arena->id}">
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">{lang 'Uživatel'}</th>
+                    <th scope="col">{lang 'Kód hráče'}</th>
+                    <th scope="col">{lang 'E-mail'}</th>
+                    <th scope="col">{lang 'Role'}</th>
+                    <th scope="col">{lang 'Spravované arény'}</th>
+                </tr>
+            </thead>
+            <tbody id="user-list">
+
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const successMessage = {_'Uživatel byl úspěšně uložen.'}
+        const arenaId = {$arena->id};
+        const managedArenas = {array_values($user->managedArenas->models)|json|noescape};
+        const managedUserTypes = {array_values($user->type->managedTypes->models)|json|noescape};
+    </script>
+{/block}

@@ -1,7 +1,19 @@
-import { fetchDelete, fetchPost, SuccessResponse } from "../client";
+import { fetchDelete, fetchGet, fetchPost, SuccessResponse } from "../client";
+import { Arena } from "../../interfaces/arena";
+import { UserType } from "../../interfaces/users";
 
 export type ApiKeyInvalidateResponse = { status: string };
 export type GenerateApiKeyResponse = { key: string, id: number, name: string };
+export type ArenaFoundUser = {
+    id: number;
+    name: string;
+    email: string;
+    code : string;
+    arena: Arena;
+    userType: UserType;
+    managedArenas: Arena[];
+    canManage: boolean;
+};
 
 export async function generateApiKey(idArena: number): Promise<GenerateApiKeyResponse> {
     return fetchPost(`/admin/arenas/${idArena}/apiKey`);
@@ -49,4 +61,12 @@ export async function uploadPhotos(idArena:number, files: FileList|File) : Promi
         }
     }
     return fetchPost(`/admin/arenas/${idArena}/photos/upload`, formData)
+}
+
+export async function searchArenaUsers(idArena : number, search : string) : Promise<ArenaFoundUser[]> {
+    return fetchGet(`/admin/arenas/${idArena}/users/find`, {search});
+}
+
+export async function updateArenaUser(idArena: number, idUser: number, data: {userTypeId?: number, managedArenaIds?: number[]}): Promise<SuccessResponse> {
+    return fetchPost(`/admin/arenas/${idArena}/users/${idUser}`, data);
 }

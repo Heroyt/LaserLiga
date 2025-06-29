@@ -1,6 +1,7 @@
 <?php
 
 use App\Controllers\Admin\Arena\PhotosController;
+use App\Controllers\Admin\Arena\UsersController;
 use App\Controllers\Admin\Arenas;
 use App\Controllers\Admin\Debug;
 use App\Controllers\Admin\Games;
@@ -46,6 +47,12 @@ $arenasAdminGroup->group('{arenaId}')
                  ->post('edit', [Arenas::class, 'process'])->middleware($manageArena)
                  ->post('image', [Arenas::class, 'imageUpload'])->middleware($manageArena)
                  ->post('apikey', [Arenas::class, 'generateApiKey'])->middleware($manageArena);
+
+$arenasAdminGroup->group('{arenaId}/users')
+                 ->middlewareAll($viewArena, new LoggedIn($auth, ['manage-arena-users']))
+                 ->get('', [UsersController::class, 'show'])->name('admin-arenas-users')
+                 ->get('find', [UsersController::class, 'findUsers'])
+                 ->post('{player}', [UsersController::class, 'updateUser']);
 
 $arenasAdminPhotosGroup = $arenasAdminGroup->group('{arenaId}/photos')
                                            ->middlewareAll($photosMiddleware)

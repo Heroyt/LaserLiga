@@ -150,5 +150,11 @@ export default function route(pageInfo: PageInfo): void {
                     module.default();
                 });
             break;
+        case 'admin-arenas-users':
+            import('./pages/admin/arenaUsers')
+                .then(module => {
+                    module.default();
+                });
+            break;
     }
 }
