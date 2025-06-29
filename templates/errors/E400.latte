@@ -1,3 +1,9 @@
 {layout '../@layout.latte'}
 
-{define content}<h1>400 - {lang 'Neplatný požadavek', context: 'errors'}</h1>{/define}
+{varType \Throwable|null $exception}
+
+{define content}
+    <h1>400 - {lang 'Neplatný požadavek', context: 'errors'}</h1>
+    <!-- {$exception?->getMessage()} -->
+    <!-- {$exception?->getTraceAsString()} -->
+{/define}
