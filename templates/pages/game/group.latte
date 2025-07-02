@@ -41,7 +41,6 @@
         </div>
     </header>
 
-
     {if count($photos) > 0}
         <section id="photos" class="my-3">
             {include '../../components/photos.latte', $photos, first($group->getGames()), $canDownloadPhotos, $downloadLink, $downloadFileName}
