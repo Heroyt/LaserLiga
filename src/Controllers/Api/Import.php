@@ -164,7 +164,7 @@ class Import extends ApiController
 			}
 		}
 
-		if (isset($_GET['save'])) {
+		if (!isset($_GET['nosave'])) {
 			try {
 				$game->calculateSkills();
 				if ($game->save() === false) {
