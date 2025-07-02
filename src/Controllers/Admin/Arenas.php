@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 use App\Models\Arena;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Arena\ArenaApiKeyRow;
+use App\Request\Admin\Arena\ArenaApiKeyRequest;
 use App\Request\Admin\Arena\ArenaDropboxRequest;
 use App\Request\Admin\Arena\ArenaInfoRequest;
 use App\Request\Admin\Arena\ArenaPhotoRequest;
@@ -144,13 +145,17 @@ class Arenas extends Controller
 		}
 
 		if ($dropbox->dropbox_directory !== null) {
-			$arena->dropbox->directory = !empty(trim($dropbox->dropbox_directory)) ? trim($dropbox->dropbox_directory) : '/';
+			$arena->dropbox->directory = !empty(trim($dropbox->dropbox_directory)) ? trim(
+				$dropbox->dropbox_directory
+			) : '/';
 		}
 		if ($dropbox->dropbox_app_id !== null) {
 			$arena->dropbox->appId = !empty(trim($dropbox->dropbox_app_id)) ? trim($dropbox->dropbox_app_id) : null;
 		}
 		if ($dropbox->dropbox_app_secret !== null) {
-			$arena->dropbox->secret = !empty(trim($dropbox->dropbox_app_secret)) ? trim($dropbox->dropbox_app_secret) : null;
+			$arena->dropbox->secret = !empty(trim($dropbox->dropbox_app_secret)) ? trim(
+				$dropbox->dropbox_app_secret
+			) : null;
 		}
 
 		if (!$arena->save()) {
@@ -158,6 +163,34 @@ class Arenas extends Controller
 				new ErrorResponse(lang('Nepodařilo se uložit arénu'), ErrorType::DATABASE),
 				$request,
 				500
+			);
+		}
+
+		try {
+			$apiKeys = $mapper->mapBodyToObject(ArenaApiKeyRequest::class);
+		} catch (ExceptionInterface|\Lsr\ObjectValidation\Exceptions\ValidationException $e) {
+			return $this->processRespond(
+				new ErrorResponse(
+					           $e->getMessage(),
+					           ErrorType::VALIDATION,
+					exception: $e
+				),
+				$request,
+				400
+			);
+		}
+
+		foreach ($apiKeys->key as $key) {
+			DB::update(
+				'api_keys',
+				[
+					'name' => $key->name,
+				],
+				[
+					'id_key = %i AND id_arena = %i',
+					$key->id,
+					$arena->id,
+				],
 			);
 		}
 

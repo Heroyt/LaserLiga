@@ -8,6 +8,6 @@ class ArenaApiKeyRow
 
 	public int $id_key;
 	public string $key;
-	public string $name;
+	public ?string $name;
 
 }

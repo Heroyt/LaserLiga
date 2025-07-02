@@ -75,11 +75,13 @@
                         <input type="text" readonly="readonly"
                                class="form-control col-9 text-center font-monospace bg-light-grey text-black"
                                id="key-{$id}"
+                                name="key[{$id}][key]"
                                value="{$apiKey->key}">
                         <button type="button" data-action="copy-to-clipboard" data-target="#key-{$id}"
                                 class="btn btn-secondary">
                             {faSolid 'clipboard'}
                         </button>
+                        <input type="hidden" name="key[{$id}][id]" value="{$id}">
                         <div class="form-floating">
                             <input type="text" name="key[{$id}][name]" class="form-control" id="key-{$id}-name"
                                    placeholder="{lang 'Název'}" required value="{$apiKey->name}">
