@@ -17,6 +17,7 @@ use Lsr\Caching\Cache;
 use Lsr\Db\DB;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
+use Lsr\Orm\ModelRepository;
 use Nette\Caching\Cache as CacheParent;
 use Throwable;
 
@@ -95,7 +96,7 @@ readonly class PlayerUserService
 		$player->save();
 
 		$this->updateUserTrophies($user);
-		$player::clearInstances();
+		ModelRepository::clearInstances($player::class);
 		$player::clearModelCache();
 
 		$this->rankCalculator->recalculateUsersRanksFromDifference();
