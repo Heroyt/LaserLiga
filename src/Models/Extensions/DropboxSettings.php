@@ -35,7 +35,7 @@ class DropboxSettings implements InsertExtendInterface
 		public ?string            $secret = null,
 		#[SensitiveParameter, JsonExclude]
 		public ?string            $refreshToken = null,
-		#[OA\Property]
+		#[OA\Property(type: 'string', format: 'date-time')]
 		public ?DateTimeInterface $apiKeyValid = null,
 		#[SensitiveParameter, JsonExclude, StringLength(min:43, max: 128)]
 		public ?string            $authChallenge = null,

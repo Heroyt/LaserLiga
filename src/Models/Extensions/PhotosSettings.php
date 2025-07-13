@@ -21,9 +21,9 @@ final class PhotosSettings implements InsertExtendInterface
 		public ?string $email = null,
 		#[OA\Property]
 		public ?string $mailText = null,
-		#[OA\Property]
+		#[OA\Property(type: 'string', format: 'date-time')]
 		public ?\DateInterval $unassignedPhotoTTL = null,
-		#[OA\Property]
+		#[OA\Property(type: 'string', format: 'date-time')]
 		public ?\DateInterval $assignedPhotoTTL = null,
 	) {
 	}
