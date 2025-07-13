@@ -5,6 +5,8 @@ namespace App\Services;
 use App\GameModels\Factory\GameFactory;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
+use App\Models\Blog\Post;
+use App\Models\Blog\Tag;
 use App\Models\DataObjects\Game\MinimalGameRow;
 use App\Models\Events\Event;
 use App\Models\GameGroup;
@@ -29,6 +31,7 @@ class SitemapGenerator
 	public const string SITEMAP_INDEX_FILE = ROOT . 'sitemap_index.xml';
 	public const string SITEMAP_FILE       = ROOT . 'sitemap.xml';
 	public const string SITEMAP_GAMES_FILE = ROOT . 'sitemap_games.xml';
+	public const string SITEMAP_BLOG_FILE = ROOT . 'sitemap_blog.xml';
 	public const string SITEMAP_USERS_FILE = ROOT . 'sitemap_users.xml';
 
 	private const int GAMES_LIMIT = 5000;
@@ -71,10 +74,15 @@ class SitemapGenerator
 	 * @var Event[]
 	 */
 	private static array $events;
+	/** @var Post[] */
+	private static array $posts;
+	/** @var Tag[] */
+	private static array $tags;
 
 	public static function generate(): string {
 		self::generateGamesSitemap();
 		self::generateUsersSitemap();
+		self::generateBlogSitemap();
 		self::generateSitemap();
 		return self::generateIndex();
 	}
@@ -129,6 +137,54 @@ class SitemapGenerator
 		return $content;
 	}
 
+	public static function generateBlogSitemap(): string {
+		$xml = new SimpleXMLElement(
+			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>'
+		);
+
+		$routesRaw = Router::$availableRoutes;
+		$routes = [];
+		self::getRoutes($routesRaw, $routes);
+
+		foreach ($routes as $route) {
+			if (!($route instanceof Route) || $route->getMethod() !== RequestMethod::GET) {
+				continue;
+			}
+			$path = array_values($route->getPath());
+
+			if (preg_match('/\[lang(?:=[^\[]*)?\]/', $path[0])) {
+				array_shift($path);
+			}
+
+			if (($path[0] ?? '') !== 'blog' || (($path[1] ?? '') === 'admin')) {
+				continue;
+			}
+
+			if (($path[1] ?? '') === 'post' && ($path[2] ?? '') === '{slug}' && count($path) === 3) {
+				self::updateBlogPosts($xml, $path);
+				continue;
+			}
+
+			if (($path[1] ?? '') === 'tag' && ($path[2] ?? '') === '{slug}' && count($path) === 3) {
+				self::updateBlogTags($xml, $path);
+				continue;
+			}
+
+			try {
+				$elem = self::findOrCreateUrl($path, $xml);
+				self::updateUrl($elem);
+			} catch (InvalidLanguageException) {
+
+			}
+		}
+
+		$content = $xml->asXML();
+		assert($content !== false);
+		file_put_contents(self::SITEMAP_BLOG_FILE, $content);
+
+		return $content;
+	}
+
 	/**
 	 * @param array<RouteInterface|RouteInterface[]> $routes
 	 * @param RouteInterface[]                       $out
@@ -159,7 +215,41 @@ class SitemapGenerator
 		foreach (self::$groups as $group) {
 			$path[2] = $group->encodedId;
 			$element = self::findOrCreateUrl($path, $parent);
-			self::updateUrl($element, count($path) > 3 ? '0.6' : '0.8');
+			self::updateUrl($element, count($path) > 3 ? '0.6' : '0.8', lastMod: $group->getLastDate()?->format('Y-m-d'));
+		}
+	}
+
+	/**
+	 * @param SimpleXMLElement $parent
+	 * @param string[]         $path
+	 *
+	 * @return void
+	 * @throws ValidationException
+	 */
+	private static function updateBlogPosts(SimpleXMLElement $parent, array $path): void {
+		self::$posts ??= Post::getAll();
+
+		foreach (self::$posts as $post) {
+			$path[2] = $post->slug;
+			$element = self::findOrCreateUrl($path, $parent);
+			self::updateUrl($element, '1.0', 'yearly', $post->updatedAt?->format('Y-m-d'));
+		}
+	}
+
+	/**
+	 * @param SimpleXMLElement $parent
+	 * @param string[]         $path
+	 *
+	 * @return void
+	 * @throws ValidationException
+	 */
+	private static function updateBlogTags(SimpleXMLElement $parent, array $path): void {
+		self::$tags ??= Tag::getAll();
+
+		foreach (self::$tags as $post) {
+			$path[2] = $post->slug;
+			$element = self::findOrCreateUrl($path, $parent);
+			self::updateUrl($element, '0.9', 'monthly');
 		}
 	}
 
@@ -184,7 +274,7 @@ class SitemapGenerator
 		$new = $parent->addChild('url');
 		assert($new !== null);
 		$new->addChild('loc', $url);
-		$new->addChild('lastmod', date('c'));
+		$new->addChild('lastmod', date('Y-m-d'));
 		if ($includeLang) {
 			$translations = App::getInstance()->translations;
 			foreach ($translations->supportedLanguages as $lang => $country) {
@@ -199,7 +289,7 @@ class SitemapGenerator
 
 	private static function updateUrl(SimpleXMLElement $element, string $priority = '1.0', string $changeFreq = 'monthly', ?string $lastMod = null, bool $includeLang = true): void {
 		$hasModifiedAt = $hasPriority = $hasChangeFrequency = false;
-		$lastMod ??= date('c');
+		$lastMod ??= date('Y-m-d');
 		foreach ($element->children() as $name => $child) {
 			switch ($name) {
 				case 'lastmod':
@@ -239,7 +329,7 @@ class SitemapGenerator
 		foreach (self::getLastGames() as $row) {
 			$path[1] = $row->code;
 			$element = self::findOrCreateUrl($path, $parent);
-			self::updateUrl($element, '0.6', 'never', $row->end->format('c'));
+			self::updateUrl($element, '0.6', 'never', $row->end->format('Y-m-d'));
 
 			$imgPath = $path;
 			$imgPath[2] = 'thumb.png';
@@ -353,6 +443,7 @@ class SitemapGenerator
 			}
 			switch ($path[0]) {
 				case 'game':
+				case 'blog':
 					break;
 				case 'arena':
 					if (!isset($path[1])) {
@@ -561,6 +652,9 @@ class SitemapGenerator
 		$new = $xmlIndex->addChild('sitemap');
 		assert($new !== null);
 		$new->addChild('loc', str_replace(ROOT, $baseUrl, self::SITEMAP_USERS_FILE));
+		$new = $xmlIndex->addChild('sitemap');
+		assert($new !== null);
+		$new->addChild('loc', str_replace(ROOT, $baseUrl, self::SITEMAP_BLOG_FILE));
 
 		$content = $xmlIndex->asXML();
 		assert($content !== false);
