@@ -6,6 +6,7 @@ namespace App\Cli\Commands;
 
 use App\Services\SitemapGenerator;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressIndicator;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -25,6 +26,7 @@ class GenerateSitemapCommand extends Command
 		$this->addOption('sitemap', 's', InputOption::VALUE_NONE, 'Generate base sitemap');
 		$this->addOption('games', 'g', InputOption::VALUE_NONE, 'Generate games sitemap');
 		$this->addOption('users', 'u', InputOption::VALUE_NONE, 'Generate users sitemap');
+		$this->addOption('blog', 'b', InputOption::VALUE_NONE, 'Generate blog sitemap');
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -32,21 +34,42 @@ class GenerateSitemapCommand extends Command
 		$sitemap = $input->getOption('sitemap');
 		$games = $input->getOption('games');
 		$users = $input->getOption('users');
+		$blog = $input->getOption('blog');
+
+		if (!$index && !$sitemap && !$games && !$users && !$blog) {
+			$index = true;
+			$sitemap = true;
+			$games = true;
+			$users = true;
+			$blog = true;
+		}
+
+		$progressIndicator = new ProgressIndicator($output);
 
 		if ($index) {
+			$progressIndicator->start('Generating sitemap index...');
 			SitemapGenerator::generateIndex();
+			$progressIndicator->finish('Index generated');
 		}
 		if ($sitemap) {
+			$progressIndicator->start('Generating base sitemap...');
 			SitemapGenerator::generateSitemap();
+			$progressIndicator->finish('Base sitemap generated');
 		}
 		if ($games) {
+			$progressIndicator->start('Generating games sitemap...');
 			SitemapGenerator::generateGamesSitemap();
+			$progressIndicator->finish('Games sitemap generated');
 		}
 		if ($users) {
+			$progressIndicator->start('Generating users sitemap...');
 			SitemapGenerator::generateUsersSitemap();
+			$progressIndicator->finish('Users sitemap generated');
 		}
-		if (!$index && !$sitemap && !$games && !$users) {
-			SitemapGenerator::generate();
+		if ($blog) {
+			$progressIndicator->start('Generating blog sitemap...');
+			SitemapGenerator::generateBlogSitemap();
+			$progressIndicator->finish('Blog sitemap generated');
 		}
 		return Command::SUCCESS;
 	}
