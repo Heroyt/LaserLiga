@@ -42,7 +42,7 @@ class FontAwesomeManager
         file_put_contents($this->file, $serialized);
 
         // Save CSS
-        $content = "@import '~@fortawesome/fontawesome-free/scss/variables';\n\$icons: (\n";
+        $content = "@import '~@fortawesome/fontawesome-free/scss/mixins';\n@import '~@fortawesome/fontawesome-free/scss/functions';\n@import '~@fortawesome/fontawesome-free/scss/variables';\n\$icons: (\n";
         $icons = array_unique(
             array_merge(
                 $collection->solid,
