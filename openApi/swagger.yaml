@@ -418,7 +418,7 @@ paths:
       parameters:
         -
           name: codes
-          in: path
+          in: query
           description: 'List of game codes to process'
           required: false
           schema:
@@ -427,7 +427,7 @@ paths:
               type: string
         -
           name: date
-          in: path
+          in: query
           description: 'Filter games by date'
           required: false
           schema:
@@ -435,42 +435,42 @@ paths:
             format: date
         -
           name: user
-          in: path
+          in: query
           description: 'Filter games by user Id'
           required: false
           schema:
             type: integer
         -
           name: limit
-          in: path
+          in: query
           description: 'Limit number of processed games'
           required: false
           schema:
             type: integer
         -
           name: offset
-          in: path
+          in: query
           description: 'Offset number of processed games'
           required: false
           schema:
             type: integer
         -
           name: rankable
-          in: path
+          in: query
           description: 'Filter only rankable game modes'
           required: false
           schema:
             type: boolean
         -
           name: hasuser
-          in: path
+          in: query
           description: "Filter only games with registered users. Combine with 'since'."
           required: false
           schema:
             type: boolean
         -
           name: since
-          in: path
+          in: query
           description: "Starting date. Combine with 'hasuser'."
           required: false
           schema:
@@ -478,7 +478,7 @@ paths:
             format: date
         -
           name: rankonly
-          in: path
+          in: query
           description: 'If true, only recalculate rank change, but not the actual players\'' skills.'
           required: false
           schema:
@@ -500,7 +500,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   '/api/games/{code}/skills':
-    get:
+    post:
       tags:
         - Games
       summary: 'Recalculate Game Skill'
@@ -2605,7 +2605,8 @@ components:
           type: string
           nullable: true
         apiKeyValid:
-          type: DateTimeInterface
+          type: string
+          format: date-time
           nullable: true
       type: object
     PhotosSettings:
@@ -2622,10 +2623,12 @@ components:
           type: string
           nullable: true
         unassignedPhotoTTL:
-          type: DateInterval
+          type: string
+          format: date-time
           nullable: true
         assignedPhotoTTL:
-          type: DateInterval
+          type: string
+          format: date-time
           nullable: true
       type: object
     MusicMode:

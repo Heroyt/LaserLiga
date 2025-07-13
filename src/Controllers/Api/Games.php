@@ -445,63 +445,63 @@ class Games extends ApiController
 		OA\Parameter(
 			name       : "codes",
 			description: "List of game codes to process",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'array', items: new OA\Items(type: 'string'))
 		),
 		OA\Parameter(
 			name       : "date",
 			description: "Filter games by date",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'string', format: 'date')
 		),
 		OA\Parameter(
 			name       : "user",
 			description: "Filter games by user Id",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'integer')
 		),
 		OA\Parameter(
 			name       : "limit",
 			description: "Limit number of processed games",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'integer')
 		),
 		OA\Parameter(
 			name       : "offset",
 			description: "Offset number of processed games",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'integer')
 		),
 		OA\Parameter(
 			name       : "rankable",
 			description: "Filter only rankable game modes",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'boolean')
 		),
 		OA\Parameter(
 			name       : "hasuser",
 			description: "Filter only games with registered users. Combine with 'since'.",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'boolean')
 		),
 		OA\Parameter(
 			name       : "since",
 			description: "Starting date. Combine with 'hasuser'.",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'string', format: 'date')
 		),
 		OA\Parameter(
 			name       : "rankonly",
 			description: "If true, only recalculate rank change, but not the actual players\' skills.",
-			in         : "path",
+			in         : "query",
 			required   : false,
 			schema     : new OA\Schema(type: 'boolean')
 		),
