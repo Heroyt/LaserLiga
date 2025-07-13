@@ -86,12 +86,10 @@ tables:
             `privacy_version` tinyint(5) unsigned DEFAULT NULL,
             `privacy_confirmed` datetime DEFAULT NULL,
             `privacy_notification_version` tinyint(5) DEFAULT NULL,
-			PRIMARY KEY (`id_user`),
-			UNIQUE KEY `email` (`email`),
-			KEY `id_user_type` (`id_user_type`),
-			KEY `id_parent` (`id_parent`),
-			CONSTRAINT `users_ibfk_1` FOREIGN KEY (`id_user_type`) REFERENCES `user_types` (`id_user_type`) ON UPDATE CASCADE,
-			CONSTRAINT `users_ibfk_2` FOREIGN KEY (`id_parent`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+            `first_name` varchar(50) DEFAULT NULL,
+            `last_name` varchar(50) DEFAULT NULL,
+            `phone` varchar(20) DEFAULT NULL,
+			PRIMARY KEY (`id_user`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
 		modifications:
@@ -107,6 +105,10 @@ tables:
 				- 'ADD `privacy_version` tinyint(5) unsigned DEFAULT NULL'
 				- 'ADD `privacy_confirmed` datetime DEFAULT NULL'
 				- 'ADD `privacy_notification_version` tinyint(5) DEFAULT NULL'
+			0.3:
+				- 'ADD `first_name` varchar(50) DEFAULT NULL'
+				- 'ADD `last_name` varchar(50) DEFAULT NULL'
+				- 'ADD `phone` varchar(20) DEFAULT NULL'
 		indexes:
 			-
 				name: 'email'

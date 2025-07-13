@@ -263,4 +263,8 @@ class Player extends BaseModel implements PlayerInterface
 	public function instrumentalNickname(): string {
 		return NameInflectionService::instrumental($this->nickname);
 	}
+
+	public function getUrl() : string {
+		return App::getLink(['user', $this->getCode()]);
+	}
 }

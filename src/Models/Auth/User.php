@@ -9,6 +9,7 @@ use DateTimeInterface;
 use Lsr\Core\Auth\Models\UserType as BaseUserType;
 use Lsr\Core\Models\WithCacheClear;
 use Lsr\Db\DB;
+use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
@@ -49,6 +50,9 @@ class User extends \Lsr\Core\Auth\Models\User
 	public ?int               $privacyVersion             = null;
 	public ?int               $privacyNotificationVersion = null;
 	public ?DateTimeInterface $privacyConfirmed           = null;
+
+	#[Instantiate]
+	public PersonalDetails $personalDetails;
 
 	/** @var int[] */
 	#[NoDB]
