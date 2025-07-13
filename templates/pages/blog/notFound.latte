@@ -1,0 +1,13 @@
+{layout '../../@layout.latte'}
+
+{block content}
+    <p>
+        <a href="{link 'blog'}" class="btn btn-secondary">
+            {faSolid 'angle-left'}
+            {_'Zpět'}
+        </a>
+    </p>
+    <h2>
+        {_'Příspěvek neexistuje', context: 'blog'}
+    </h2>
+{/block}

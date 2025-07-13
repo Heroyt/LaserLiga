@@ -1,0 +1,40 @@
+@import "../load";
+
+.blog-posts {
+	.blog-post-card {
+		i {
+			margin-right: 0.4rem;
+		}
+
+		a {
+			text-decoration: none;
+		}
+
+		.post-image {
+			height: 100%;
+			width: 100%;
+			object-fit: cover;
+		}
+
+		.card-title {
+			margin: 1rem 0 0.5rem;
+		}
+
+		.card-text {
+			margin-top: 1rem;
+		}
+
+			.author {
+				text-decoration: none;
+				line-height: 3rem;
+				vertical-align: middle;
+				color: var(--text);
+
+				.player-avatar {
+					height: 2rem;
+					border-radius: 50%;
+					margin-right: .25rem;
+				}
+		}
+	}
+}

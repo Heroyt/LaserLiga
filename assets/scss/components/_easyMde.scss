@@ -1,0 +1,7 @@
+@import 'easymde/dist/easymde.min.css';
+
+.cm-s-easymde {
+	.cm-link, .cm-url {
+		color: var(--bs-link-color);
+	}
+}

@@ -132,13 +132,14 @@ services:
 	arenaStats: App\Services\ArenaStatsAggregator
 	gameModeProvider: App\Services\GameModeProvider
 
-	result.parser: Lsr\Lg\Results\ResultsParser(['evo5' => @result.parser.evo5, 'evo6' => @result.parser.evo6])
-	results.generator: Lsr\Lg\Results\ResultsGenerator(['evo5' => @result.generator.evo5, 'evo6' => @result.generator.evo6])
-	results.logger: Lsr\Logging\Logger(%logger.dir%, 'results')
 	result.parser.evo5: App\Tools\ResultParsing\Evo5\ResultsParser(gameClass: App\GameModels\Game\Evo5\Game, logger: @results.logger)
 	result.parser.evo6: App\Tools\ResultParsing\Evo6\ResultsParser(gameClass: App\GameModels\Game\Evo6\Game, logger: @results.logger)
 	result.generator.evo5: Lsr\Lg\Results\LaserMaxx\Evo5\ResultsGenerator
 	result.generator.evo6: Lsr\Lg\Results\LaserMaxx\Evo6\ResultsGenerator
+
+	result.parser: Lsr\Lg\Results\ResultsParser(['evo5': @result.parser.evo5, 'evo6': @result.parser.evo6])
+	results.generator: Lsr\Lg\Results\ResultsGenerator(['evo5' => @result.generator.evo5, 'evo6' => @result.generator.evo6])
+	results.logger: Lsr\Logging\Logger(%logger.dir%, 'results')
 
 	thumbnails: App\Services\Thumbnails\ThumbnailGenerator
 	fontawesome: App\Services\FontAwesomeManager
@@ -162,6 +163,7 @@ services:
 	commonmark.extension.punctuation: League\CommonMark\Extension\SmartPunct\SmartPunctExtension
 	commonmark.extension.tables: League\CommonMark\Extension\Table\TableExtension
 	commonmark.extension.emoji: ElGigi\CommonMarkEmoji\EmojiExtension
+	commonmark.renderer.image: App\Commonmark\Renderer\ImageRenderer
 
 	commonmark.environment:
 		create: League\CommonMark\Environment\Environment(%commonmark%)
@@ -171,6 +173,7 @@ services:
 			- addExtension(@commonmark.extension.punctuation)
 			- addExtension(@commonmark.extension.tables)
 			- addExtension(@commonmark.extension.emoji)
+			- addRenderer('League\CommonMark\Extension\CommonMark\Node\Inline\Image', @commonmark.renderer.image, 1)
 	commonmark: League\CommonMark\MarkdownConverter(@commonmark.environment)
 
 	reporting: App\Services\Reporting

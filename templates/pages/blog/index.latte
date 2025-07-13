@@ -1,0 +1,47 @@
+{layout '../../@layout.latte'}
+{templateType App\Templates\Blog\BlogIndexParameters}
+
+{block addHead}
+    <meta property="og:title" content="{_'Laser blog', context: 'blog'}"/>
+    <meta property="og:description" content="{_'Zde najdete články a novinky z prostředí LaserLigy, od zapojených arén a vybraných hráčů.'|noescape}"/>
+    <meta property="og:site_name" content="LaserLiga"/>
+    <meta property="og:type" content="website"/>
+    <script type="application/ld+json">{$schema|json|noescape}</script>
+{/block}
+
+{block content}
+    <h1>
+        {_'Laser blog', context: 'blog'}
+    </h1>
+
+    <p n:if="$user !== null && $user->hasRight('write-blog')">
+        <a href="{link 'blog', 'admin', 'create'}" class="btn btn-success">
+            {faSolid 'plus'}
+            {_'Přidat článek'}
+        </a>
+    </p>
+
+    <p>
+        {_'Zde najdete články a novinky z prostředí LaserLigy, od zapojených arén a vybraných hráčů.'|noescape}
+    </p>
+
+    <div class="tags fs-5 mb-4">
+        <a n:foreach="$tags as $t" href="{$t->getUrl()}" class="badge text-bg-primary m-1 text-decoration-none" style="view-transition-name: blog-tag-{$t->id}">
+            {$t->getIconHtml()|noescape}
+            {$t->getTranslatedName()}
+        </a>
+    </div>
+
+    <div class="blog-posts mb-5">
+        {foreach $posts as $post}
+            {include '../../components/blog/postCard.latte', $post}
+            {else}
+            <div class="alert alert-danger" role="alert">
+                {faSolid 'circle-exclamation'}
+                {_'Zatím zde nejsou žádné články.'}
+            </div>
+        {/foreach}
+    </div>
+
+    {include ../../components/blog/blogInfo.latte}
+{/block}

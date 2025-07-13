@@ -1,0 +1,9 @@
+{layout '../../@layout.latte'}
+{templateType App\Templates\Blog\CreateParameters}
+
+{block content}
+    <h2>
+        {_'Nový příspěvek', context: 'blog'}
+    </h2>
+    {include 'form.latte', null, $tags}
+{/block}

@@ -1,0 +1,71 @@
+{parameters App\Models\Blog\Post $post}
+
+{var string $lang = Lsr\Core\App::getInstance()->translations->getLangId()}
+{cache 'blog-post-card-' . $post->id . '-' . $lang, tags: [App\Models\Blog\Post::TABLE . '/' . $post->id, 'blog-post-card', 'schema']}
+    <article class="blog-post-card card my-3 w-100">
+        <script type="application/ld+json">{$post->getSchema()|json|noescape}</script>
+        <div class="row g-0">
+            <a n:if="$post->image !== null" href="{$post->getUrl()}" class="col-md-4">
+                {img $post->image, 400, null, [], ['alt' => $post->getTranslatedImageAlt(), 'class' => 'post-image', 'loading' => 'lazy',  'style' => 'view-transition-name: blog-post-published-'.$post->id.';']}
+            </a>
+            <div n:class="$post->image !== null ? col-md-8, $post->image === null ? col-12, d-flex, align-items-center">
+                <div class="card-body px-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="published" style="view-transition-name: blog-post-published-{$post->id};">
+                            {faSolid 'calendar'}
+                            <span class="visually-hidden">
+                                {_'Publikováno', context: 'blog'}:
+                            </span>
+                            <time datetime="{$post->getPublishedAt()->format('c')}">
+                                {$post->getPublishedAt()|localDate: date: 'long'}
+                            </time>
+                        </div>
+                        <div n:if="$post->tags->count() > 0" class="tags" style="view-transition-name: blog-post-tags-{$post->id};">
+                            <span class="visually-hidden">
+                                {_'Značky', context: 'blog'}:
+                            </span>
+                            {foreach $post->tags as $tag}
+                                <a href="{link 'blog', 'tag', $tag->slug}" class="badge text-bg-secondary">
+                                    {$tag->getIconHtml()|noescape}
+                                    {$tag->getTranslatedName()}
+                                </a>
+                            {/foreach}
+                        </div>
+                    </div>
+                    <h2 class="card-title" style="view-transition-name: blog-post-title-{$post->id};">
+                        <a href="{$post->getUrl()}">
+                            {$post->getTranslatedTitle()}
+                        </a>
+                    </h2>
+                    <div class="author" style="view-transition-name: blog-post-author-{$post->id};">
+                            <span class="visually-hidden">
+                                {_'Autor', context: 'blog'}:
+                            </span>
+                        {if $post->author->player !== null}
+                            {$post->author->player->getAvatar()|noescape}
+                        {/if}
+                            {if !empty($post->author->personalDetails->firstName)}
+                            {$post->author->personalDetails->firstName}
+                        {/if}
+
+                        <span n:class="!empty($post->author->personalDetails->firstName) || !empty($post->author->personalDetails->lastName) ? fst-italic">
+                                {$post->author->name}
+                            </span>
+                            {if !empty($post->author->personalDetails->lastName)}
+                            {$post->author->personalDetails->lastName}
+                        {/if}
+                    </div>
+                    <p class="card-text" style="view-transition-name: blog-post-abstract-{$post->id};">
+                        {$post->getTranslatedAbstract()}
+                    </p>
+                    <p class="text-end">
+                        <a href="{$post->getUrl()}" class="btn btn-primary">
+                            {faSolid 'eye'}
+                            {_'Číst', context: 'blog'}
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </article>
+{/cache}

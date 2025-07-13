@@ -17,4 +17,9 @@ return [
 		'icon'  => $fontawesome->solid('ranking-star'),
 		'route' => 'player-leaderboard',
 	],
+	[
+		'name' => lang('Blog'),
+		'route' => 'blog_index',
+		'icon' => $fontawesome->solid('newspaper'),
+	],
 ];

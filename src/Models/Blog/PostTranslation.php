@@ -23,7 +23,7 @@ class PostTranslation extends BaseModel
 	public ?string $imageAlt = null;
 
 	public static function getForPostAndLanguage(Post $post, string $language) : ?self {
-		self::query()->where('[id_post] = %i AND [language] = %s', $post->id, $language)->first();
+		return self::query()->where('[id_post] = %i AND [language] = %s', $post->id, $language)->first();
 	}
 
 }

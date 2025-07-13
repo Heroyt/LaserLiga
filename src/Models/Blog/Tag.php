@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models\Blog;
 
 use App\Models\BaseModel;
+use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Orm\Attributes\Hooks\BeforeInsert;
@@ -48,6 +49,24 @@ class Tag extends BaseModel
 	public function getTranslatedName(): string {
 		$language = App::getInstance()->getLanguage()->id;
 		return TagTranslation::getForTagAndLanguage($this, $language)->name ?? $this->name;
+	}
+
+	public function getIconHtml() : string {
+		if (empty($this->icon)) {
+			return '';
+		}
+		if (str_starts_with($this->icon, 'fa-')) {
+			$icon = substr($this->icon, 3);
+			$fontawesome = App::getService('fontawesome');
+			assert($fontawesome instanceof FontAwesomeManager);
+			return '<i class="'.$fontawesome->solid($icon).'"></i>';
+		}
+
+		return svgIcon($this->icon, '', '1em');
+	}
+
+	public function getUrl() : string {
+		return App::getLink(['blog', 'tag', $this->slug]);
 	}
 
 }

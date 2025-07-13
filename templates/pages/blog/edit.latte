@@ -1,0 +1,12 @@
+{layout '../../@layout.latte'}
+{templateType App\Templates\Blog\EditParameters}
+
+{block content}
+    <h2>
+        {_'Editace příspěvku', context: 'blog'} #{$post->id}
+    </h2>
+    <p>
+        <a href="{$post->getUrl()}">{$post->getUrl()}</a>
+    </p>
+    {include 'form.latte', $post, $tags}
+{/block}

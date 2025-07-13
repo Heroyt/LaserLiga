@@ -1,0 +1,101 @@
+@import "../load";
+
+article {
+	max-width: 80ch;
+	margin: 0 auto;
+
+	header {
+		margin-bottom: 3rem;
+
+		h1 {
+			margin-bottom: .25rem;
+			font-size: calc(2rem + 1.5vw);
+		}
+
+		.published {
+			font-size: 1rem;
+			display: flex;
+			align-items: center;
+			min-height: 3rem;
+
+			@include media-breakpoint-down(sm) {
+				display: grid;
+				grid-template-columns: auto 1fr;
+			}
+
+			a {
+				text-decoration: none;
+			}
+
+			> * {
+				display: flex;
+				align-items: center;
+				min-height: 3rem;
+				padding: 0 1rem;
+				flex-wrap: wrap;
+
+				// noinspection Stylelint
+				> .icon-Vesta {
+					margin-right: .5rem;
+				}
+
+				i {
+					margin-right: 0.4rem;
+				}
+
+				.arena-logo {
+					height: 3rem;
+					width: auto;
+				}
+
+				&:not(:last-child) {
+					border-right: 1px solid var(--text);
+				}
+
+				&:first-child {
+					padding-left: 0;
+				}
+
+				@include media-breakpoint-down(sm) {
+					padding: .5rem 0;
+					grid-column: 1;
+
+					&:not(:last-child) {
+						border-right: none;
+						border-bottom: 1px solid var(--text);
+					}
+				}
+			}
+		}
+
+		.author {
+			text-decoration: none;
+			line-height: 3rem;
+			vertical-align: middle;
+			color: var(--text);
+
+			.player-avatar {
+				width: 3rem;
+				border-radius: 50%;
+				margin-right: .25rem;
+			}
+		}
+
+		.abstract {
+			margin: 1rem 0;
+		}
+	}
+
+	section {
+		margin-bottom: 1.5rem;
+	}
+
+	p {
+		text-wrap: pretty;
+		text-align: justify;
+	}
+
+	img {
+		width: 100%;
+	}
+}

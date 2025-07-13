@@ -1,0 +1,71 @@
+{parameters
+    App\Models\Blog\Post|null $post,
+    App\Models\Blog\Tag[] $tags,
+}
+
+<form action="" method="post" id="blog-post-form" n:attr="data-create: $post === null, data-edit: $post?->id">
+    {csrfInput 'edit-blog-post'}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label for="post-title" class="form-label">{_'Titulek', context: 'blog'}</label>
+                <input type="text" class="form-control" id="post-title" name="title" required maxlength="255"
+                       value="{$post?->title}"/>
+            </div>
+
+            <div class="form-group">
+                <label for="post-abstract" class="form-label">{_'Perex', context: 'blog'}</label>
+                <textarea rows="5" class="form-control" id="post-abstract" name="abstract"
+                          required>{$post?->abstract}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="post-content" class="form-label">{_'Obsah', context: 'blog'}</label>
+                <textarea rows="10" class="form-control" id="post-content" name="content"
+                          data-unique-id="{if $post !== null}post-content-{$post->id}{else}post-content-new{/if}"
+                          required>{$post?->markdownContent}</textarea>
+                <div class="form-text">{_'Markdown formát', context: 'blog'}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <p class="text-center">
+                <button type="submit" class="btn btn-lg btn-success">
+                    {faSolid 'floppy-disk'}
+                    {_'Uložit'}
+                </button>
+            </p>
+            <div class="form-group">
+                <label for="post-status" class="form-label">{_'Stav', context: 'blog'}</label>
+                <select name="status" id="post-status" class="form-select">
+                    <option n:foreach="App\Models\Blog\PostStatus::cases() as $status"
+                            value="{$status->value}" n:attr="selected: $post?->status === $status">
+                        {$status->getReadableName()}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <div class="form-label">{_'Značky', context: 'blog'}:</div>
+                <div n:foreach="$tags as $tag" class="form-check">
+                    <input type="checkbox" class="form-check-input" id="tag-{$tag->id}" name="tagIds[]"
+                           value="{$tag->id}" n:attr="checked: $post?->tags->contains($tag)">
+                    <label for="tag-{$tag->id}" class="form-check-label">
+                        {$tag->getIconHtml()|noescape}
+                        {$tag->getTranslatedName()}
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="image-upload" class="form-label">{_'Úvodní obrázek', context:'blog'}:</label>
+                <img src="{($post?->image ?? '')|replace:ROOT,'/'}" alt="{_'Náhled úvodního obrázku'}" id="image-upload-preview" />
+                <input type="file" class="form-control my-2" id="image-upload" accept="image/*">
+                <input type="hidden" name="image" value="{($post?->image ?? '')|replace:ROOT,''}" id="image-upload-url">
+                <label for="image-alt">
+                    {_'Alternativní text k obrázku', context: 'blog'}
+                </label>
+                <input type="text" class="form-control" id="image-alt" name="imageAlt"
+                       value="{$post?->imageAlt}" maxlength="255" placeholder="{_'Zadejte alternativní text k obrázku'}">
+            </div>
+        </div>
+    </div>
+</form>

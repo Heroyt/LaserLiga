@@ -4,20 +4,27 @@ tables:
     definition: '''
       (
         `id_post` int(11) unsigned NOT NULL AUTO_INCREMENT,
+        `id_arena` int(11) unsigned DEFAULT NULL,
         `title` varchar(255) NOT NULL,
         `slug` varchar(255) NOT NULL,
         `id_author` int(11) unsigned NOT NULL,
         `abstract` text NOT NULL,
-        `markdownContent` longtext NOT NULL,
-        `htmlContent` longtext NOT NULL,
+        `markdown_content` longtext NOT NULL,
+        `html_content` longtext NOT NULL,
         `image` varchar(255) DEFAULT NULL,
-        `imageAlt` varchar(255) DEFAULT NULL,
+        `image_alt` varchar(255) DEFAULT NULL,
         `status` enum('draft','published','archived') NOT NULL DEFAULT 'draft',
         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` datetime DEFAULT NULL,
+        `published_at` datetime DEFAULT NULL,
         PRIMARY KEY (`id_post`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     '''
+    modifications:
+      0.1:
+        - 'ADD COLUMN `id_arena` int(11) unsigned DEFAULT NULL AFTER `id_post`'
+      0.2:
+        - 'ADD COLUMN `published_at` datetime DEFAULT NULL'
     indexes:
       -
         name: 'slug'
@@ -30,6 +37,12 @@ tables:
         refColumn: id_user
         onUpdate: 'CASCADE'
         onDelete: 'CASCADE'
+      -
+        column: id_arena
+        refTable: App\Models\Arena
+        refColumn: id_arena
+        onUpdate: 'CASCADE'
+        onDelete: 'SET NULL'
   App\Models\Blog\Tag:
     order: 1
     definition: '''
@@ -66,9 +79,9 @@ tables:
         `language` varchar(10) NOT NULL,
         `title` varchar(255) NOT NULL,
         `abstract` text NOT NULL,
-        `markdownContent` longtext NOT NULL,
-        `htmlContent` longtext NOT NULL,
-        `imageAlt` varchar(255) DEFAULT NULL,
+        `markdown_content` longtext NOT NULL,
+        `html_content` longtext NOT NULL,
+        `image_alt` varchar(255) DEFAULT NULL,
         PRIMARY KEY (`id_post_translation`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     '''

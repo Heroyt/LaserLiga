@@ -22,4 +22,9 @@ return [
 		'route' => 'player-leaderboard',
 		'icon' => $fontawesome->solid('ranking-star'),
 	],
+	[
+		'name' => lang('Blog'),
+		'route' => 'blog_index',
+		'icon' => $fontawesome->solid('newspaper'),
+	],
 ];

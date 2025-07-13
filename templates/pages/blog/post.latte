@@ -1,0 +1,145 @@
+{layout '../../@layout.latte'}
+{templateType App\Templates\Blog\BlogPostParameters}
+
+{block addHead}
+    <meta property="og:title" content="{$post->getTranslatedTitle()}"/>
+    <meta property="og:description" content="{$post->getTranslatedAbstract()}"/>
+    <meta property="og:site_name" content="LaserLiga"/>
+    <meta property="og:type" content="article"/>
+    <meta property="og:article:published" content="{$post->getPublishedAt()->format('c')}"/>
+    <meta n:if="$post->updatedAt !== null" property="og:article:modified_time"
+                                           content="{$post->updatedAt->format('c')}"/>
+    <meta n:if="$post->image !== null" property="og:image" content="{$post->imageObj?->getUrl()}"/>
+    {cache 'blog-post-schema-' . $post->id, tags: [
+    App\Models\Blog\Post::TABLE . '/' . $post->id,
+    'schema',
+    ]}
+        <script n:if="$post->arena !== null"
+                type="application/ld+json">{$post->arena->getSchema()|json|noescape}</script>
+        <script type="application/ld+json">{$post->getSchema()|json|noescape}</script>
+    {/cache}
+{/block}
+
+{block content}
+    <p class="d-flex justify-content-between align-items-center">
+        <a href="{link 'blog'}" class="btn btn-secondary">
+            {faSolid 'angle-left'}
+            {_'Zpět'}
+        </a>
+        <a n:if="$user !== null && $post->canByEditedBy($user)" href="{link ['blog', 'admin', $post->id]}"
+                                                                    class="btn btn-secondary">
+            {faSolid 'pen-to-square'}
+        {_'Upravit', context: 'blog'}
+        </a>
+    </p>
+    <article>
+        <header>
+            {if $post->status !== App\Models\Blog\PostStatus::PUBLISHED}
+                <div class="badge text-bg-warning fs-5 mb-3">
+                    {faSolid 'exclamation-triangle'}
+                    {$post->status->getReadableName()}
+                </div>
+            {/if}
+            <h1 style="view-transition-name: blog-post-title-{$post->id};">
+                    {$post->getTranslatedTitle()}
+            </h1>
+
+            <div class="published">
+                    <div class="text-text" n:tag="$post->arena !== null ? 'a' : 'div'" n:attr="href: $post->arena?->getUrl()">
+                    <span class="visually-hidden">
+                        {_'Vydavatel', context: 'blog'}:
+                    </span>
+                        {if $post->arena !== null}
+                            {$post->arena->getLogoHtml()|noescape}
+                            <span>
+                            {$post->arena->name}
+                        </span>
+                        {else}
+                        {svgIcon 'Vesta', 'auto', '1.5em'}
+                            <span>
+                            LaserLiga
+                        </span>
+                        {/if}
+                    </div>
+                    <div>
+                        {faSolid 'clock'}
+                        <span class="visually-hidden">
+                        {_'Předpokládaná doba čtení', context: 'blog'}:
+                    </span>
+                        <span>
+                    {_'%d min', '%d min', context: 'time', count: $post->readingTime, format:[$post->readingTime]|replace:' ','&nbsp;'|noescape}
+                    </span>
+                    </div>
+                    <div style="view-transition-name: blog-post-published-{$post->id};">
+                        {faSolid 'calendar'}
+                        <span class="visually-hidden">
+                        {_'Publikováno', context: 'blog'}:
+                    </span>
+                        <time datetime="{$post->getPublishedAt()->format('c')}">
+                            {$post->getPublishedAt()|localDate: date: 'long'}
+                        </time>
+                        <span n:if="$post->updatedAt !== null && $post->updatedAt > $post->getPublishedAt()" class="ms-1 fs-sm">
+                        ({_'Aktualizováno', context: 'blog'}: <time
+                                    datetime="{$post->updatedAt->format('c')}">{$post->updatedAt|localDate: date: 'short'}</time>)
+                    </span>
+                    </div>
+                    <div n:if="$post->tags->count() > 0" style="view-transition-name: blog-post-tags-{$post->id};">
+                    <span class="visually-hidden">
+                        {_'Značky', context: 'blog'}:
+                    </span>
+                        {foreach $post->tags as $tag}
+                            <a href="{link 'blog', 'tag', $tag->slug}" class="badge text-bg-secondary">
+                                {$tag->getIconHtml()|noescape}
+                            {$tag->getTranslatedName()}
+                            </a>
+                        {/foreach}
+                    </div>
+            </div>
+            <span class="visually-hidden">
+                    {_'Abstrakt', context: 'blog'}:
+            </span>
+            <p class="abstract" style="view-transition-name: blog-post-abstract-{$post->id};">
+                    {$post->getTranslatedAbstract()}
+            </p>
+
+            <div class="author" style="view-transition-name: blog-post-author-{$post->id};"
+                    n:tag="$post->author->player !== null ? 'a' : 'div'" n:attr="href: $post->author->player?->getUrl()">
+                    <span class="visually-hidden">
+                    {_'Autor', context: 'blog'}:
+                </span>
+                    {if $post->author->player !== null}
+                        {$post->author->player->getAvatar()|noescape}
+                    {/if}
+                {if !empty($post->author->personalDetails->firstName)}
+                        {$post->author->personalDetails->firstName}
+                    {/if}
+
+                    <span n:class="!empty($post->author->personalDetails->firstName) || !empty($post->author->personalDetails->lastName) ? fst-italic">
+                            {$post->author->name}
+                </span>
+                {if !empty($post->author->personalDetails->lastName)}
+                        {$post->author->personalDetails->lastName}
+                    {/if}
+            </div>
+            {if !empty($post->image)}
+                <figure class="post-image my-3">
+                    {img
+                        $post->image,
+                        null,
+                        null,
+                        [],
+                        [
+                        'alt' => $post->getTranslatedImageAlt(),
+                        'style' => 'view-transition-name: blog-post-published-' . $post->id . ';'
+                        ]
+                    }
+                </figure>
+            {/if}
+        </header>
+        <section>
+            {$post->getTranslatedHtmlContent()|noescape}
+        </section>
+    </article>
+
+    {include ../../components/blog/blogInfo.latte}
+{/block}
