@@ -126,6 +126,31 @@
 
         {\Tracy\Debugger::renderLoader()|noescape}
 
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "OnlineBusiness",
+                "@id": "{getUrl}",
+                "name": "LaserLiga",
+                "alternateName": "Laser liga",
+                "url": "{getUrl}"
+            }
+        </script>
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "@id": "{getUrl}#site",
+                "name": "LaserLiga",
+                "alternateName": "Laser liga",
+                "description": "{lang 'Portál pro hráče laser game.'}",
+                "url": "{getUrl}",
+                "maintainer": {
+                    "@type": "OnlineBusiness",
+                    "@id": "{getUrl}"
+                }
+            }
+        </script>
         {include addHead}
 
         {block tracking}

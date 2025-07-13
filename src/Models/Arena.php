@@ -28,7 +28,7 @@ use RuntimeException;
 
 #[PrimaryKey('id_arena')]
 #[OA\Schema]
-class Arena extends BaseModel
+class Arena extends BaseModel implements WithSchema
 {
 
 	public const string TABLE = 'arenas';
@@ -379,5 +379,21 @@ class Arena extends BaseModel
 
 	public function getUrl(): string {
 		return App::getLink(['arena', (string) $this->id]);
+	}
+
+	public function getSchema(): array {
+		return [
+			'@context' => 'https://schema.org',
+			'@type' => 'SportsActivityLocation',
+			'@id' => $this->getUrl(),
+			'name' => $this->name,
+			'identifier' => $this->getUrl(),
+			'url' => $this->web,
+			'logo' => $this->getLogoUrl(),
+			'image' => $this->getLogoUrl(),
+			'address' => $this->address->getSchema(),
+			'email' => $this->contactEmail,
+			'telephone' => $this->contactPhone,
+		];
 	}
 }

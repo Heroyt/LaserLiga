@@ -7,7 +7,7 @@ use Lsr\Orm\Interfaces\InsertExtendInterface;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema()]
-class Address implements InsertExtendInterface
+class Address implements InsertExtendInterface, WithSchema
 {
 
 	public function __construct(
@@ -61,5 +61,15 @@ class Address implements InsertExtendInterface
 		}
 
 		return $return;
+	}
+
+	public function getSchema(): array {
+		return [
+			'@type' => 'PostalAddress',
+			'streetAddress' => $this->street ?? '',
+			'addressLocality' => $this->city ?? '',
+			'postalCode' => $this->postCode ?? '',
+			'addressCountry' => $this->country ?? '',
+		];
 	}
 }

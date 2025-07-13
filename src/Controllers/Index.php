@@ -26,7 +26,7 @@ class Index extends Controller
 			'Laser Liga' => [],
 		];
 		$this->title = 'Portál pro hráče laser game';
-		$this->description = 'Portál pro hráče laser game. Výsledky ze hry, turnaje, statistiky...';
+		$this->description = 'Laser liga je portál pro hráče laser game z celé české republiky. Sjednocuje výsledky a poskytuje statistiky hráčům, kteří soupeří v globálním žebříčku.';
 		$this->params->addCss[] = 'pages/index.css';
 		$this->params->playerCount = LigaPlayer::query()->count();
 		$this->params->arenaCount = Arena::query()->where('hidden = 0')->count();
