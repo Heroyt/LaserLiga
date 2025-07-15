@@ -18,8 +18,10 @@ use App\CQRS\AsyncDispatcher;
 use App\Exceptions\DispatchBreakException;
 use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
+use Lsr\Core\Exceptions\InvalidLanguageException;
 use Lsr\Core\Requests\Exceptions\RouteNotFoundException;
 use Lsr\Core\Requests\Request;
+use Lsr\Core\Routing\Exceptions\AccessDeniedException;
 use Lsr\Core\Routing\Exceptions\MethodNotAllowedException;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
@@ -56,8 +58,7 @@ try {
 	Profiler::start('Run');
 	try {
 		$response = $app->run();
-	} catch (RouteNotFoundException|ModelNotFoundException|\Lsr\Core\Routing\Exceptions\ModelNotFoundException $e) {
-		bdump($e);
+	} catch (RouteNotFoundException|ModelNotFoundException|\Lsr\Core\Routing\Exceptions\ModelNotFoundException|InvalidLanguageException $e) {
 		// Handle 404 Error
 		$controller = App::getContainer()->getByType(E404::class);
 		/** @var Request $request */
@@ -67,8 +68,10 @@ try {
 	} catch (DispatchBreakException $e) {
 		$response = $e->getResponse();
 	} catch (MethodNotAllowedException $e) {
-		$response = new \Lsr\Core\Requests\Response(new Response(405, ['Content-Type' => 'text/plain'], $e->getMessage()));
-	} catch (\Lsr\Core\Routing\Exceptions\AccessDeniedException $e) {
+		$response = new \Lsr\Core\Requests\Response(
+			new Response(405, ['Content-Type' => 'text/plain'], $e->getMessage())
+		);
+	} catch (AccessDeniedException $e) {
 		$response = \Lsr\Core\Requests\Response::create(403, [], $e->getMessage());
 	}
 	Profiler::finish('Run');
