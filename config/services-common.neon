@@ -30,6 +30,7 @@ extensions:
 	routing: Lsr\Core\Routing\DI\RoutingExtension
 	di: Nette\DI\Extensions\DIExtension
 	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
+	request: Lsr\Core\Requests\DI\RequestExtension
 	lsr: Lsr\Core\DI\LsrExtension
 di:
 	lazy: true
@@ -59,6 +60,16 @@ lsr:
 	links:
 		modifiers:
 			- @lang.prefixer
+	http:
+		exceptionHandlers:
+			- App\Core\ExceptionHandlers\NotFoundHandler
+			- App\Core\ExceptionHandlers\AccessDeniedHandler
+			- App\Core\ExceptionHandlers\MethodNotAllowedHandler
+			- Lsr\Core\Http\TracyExceptionHandler
+		asyncHandlers:
+			- App\Core\AsyncHandlers\FontawesomeUpdater
+			- App\Core\AsyncHandlers\TranslationsUpdater
+			- App\Core\AsyncHandlers\CqrsDispatcher
 services:
 	# Core
 	lang.prefixer: Lsr\Core\Links\LanguagePrefixer
