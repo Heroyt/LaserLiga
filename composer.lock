@@ -1468,16 +1468,16 @@
         },
         {
             "name": "lsr/core",
-            "version": "0.3.17",
+            "version": "0.3.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-core.git",
-                "reference": "8c4985ace5e2066d4f438650424704a1b0869712"
+                "reference": "200e3676ab71af50c0b56bcbe3367bd5f7eff48c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-core/zipball/8c4985ace5e2066d4f438650424704a1b0869712",
-                "reference": "8c4985ace5e2066d4f438650424704a1b0869712",
+                "url": "https://api.github.com/repos/Heroyt/lsr-core/zipball/200e3676ab71af50c0b56bcbe3367bd5f7eff48c",
+                "reference": "200e3676ab71af50c0b56bcbe3367bd5f7eff48c",
                 "shasum": ""
             },
             "require": {
@@ -1549,10 +1549,10 @@
             ],
             "description": "Laser framework core.",
             "support": {
-                "source": "https://github.com/Heroyt/lsr-core/tree/v0.3.17",
+                "source": "https://github.com/Heroyt/lsr-core/tree/v0.3.19",
                 "issues": "https://github.com/Heroyt/lsr-core/issues"
             },
-            "time": "2025-07-14T10:18:52+00:00"
+            "time": "2025-07-15T11:58:47+00:00"
         },
         {
             "name": "lsr/cqrs",
@@ -2233,16 +2233,16 @@
         },
         {
             "name": "lsr/routing",
-            "version": "0.3.5",
+            "version": "0.3.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Heroyt/lsr-routing.git",
-                "reference": "98df4957311988865a2a432420d969b601898f27"
+                "reference": "57f2c995857cd931f4f1c2dee080c0b8b5d39f0b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Heroyt/lsr-routing/zipball/98df4957311988865a2a432420d969b601898f27",
-                "reference": "98df4957311988865a2a432420d969b601898f27",
+                "url": "https://api.github.com/repos/Heroyt/lsr-routing/zipball/57f2c995857cd931f4f1c2dee080c0b8b5d39f0b",
+                "reference": "57f2c995857cd931f4f1c2dee080c0b8b5d39f0b",
                 "shasum": ""
             },
             "require": {
@@ -2306,10 +2306,10 @@
             ],
             "description": "Laser framework core - Routing.",
             "support": {
-                "source": "https://github.com/Heroyt/lsr-routing/tree/v0.3.5",
+                "source": "https://github.com/Heroyt/lsr-routing/tree/v0.3.6",
                 "issues": "https://github.com/Heroyt/lsr-routing/issues"
             },
-            "time": "2025-07-15T08:33:31+00:00"
+            "time": "2025-07-15T11:50:49+00:00"
         },
         {
             "name": "lsr/serializer",
