@@ -10,6 +10,7 @@ includes:
 	- config/migrations/tournaments/tournaments.neon
 	- config/migrations/gameGroups.neon
 	- config/migrations/blog.neon
+	- config/migrations/booking.neon
 tables:
 	page_info:
 		order: 0
