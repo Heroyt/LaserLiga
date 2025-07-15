@@ -55,15 +55,20 @@ trait WithPhotos
 	 * Check if the current user has the right to view photos of the game
 	 */
 	protected function canShowPhotos(GameGroup|Game $gameGroup, Request $request): bool {
-		$game = $gameGroup instanceof Game ? $gameGroup : first($gameGroup->getGames());
-		if ($game === null) {
-			return false;
-		}
-		if ($game->photosPublic) {
-			return true;
-		}
+		$games = $gameGroup instanceof Game ? [$gameGroup] : $gameGroup->getGames();
+		foreach ($games as $game) {
+			if ($game === null) {
+				continue;
+			}
+			if ($game->photosPublic) {
+				return true;
+			}
 
-		return $this->canDownloadPhotos($gameGroup, $request);
+			if ($this->canDownloadPhotos($gameGroup, $request)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected function canDownloadPhotos(GameGroup|Game $gameGroup, Request $request): bool {
@@ -73,7 +78,8 @@ trait WithPhotos
 		}
 		// Check logged-in user
 		$user = $this->auth->getLoggedIn();
-		if ($user !== null) {
+		$bypassUser = (bool) $request->getGet('bypassuser');
+		if ($user !== null && !$bypassUser) {
 			// Admin and arena users
 			if (
 				$user->hasRight('view-photos-all')
@@ -104,11 +110,13 @@ trait WithPhotos
 
 		// Check secret
 		if ($game->photosSecret !== null) {
+			bdump($game->photosSecret);
 			/** @var string|string[] $sessionSecrets */
 			$sessionSecrets = $this->session->get('photos', []);
 
 			// Check GET parameter
 			$secret = $request->getGet('photos');
+			bdump($secret);
 			if ($secret !== null && $secret === $game->photosSecret) {
 				// Update session
 				if (is_string($sessionSecrets)) {

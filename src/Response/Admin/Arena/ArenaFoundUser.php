@@ -19,7 +19,7 @@ readonly class ArenaFoundUser
 		public string   $name,
 		public string   $code,
 		public string   $email,
-		public Arena    $arena,
+		public ?Arena    $arena,
 		public UserType $userType,
 		public array    $managedArenas,
 		public bool     $canManage = false,
