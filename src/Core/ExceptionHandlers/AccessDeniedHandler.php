@@ -33,7 +33,7 @@ final readonly class AccessDeniedHandler implements ExceptionHandlerInterface
 		$acceptTypes = $this->getAcceptTypes($request);
 
 		if (in_array('application/json', $acceptTypes, true)) {
-			return $request->responseFactory->createJsonResponse(
+			return $this->responseFactory->createJsonResponse(
 				new ErrorResponse(
 					'Forbidden',
 					ErrorType::ACCESS,
@@ -45,7 +45,7 @@ final readonly class AccessDeniedHandler implements ExceptionHandlerInterface
 			);
 		}
 
-		return $request->responseFactory->createResponse(
+		return $this->responseFactory->createResponse(
 			403,
 			['Content-Type' => 'text/plain'],
 			null,
