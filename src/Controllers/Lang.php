@@ -12,7 +12,7 @@ class Lang extends Controller
 	public function __construct(
 		private readonly SessionInterface $session,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function setLang(string $lang, Request $request) : ResponseInterface {

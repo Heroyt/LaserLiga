@@ -17,7 +17,7 @@ class DropboxWebhookController extends Controller
 	public function __construct(
 		private readonly CommandBus $commandBus,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function challenge(Request $request) : ResponseInterface {

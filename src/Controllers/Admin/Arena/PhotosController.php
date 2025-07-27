@@ -46,7 +46,7 @@ class PhotosController extends Controller
 		private readonly CommandBus  $commandBus,
 		private readonly PushService $pushService,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function show(Arena $arena, Request $request): ResponseInterface {

@@ -23,7 +23,7 @@ class GameHighlightsController extends Controller
 		private readonly Auth                 $auth,
 		private readonly GameHighlightService $highlightService,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function show(string $code): ResponseInterface {

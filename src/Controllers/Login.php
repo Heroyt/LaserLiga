@@ -53,7 +53,7 @@ class Login extends Controller
 		private readonly SessionInterface        $session,
 		private readonly TokenHelper             $tokenHelper,
 	) {
-		parent::__construct();
+		
 		$this->params = new LoginParams();
 	}
 

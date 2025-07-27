@@ -29,7 +29,7 @@ class BlogController extends Controller
 		private readonly Auth                    $auth,
 		private readonly RequestValidationMapper $requestValidationMapper,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function index(Request $request): ResponseInterface {

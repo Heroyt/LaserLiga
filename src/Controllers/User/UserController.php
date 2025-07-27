@@ -40,7 +40,7 @@ class UserController extends AbstractUserController
 		private readonly PlayersGamesTogetherService $playersGamesTogetherService,
 		private readonly ThumbnailGenerator          $thumbnailGenerator,
 	) {
-		parent::__construct();
+		
 		$this->params = new ProfileParameters();
 	}
 

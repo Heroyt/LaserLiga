@@ -2,12 +2,12 @@
 
 namespace App\Controllers\User;
 
-use App\Exceptions\DispatchBreakException;
 use App\Models\Auth\User;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Dto\ErrorResponse;
 use Lsr\Core\Requests\Enums\ErrorType;
 use Lsr\Core\Requests\Request;
+use Lsr\Exceptions\DispatchBreakException;
 
 abstract class AbstractUserController extends Controller
 {

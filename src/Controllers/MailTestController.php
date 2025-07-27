@@ -6,7 +6,6 @@ use App\Mails\Message;
 use App\Services\MailService;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
-use Lsr\Core\Templating\Latte;
 use Psr\Http\Message\ResponseInterface;
 
 class MailTestController extends Controller
@@ -15,7 +14,7 @@ class MailTestController extends Controller
 	public function __construct(
 		private readonly MailService $mailService
 	) {
-		parent::__construct();
+		
 	}
 
 	public function sendTestMail(Request $request) : ResponseInterface {

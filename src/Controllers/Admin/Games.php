@@ -38,7 +38,7 @@ class Games extends Controller
 		private readonly PlayerUserService $playerUserService,
 		private readonly PushService       $pushService,
 	) {
-		parent::__construct();
+		
 	}
 
 	/**

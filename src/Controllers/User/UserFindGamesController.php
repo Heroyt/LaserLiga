@@ -22,7 +22,7 @@ class UserFindGamesController extends AbstractUserController
 		private readonly Auth              $auth,
 		private readonly PlayerUserService $userService,
 	) {
-		parent::__construct();
+		
 		$this->params = new UserFindGamesParameters();
 	}
 

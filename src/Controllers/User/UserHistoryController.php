@@ -30,7 +30,7 @@ class UserHistoryController extends AbstractUserController
 	public function __construct(
 		protected readonly Auth $auth,
 	) {
-		parent::__construct();
+		
 		$this->params = new UserHistoryParameters();
 	}
 

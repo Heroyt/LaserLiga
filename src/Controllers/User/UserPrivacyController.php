@@ -18,7 +18,7 @@ class UserPrivacyController extends AbstractUserController
 	public function __construct(
 		protected readonly Auth $auth,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function agree(Request $request): ResponseInterface {

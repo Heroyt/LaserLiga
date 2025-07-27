@@ -16,7 +16,7 @@ class GamePlayerEloController extends Controller
 {
 
 	public function __construct() {
-		parent::__construct();
+		
 		$this->params = new GamePlayerEloParameters();
 	}
 	public function show(string $code, int $id): ResponseInterface {

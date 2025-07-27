@@ -38,7 +38,7 @@ class Arenas extends Controller
 	public function __construct(
 		private readonly Auth $auth,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function init(RequestInterface $request): void {

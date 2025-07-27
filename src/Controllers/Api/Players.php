@@ -36,7 +36,7 @@ class Players extends ApiController
 	public function __construct(
 		private readonly UserRegistrationService $userRegistration,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function init(RequestInterface $request): void {

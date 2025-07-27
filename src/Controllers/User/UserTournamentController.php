@@ -6,7 +6,6 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Templates\User\UserTournamentParameters;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Templating\Latte;
 use Lsr\Interfaces\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
@@ -22,7 +21,7 @@ class UserTournamentController extends AbstractUserController
 	public function __construct(
 		private readonly Auth $auth,
 	) {
-		parent::__construct();
+		
 		$this->params = new UserTournamentParameters();
 	}
 

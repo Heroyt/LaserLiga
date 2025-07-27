@@ -28,7 +28,7 @@ class Arenas extends Controller
 	public function __construct(
 		private readonly ArenaStatsAggregator $statsAggregator,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function list(): ResponseInterface {

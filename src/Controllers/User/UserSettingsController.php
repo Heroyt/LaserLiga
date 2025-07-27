@@ -44,7 +44,7 @@ class UserSettingsController extends AbstractUserController
 		private readonly AvatarService               $avatarService,
 		private readonly UserRegistrationService $userRegistrationService,
 	) {
-		parent::__construct();
+		
 		$this->params = new UserSettingsParameters();
 	}
 

@@ -24,7 +24,7 @@ class ForgotPassword extends Controller
 		private readonly MailService $mailService,
 		private readonly Passwords $passwords,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function forgot(Request $request) : ResponseInterface {

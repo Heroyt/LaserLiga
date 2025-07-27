@@ -34,7 +34,7 @@ class PushController extends Controller
 		private readonly Auth        $auth,
 		private readonly PushService $pushService,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function isSubscribed(Request $request): ResponseInterface {

@@ -39,7 +39,7 @@ class Import extends ApiController
 		private readonly PlayerRankOrderService $rankOrderService,
 		private readonly AchievementChecker     $achievementChecker,
 	) {
-		parent::__construct();
+		
 	}
 
 	/**

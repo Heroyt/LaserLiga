@@ -32,7 +32,7 @@ class UsersController extends Controller
 	public function __construct(
 		private readonly Auth $auth,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function show(Arena $arena): ResponseInterface {

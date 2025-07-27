@@ -40,7 +40,7 @@ class BlogEditController extends Controller
 		private readonly MarkdownConverter $markdown,
 		private readonly Auth              $auth,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function list(): ResponseInterface {

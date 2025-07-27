@@ -29,7 +29,7 @@ class Dashboard extends Controller
 		private readonly SessionInterface     $session,
 		private readonly ArenaStatsAggregator $statsAggregator,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function exit(): ResponseInterface {

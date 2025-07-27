@@ -69,7 +69,7 @@ class Games extends ApiController
 		private readonly AchievementChecker     $achievementChecker,
 		private readonly Serializer             $serializer,
 	) {
-		parent::__construct();
+		
 	}
 
 	/**
@@ -928,7 +928,7 @@ class Games extends ApiController
 		content    : new OA\JsonContent(ref: "#/components/schemas/ErrorResponse")
 	)]
 	public function import(Request $request): ResponseInterface {
-		$logger = new Logger(LOG_DIR, 'api-import');
+		$logger = new Logger(LOG_DIR, 'api-import-'.Strings::webalize($this->arena->name));
 		/** @var string $system */
 		$system = $request->getPost('system', '');
 		$supported = GameFactory::getSupportedSystems();
@@ -1097,10 +1097,10 @@ class Games extends ApiController
 					$game->mode->processImportedGame($game);
 				}
 
-				$logger->debug('Save game - '.(isset($game->code) ? $game->code : '<no-code>'), ['dto' => $dtoInfo, 'oldGame' => $oldGame !== null]);
+				$logger->debug('Save game - '.($game->code ?? '<no-code>'), ['dto' => $dtoInfo, 'oldGame' => $oldGame !== null]);
 				if ($game->save() === false) {
 					return $this->respond(
-						new ErrorResponse('Failed saving the game - '.(isset($game->code) ? $game->code : '<no-code>'), ErrorType::DATABASE),
+						new ErrorResponse('Failed saving the game - '.($game->code ?? '<no-code>'), ErrorType::DATABASE),
 						500
 					);
 				}

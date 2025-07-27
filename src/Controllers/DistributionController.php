@@ -24,7 +24,7 @@ class DistributionController extends Controller
 	public function __construct(
 		private readonly PlayerDistributionService $playerDistributionService
 	) {
-		parent::__construct();
+		
 	}
 
 	/**

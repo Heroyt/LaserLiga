@@ -26,7 +26,7 @@ class DropboxAuthController extends Controller
 		private readonly Auth                    $auth,
 		private readonly RequestValidationMapper $requestMapper,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function redirectToAuth(Arena $arena, Request $request): ResponseInterface {

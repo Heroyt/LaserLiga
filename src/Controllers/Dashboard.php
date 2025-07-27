@@ -27,7 +27,7 @@ class Dashboard extends Controller
 		protected readonly Auth                 $auth,
 		private readonly PlayerRankOrderService $rankOrderService,
 	) {
-		parent::__construct();
+		
 		$this->auth->init();
 		$this->params = new ProfileParameters();
 	}

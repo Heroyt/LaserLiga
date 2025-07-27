@@ -33,7 +33,7 @@ class GroupController extends Controller
 		private readonly ThumbnailGenerator $thumbnailGenerator,
 		private readonly SessionInterface   $session,
 	) {
-		parent::__construct();
+		
 		$this->params = new GroupParameters();
 	}
 

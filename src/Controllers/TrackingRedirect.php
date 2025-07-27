@@ -15,7 +15,7 @@ class TrackingRedirect extends Controller
 	public function __construct(
 		private readonly CommandBus $commandBus,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function dotaznik(string $source = ''): ResponseInterface {

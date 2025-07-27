@@ -48,7 +48,7 @@ class TournamentController extends Controller
 		private readonly EventRegistrationService $eventRegistrationService,
 		private readonly Turnstile                $turnstile,
 	) {
-		parent::__construct();
+		
 	}
 
 	public function init(RequestInterface $request): void {

@@ -38,7 +38,7 @@ class UserGameController extends AbstractUserController
 		protected readonly PlayerUserService    $playerUserService,
 		private readonly PlayerRankOrderService $rankOrderService,
 	) {
-		parent::__construct();
+		
 		$this->user = $this->auth->getLoggedIn();
 	}
 

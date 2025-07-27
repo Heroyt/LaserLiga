@@ -31,7 +31,7 @@ class GamePlayerController extends Controller
 		private readonly Auth                $auth,
 		private readonly AchievementProvider $achievementProvider,
 	) {
-		parent::__construct();
+		
 		$this->params = new GamePlayerParameters();
 	}
 

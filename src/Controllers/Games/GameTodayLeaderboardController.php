@@ -24,7 +24,7 @@ class GameTodayLeaderboardController extends Controller
 {
 
 	public function __construct() {
-		parent::__construct();
+		
 		$this->params = new GameTodayLeaderboardParameters();
 	}
 

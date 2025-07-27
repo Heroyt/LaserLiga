@@ -33,7 +33,7 @@ class StatController extends AbstractUserController
 		private readonly AchievementProvider       $achievementProvider,
 		private readonly PlayerDistributionService $distributionService
 	) {
-		parent::__construct();
+		
 	}
 
 	/**

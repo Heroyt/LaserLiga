@@ -48,7 +48,7 @@ class GameController extends Controller
 		private readonly SessionInterface   $session,
 		private readonly Cache              $cache,
 	) {
-		parent::__construct();
+		
 		$this->params = new GameParameters();
 	}
 

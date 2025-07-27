@@ -13,7 +13,7 @@ class Manifest extends Controller
 	public function __construct(
 		private readonly SessionInterface $session,
 	) {
-		parent::__construct();
+		
 	}
 
 	function getManifest(): ResponseInterface {
