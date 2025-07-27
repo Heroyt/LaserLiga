@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Models\Booking;
 
 use App\Models\Arena;
-use App\Models\Auth\User;
 use App\Models\BaseModel;
 use App\Models\Booking\Enums\BookingStatus;
 use App\Models\WithSoftDelete;
@@ -36,11 +35,11 @@ class Booking extends BaseModel
 	#[ManyToOne]
 	public ?BookingSubType $subtype = null;
 
-	/** @var ModelCollection<User> */
-	#[ManyToMany(through: 'booking_users', class: User::class)]
+	/** @var ModelCollection<BookingUser> */
+	#[ManyToMany(through: 'booking_to_users', class: BookingUser::class)]
 	public ModelCollection $users;
 
-	public BookingStatus      $status = BookingStatus::ACTIVE;
+	public BookingStatus     $status = BookingStatus::ACTIVE;
 	public DateTimeImmutable $datetime;
 
 	public int     $playerCount   = 1;
@@ -50,6 +49,10 @@ class Booking extends BaseModel
 	public ?string $privateNote   = null;
 	public ?string $subtypeFields = null;
 	public ?string $terms         = null;
+
+	#[ManyToOne]
+	public ?Discovery $discovery = null;
+	public ?string $customDiscovery = null;
 
 	/** @var array<string,bool> */
 	public array $filledSlots {

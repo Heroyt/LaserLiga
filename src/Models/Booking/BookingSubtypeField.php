@@ -5,11 +5,13 @@ namespace App\Models\Booking;
 
 use App\Models\BaseModel;
 use App\Models\Booking\Enums\FieldType;
+use App\Models\WithSoftDelete;
 use Lsr\Orm\Attributes\PrimaryKey;
 
 #[PrimaryKey('id_field')]
 class BookingSubtypeField extends BaseModel
 {
+	use WithSoftDelete;
 
 	public const string TABLE = 'booking_subtype_fields';
 

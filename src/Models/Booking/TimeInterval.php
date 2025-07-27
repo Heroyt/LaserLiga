@@ -11,7 +11,7 @@ class TimeInterval implements InsertExtendInterface
 {
 
 	public function __construct(
-		public DateTImeInterface $start,
+		public DateTimeInterface $start,
 		public DateTimeInterface $end,
 	){}
 
