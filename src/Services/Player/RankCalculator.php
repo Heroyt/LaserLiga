@@ -411,7 +411,7 @@ class RankCalculator
 		if ($groupPlayer === null) {
 			return null;
 		}
-		return (int)(($player->skill * 0.6) + (0.4 * $groupPlayer->getSkill()));
+		return (int)(($player->skill * 0.7) + (0.3 * $groupPlayer->getSkill()));
 	}
 
 	/**
