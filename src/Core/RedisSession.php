@@ -6,6 +6,8 @@ namespace App\Core;
 use InvalidArgumentException;
 use LogicException;
 use Lsr\Core\App;
+use Lsr\Dto\Notice;
+use Lsr\Enums\NoticeType;
 use Lsr\Interfaces\SessionInterface;
 use Random\Randomizer;
 use Redis;
@@ -17,6 +19,7 @@ class RedisSession implements SessionInterface, SessionStorage
 	private const string SESSION_KEY_PREFIX  = 'session_';
 	private const string SESSION_COOKIE_NAME = 'SESSID';
 	private const string SESSION_FLASH_KEY   = 'session_flash';
+	private const string SESSION_FLASH_MESSAGE_KEY = 'session_flash_notice';
 
 	private static ?RedisSession $instance = null;
 
@@ -267,6 +270,47 @@ class RedisSession implements SessionInterface, SessionStorage
 		}
 		$this->data[self::SESSION_FLASH_KEY][$key] = $value;
 		$this->setCookie();
+	}
+
+	public function flashSuccess(string $message) : void {
+		$this->flashNotice(new Notice($message, NoticeType::SUCCESS));
+	}public function flashError(string $message) : void {
+	$this->flashNotice(new Notice($message, NoticeType::ERROR));
+}
+
+	public function flashWarning(string $message) : void {
+		$this->flashNotice(new Notice($message, NoticeType::WARNING));
+	}
+
+	public function flashInfo(string $message) : void {
+		$this->flashNotice(new Notice($message, NoticeType::INFO));
+	}
+
+	public function flashNotice(Notice $notice) : void {
+		if (!$this->isInitialized()) {
+			$this->init();
+		}
+		if (
+			!isset($this->data[self::SESSION_FLASH_MESSAGE_KEY])
+			|| !is_array($this->data[self::SESSION_FLASH_MESSAGE_KEY])
+		) {
+			$this->data[self::SESSION_FLASH_MESSAGE_KEY] = [];
+		}
+		$this->data[self::SESSION_FLASH_MESSAGE_KEY][] = $notice;
+		$this->setCookie();
+	}
+
+	public function getFlashMessages() : array {
+		if (
+			!isset($this->data[self::SESSION_FLASH_MESSAGE_KEY])
+			|| !is_array($this->data[self::SESSION_FLASH_MESSAGE_KEY])
+		) {
+			$this->data[self::SESSION_FLASH_MESSAGE_KEY] = [];
+		}
+		/** @var Notice[] $messages */
+		$messages = $this->data[self::SESSION_FLASH_MESSAGE_KEY];
+		$this->data[self::SESSION_FLASH_MESSAGE_KEY] = []; // Clear flash messages after reading
+		return $messages;
 	}
 
 	public function getCookieHeader(): string {
