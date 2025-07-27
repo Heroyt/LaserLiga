@@ -16,7 +16,9 @@ use Lsr\Core\Routing\Router;
 $auth = App::getService('auth');
 assert($auth instanceof Auth);
 
-$routes = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
+$routes = $this
+	->group('[lang=cs]')
+	->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
 $blogGroup = $routes->group('blog');
 
 $blogGroup->get('', [BlogController::class, 'index'])->name('blog_index');
@@ -24,7 +26,7 @@ $blogGroup->get('post/{slug}', [BlogController::class, 'show'])->name('blog_post
 $blogGroup->get('tag/{slug}', [BlogController::class, 'tag'])->name('blog_tag');
 
 $blogAdminGroup = $blogGroup->group('admin')
-	                            ->middlewareAll(new LoggedIn($auth, ['write-blog']));
+                            ->middlewareAll(new LoggedIn($auth, ['write-blog']));
 
 $blogAdminGroup->get('', [BlogEditController::class, 'list'])->name('blog_admin_list');
 $blogAdminGroup->get('create', [BlogEditController::class, 'create'])->name('blog_create');
@@ -34,5 +36,5 @@ $blogAdminGroup->post('{post}/upload-image', [BlogEditController::class, 'upload
 
 $csrfCheck = new CsrfCheck('edit-blog-post');
 $blogAdminGroup->post('create', [BlogEditController::class, 'save'])
-	->middleware($csrfCheck);
+               ->middleware($csrfCheck);
 $blogAdminGroup->post('{post}', [BlogEditController::class, 'save'])->middleware($csrfCheck);

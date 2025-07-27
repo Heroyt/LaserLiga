@@ -22,7 +22,9 @@ $cacheControl7days = new CacheControl(604800);
 $cacheControl1Day = new CacheControl(86400);
 
 // /game
-$routes = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
+$routes = $this
+	->group('[lang=cs]')
+	->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
 $gameGroup = $routes->group('game');
 
 $gameGroup->get('', [GameController::class, 'show'])->name('game-empty');    // This will result in HTTP 404 error

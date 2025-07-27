@@ -26,7 +26,7 @@ class StartKioskSession implements Middleware
 
 		$session->set('kiosk', true);
 		if ($request instanceof Request) {
-			$arenaId = $request->getParam('arenaid');
+			$arenaId = $request->getParam('arena');
 			if ($arenaId !== null) {
 				$session->set('kioskArena', (int)$arenaId);
 			}

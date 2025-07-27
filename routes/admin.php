@@ -16,7 +16,9 @@ use Lsr\Core\Routing\Router;
 
 /** @var Router $this */
 
-$langGroup = $this->group('[lang=cs]')->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
+$langGroup = $this
+	->group('[lang=cs]')
+	->middlewareAll(new DefaultLanguageRedirect(), new ContentLanguageHeader());
 $adminGroup = $langGroup->group('/admin');
 
 $auth = App::getService('auth');
