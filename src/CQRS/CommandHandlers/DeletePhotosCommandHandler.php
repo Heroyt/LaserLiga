@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace App\CQRS\CommandHandlers;
 
 use App\CQRS\CommandResponses\DeletePhotosResponse;
+use App\CQRS\CommandResponses\S3\DeleteObjectsResponse;
 use App\CQRS\Commands\DeletePhotosCommand;
 use App\CQRS\Commands\S3\RemoveFilesFromS3Command;
 use App\Models\Photos\Photo;
 use App\Models\Photos\PhotoVariation;
+use Aws\S3\Exception\S3Exception;
 use Lsr\CQRS\CommandBus;
 use Lsr\CQRS\CommandHandlerInterface;
 use Lsr\CQRS\CommandInterface;
@@ -34,8 +36,18 @@ final readonly class DeletePhotosCommandHandler implements CommandHandlerInterfa
 				$files[$variation->identifier] = $variation;
 			}
 
-			$result = $this->commandBus->dispatch(new RemoveFilesFromS3Command(array_keys($files), $photo->arena->photosSettings->bucket));
-			bdump($result);
+			try {
+				$result = $this->deleteFromS3(
+					new RemoveFilesFromS3Command(
+						array_keys($files),
+						$photo->arena->photosSettings->bucket
+					)
+				);
+			} catch (S3Exception $e) {
+				$response->errors[] = 'Failed to delete files from S3: ' . $e->getMessage();
+				$command->output?->writeln('<error>Failed to delete files from S3: ' . $e->getMessage() . '</error>');
+				continue;
+			}
 			foreach ($result->Deleted as $deleted) {
 				$file = $files[$deleted->Key] ?? null;
 				if ($file instanceof PhotoVariation) {
@@ -62,5 +74,17 @@ final readonly class DeletePhotosCommandHandler implements CommandHandlerInterfa
 		Photo::clearQueryCache();
 
 		return $response;
+	}
+
+	private function deleteFromS3(RemoveFilesFromS3Command $command, int $retries = 3): DeleteObjectsResponse {
+		try {
+			return $this->commandBus->dispatch($command);
+		} catch (S3Exception $e) {
+			if ($retries <= 0) {
+				throw $e;
+			}
+			sleep(5); // Wait before retrying
+			return $this->deleteFromS3($command, $retries - 1);
+		}
 	}
 }

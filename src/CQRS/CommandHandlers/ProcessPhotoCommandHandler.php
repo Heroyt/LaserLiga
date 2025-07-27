@@ -10,6 +10,7 @@ use App\Exceptions\FileException;
 use App\Models\Photos\Photo;
 use App\Models\Photos\PhotoVariation;
 use App\Services\ImageService;
+use Aws\S3\Exception\S3Exception;
 use DateTimeImmutable;
 use Lsr\CQRS\CommandBus;
 use Lsr\CQRS\CommandHandlerInterface;
@@ -80,14 +81,18 @@ final readonly class ProcessPhotoCommandHandler implements CommandHandlerInterfa
 			$photo->exifTime = $exifTime;
 
 			// Upload to S3
-			/** @var PutObjectResponse $putResponse */
-			$putResponse = $this->commandBus->dispatch(
-				new UploadFileToS3Command(
-					filename  : $file,
-					identifier: $photo->identifier,
-					bucket    : $command->arena->photosSettings->bucket,
-				)
-			);
+			try {
+				$putResponse = $this->uploadToS3(
+					new UploadFileToS3Command(
+						filename  : $file,
+						identifier: $photo->identifier,
+						bucket    : $command->arena->photosSettings->bucket,
+					)
+				);
+			} catch (S3Exception $e) {
+				$logger->error('Failed to upload file to S3 ' . $publicName . ' - ' . $e->getMessage());
+				return 'Failed to upload file to S3 ' . $publicName . ' - ' . $e->getMessage();
+			}
 			$photo->url = $putResponse->ObjectURL;
 
 			DB::begin();
@@ -170,5 +175,16 @@ final readonly class ProcessPhotoCommandHandler implements CommandHandlerInterfa
 		}
 
 		return $photo;
+	}
+
+	private function uploadToS3(UploadFileToS3Command $command, int $retries = 3): PutObjectResponse {
+		try {
+			return $this->commandBus->dispatch($command);
+		} catch (S3Exception $e) {
+			if ($retries <= 0) {
+				throw $e;
+			}
+			return $this->uploadToS3($command, $retries - 1);
+		}
 	}
 }

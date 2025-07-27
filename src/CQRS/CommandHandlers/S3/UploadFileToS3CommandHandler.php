@@ -35,7 +35,7 @@ final readonly class UploadFileToS3CommandHandler implements CommandHandlerInter
 				'Key'          => $command->identifier ?? $command->filename,
 				'Body'         => fopen($command->filename, 'rb'),
 				'ACL'          => 'public-read',
-				'StorageClass' => $command->storageClass?->value ?? StorageClass::STANDARD->value,
+				'StorageClass' => $command->storageClass->value ?? StorageClass::STANDARD->value,
 			]
 		);
 

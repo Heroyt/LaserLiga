@@ -13,6 +13,7 @@ use App\CQRS\Commands\SyncArenaImagesCommand;
 use App\Models\Photos\Photo;
 use App\Services\Dropbox\TokenProvider;
 use App\Services\ImageService;
+use GuzzleHttp\Exception\GuzzleException;
 use Lsr\CQRS\CommandBus;
 use Lsr\CQRS\CommandHandlerInterface;
 use Lsr\CQRS\CommandInterface;
@@ -69,14 +70,21 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 		// Get photos from Dropbox
 		$command->output?->writeln('Listing all dropbox files');
 		$logger->debug('Listing directory ' . ($arena->dropbox->directory ?? '/'));
-		$entries = $this->commandBus->dispatch(
-			new ListDropboxFilesCommand(
-				$client,
-				$arena->dropbox->directory ?? '/',
-				true,
-				['jpg', 'jpeg', 'png', 'heic', 'heif']
-			)
-		);
+		try {
+			$entries = $this->commandBus->dispatch(
+				new ListDropboxFilesCommand(
+					$client,
+					$arena->dropbox->directory ?? '/',
+					true,
+					['jpg', 'jpeg', 'png', 'heic', 'heif']
+				)
+			);
+		} catch (GuzzleException $e) {
+			$logger->error('Failed to list dropbox files: ' . $e->getMessage());
+			$response->errors[] = 'Failed to list dropbox files: ' . $e->getMessage();
+			$lock->release();
+			return $response;
+		}
 
 		/** @var FileMetadata $entry */
 		foreach ($entries as $entry) {
