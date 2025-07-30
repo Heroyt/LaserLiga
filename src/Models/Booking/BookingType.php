@@ -15,6 +15,7 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\Attributes\Relations\OneToMany;
 use Lsr\Orm\ModelCollection;
 use Lsr\Orm\ModelQuery;
+use RuntimeException;
 
 #[PrimaryKey('id_type')]
 class BookingType extends BaseModel
@@ -84,11 +85,14 @@ class BookingType extends BaseModel
 	 * @param positive-int $multiplier
 	 *
 	 * @return DateInterval
-	 * @throws DateMalformedIntervalStringException
 	 */
 	public function getLength(int $multiplier = 1): DateInterval {
 		if ($multiplier > 1) {
-			return new DateInterval('PT' . ($this->slotLength * $multiplier) . 'M');
+			try {
+				return new DateInterval('PT' . ($this->slotLength * $multiplier) . 'M');
+			} catch (DateMalformedIntervalStringException $e) {
+				throw new RuntimeException('Invalid interval string for booking type length: ' . $e->getMessage(), 0, $e);
+			}
 		}
 		return $this->length;
 	}

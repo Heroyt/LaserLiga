@@ -10,8 +10,8 @@ class OnCallTimeInterval extends TimeInterval
 
 	public static function parseRow(Row $row): static {
 		return new self(
-			$row->call_start,
-			$row->call_end,
+			self::toDateTimeInterface($row->call_start),
+			self::toDateTimeInterface($row->call_end),
 		);
 	}
 

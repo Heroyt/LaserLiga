@@ -7,6 +7,7 @@ tables:
 			`id_arena` int(11) unsigned NOT NULL,
 			`name` varchar(50) NOT NULL DEFAULT '',
 			`slot_length` smallint(4) unsigned NOT NULL DEFAULT 30,
+			`slot_limit` smallint(4) unsigned NOT NULL DEFAULT 11,
 			`openable` bool NOT NULL DEFAULT true,
 			`openable_min` smallint(5) unsigned NOT NULL DEFAULT 0,
 			`calendar_id` varchar(255) DEFAULT NULL,
@@ -244,7 +245,6 @@ tables:
 		(
 			`id_open_hours` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			`id_arena` int(11) unsigned NOT NULL,
-			`id_type` int(11) unsigned NOT NULL,
 			`day` tinyint(1) unsigned NOT NULL DEFAULT 1,
 			`start` time NOT NULL,
 			`end` time NOT NULL,
@@ -260,26 +260,42 @@ tables:
 				refColumn: id_arena
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
+		indexes:
+			-
+				name: 'day'
+				columns: ['day']
+	'booking_type_open_hours':
+		order: 5
+		definition: '''
+		(
+			`id_type` int(11) unsigned NOT NULL,
+			`id_open_hours` int(11) unsigned NOT NULL,
+			PRIMARY KEY (`id_type`, `id_open_hours`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
 			-
 				column: id_type
 				refTable: App\Models\Booking\BookingType
 				refColumn: id_type
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
-		indexes:
 			-
-				name: 'day'
-				columns: ['day']
+				column: id_open_hours
+				refTable: App\Models\Booking\OpenHours
+				refColumn: id_open_hours
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
 	App\Models\Booking\SpecialOpenHours:
 		order: 4
 		definition: '''
 		(
 			`id_special_hours` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			`id_arena` int(11) unsigned NOT NULL,
-			`id_type` int(11) unsigned NOT NULL,
 			`date` date NOT NULL,
-			`start` time NOT NULL,
-			`end` time NOT NULL,
+			`closed` bool NOT NULL DEFAULT false,
+			`start` time DEFAULT NULL,
+			`end` time DEFAULT NULL,
 			`call_start` time DEFAULT NULL,
 			`call_end` time DEFAULT NULL,
 			PRIMARY KEY (`id_special_hours`)
@@ -292,10 +308,26 @@ tables:
 				refColumn: id_arena
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
+	'booking_type_special_hours':
+		order: 5
+		definition: '''
+		(
+			`id_type` int(11) unsigned NOT NULL,
+			`id_special_hours` int(11) unsigned NOT NULL,
+			PRIMARY KEY (`id_type`, `id_special_hours`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
 			-
 				column: id_type
 				refTable: App\Models\Booking\BookingType
 				refColumn: id_type
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_special_hours
+				refTable: App\Models\Booking\SpecialOpenHours
+				refColumn: id_special_hours
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
 	App\Models\Booking\TermAndCondition:

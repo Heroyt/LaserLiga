@@ -9,6 +9,7 @@ use App\Models\WithIcon;
 use App\Models\WithSoftDelete;
 use Dibi\Exception;
 use Lsr\Db\DB;
+use Lsr\ObjectValidation\Attributes\IntRange;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
@@ -37,11 +38,24 @@ class BookingSubType extends BaseModel
 
 	public string  $name                = '';
 	public ?string $description         = null;
+
+	/** @var bool Fill the slot on booking regardless of player count */
 	public bool    $slotFill            = false;
 	public bool    $singlePlayerInput   = false;
+
+	/** @var bool Allow booking on-call times as if it was normal open hour times. */
 	public bool    $unlockOnCall        = false;
+
+	/** @var int<1,max>|null Maximum count of players able to book this time (available vests) */
+	#[IntRange(min: 1)]
 	public ?int    $slotMax             = null;
+
+	/** @var int<1,max>|null Minimum count of players able to book this time (available vests) */
+	#[IntRange(min: 1)]
 	public ?int    $slotMin             = null;
+
+	/** @var int<1,max>|null On booking, merge available slots into larger. */
+	#[IntRange(min: 1)]
 	public ?int    $mergeSlots          = null;
 	public ?string $datetimeDescription = null;
 	public ?string $infoDescription     = null;
