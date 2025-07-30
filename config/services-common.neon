@@ -189,6 +189,8 @@ services:
 
 	reporting: App\Services\Reporting
 
+	booking.calendar: App\Services\Booking\BookingCalendarProvider
+
 search:
 	controllers:
 		in: '%constants.appDir%src/Controllers'
