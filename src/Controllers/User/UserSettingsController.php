@@ -109,7 +109,7 @@ class UserSettingsController extends AbstractUserController
 		// Check home arena
 		try {
 			if (!empty($data->arena)) {
-				$arena = Arena::get($data->arena);
+				$arena = Arena::get((int) $data->arena);
 			}
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			$request->passErrors['arena'] = lang('Aréna neexistuje', context: 'errors');
@@ -124,7 +124,7 @@ class UserSettingsController extends AbstractUserController
 
 		// Title
 		$title = null;
-		$titleId = $data->title;
+		$titleId = (int) $data->title;
 		if ($titleId > 0) {
 			try {
 				$title = Title::get($titleId);

@@ -30,6 +30,7 @@ tables:
 				`photos_mail_text` text DEFAULT NULL,
 				`photos_unassigned_photo_ttl` varchar(20) DEFAULT NULL,
 				`photos_assigned_photo_ttl` varchar(20) DEFAULT NULL,
+				`google_access_token` text DEFAULT NULL,
             	PRIMARY KEY (`id_arena`),
             	KEY `id_user` (`id_user`),
             	CONSTRAINT `arenas_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -66,6 +67,8 @@ tables:
 				- 'ADD `photos_mail_text` text DEFAULT NULL'
 				- 'ADD `photos_unassigned_photo_ttl` varchar(20) DEFAULT NULL'
 				- 'ADD `photos_assigned_photo_ttl` varchar(20) DEFAULT NULL'
+			0.5.0:
+				- 'ADD `google_access_token` text DEFAULT NULL'
 		foreignKeys:
 			-
 				column: id_user

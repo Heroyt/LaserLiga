@@ -17,8 +17,10 @@ class UserSettingsRequest
 	#[Required('E-mail je povinný'), Email('E-mail nemá správný formát')]
 	public string $email;
 	public ?\DateTimeImmutable $birthday = null;
-	public int $arena = 0;
-	public int $title = 0;
+	/** @var int|numeric-string  */
+	public int|string $arena = 0;
+	/** @var int|numeric-string  */
+	public int|string $title = 0;
 	#[Url('URL nemá správný formát')]
 	public ?string $mylasermaxx = null;
 	#[Regex('/\d{2,}-\d+-\d{3,}/', 'Laserforce ID nemá správný formát')]

@@ -8,6 +8,7 @@ use App\GameModels\Factory\TeamFactory;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\Extensions\DropboxSettings;
+use App\Models\Extensions\GoogleSettings;
 use App\Models\Extensions\PhotosSettings;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\Tournament;
@@ -33,7 +34,6 @@ class Arena extends BaseModel implements WithSchema
 
 	public const string TABLE = 'arenas';
 
-
 	#[OA\Property(example: 'Laser arena Písek')]
 	public string $name;
 	#[OA\Property(example: 'g')]
@@ -57,6 +57,9 @@ class Arena extends BaseModel implements WithSchema
 	public ?User $user = null;
 
 	public bool $hidden = false;
+
+	#[Instantiate, OA\Property]
+	public GoogleSettings $googleSettings;
 
 	#[Instantiate, OA\Property]
 	public DropboxSettings $dropbox;

@@ -1,0 +1,16 @@
+parameters:
+	google:
+		auth:
+			web:
+				client_id:
+				project_id:
+				auth_uri:
+				token_uri:
+				auth_provider_x509_cert_url:
+				client_secret:
+				redirect_uris: []
+				javascript_origins: []
+		applicationName: LaserLiga
+
+services:
+	google.clientFactory: App\Services\Google\GoogleClientFactory(authConfig: %google.auth%, applicationName: %google.applicationName%)

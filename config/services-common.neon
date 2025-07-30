@@ -6,6 +6,7 @@ includes:
 	- jobs.neon
 	- s3.neon
 	- dropbox.neon
+	- google.neon
 parameters:
 	db:
 		driver: mysqli
