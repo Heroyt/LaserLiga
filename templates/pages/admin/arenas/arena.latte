@@ -34,6 +34,10 @@
             'type' => 'tab',
             'condition' => $arena->photosSettings->enabled || $user?->type?->hasRight('enable-photos'),
             ],
+            'google' => [
+            'name' => 'Google kalendář',
+            'type' => 'tab',
+            ],
             ]
         }
             {block info-content}
@@ -252,6 +256,26 @@
                 {else}
                     <div class="alert alert-danger">{_'Vyplňte nastavení Dropbox aplikace'}</div>
                 {/if}
+            {/block}
+            {block google-content}
+                <h3>{_'Google kalenář'}</h3>
+                <p>
+                    {_'Umožňuje propojení rezervací s google kalendářem.'}
+                </p>
+                <h4>OAuth</h4>
+                {if $arena->googleSettings->isReady()}
+                    <div class="alert alert-success">{_'Propojení je aktivní'}</div>
+                {else}
+                    <div class="alert alert-warning">{_'Propojení není aktivní'}</div>
+                {/if}
+                <p>
+                    <a href="{link ['google', $arena->id, 'start']}" class="btn btn-primary" target="_blank">
+                        {_'Propojit Google kalendář s LaserLigou'}
+                    {if $arena->googleSettings->isReady()}
+                    ({_'Přepíše aktivní propojení'})
+                    {/if}
+                    </a>
+                </p>
             {/block}
         {/embed}
         <p class="text-center">
