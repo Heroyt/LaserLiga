@@ -1,12 +1,12 @@
 includes:
 	- console.neon
-	- local.neon
 	- symfony.neon
 	- cqrs.neon
 	- jobs.neon
 	- s3.neon
 	- dropbox.neon
 	- google.neon
+	- local.neon
 parameters:
 	db:
 		driver: mysqli

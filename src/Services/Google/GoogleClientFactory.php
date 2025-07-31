@@ -51,8 +51,12 @@ final class GoogleClientFactory
 		$client->setPrompt('consent');
 		$client->setIncludeGrantedScopes(true);
 
-		$client->setAuthConfig($this->authConfig);
-		$client->setRedirectUri($this->linkGenerator->getLink(['google', (string)$arena->id, 'auth']));
+		$redirectUri = $this->linkGenerator->getLink(['google', (string)$arena->id, 'auth']);
+		$auth = $this->authConfig;
+		$auth['redirect_uris'][] = $redirectUri;
+
+		$client->setAuthConfig($auth);
+		$client->setRedirectUri($redirectUri);
 
 		if ($arena->googleSettings->isReady()) {
 			$client->setAccessToken($arena->googleSettings->accessToken);
