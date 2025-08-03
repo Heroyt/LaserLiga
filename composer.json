@@ -1,37 +1,38 @@
 {
-	"name": "heroyt/laserliga",
+  "name": "heroyt/laserliga",
   "type": "project",
-	"minimum-stability": "stable",
+  "minimum-stability": "stable",
   "license": "GPL-3.0-or-later",
-	"repositories": [
-		{
-			"type": "composer",
-			"url": "https://packages.laserliga.cz"
-		}
-	],
-	"scripts": {
-		"install-app": "composer build && php install.php",
-		"serve": "php -S localhost:8000 index.php",
-		"test": "./vendor/bin/phpunit",
-		"docs": "doxygen",
-		"build-production": "composer update --no-dev && composer dump-autoload --no-dev && npm install && npm run build && npm prune --production",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packages.laserliga.cz"
+    }
+  ],
+  "scripts": {
+    "install-app": "composer build && php install.php",
+    "serve": "php -S localhost:8000 index.php",
+    "test": "./vendor/bin/phpunit",
+    "docs": "doxygen",
+    "build-production": "composer update --no-dev && composer dump-autoload --no-dev && npm install && npm run build && npm prune --production",
     "build": "composer update && composer dump-autoload && npm install && npm run build",
     "swagger": "./vendor/bin/openapi vendor/lsr/request/src/Dto vendor/lsr/request/src/Enums src -o openApi/swagger.yaml",
-    "phpstan": "./vendor/bin/phpstan -c phpstan.neon"
-	},
-	"require": {
+    "phpstan": "./vendor/bin/phpstan -c phpstan.neon",
+    "pre-autoload-dump": "Google\\Task\\Composer::cleanup"
+  },
+  "require": {
     "tracy/tracy": "^2.10",
-		"dibi/dibi": "^5.0",
+    "dibi/dibi": "^5.0",
     "latte/latte": "^3.0",
     "nette/utils": "^4.0",
-		"nette/security": "^3.2",
-		"ext-zip": "*",
+    "nette/security": "^3.2",
+    "ext-zip": "*",
     "php": "^8.4",
-		"nette/http": "^3.3",
-		"ext-gettext": "*",
-		"nette/di": "^3.2",
-		"ext-mbstring": "*",
-		"ext-fileinfo": "*",
+    "nette/http": "^3.3",
+    "ext-gettext": "*",
+    "nette/di": "^3.2",
+    "ext-mbstring": "*",
+    "ext-fileinfo": "*",
     "lsr/interfaces": "^0.3",
     "lsr/helpers": "^0.3",
     "lsr/core": "^0.3",
@@ -40,11 +41,11 @@
     "lsr/request": "^0.3",
     "lsr/cache": "^0.3.1",
     "lsr/db": "^0.3",
-		"lsr/auth": "^0.3",
-		"ext-simplexml": "*",
-		"nette/mail": "^4.0",
-		"ext-curl": "*",
-		"ext-openssl": "*",
+    "lsr/auth": "^0.3",
+    "ext-simplexml": "*",
+    "nette/mail": "^4.0",
+    "ext-curl": "*",
+    "ext-openssl": "*",
     "minishlink/web-push": "^9.0",
     "ext-imagick": "*",
     "ext-gd": "*",
@@ -57,44 +58,49 @@
     "ext-igbinary": "*",
     "ext-zlib": "*",
     "lsr/lg-result-parsing": "dev-master",
-		"spatie/dropbox-api": "^1.23",
-		"lsr/cqrs": "^0.1.1",
-		"aws/aws-sdk-php": "^3.342",
+    "spatie/dropbox-api": "^1.23",
+    "lsr/cqrs": "^0.1.1",
+    "aws/aws-sdk-php": "^3.342",
     "ext-exif": "*",
-		"matomo/matomo-php-tracker": "^3.3",
-		"maestroerror/php-heic-to-jpg": "^1.0",
-		"league/commonmark": "^2.6",
-		"elgigi/commonmark-emoji": "^2.0",
-		"netpromotion/profiler": "^1.1"
+    "matomo/matomo-php-tracker": "^3.3",
+    "maestroerror/php-heic-to-jpg": "^1.0",
+    "league/commonmark": "^2.6",
+    "elgigi/commonmark-emoji": "^2.0",
+    "google/apiclient": "^2.18"
   },
-	"require-dev": {
-		"roave/security-advisories": "dev-latest",
-		"phpunit/phpunit": "^12",
-		"gettext/gettext": "^5.7",
-		"phpstan/phpstan": "^2.0",
-		"phpstan/extension-installer": "^1.1",
-		"phpstan/phpstan-dibi": "^2.0",
-		"phpstan/phpstan-nette": "^2.0"
-	},
-	"autoload": {
-		"psr-4": {
-			"App\\": "src/"
-		},
-		"files": [
-			"include/functions.php"
-		]
-	},
-	"authors": [
-		{
-			"name": "Tomáš Vojík",
-			"email": "vojik@wboy.cz"
-		}
-	],
-	"config": {
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "phpunit/phpunit": "^12",
+    "gettext/gettext": "^5.7",
+    "phpstan/phpstan": "^2.0",
+    "phpstan/extension-installer": "^1.1",
+    "phpstan/phpstan-dibi": "^2.0",
+    "phpstan/phpstan-nette": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    },
+    "files": [
+      "include/functions.php"
+    ]
+  },
+  "authors": [
+    {
+      "name": "Tomáš Vojík",
+      "email": "vojik@wboy.cz"
+    }
+  ],
+  "config": {
     "optimize-autoloader": true,
     "apcu-autoloader": true,
-		"allow-plugins": {
-			"phpstan/extension-installer": true
-		}
-	}
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
+  },
+  "extra": {
+    "google/apiclient-services": [
+      "Calendar"
+    ]
+  }
 }
