@@ -30,6 +30,8 @@ class BookingTimeSlotsQuery implements QueryInterface
 
 	private bool $includePast = false;
 
+	private bool $includeClosedTimes = false;
+
 	public function __construct(
 		private readonly BookingType       $type,
 		private readonly DateTimeInterface $date,
@@ -52,6 +54,11 @@ class BookingTimeSlotsQuery implements QueryInterface
 
 	public function includeBookings(bool $include = true): static {
 		$this->includeBookings = $include;
+		return $this;
+	}
+
+	public function includeClosedTimes(bool $include = true): static {
+		$this->includeClosedTimes = $include;
 		return $this;
 	}
 
@@ -90,11 +97,7 @@ class BookingTimeSlotsQuery implements QueryInterface
 		if ($this->cacheSlots && $this->cache && $this->now === null) {
 			try {
 				return $this->cacheService->load(
-					'booking.times.'
-					. ($this->subType !== null ? $this->subType->id . '.' : '')
-					. $this->type->id . '.'
-					. $this->date->format('Y-m-d')
-					. ($this->includeBookings ? '.bookings' : ''),
+					$this->cacheKey(),
 					fn() => $this->generateTimes(),
 					[
 						$this->cacheService::Expire => '1 day',
@@ -114,6 +117,27 @@ class BookingTimeSlotsQuery implements QueryInterface
 	}
 
 	/**
+	 * @return string
+	 */
+	public function cacheKey(): string {
+		$key = 'booking.times';
+		if ($this->subType !== null) {
+			$key .= '.' . $this->subType->id;
+		}
+		$key .= '.' . $this->type->id . '.' . $this->date->format('Y-m-d');
+		if ($this->includeBookings) {
+			$key .= '.bookings';
+		}
+		if ($this->includePast) {
+			$key .= '.past';
+		}
+		if ($this->includeClosedTimes) {
+			$key .= '.closed';
+		}
+			return $key;
+	}
+
+	/**
 	 * @return array<string, BookingTimeStatus>
 	 */
 	private function generateTimes(): array {
@@ -126,8 +150,15 @@ class BookingTimeSlotsQuery implements QueryInterface
 		}
 		$times = $timesQuery->get();
 
+		$closed = false;
 		if (empty($times)) {
-			return [];
+			if (!$this->includePast) {
+				return [];
+			}
+			// If no times are found, we still want to generate slots for the date.
+			$timesQuery->includeSpecialHours(false);
+			$times = $timesQuery->get();
+			$closed = true;
 		}
 
 		$slots = [];
@@ -145,13 +176,16 @@ class BookingTimeSlotsQuery implements QueryInterface
 				throw new RuntimeException('Invalid date format for booking time slots.');
 			}
 
+			// Set date to be the same (we only care about the time).
+			$time->setDate($globalStart);
+
 			// Subtype can enable on-call times to work as normal times.
 			$onCall = !($this->subType->unlockOnCall ?? false) && $time instanceof OnCallTimeInterval;
 			foreach ($this->makeSlotsForInterval($time, $globalStart) as $slot) {
 				$isPast = $this->includePast && $this->now !== null && $slot < $this->now;
 				$slots[$slot->format('Y-m-d H:i')] = new BookingTimeStatus(
 					$slot->format('H:i'),
-					$isPast ? TimeStatus::CLOSED : ($onCall ? TimeStatus::ON_CALL : TimeStatus::AVAILABLE),
+					$isPast || $closed ? TimeStatus::CLOSED : ($onCall ? TimeStatus::ON_CALL : TimeStatus::AVAILABLE),
 					$this->subType->slotMax ?? $this->type->slotLimit,
 				);
 			}
@@ -176,7 +210,8 @@ class BookingTimeSlotsQuery implements QueryInterface
 					$slots[$slot]->status = TimeStatus::FILLED;
 					$slots[$slot]->availableSpots = 0;
 				}
-				elseif ($slots[$slot]->availableSpots < $this->type->slotLimit && !$slots[$slot]->status->isFinalStatus()) {
+				elseif ($slots[$slot]->availableSpots < $this->type->slotLimit && !$slots[$slot]->status->isFinalStatus(
+					)) {
 					$slots[$slot]->status = TimeStatus::PARTIALLY_FILLED;
 				}
 			}

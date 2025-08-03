@@ -143,6 +143,7 @@ tables:
 			`subtype_fields` text DEFAULT NULL,
 			`terms` text DEFAULT NULL,
 			`custom_discovery` varchar(255) DEFAULT NULL,
+			`event_id` varchar(255) DEFAULT NULL,
 			`deleted` bool NOT NULL DEFAULT false,
 			`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			`updated_at` datetime DEFAULT NULL,
@@ -187,6 +188,9 @@ tables:
 			-
 				name: 'deleted'
 				columns: ['deleted']
+		modifications:
+			0.1:
+				- 'ADD `event_id` varchar(255) DEFAULT NULL'
 	App\Models\Booking\BookingUser:
 		order: 5
 		definition: '''

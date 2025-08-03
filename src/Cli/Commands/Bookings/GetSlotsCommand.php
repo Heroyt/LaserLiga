@@ -39,6 +39,8 @@ class GetSlotsCommand extends Command
 			InputOption::VALUE_OPTIONAL,
 			'Override the current date and time for the query (YYYY-MM-DD HH:MM:SS)'
 		);
+		$this->addOption('includeClosedTimes', 'C', InputOption::VALUE_NONE, 'Include closed times in the query');
+
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -77,6 +79,10 @@ class GetSlotsCommand extends Command
 			if ($input->getOption('includePast')) {
 				$query->includePast();
 			}
+		}
+
+		if ($input->getOption('includeClosedTimes')) {
+			$query->includeClosedTimes();
 		}
 
 		$slots = $query->get();

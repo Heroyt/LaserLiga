@@ -36,4 +36,10 @@ class BookingUser extends BaseModel
 	#[Instantiate]
 	public PersonalDetails $personalDetails;
 
+	public static function findByEmail(string $email): ?BookingUser {
+		return self::query()
+			->where('email', $email)
+			->first();
+	}
+
 }

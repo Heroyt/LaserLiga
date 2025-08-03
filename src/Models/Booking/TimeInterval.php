@@ -164,4 +164,23 @@ class TimeInterval implements InsertExtendInterface
 		return $intervals;
 	}
 
+	public function setDate(DateTimeInterface $date): void {
+		if ($this->start !== null) {
+			assert($this->start instanceof \DateTimeImmutable);
+			$this->start = $this->start->setDate(
+				(int) $date->format('Y'),
+				(int) $date->format('m'),
+				(int) $date->format('d')
+			);
+		}
+		if ($this->end !== null) {
+			assert($this->end instanceof \DateTimeImmutable);
+			$this->end = $this->end->setDate(
+				(int) $date->format('Y'),
+				(int) $date->format('m'),
+				(int) $date->format('d')
+			);
+		}
+	}
+
 }

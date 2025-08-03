@@ -80,6 +80,17 @@ final class OpenHoursForDateQuery implements QueryInterface
 		                ->get($this->cache);
 	}
 
+	private function cacheKey() : string {
+		$key = 'booking.open_hours.' . $this->type->id . '.' . $this->date->format('Y-m-d');
+		if (!$this->includeNormalHours) {
+			$key .= '.no_normal';
+		}
+		if (!$this->includeSpecialHours) {
+			$key .= '.no_special';
+		}
+		return $key;
+	}
+
 	/**
 	 * @return TimeInterval[]
 	 */
@@ -87,8 +98,9 @@ final class OpenHoursForDateQuery implements QueryInterface
 		if ($this->cache) {
 			try {
 				return $this->cacheService->load(
-					'booking.open_hours.' . $this->type->id . '.' . $this->date->format('Y-m-d'),
+					$this->cacheKey(),
 					fn() => $this->getTimes(),
+					/** @phpstan-ignore argument.type */
 					[
 						$this->cacheService::Tags   => [
 							'booking',
