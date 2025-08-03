@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace App\Models\Auth;
 
+use App\Helpers\PhoneNumber;
 use Dibi\Row;
+use Lsr\Helpers\Tools\Strings;
 use Lsr\ObjectValidation\Attributes\StringLength;
 use Lsr\Orm\Interfaces\InsertExtendInterface;
 
@@ -37,5 +39,33 @@ class PersonalDetails implements InsertExtendInterface
 		$data['first_name'] = $this->firstName;
 		$data['last_name'] = $this->lastName;
 		$data['phone'] = $this->phone;
+	}
+
+	public function matches(PersonalDetails $other) : bool {
+		if ($this->normalizeName($this->firstName) !== $this->normalizeName($other->firstName)) {
+			return false;
+		}
+		if ($this->normalizeName($this->lastName) !== $this->normalizeName($other->lastName)) {
+			return false;
+		}
+		if ($this->normalizePhone($this->phone) !== $this->normalizePhone($other->phone)) {
+			return false;
+		}
+		return true;
+	}
+
+	private function normalizePhone(?string $phone): ?string {
+		if ($phone === null) {
+			return null;
+		}
+		// Normalize number and removes country prefix
+		return new PhoneNumber($phone)->number;
+	}
+
+	private function normalizeName(?string $name): ?string {
+		if ($name === null) {
+			return null;
+		}
+		return trim(Strings::lower(Strings::toAscii($name)));
 	}
 }
