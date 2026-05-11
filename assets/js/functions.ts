@@ -1,6 +1,6 @@
-import {Popover, Tooltip} from "bootstrap";
-import {startLoading, stopLoading} from "./loaders";
-import {customFetch, FormSaveResponse, RequestMethod} from "./api/client";
+import { Popover, Tooltip } from "bootstrap";
+import { startLoading, stopLoading } from "./loaders";
+import { customFetch, FormSaveResponse, RequestMethod } from "./api/client";
 
 declare global {
     const prettyUrl: boolean;
@@ -15,14 +15,6 @@ declare global {
         findParentElement(elemName: string): HTMLElement | null
 
         findParentElementByClassName(className: string): HTMLElement | null
-    }
-
-    interface Math {
-        easeInOutQuad(t: number, b: number, c: number, d: number): number
-    }
-
-    interface Window {
-        scrollSmooth(to: number, duration: number): void
     }
 }
 
@@ -70,40 +62,6 @@ Element.prototype.findParentElementByClassName = function (className: string): H
     return currElem;
 }
 
-/**
- * @param {number} t Current time
- * @param {number} b Start time
- * @param {number} c Change in value
- * @param {number} d Duration
- *
- * @return {number}
- */
-Math.easeInOutQuad = function (t: number, b: number, c: number, d: number): number {
-    t /= d / 2;
-    if (t < 1) return c / 2 * t * t + b;
-    t--;
-    return -c / 2 * (t * (t - 2) - 1) + b;
-};
-
-/**
- * Smooth scroll element to y value
- *
- * @param {number} to Pixel value from top
- * @param {number} duration Time in ms
- */
-window.scrollSmooth = function (to: number, duration: number) {
-    let start = window.scrollY, change = to - start, currentTime = 0, increment = 10;
-
-    const animateScroll = function () {
-        currentTime += increment;
-        // @ts-ignore
-        window.scrollBy(0, Math.easeInOutQuad(currentTime, start, change, duration) - window.scrollY)
-        if (currentTime < duration) {
-            setTimeout(animateScroll, increment);
-        }
-    };
-    animateScroll();
-}
 
 /**
  * Format a phone number to `000 000 000` format
@@ -159,6 +117,18 @@ export function getLink(request: string[]): string {
     });
     const params = new URLSearchParams(query);
     return window.location.origin + "?" + params.toString();
+}
+
+export function prefixPathWithLang(path : string) : string {
+    const lang = document.documentElement.lang;
+    if (!lang || lang === 'cs') { // Not set or default language
+        return path;
+    }
+
+    if (path.startsWith('/')) {
+        return `/${lang}${path}`;
+    }
+    return `/${lang}/${path}`;
 }
 
 /**
@@ -390,4 +360,11 @@ export function initTableRowLink(elem: HTMLElement | null | Document = null): vo
             window.location.href = row.dataset.href;
         })
     }
+}
+
+export function sprintf(str: string, ...argv: any[]): string {
+    str = str.replaceAll('%s', '$').replaceAll('%d', '$');
+    return !argv.length ?
+        str :
+        sprintf(str = str.replace("$", argv.shift()), ...argv)
 }

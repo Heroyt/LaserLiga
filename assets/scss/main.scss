@@ -83,6 +83,7 @@ footer {
 @import 'components/musicModeCard';
 @import 'components/dialog';
 @import "viewTransitions";
+@import 'components/cookieConsent';
 
 @include media-breakpoint-down('lg') {
 	.position-sticky.bottom-0 {

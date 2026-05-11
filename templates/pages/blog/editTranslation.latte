@@ -1,0 +1,12 @@
+{layout '../../@layout.latte'}
+{templateType App\Templates\Blog\EditTranslationParameters}
+
+{block content}
+    <h2>
+        {_'Editace příspěvku', context: 'blog'} #{$post->id} - {$postTranslation->language}
+    </h2>
+    <p>
+        <a target="_blank" href="{$post->getUrl($postTranslation->language)}">{$post->getUrl($postTranslation->language)}</a>
+    </p>
+    {include 'form.latte', $postTranslation, $tags, $translations}
+{/block}

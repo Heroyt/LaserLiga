@@ -21,6 +21,17 @@
         {/if}
     </h2>
 
+    {if $team instanceof App\Models\Tournament\League\LeagueTeam}
+        <h3>{lang 'Přihlášeno na turnaje'}:</h3>
+        <ul class="block-list">
+            <li n:foreach="$team->teams as $tournamentTeam">
+                {$tournamentTeam->tournament->start->format('j. n. Y H:i')}: {$tournamentTeam->tournament->name}
+            </li>
+        </ul>
+
+        <hr>
+    {/if}
+
     <div class="card" n:foreach="$team->players as $player">
         <h3>
             {$player->name} <i>{$player->nickname}</i> {$player->surname}
@@ -53,6 +64,19 @@
         <h3>{lang 'Platba'}</h3>
         {$team->event->price|noescape}
     {/if}
+
+    <hr>
+
+    {if $team instanceof App\Models\Tournament\Team && isset($team->tournament->registrationText)}
+        {$team->tournament->registrationText|noescape}
+    {elseif $team instanceof App\Models\Tournament\League\LeagueTeam && isset($team->league->registrationText)}
+        {$team->league->registrationText|noescape}
+    {elseif $team instanceof App\Models\Events\EventTeam && isset($team->event->registrationText)}
+        {$team->event->registrationText|noescape}
+    {/if}
+
+    <hr>
+
 
     {if $team instanceof App\Models\Tournament\Team}
         <p class="mt-5">

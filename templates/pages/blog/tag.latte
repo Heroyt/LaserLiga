@@ -32,7 +32,7 @@
     </p>
 
     <div class="tags fs-5 mb-4">
-        <a n:foreach="$tags as $t" href="{$t->getUrl()}" class="badge text-bg-primary m-1 text-decoration-none" style="view-transition-name: blog-tag-{$t->id}">
+        <a n:foreach="$tags as $t" href="{$t->getUrl()}" class="badge text-bg-{if $t->parent === null}primary{else}secondary{/if} m-1 text-decoration-none" style="view-transition-name: blog-tag-{$t->id}">
             {$t->getIconHtml()|noescape}
             {$t->getTranslatedName()}
         </a>

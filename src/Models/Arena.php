@@ -7,6 +7,7 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Factory\TeamFactory;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
+use App\Models\Extensions\BookingSettings;
 use App\Models\Extensions\DropboxSettings;
 use App\Models\Extensions\GoogleSettings;
 use App\Models\Extensions\PhotosSettings;
@@ -31,6 +32,7 @@ use RuntimeException;
 #[OA\Schema]
 class Arena extends BaseModel implements WithSchema
 {
+	use WithSlug;
 
 	public const string TABLE = 'arenas';
 
@@ -67,6 +69,9 @@ class Arena extends BaseModel implements WithSchema
 	#[Instantiate, OA\Property]
 	public PhotosSettings $photosSettings;
 
+	#[Instantiate, OA\Property]
+	public BookingSettings $bookingSettings;
+
 	/** @var array<string,array<string, int[]>> */
 	private array $gameIds = [];
 
@@ -77,6 +82,10 @@ class Arena extends BaseModel implements WithSchema
 	private array $tournaments = [];
 	/** @var Tournament[] */
 	private array $plannedTournaments = [];
+
+	protected function getSlugName(): string {
+		return $this->name;
+	}
 
 	/**
 	 * @return Arena[]
@@ -380,8 +389,15 @@ class Arena extends BaseModel implements WithSchema
 		return $this->leagues;
 	}
 
+	/**
+	 * @return string[]
+	 */
+	public function getLink() : array {
+		return ['arena', $this->slug];
+	}
+
 	public function getUrl(): string {
-		return App::getLink(['arena', (string) $this->id]);
+		return App::getLink($this->getLink());
 	}
 
 	public function getSchema(): array {
@@ -399,4 +415,5 @@ class Arena extends BaseModel implements WithSchema
 			'telephone' => $this->contactPhone,
 		];
 	}
+
 }

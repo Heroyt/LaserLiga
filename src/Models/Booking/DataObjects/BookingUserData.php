@@ -14,6 +14,7 @@ final readonly class BookingUserData
 		public ?string $lastName = null,
 		public ?string $phone = null,
 		public ?User $user = null,
+		public ?int $id = null,
 	){}
 
 	public static function createFromUser(User $user): self

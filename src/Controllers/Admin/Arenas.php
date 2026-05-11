@@ -9,8 +9,10 @@ use App\Request\Admin\Arena\ArenaApiKeyRequest;
 use App\Request\Admin\Arena\ArenaDropboxRequest;
 use App\Request\Admin\Arena\ArenaInfoRequest;
 use App\Request\Admin\Arena\ArenaPhotoRequest;
+use App\Services\Google\GoogleClientFactory;
 use App\Templates\Admin\ArenaDetailParameters;
 use App\Templates\Admin\ArenaShowParameters;
+use DateInterval;
 use Dibi\Exception;
 use JsonException;
 use Lsr\Core\Auth\Services\Auth;
@@ -28,6 +30,7 @@ use Lsr\Orm\Exceptions\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use SimpleXMLElement;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Throwable;
 
 class Arenas extends Controller
 {
@@ -36,9 +39,10 @@ class Arenas extends Controller
 	 * @param Auth<User> $auth
 	 */
 	public function __construct(
-		private readonly Auth $auth,
+		private readonly Auth                $auth,
+		private readonly GoogleClientFactory $googleClientFactory,
 	) {
-		
+
 	}
 
 	public function init(RequestInterface $request): void {
@@ -74,6 +78,20 @@ class Arenas extends Controller
 		$this->params->apiKeys = DB::select('api_keys', '[id_key], [key], [name]')
 		                           ->where('[id_arena] = %i AND [valid] = 1', $arena->id)
 		                           ->fetchAssocDto(ArenaApiKeyRow::class, 'id_key', cache: false);
+
+		$this->params->googleIsReady = $arena->googleSettings->isReady();
+		if ($this->params->googleIsReady) {
+			try {
+				$client = $this->googleClientFactory->getClient($arena);
+				$this->params->googleIsExpired = $client->isAccessTokenExpired();
+			} catch (Throwable $e) {
+				$this->params->notices[] = [
+					'type'    => 'danger',
+					'title'   => lang('Chyba Google API', context: 'errors'),
+					'content' => $e->getMessage(),
+				];
+			}
+		}
 
 		return $this->view('pages/admin/arenas/arena');
 	}
@@ -124,10 +142,10 @@ class Arenas extends Controller
 			trim($photos->photos_mail_text)
 			: null;
 		$arena->photosSettings->unassignedPhotoTTL = $photos->photos_unassigned_photo_ttl !== null ?
-			new \DateInterval('P' . $photos->photos_unassigned_photo_ttl . 'D')
+			new DateInterval('P' . $photos->photos_unassigned_photo_ttl . 'D')
 			: null;
 		$arena->photosSettings->assignedPhotoTTL = $photos->photos_assigned_photo_ttl !== null ?
-			new \DateInterval('P' . $photos->photos_assigned_photo_ttl . 'M')
+			new DateInterval('P' . $photos->photos_assigned_photo_ttl . 'M')
 			: null;
 
 		try {

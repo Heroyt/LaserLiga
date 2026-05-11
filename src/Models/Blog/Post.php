@@ -8,11 +8,10 @@ use App\Models\Auth\User;
 use App\Models\BaseModel;
 use App\Models\DataObjects\Image;
 use App\Models\WithSchema;
+use App\Models\WithSlug;
 use DateTimeInterface;
 use Lsr\Core\App;
-use Lsr\Helpers\Tools\Strings;
 use Lsr\ObjectValidation\Attributes\StringLength;
-use Lsr\Orm\Attributes\Hooks\BeforeInsert;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToMany;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
@@ -25,6 +24,7 @@ class Post extends BaseModel implements WithSchema
 {
 	use WithCreatedAt;
 	use WithUpdatedAt;
+	use WithSlug;
 
 	public const string TABLE = 'blog_posts';
 
@@ -41,6 +41,7 @@ class Post extends BaseModel implements WithSchema
 	public string          $htmlContent;
 	public ?string         $image    = null;
 	public ?string         $imageAlt = null;
+	public bool $approved = false;
 	public PostStatus      $status   = PostStatus::DRAFT;
 
 	public ?DateTimeInterface $publishedAt = null;
@@ -56,39 +57,22 @@ class Post extends BaseModel implements WithSchema
 		get => str_word_count(strip_tags($this->markdownContent));
 	}
 
-	public int $readingTime {
+	public int                   $readingTime {
 		get => (int)ceil($this->wordCount / 200); // Average reading speed of 200 words per minute
 	}
+	/** @var array<string, Post|PostTranslation> */
+	private array $translations = [];
 
-	#[BeforeInsert]
-	public function generateSlug(bool $regenerate = false): string {
-		if (!$regenerate && !empty($this->slug)) {
-			return $this->slug;
-		}
-		$slug = Strings::webalize($this->title);
-		$counter = 0;
-		// Check if the slug already exists
-		do {
-			$mergedSlug = $slug . ($counter > 0 ? '-' . $counter : '');
-			$test = self::getBySlug($mergedSlug);
-			$counter++;
-		} while ($test !== null && $test->id !== $this->id);
-		$this->slug = $mergedSlug;
-		return $this->slug;
+	public function getTranslatedMarkdownContent(?string $language = null): string {
+		return $this->getTranslation($language)->markdownContent;
 	}
 
-	public static function getBySlug(string $slug): ?self {
-		return self::query()->where('[slug] = %s', $slug)->first();
+	public function getTranslatedImageAlt(?string $language = null): ?string {
+		return $this->getTranslation($language)->imageAlt;
 	}
 
-	public function getTranslatedMarkdownContent(): string {
-		$language = App::getInstance()->getLanguage()->id;
-		return PostTranslation::getForPostAndLanguage($this, $language)->markdownContent ?? $this->markdownContent;
-	}
-
-	public function getTranslatedImageAlt(): ?string {
-		$language = App::getInstance()->getLanguage()->id;
-		return PostTranslation::getForPostAndLanguage($this, $language)->imageAlt ?? $this->imageAlt;
+	public function getTranslatedSlug(?string $language = null): string {
+		return $this->getTranslation($language)->slug;
 	}
 
 	public function getSchema(): array {
@@ -132,7 +116,7 @@ class Post extends BaseModel implements WithSchema
 		}
 
 		if (!empty($this->image)) {
-			$schema['image'] = $this->image;
+			$schema['image'] = $this->imageObj->getUrl();
 		}
 
 		/** @var Tag $tag */
@@ -153,23 +137,47 @@ class Post extends BaseModel implements WithSchema
 		return $schema;
 	}
 
-	public function getUrl(): string {
-		return App::getLink(['blog', 'post', $this->slug]);
+	/**
+	 * @return array<int|string, string>
+	 */
+	public function getLink(?string $lang = null) : array {
+		$lang ??= App::getInstance()->getLanguage()->id;
+		$translations = App::getInstance()->translations;
+
+		$link = ['blog', 'post'];
+		if ($translations->supportsLanguage($lang) && $translations->getDefaultLangId() !== $lang) {
+			$link[] = $this->getTranslatedSlug($lang);
+			$link['lang'] = $lang;
+		}
+		else {
+			$link[] = $this->slug;
+		}
+		return $link;
 	}
 
-	public function getTranslatedTitle(): string {
-		$language = App::getInstance()->getLanguage()->id;
-		return PostTranslation::getForPostAndLanguage($this, $language)->title ?? $this->title;
+	public function getUrl(?string $lang = null): string {
+		return App::getLink($this->getLink($lang));
 	}
 
-	public function getTranslatedAbstract(): string {
-		$language = App::getInstance()->getLanguage()->id;
-		return PostTranslation::getForPostAndLanguage($this, $language)->abstract ?? $this->abstract;
+	private function getTranslation(?string $language = null) : PostTranslation|Post {
+		$language ??= App::getInstance()->getLanguage()->id;
+		if (App::getInstance()->translations->getDefaultLangId() === $language) {
+			$this->translations[$language] = $this;
+		}
+		$this->translations[$language] ??= PostTranslation::getForPostAndLanguage($this, $language) ?? $this;
+		return $this->translations[$language];
 	}
 
-	public function getTranslatedHtmlContent(): string {
-		$language = App::getInstance()->getLanguage()->id;
-		return PostTranslation::getForPostAndLanguage($this, $language)->htmlContent ?? $this->htmlContent;
+	public function getTranslatedTitle(?string $language = null): string {
+		return $this->getTranslation($language)->title;
+	}
+
+	public function getTranslatedAbstract(?string $language = null): string {
+		return $this->getTranslation($language)->abstract;
+	}
+
+	public function getTranslatedHtmlContent(?string $language = null): string {
+		return $this->getTranslation($language)->htmlContent;
 	}
 
 	public function getPublishedAt(): DateTimeInterface {
@@ -177,12 +185,12 @@ class Post extends BaseModel implements WithSchema
 	}
 
 	public function canByEditedBy(User $user): bool {
-		if ($user->hasRight('manage-blog')) {
-			return true;
-		}
-		if ($this->author->id === $user->id) {
-			return true;
-		}
-		return false;
+		return $this->author->id === $user->id
+			|| $user->hasRight('manage-blog')
+			|| $user->hasRight('approve-blog');
+	}
+
+	protected function getSlugName(): string {
+		return $this->title;
 	}
 }

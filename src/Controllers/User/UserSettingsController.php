@@ -22,6 +22,7 @@ use Lsr\Core\Requests\Request;
 use Lsr\Core\Requests\Validation\RequestValidationMapper;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Logging\Logger;
 use Lsr\ObjectValidation\Exceptions\ValidationMultiException;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
@@ -38,13 +39,13 @@ class UserSettingsController extends AbstractUserController
 	 * @param Auth<User> $auth
 	 */
 	public function __construct(
-		protected readonly Auth        $auth,
-		protected readonly Passwords   $passwords,
-		private readonly TitleProvider $titleProvider,
-		private readonly AvatarService               $avatarService,
+		protected readonly Auth                  $auth,
+		protected readonly Passwords             $passwords,
+		private readonly TitleProvider           $titleProvider,
+		private readonly AvatarService           $avatarService,
 		private readonly UserRegistrationService $userRegistrationService,
 	) {
-		
+
 		$this->params = new UserSettingsParameters();
 	}
 
@@ -78,7 +79,9 @@ class UserSettingsController extends AbstractUserController
 	}
 
 	public function process(RequestValidationMapper $mapper, Request $request): ResponseInterface {
+		$logger = new Logger(LOG_DIR . 'user/', 'user-settings');
 		if (!empty($request->getErrors())) {
+			$logger->warning('Request has errors', $request->getErrors());
 			return $this->respondForm($request, statusCode: 403);
 		}
 
@@ -91,9 +94,17 @@ class UserSettingsController extends AbstractUserController
 			foreach ($e->exceptions as $error) {
 				$request->errors[$error->property] = lang($error->getMessage(), context: 'errors');
 			}
+			$logger->warning(
+				'Request validation error',
+				['user' => $user->player?->getCode(), 'errors' => $request->errors],
+			);
 			return $this->respondForm($request, statusCode: 400);
 		} catch (ValidationException $error) {
 			$request->errors[$error->property] = lang($error->getMessage(), context: 'errors');
+			$logger->warning(
+				'Request validation error',
+				['user' => $user->player?->getCode(), 'errors' => $request->errors],
+			);
 			return $this->respondForm($request, statusCode: 400);
 		}
 
@@ -109,7 +120,7 @@ class UserSettingsController extends AbstractUserController
 		// Check home arena
 		try {
 			if (!empty($data->arena)) {
-				$arena = Arena::get((int) $data->arena);
+				$arena = Arena::get((int)$data->arena);
 			}
 		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException) {
 			$request->passErrors['arena'] = lang('Aréna neexistuje', context: 'errors');
@@ -124,7 +135,7 @@ class UserSettingsController extends AbstractUserController
 
 		// Title
 		$title = null;
-		$titleId = (int) $data->title;
+		$titleId = (int)$data->title;
 		if ($titleId > 0) {
 			try {
 				$title = Title::get($titleId);
@@ -187,6 +198,15 @@ class UserSettingsController extends AbstractUserController
 
 		// Handle errors
 		if (!empty($request->passErrors)) {
+			$request->passNotices[] = [
+				'type'    => 'danger',
+				'content' => lang('Něco se nepodařilo'),
+				'title'   => lang('Formulář'),
+			];
+			$logger->warning(
+				'Request error',
+				['user' => $user->player?->getCode(), 'errors' => $request->passErrors],
+			);
 			return $this->respondForm($request, statusCode: 400);
 		}
 
@@ -212,6 +232,10 @@ class UserSettingsController extends AbstractUserController
 
 		if (!$user->save() || !$player->save()) {
 			$request->addPassError(lang('Profil se nepodařilo uložit'));
+			$logger->error(
+				'Failed to save user or player',
+				['user' => $user->player?->getCode()],
+			);
 			return $this->respondForm($request, statusCode: 500);
 		}
 		$user->clearCache();
@@ -237,6 +261,10 @@ class UserSettingsController extends AbstractUserController
 			$user->password = $this->passwords->hash($password);
 			if (!$user->save()) {
 				$request->addPassError(lang('Heslo se nepodařilo změnit'));
+				$logger->error(
+					'Failed to save user or player while changing password',
+					['user' => $user->player?->getCode()],
+				);
 				return $this->respondForm($request, statusCode: 500);
 			}
 			$request->passNotices[] = [
@@ -272,7 +300,7 @@ class UserSettingsController extends AbstractUserController
 		$user = $this->getUser($code);
 		$player = $user->createOrGetPlayer();
 
-		$type = (string) $request->getPost('type', ''); // @phpstan-ignore-line
+		$type = (string)$request->getPost('type', ''); // @phpstan-ignore-line
 		$avatarType = null;
 		if (!empty($type)) {
 			$avatarType = AvatarType::tryFrom($type);
@@ -280,7 +308,7 @@ class UserSettingsController extends AbstractUserController
 		if (!isset($avatarType)) {
 			$avatarType = AvatarType::getRandom();
 		}
-		$seed = (string) $request->getPost('seed', $player->getCode()); // @phpstan-ignore-line
+		$seed = (string)$request->getPost('seed', $player->getCode()); // @phpstan-ignore-line
 		$player->avatar = $this->avatarService->getAvatar($seed, $avatarType);
 		$player->avatarStyle = $avatarType->value;
 		$player->avatarSeed = $seed;
@@ -289,7 +317,7 @@ class UserSettingsController extends AbstractUserController
 		return $this->respond([$player, $type, $avatarType, $seed]);
 	}
 
-	public function sendNewConfirmEmail() : ResponseInterface {
+	public function sendNewConfirmEmail(): ResponseInterface {
 		/** @var User $user */
 		$user = $this->auth->getLoggedIn();
 

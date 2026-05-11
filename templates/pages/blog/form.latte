@@ -1,10 +1,40 @@
 {parameters
-    App\Models\Blog\Post|null $post,
+    App\Models\Blog\Post|App\Models\Blog\PostTranslation|null $post,
     App\Models\Blog\Tag[] $tags,
+    App\Models\Blog\PostTranslation[] $translations = [],
 }
+
+{var \Lsr\Core\App $app = \Lsr\Core\App::getInstance()}
+{var bool $isTranslation = $post instanceof App\Models\Blog\PostTranslation}
+{var bool $isPost = $post instanceof App\Models\Blog\Post}
+{var int|null $realPostId = $post === null ? null : ($isPost ? $post->id : $post->post->id)}
+{var App\Models\Blog\Post|null $realPost = $isPost || $post === null ? $post : $post->post}
 
 <form action="" method="post" id="blog-post-form" n:attr="data-create: $post === null, data-edit: $post?->id">
     {csrfInput 'edit-blog-post'}
+
+    <ul class="nav nav-pills mb-3" n:if="$post !== null">
+        <li n:foreach="$app->translations->supportedLanguages as $lang => $country" class="nav-item" data-lang="{$lang}">
+            {var bool $isDefault = $lang === $app->translations->getDefaultLangId()}
+            {var bool $isActive = ($isPost && $isDefault) || ($isTranslation && $post->language === $lang)}
+            <a href="{link ['blog', 'admin', $realPostId, ($isDefault ? '' : $lang)]}" n:class="'nav-link', $isActive ? active">
+                {img
+                    'assets/flags/'.\Lsr\Core\Constants::COUNTRIES[$country].'.png',
+                    null,
+                    null,
+                    [],
+                    [
+                    'style' => 'height: 2rem; width: 2rem;',
+                    'data-lang' => $lang,
+                    'data-country' => $country,
+                    'alt' => \Lsr\Core\Constants::COUNTRIES[$country],
+                    ]}
+                {if !$isDefault && !array_any($translations, fn($t) => $t->language === $lang)}
+                    {faSolid 'plus'}
+                {/if}
+            </a>
+        </li>
+    </ul>
 
     <div class="row">
         <div class="col-md-8">
@@ -16,16 +46,25 @@
 
             <div class="form-group">
                 <label for="post-abstract" class="form-label">{_'Perex', context: 'blog'}</label>
-                <textarea rows="5" class="form-control" id="post-abstract" name="abstract"
-                          required>{$post?->abstract}</textarea>
+                <textarea rows="5" class="form-control" id="post-abstract" name="abstract">{$post?->abstract}</textarea>
+                <div class="form-text">
+                    {_'Úvodní odstavec příspěvku, který se zobrazuje na výpisu a měl by shrnout význam celého příspěvku.', context: 'blog'}
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="post-content" class="form-label">{_'Obsah', context: 'blog'}</label>
                 <textarea rows="10" class="form-control" id="post-content" name="content"
-                          data-unique-id="{if $post !== null}post-content-{$post->id}{else}post-content-new{/if}"
-                          required>{$post?->markdownContent}</textarea>
-                <div class="form-text">{_'Markdown formát', context: 'blog'}</div>
+                          data-unique-id="{if $post !== null}post-content-{$realPost->id}{if $isTranslation}-{$post->language}{/if}{else}post-content-new{/if}">{$post?->markdownContent}</textarea>
+                <div class="form-text">
+                    {_'Markdown formát', context: 'blog'}.
+                    <br>
+                    {_'Využití LaTeX', context: 'blog'}: <code>$$ vzorec $$</code>
+                    <br>
+                    {_'Typografické pomůcky', context: 'blog'}: <code>--</code> (dlouhá pomlčka), <code>~</code> (nezlomitelná mezera)
+                    <br>
+                    <a href="https://listemoji.com/cheat-sheet" target="_blank">{_'Emotikony', context: 'blog'}</a>: <code>:smile:</code>
+                </div>
             </div>
         </div>
         <div class="col-md-4">
@@ -37,18 +76,20 @@
             </p>
             <div class="form-group">
                 <label for="post-status" class="form-label">{_'Stav', context: 'blog'}</label>
-                <select name="status" id="post-status" class="form-select">
+                <select name="status" id="post-status" class="form-select" n:attr="disabled : $isTranslation">
                     <option n:foreach="App\Models\Blog\PostStatus::cases() as $status"
-                            value="{$status->value}" n:attr="selected: $post?->status === $status">
+                            value="{$status->value}" n:attr="selected: $realPost?->status === $status">
                         {$status->getReadableName()}
                     </option>
                 </select>
             </div>
             <div class="form-group">
                 <div class="form-label">{_'Značky', context: 'blog'}:</div>
-                <div n:foreach="$tags as $tag" class="form-check">
+                <div n:foreach="$tags as $tag"
+                        style="margin-left: {count($tag->getHierarchyIds())}rem;"
+                        class="form-check">
                     <input type="checkbox" class="form-check-input" id="tag-{$tag->id}" name="tagIds[]"
-                           value="{$tag->id}" n:attr="checked: $post?->tags->contains($tag)">
+                           value="{$tag->id}" n:attr="checked: $realPost?->tags->contains($tag), disabled : $isTranslation">
                     <label for="tag-{$tag->id}" class="form-check-label">
                         {$tag->getIconHtml()|noescape}
                         {$tag->getTranslatedName()}
@@ -57,14 +98,17 @@
             </div>
             <div class="form-group">
                 <label for="image-upload" class="form-label">{_'Úvodní obrázek', context:'blog'}:</label>
-                <img src="{($post?->image ?? '')|replace:ROOT,'/'}" alt="{_'Náhled úvodního obrázku'}" id="image-upload-preview" />
-                <input type="file" class="form-control my-2" id="image-upload" accept="image/*">
-                <input type="hidden" name="image" value="{($post?->image ?? '')|replace:ROOT,''}" id="image-upload-url">
+                <img src="{($realPost?->image ?? '')|replace:ROOT,'/'}" alt="{_'Náhled úvodního obrázku'}" id="image-upload-preview" />
+                <input type="file" class="form-control my-2" id="image-upload" accept="image/*" n:attr="disabled : $isTranslation">
+                <input type="hidden" name="image" value="{($realPost?->image ?? '')|replace:ROOT,''}" id="image-upload-url">
                 <label for="image-alt">
                     {_'Alternativní text k obrázku', context: 'blog'}
                 </label>
                 <input type="text" class="form-control" id="image-alt" name="imageAlt"
                        value="{$post?->imageAlt}" maxlength="255" placeholder="{_'Zadejte alternativní text k obrázku'}">
+                <div class="form-text">
+                    {_'Text, který dostatečně popisuje celý obrázek (např. pro slepého člověka).', context: 'blog'}
+                </div>
             </div>
         </div>
     </div>

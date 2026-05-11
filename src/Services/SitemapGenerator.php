@@ -18,6 +18,7 @@ use Iterator;
 use Lsr\Core\App;
 use Lsr\Core\Exceptions\InvalidLanguageException;
 use Lsr\Core\Routing\Route;
+use Lsr\Core\Routing\RouteParameter;
 use Lsr\Core\Routing\Router;
 use Lsr\Enums\RequestMethod;
 use Lsr\Interfaces\RouteInterface;
@@ -33,10 +34,13 @@ class SitemapGenerator
 	public const string SITEMAP_GAMES_FILE = ROOT . 'sitemap_games.xml';
 	public const string SITEMAP_BLOG_FILE = ROOT . 'sitemap_blog.xml';
 	public const string SITEMAP_USERS_FILE = ROOT . 'sitemap_users.xml';
+	public const string SITEMAP_SEMRUSH_FILE = ROOT . 'sitemap_semrush.xml';
 
-	private const int GAMES_LIMIT = 5000;
+	private const int GAMES_LIMIT = 2000;
+	private const int GROUPS_LIMIT = 50;
 
 	public const array  IGNORE_PATHS      = [
+		'.well-known',
 		'logout',
 		'admin',
 		'kiosk',
@@ -49,6 +53,13 @@ class SitemapGenerator
 		'mailtest',
 		'dashboard',
 		'lang',
+		'google',
+		'dropbox',
+		'photos',
+		'webhook',
+		'dotaznik',
+		'league',
+		'manifest_kiosk.json',
 	];
 	public const array  USER_IGNORE_PATHS = ['stats', 'rank', 'img', 'img.png', 'compare', 'avatar', 'title'];
 
@@ -84,11 +95,28 @@ class SitemapGenerator
 		self::generateUsersSitemap();
 		self::generateBlogSitemap();
 		self::generateSitemap();
+		self::generateSemrushSitemap();
 		return self::generateIndex();
 	}
 
-	public static function generateGamesSitemap(): string {
-		$xmlGames = new SimpleXMLElement(
+	public static function generateSemrushSitemap() : string {
+		$xml = new SimpleXMLElement(
+			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>'
+		);
+
+		self::generateSitemap($xml, false);
+		self::generateBlogSitemap($xml, false);
+		self::generateUsersSitemap($xml, false, 5);
+		self::generateGamesSitemap($xml, false, 10, 5);
+
+		$content = $xml->asXML();
+		assert($content !== false);
+		file_put_contents(self::SITEMAP_SEMRUSH_FILE, $content);
+		return $content;
+	}
+
+	public static function generateGamesSitemap(?SimpleXMLElement $xml = null, bool $save = true, int $limit = self::GAMES_LIMIT, int $groupLimit = self::GROUPS_LIMIT): string {
+		$xml ??= new SimpleXMLElement(
 			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>'
 		);
 
@@ -111,7 +139,7 @@ class SitemapGenerator
 			}
 
 			if (($path[1] ?? '') === 'group' && ($path[2] ?? '') === '{groupid}' && count($path) === 3) {
-				self::updateGameGroups($xmlGames, $path);
+				self::updateGameGroups($xml, $path, $groupLimit);
 				continue;
 			}
 
@@ -126,19 +154,21 @@ class SitemapGenerator
 					|| !in_array($path[2], ['thumb', 'highlights', 'thumb.png'], true)
 				)
 			) {
-				self::updateGames($xmlGames, $path);
+				self::updateGames($xml, $path, $limit);
 			}
 		}
 
-		$content = $xmlGames->asXML();
+		$content = $xml->asXML();
 		assert($content !== false);
-		file_put_contents(self::SITEMAP_GAMES_FILE, $content);
+		if ($save) {
+			file_put_contents(self::SITEMAP_GAMES_FILE, $content);
+		}
 
 		return $content;
 	}
 
-	public static function generateBlogSitemap(): string {
-		$xml = new SimpleXMLElement(
+	public static function generateBlogSitemap(?SimpleXMLElement $xml = null, bool $save = true): string {
+		$xml ??= new SimpleXMLElement(
 			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>'
 		);
 
@@ -180,7 +210,9 @@ class SitemapGenerator
 
 		$content = $xml->asXML();
 		assert($content !== false);
-		file_put_contents(self::SITEMAP_BLOG_FILE, $content);
+		if ($save) {
+			file_put_contents(self::SITEMAP_BLOG_FILE, $content);
+		}
 
 		return $content;
 	}
@@ -196,6 +228,9 @@ class SitemapGenerator
 			if (is_array($value)) {
 				self::getRoutes($value, $out);
 			}
+			elseif ($value instanceof RouteParameter) {
+				self::getRoutes($value->routes, $out);
+			}
 			else {
 				$out[] = $value;
 			}
@@ -209,13 +244,17 @@ class SitemapGenerator
 	 * @return void
 	 * @throws ValidationException
 	 */
-	private static function updateGameGroups(SimpleXMLElement $parent, array $path): void {
-		self::$groups ??= GameGroup::getAll();
+	private static function updateGameGroups(SimpleXMLElement $parent, array $path, int $limit = self::GROUPS_LIMIT): void {
+		self::$groups ??= GameGroup::query()->orderBy('created_at')->desc()->get();
 
+		$count = 0;
 		foreach (self::$groups as $group) {
 			$path[2] = $group->encodedId;
 			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, count($path) > 3 ? '0.6' : '0.8', lastMod: $group->getLastDate()?->format('Y-m-d'));
+			if (++$count >= $limit) {
+				break;
+			}
 		}
 	}
 
@@ -231,7 +270,21 @@ class SitemapGenerator
 
 		foreach (self::$posts as $post) {
 			$path[2] = $post->slug;
-			$element = self::findOrCreateUrl($path, $parent);
+			$element = self::findOrCreateUrl($path, $parent, false);
+
+			$translations = App::getInstance()->translations;
+			foreach ($translations->supportedLanguages as $lang => $country) {
+				$translatedSlug = $post->getTranslatedSlug($lang);
+				if ($translatedSlug !== $post->slug) { // Translation exists
+					$path['lang'] = $lang;
+					$path[2] = $translatedSlug;
+					$alt = $element->addChild('link', App::getLink($path), 'http://www.w3.org/1999/xhtml');
+					assert($alt !== null);
+					$alt->addAttribute('rel', 'alternate');
+					$alt->addAttribute('hreflang', $lang . '_' . $country);
+				}
+			}
+
 			self::updateUrl($element, '1.0', 'yearly', $post->updatedAt?->format('Y-m-d'));
 		}
 	}
@@ -262,14 +315,6 @@ class SitemapGenerator
 	 * @throws InvalidLanguageException
 	 */
 	private static function findOrCreateUrl(array $path, SimpleXMLElement $parent, bool $includeLang = true): SimpleXMLElement {
-		/*foreach ($parent->children() as $child) {
-			foreach ($child->children() as $name => $value) {
-				if ($name === 'loc' && ((string)$value) === $url) {
-					return $child;
-				}
-			}
-		}*/
-
 		$url = App::getLink($path);
 		$new = $parent->addChild('url');
 		assert($new !== null);
@@ -280,6 +325,7 @@ class SitemapGenerator
 			foreach ($translations->supportedLanguages as $lang => $country) {
 				$path['lang'] = $lang;
 				$alt = $new->addChild('link', App::getLink($path), 'http://www.w3.org/1999/xhtml');
+				assert($alt !== null);
 				$alt->addAttribute('rel', 'alternate');
 				$alt->addAttribute('hreflang', $lang . '_' . $country);
 			}
@@ -324,7 +370,7 @@ class SitemapGenerator
 	 * @return void
 	 * @throws Exception
 	 */
-	private static function updateGames(SimpleXMLElement $parent, array $path): void {
+	private static function updateGames(SimpleXMLElement $parent, array $path, int $limit = self::GAMES_LIMIT): void {
 		$i = 0;
 		foreach (self::getLastGames() as $row) {
 			$path[1] = $row->code;
@@ -336,7 +382,7 @@ class SitemapGenerator
 			self::addImage($element, App::getLink($imgPath));
 
 			++$i;
-			if ($i > self::GAMES_LIMIT) {
+			if ($i > $limit) {
 				break;
 			}
 		}
@@ -360,8 +406,8 @@ class SitemapGenerator
 		$img->addChild('loc', $url, 'http://www.google.com/schemas/sitemap-image/1.1');
 	}
 
-	public static function generateUsersSitemap(): string {
-		$xmlUsers = new SimpleXMLElement(
+	public static function generateUsersSitemap(?SimpleXMLElement $xml = null, bool $save = true, ?int $limit = null): string {
+		$xml ??= new SimpleXMLElement(
 			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml"></urlset>'
 		);
 
@@ -380,18 +426,20 @@ class SitemapGenerator
 			}
 
 			if (
-				$path[0] !== 'user'
-				|| $path[1] !== '{code}'
+				($path[0] ?? '') !== 'user'
+				|| ($path[1] ?? '') !== '{code}'
 				|| in_array($path[2] ?? '', self::USER_IGNORE_PATHS, true)
 			) {
 				continue;
 			}
-			self::updateUsers($xmlUsers, $path);
+			self::updateUsers($xml, $path, $limit);
 		}
 
-		$content = $xmlUsers->asXML();
+		$content = $xml->asXML();
 		assert($content !== false);
-		file_put_contents(self::SITEMAP_USERS_FILE, $content);
+		if ($save) {
+			file_put_contents(self::SITEMAP_USERS_FILE, $content);
+		}
 
 		return $content;
 	}
@@ -403,9 +451,10 @@ class SitemapGenerator
 	 * @return void
 	 * @throws ValidationException
 	 */
-	private static function updateUsers(SimpleXMLElement $parent, array $path): void {
+	private static function updateUsers(SimpleXMLElement $parent, array $path, ?int $limit = null): void {
 		self::$users ??= LigaPlayer::getAll();
 
+		$count = 0;
 		foreach (self::$users as $player) {
 			$path[1] = $player->getCode();
 			$element = self::findOrCreateUrl($path, $parent);
@@ -415,11 +464,14 @@ class SitemapGenerator
 				$imgPath[2] = 'img.png';
 				self::addImage($element, App::getLink($imgPath));
 			}
+			if ($limit !== null && ++$count > $limit) {
+				break;
+			}
 		}
 	}
 
-	public static function generateSitemap(): string {
-		$xml = new SimpleXMLElement(
+	public static function generateSitemap(?SimpleXMLElement $xml = null, bool $save = true): string {
+		$xml ??= new SimpleXMLElement(
 			'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>'
 		);
 
@@ -437,11 +489,11 @@ class SitemapGenerator
 				array_shift($path);
 			}
 
-			//echo json_encode($path).PHP_EOL;
-			if (in_array($path[0], self::IGNORE_PATHS, true)) {
+//			echo json_encode($path).PHP_EOL;
+			if (in_array($path[0] ?? '', self::IGNORE_PATHS, true)) {
 				continue;
 			}
-			switch ($path[0]) {
+			switch ($path[0] ?? '') {
 				case 'game':
 				case 'blog':
 					break;
@@ -459,11 +511,17 @@ class SitemapGenerator
 						self::updateUrl(self::findOrCreateUrl(['tournament'], $xml), '0.9');
 						break;
 					}
+					if (isset($path[2]) && $path[2] === 'register') {
+						break; // Skip
+					}
 					if ($path[1] === '{id}') {
 						self::updateTournaments($xml, $path);
 					}
 					break;
 				case 'events':
+					if (isset($path[2]) && in_array($path[2], ['substitute', 'register'], true)) {
+						break;
+					}
 					if (!isset($path[1])) {
 						self::updateUrl(self::findOrCreateUrl(['events'], $xml), '0.9');
 						break;
@@ -472,19 +530,22 @@ class SitemapGenerator
 						self::updateEvents($xml, $path);
 					}
 					break;
-				case 'league':
-					if (isset($path[2]) && $path[2] === 'team') {
-						break;
-					}
-					if (!isset($path[1])) {
-						self::updateUrl(self::findOrCreateUrl(['league'], $xml), '0.9');
-						break;
-					}
-					if ($path[1] === '{id}') {
-						self::updateLeagues($xml, $path);
-					}
-					break;
+//				case 'league':
+//					if (isset($path[2]) && in_array($path[2], ['team', 'substitute', 'register'], true)) {
+//						break;
+//					}
+//					if (!isset($path[1])) {
+//						self::updateUrl(self::findOrCreateUrl(['league'], $xml), '0.9');
+//						break;
+//					}
+//					if ($path[1] === '{id}') {
+//						self::updateLeagues($xml, $path);
+//					}
+//					break;
 				case 'liga':
+					if (isset($path[2]) && in_array($path[2], ['team', 'substitute', 'register'], true)) {
+						break;
+					}
 					if (!isset($path[1])) {
 						self::updateUrl(self::findOrCreateUrl(['liga'], $xml), '0.9');
 						break;
@@ -494,16 +555,24 @@ class SitemapGenerator
 					}
 					break;
 				case 'user':
-					if ($path[1] === '{code}') {
+					if (!isset($path[1]) || $path[1] === '{code}') {
 						break;
 					}
 
 					if ($path[1] === 'leaderboard') {
-						if (isset($path[2]) && $path[2] === '{arenaId}') {
+						if (isset($path[2]) && in_array($path[2], ['{arenaid}', '{arenaslug}'], true)) {
+							if ($path[2] === '{arenaid}') {
+								break;
+							}
 							$arenas = Arena::getAll();
 							foreach ($arenas as $arena) {
-								assert($arena->id !== null);
-								$path[2] = (string)$arena->id;
+//								if ($path[2] === '{arenaid}') {
+//									assert($arena->id !== null);
+//									$path[2] = (string)$arena->id;
+//								}
+//								elseif ($path[2] === '{arenaslug}') {
+									$path[2] = $arena->slug;
+//								}
 								$elem = self::findOrCreateUrl($path, $xml);
 								self::updateUrl($elem);
 							}
@@ -529,7 +598,9 @@ class SitemapGenerator
 
 		$content = $xml->asXML();
 		assert($content !== false);
-		file_put_contents(self::SITEMAP_FILE, $content);
+		if ($save) {
+			file_put_contents(self::SITEMAP_FILE, $content);
+		}
 
 		return $content;
 	}
@@ -546,7 +617,7 @@ class SitemapGenerator
 
 		foreach (self::$arenas as $arena) {
 			assert($arena->id !== null);
-			$path[1] = (string)$arena->id;
+			$path[1] = $arena->slug;
 			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, '0.8', 'daily');
 		}
@@ -633,6 +704,15 @@ class SitemapGenerator
 			$path[1] = $league->slug;
 			$element = self::findOrCreateUrl($path, $parent);
 			self::updateUrl($element, '0.8');
+
+			$teams = LeagueTeam::query()->where('id_league = %i', $league->id)->get();
+			$path[1] = 'team';
+			foreach ($teams as $team) {
+				assert($team->id !== null);
+				$path[2] = (string)$team->id;
+				$element = self::findOrCreateUrl($path, $parent);
+				self::updateUrl($element, '0.8');
+			}
 		}
 	}
 

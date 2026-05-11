@@ -33,13 +33,17 @@ class RedisSession implements SessionInterface, SessionStorage
 	private bool   $secure   = false;
 	private bool   $httponly = false;
 
+	/** @var Notice[] */
+	private array $flashMessages;
+
 	public function __construct(
-		private readonly Redis $redis,
+		private Redis $redis,
 	) {
 		self::$instance ??= $this;
 	}
 
 	public function __wakeup(): void {
+		$this->redis = App::getServiceByType(Redis::class);
 		$this->init();
 	}
 
@@ -301,16 +305,19 @@ class RedisSession implements SessionInterface, SessionStorage
 	}
 
 	public function getFlashMessages() : array {
-		if (
-			!isset($this->data[self::SESSION_FLASH_MESSAGE_KEY])
-			|| !is_array($this->data[self::SESSION_FLASH_MESSAGE_KEY])
-		) {
-			$this->data[self::SESSION_FLASH_MESSAGE_KEY] = [];
+		if (!isset($this->flashMessages)) {
+			if (
+				!isset($this->data[self::SESSION_FLASH_MESSAGE_KEY])
+				|| !is_array($this->data[self::SESSION_FLASH_MESSAGE_KEY])
+			) {
+				$this->data[self::SESSION_FLASH_MESSAGE_KEY] = [];
+			}
+			/** @var Notice[] $messages */
+			$messages = $this->data[self::SESSION_FLASH_MESSAGE_KEY];
+			$this->data[self::SESSION_FLASH_MESSAGE_KEY] = []; // Clear flash messages after reading
+			$this->flashMessages = $messages;
 		}
-		/** @var Notice[] $messages */
-		$messages = $this->data[self::SESSION_FLASH_MESSAGE_KEY];
-		$this->data[self::SESSION_FLASH_MESSAGE_KEY] = []; // Clear flash messages after reading
-		return $messages;
+		return $this->flashMessages;
 	}
 
 	public function getCookieHeader(): string {

@@ -2,6 +2,12 @@
 {templateType App\Templates\Blog\CreateParameters}
 
 {block content}
+    <p>
+        <a href="{link 'blog'}" class="btn btn-secondary">
+            {faSolid 'angle-left'}
+            {_'Zpět'}
+        </a>
+    </p>
     <h2>
         {_'Nový příspěvek', context: 'blog'}
     </h2>

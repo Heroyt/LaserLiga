@@ -13,6 +13,7 @@ use League\CommonMark\MarkdownConverter;
 use Lsr\Core\App;
 use Lsr\CQRS\CommandHandlerInterface;
 use Lsr\CQRS\CommandInterface;
+use Lsr\Logging\Logger;
 use Nette\Mail\SendException;
 
 final readonly class SendPhotosMailCommandHandler implements CommandHandlerInterface
@@ -28,6 +29,7 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 	 * @param SendPhotosMailCommand $command
 	 */
 	public function handle(CommandInterface $command): string|false {
+		$logger = new Logger(LOG_DIR, 'photos-mail');
 		if (empty($command->game->photosSecret)) {
 			$command->game->generatePhotosSecret();
 			$command->game->save();
@@ -46,6 +48,13 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 			$link = ['game', 'group', $command->game->group->encodedId, 'photos' => $command->game->photosSecret];
 		}
 		$url = App::getLink($link);
+		
+		$logger->info('Sending new photos mail', [
+			'to' => $command->to,
+			'bcc' => $command->bcc,
+			'arena' => $command->arena->name,
+			'link' => $link,
+		]);
 
 		$message = new Message('mails/photos/mail');
 		$message->setFrom('app@laserliga.cz', 'LaserLiga');
@@ -120,6 +129,7 @@ final readonly class SendPhotosMailCommandHandler implements CommandHandlerInter
 		try {
 			$this->mailService->send($message);
 		} catch (SendException $e) {
+			$logger->exception($e);
 			return false;
 		}
 

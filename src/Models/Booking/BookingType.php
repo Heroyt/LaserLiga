@@ -5,10 +5,12 @@ namespace App\Models\Booking;
 
 use App\Models\Arena;
 use App\Models\BaseModel;
+use App\Models\Booking\Translations\BookingTypeTranslation;
 use App\Models\WithIcon;
 use App\Models\WithSoftDelete;
 use DateInterval;
 use DateMalformedIntervalStringException;
+use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToMany;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
@@ -17,11 +19,16 @@ use Lsr\Orm\ModelCollection;
 use Lsr\Orm\ModelQuery;
 use RuntimeException;
 
+/**
+ * @implements TranslatableModel<BookingTypeTranslation>
+ * @use Translatable<BookingTypeTranslation>
+ */
 #[PrimaryKey('id_type')]
-class BookingType extends BaseModel
+class BookingType extends BaseModel implements TranslatableModel
 {
 	use WithSoftDelete;
 	use WithIcon;
+	use Translatable;
 
 	public const string TABLE = 'booking_types';
 
@@ -29,21 +36,30 @@ class BookingType extends BaseModel
 	public Arena $arena;
 
 	public string $name       = '';
+	/** @var int<1,max> */
 	public int    $slotLength = 30;
+	/** @var int<1,max> */
 	public int    $slotLimit  = 11;
 
+	/** @var bool Can set booking to allow more bookings to book on the same time. */
 	public bool $openable = true;
 
-	public ?string $calendarId  = null;
+	/** @var int Minimum amount of people to allow locking the booking for only one group. */
 	public int     $openableMin = 0;
 
+	/** @var string|null Google calendar ID */
+	public ?string $calendarId  = null;
+
+	/** @var ModelCollection<BookingSubType> */
 	#[OneToMany(class: BookingSubType::class)]
 	public ModelCollection $subtypes;
 
+	/** @var ModelCollection<TermAndCondition>  */
 	#[ManyToMany(through: 'booking_types_terms_and_conditions', class: TermAndCondition::class)]
 	public ModelCollection $conditions;
 
 	/** @var BookingSubType[] */
+	#[NoDB]
 	public array $activeSubtypes = [] {
 		get {
 			if (empty($this->activeSubtypes)) {
@@ -59,6 +75,7 @@ class BookingType extends BaseModel
 		}
 	}
 
+	#[NoDB]
 	public DateInterval $length {
 		get {
 			if (!isset($this->length)) {
@@ -66,6 +83,11 @@ class BookingType extends BaseModel
 			}
 			return $this->length;
 		}
+	}
+
+	#[NoDB]
+	public string $translationClass {
+		get => BookingTypeTranslation::class;
 	}
 
 	/**
@@ -97,5 +119,7 @@ class BookingType extends BaseModel
 		return $this->length;
 	}
 
-
+	public function getTranslatedName(?string $language = null): string {
+		return $this->getTranslation($language)->name;
+	}
 }

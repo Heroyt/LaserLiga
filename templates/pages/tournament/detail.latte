@@ -60,7 +60,7 @@
                     {lang 'Turnaj je plně obsazený'}
                 </div>
 			{else}
-                <a href="{if $tournament->league?->registrationType === App\Models\Tournament\RegistrationType::LEAGUE}{link 'league', $tournament->league->id, 'register'}{else}{link 'tournament', $tournament->id, 'register'}{/if}"
+                <a href="{$tournament->getRegistrationUrl()}"
 				   class="btn btn-lg btn-primary">
 					{faSolid 'user-plus'}
 					{lang 'Registrace'}

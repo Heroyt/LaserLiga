@@ -8,6 +8,7 @@ use App\Models\Events\WithLeagueTeam;
 use App\Models\Tournament\League\League;
 use App\Models\Tournament\League\LeagueTeam;
 use Lsr\Db\DB;
+use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
 
@@ -28,6 +29,7 @@ class Team extends EventTeamBase
 	#[ManyToOne]
 	public Tournament $tournament;
 
+	#[NoDB]
 	public int $score {
 		get {
 			if (!isset($this->score)) {
@@ -40,6 +42,7 @@ class Team extends EventTeamBase
 			return $this->score;
 		}
 	}
+	#[NoDB]
 	public int $wins {
 		get {
 			if (!isset($this->wins)) {
@@ -52,6 +55,7 @@ class Team extends EventTeamBase
 			return $this->wins;
 		}
 	}
+	#[NoDB]
 	public int  $draws {
 		get {
 			if (!isset($this->draws)) {
@@ -64,6 +68,7 @@ class Team extends EventTeamBase
 			return $this->draws;
 		}
 	}
+	#[NoDB]
 	public int  $losses {
 		get {
 			if (!isset($this->losses)) {
@@ -77,6 +82,7 @@ class Team extends EventTeamBase
 		}
 	}
 
+	#[NoDB]
 	public float $skill {
 		get {
 			if (!isset($this->skill)) {
@@ -88,6 +94,7 @@ class Team extends EventTeamBase
 			return $this->skill;
 		}
 	}
+	#[NoDB]
 	public int   $position {
 		get {
 			if (isset($this->position)) {
@@ -104,6 +111,7 @@ class Team extends EventTeamBase
 			return $i;
 		}
 	}
+	#[NoDB]
 	public int    $kills {
 		get {
 			$this->kills ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(hits)')->where(
@@ -113,6 +121,7 @@ class Team extends EventTeamBase
 			return $this->kills;
 		}
 	}
+	#[NoDB]
 	public int  $deaths {
 		get {
 			$this->deaths ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(deaths)')->where(
@@ -122,6 +131,7 @@ class Team extends EventTeamBase
 			return $this->deaths;
 		}
 	}
+	#[NoDB]
 	public int   $shots {
 		get {
 			$this->shots ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'SUM(shots)')->where(
@@ -131,6 +141,7 @@ class Team extends EventTeamBase
 			return $this->shots;
 		}
 	}
+	#[NoDB]
 	public float $accuracy {
 		get {
 			$this->accuracy ??= DB::select(\App\GameModels\Game\Evo5\Player::TABLE, 'AVG(accuracy)')->where(

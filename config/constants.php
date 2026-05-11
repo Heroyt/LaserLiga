@@ -4,6 +4,7 @@
  * @brief Constants that need to be imported into DI container
  */
 
+use App\Commonmark\Generator\UserMentionGenerator;
 use Lsr\Core\Config;
 
 if (!defined('ROOT')) {
@@ -19,5 +20,12 @@ return [
 			'appDir'  => ROOT,
 			'tempDir' => TMP_DIR,
 		],
+		'commonmark' => [
+			'mentions' => [
+				'user' => [
+					'generator' => new UserMentionGenerator()
+				]
+			]
+		]
 	],
 ];

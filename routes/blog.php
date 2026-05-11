@@ -32,9 +32,17 @@ $blogAdminGroup->get('', [BlogEditController::class, 'list'])->name('blog_admin_
 $blogAdminGroup->get('create', [BlogEditController::class, 'create'])->name('blog_create');
 $blogAdminGroup->post('upload-image', [BlogEditController::class, 'uploadImage']);
 $blogAdminGroup->get('{post}', [BlogEditController::class, 'edit'])->name('blog_edit');
+$blogAdminGroup->post('{post}/approve', [BlogEditController::class, 'approve'])
+	->middleware(new LoggedIn($auth, [['approve-blog', 'manage-blog']]))
+	->name('blog_approve');
+$blogAdminGroup->post('{post}/disapprove', [BlogEditController::class, 'disapprove'])
+	->middleware(new LoggedIn($auth, [['approve-blog', 'manage-blog']]))
+	->name('blog_disapprove');
+$blogAdminGroup->get('{post}/{translation}', [BlogEditController::class, 'editTranslation'])->name('blog_edit_translation');
 $blogAdminGroup->post('{post}/upload-image', [BlogEditController::class, 'uploadImage']);
 
 $csrfCheck = new CsrfCheck('edit-blog-post');
 $blogAdminGroup->post('create', [BlogEditController::class, 'save'])
                ->middleware($csrfCheck);
 $blogAdminGroup->post('{post}', [BlogEditController::class, 'save'])->middleware($csrfCheck);
+$blogAdminGroup->post('{post}/{translation}', [BlogEditController::class, 'saveTranslation'])->middleware($csrfCheck);

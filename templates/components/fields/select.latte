@@ -1,0 +1,41 @@
+{parameters
+    App\Models\Booking\BookingSubtypeField $field,
+    App\Models\Booking\DataObjects\BookingSubtypeFieldValue[] $values,
+    string|null $value = null,
+}
+{var string $id = $field->getId()}
+
+<div class="form-group">
+	{if count($values) < 4}
+		<div n:if="$field->label" class="form-label{if $field->required} required{/if}">{$field->getTranslatedLabel()}</div>
+		{foreach $values as $key => $val}
+			<div class="form-check">
+				<input class="form-check-input"
+                        n:attr="required: $field->required, name: 'sub[' . $field->getName() . ']', value: $val->value, checked: ($value !== null && $value === $val->value)"
+							 type="radio" id="{$id}-{$key}">
+				<label class="form-check-label" for="{$id}-{$key}">
+					{$val->label|noescape}
+					{if !empty($val->info)}
+						{if $val->isInfoUrl()}
+							<a href="{$val->info}" target="_blank" rel="nofollow" class="text-blue-400">
+								<i class="fa-solid fa-circle-info"></i>
+							</a>
+						{else}
+							<i class="fa-solid fa-circle-question text-blue-300" data-toggle="tooltip" title="{$val->info}"></i>
+						{/if}
+					{/if}
+				</label>
+				<div class="invalid-feedback"></div>
+			</div>
+		{/foreach}
+	{else}
+		<label n:if="$field->label" class="form-label" for="{$id}">{$field->getTranslatedLabel()|noescape}</label>
+		<select id="{$id}" class="form-select" n:attr="required: $field->required, name: 'sub[' . $field->getName() . ']'">
+			<option n:foreach="$values as $key => $val" value="{$val->value}" n:attr="selected: $value === null ? $val->default : $value === $val->value">
+				{$val->label|noescape}
+			</option>
+		</select>
+	{/if}
+	<div n:if="$field->description" id="{$field->name}-description" class="form-text">{$field->getTranslatedDescription()|noescape}</div>
+	<div class="invalid-feedback"></div>
+</div>

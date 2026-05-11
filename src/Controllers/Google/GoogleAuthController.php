@@ -25,7 +25,7 @@ class GoogleAuthController extends Controller
 	}
 
 	public function start(Arena $arena, Request $request): ResponseInterface {
-		$logger = new Logger(LOG_DIR, 'google-oauth');
+		$logger = new Logger(LOG_DIR.'google/', 'oauth');
 		$logger->info('New oauth flow started for arena '.$arena->id);
 
 		$referer = $request->getHeader('Referer');
@@ -45,14 +45,22 @@ class GoogleAuthController extends Controller
 		}
 
 		$arena->clearCache();
-		$client = $this->clientFactory->getClient($arena, true);
+		$client = $this->clientFactory->getClient($arena, true, true);
 		$url = $client->createAuthUrl();
 		$logger->info('Redirecting to Google OAuth URL: '.$url);
 		return $this->redirect(new Uri($url));
 	}
 
 	public function auth(Arena $arena, Request $request): ResponseInterface {
-		$client = $this->clientFactory->getClient($arena);
+		$logger = new Logger(LOG_DIR.'google/', 'oauth');
+		$client = $this->clientFactory->getClient($arena, skipAuth: true);
+
+		/** @var string|null $error */
+		$error = $request->getGet('error');
+		if (!empty($error)) {
+			$logger->error('Google error', ['error' => $error]);
+			return $this->respond(new ErrorResponse('Google error', ErrorType::INTERNAL, $error), 424);
+		}
 
 		/** @var string|null $code */
 		$code = $request->getGet('code');
@@ -71,6 +79,8 @@ class GoogleAuthController extends Controller
 
 		/** @var array{access_token:string,refresh_token:string} $token */
 		$token = $client->fetchAccessTokenWithAuthCode($code);
+		$client->setAccessToken($token);
+		$logger->debug('Got token', ['token' => $token, 'refreshToken' => $client->getRefreshToken()]);
 		$arena->fetch(true);
 		$arena->googleSettings->accessToken = $token;
 		$arena->save();

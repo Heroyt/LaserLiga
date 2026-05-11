@@ -1,13 +1,13 @@
-import * as esbuild from 'esbuild';
-import {sassPlugin} from 'esbuild-sass-plugin';
+import * as esbuild from "esbuild";
+import { sassPlugin } from "esbuild-sass-plugin";
 import postcss from "postcss";
 import autoprefixer from "autoprefixer";
-import fs from 'node:fs';
-import {fontawesomeSubset} from "fontawesome-subset";
+import fs from "node:fs";
+import { fontawesomeSubset } from "fontawesome-subset";
 import cssnanoPlugin from "cssnano";
 import path from "path";
-import {injectManifest} from "workbox-build";
-import crypto from 'crypto';
+import { injectManifest } from "workbox-build";
+import crypto from "crypto";
 
 const watch = process.argv.includes('watch');
 
@@ -146,10 +146,16 @@ for (const locale of dateFnsLocales) {
     if (!fs.existsSync(path.join(buildOptions.outdir, 'locales', 'date-fns', path.dirname(locale)))) {
         fs.mkdirSync(path.join(buildOptions.outdir, 'locales', 'date-fns', path.dirname(locale)), {recursive: true});
     }
-    fs.copyFileSync(
-            path.join('node_modules/date-fns/locale', locale),
-            path.join(buildOptions.outdir, 'locales', 'date-fns', locale)
-    );
+    const srcPath = path.join('node_modules/date-fns/locale', locale);
+    const destPath = path.join(buildOptions.outdir, 'locales', 'date-fns', locale);
+    fs.copyFileSync(srcPath, destPath);
+    // Minify the copied file
+    const code = fs.readFileSync(destPath, 'utf8');
+    esbuild.transform(code, {minify: true, loader: 'js'}).then(result => {
+        fs.writeFileSync(destPath, result.code, 'utf8');
+    }).catch(err => {
+        console.error(`Failed to minify ${destPath}:`, err);
+    });
 }
 const flatpickrLocales = fs.readdirSync('node_modules/flatpickr/dist/l10n')
         .filter(file => file.endsWith('.js'));
@@ -158,10 +164,16 @@ if (!fs.existsSync(path.join(buildOptions.outdir, 'locales', 'flatpickr'))) {
     fs.mkdirSync(path.join(buildOptions.outdir, 'locales', 'flatpickr'), {recursive: true});
 }
 for (const locale of flatpickrLocales) {
-    fs.copyFileSync(
-            path.join('node_modules/flatpickr/dist/l10n', locale),
-            path.join(buildOptions.outdir, 'locales', 'flatpickr', locale)
-    );
+    const srcPath = path.join('node_modules/flatpickr/dist/l10n', locale);
+    const destPath = path.join(buildOptions.outdir, 'locales', 'flatpickr', locale);
+    fs.copyFileSync(srcPath, destPath);
+    // Minify the copied file
+    const code = fs.readFileSync(destPath, 'utf8');
+    esbuild.transform(code, {minify: true, loader: 'js'}).then(result => {
+        fs.writeFileSync(destPath, result.code, 'utf8');
+    }).catch(err => {
+        console.error(`Failed to minify ${destPath}:`, err);
+    });
 }
 
 try {

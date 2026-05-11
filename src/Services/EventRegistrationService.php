@@ -288,9 +288,9 @@ readonly class EventRegistrationService
 		$player->name = $data->name;
 		$player->surname = $data->surname;
 		$player->email = $data->email;
-		$player->parentEmail = $data->parentEmail;
-		$player->phone = $data->phone;
-		$player->parentPhone = $data->parentPhone;
+		$player->parentEmail = empty($data->parentEmail) ? null : $data->parentEmail;
+		$player->phone = empty($data->phone) ? null : $data->phone;
+		$player->parentPhone = empty($data->parentPhone) ? null : $data->parentPhone;
 		$player->birthYear = $data->birthYear;
 		$player->skill = $data->skill;
 		$player->user = $data->user;

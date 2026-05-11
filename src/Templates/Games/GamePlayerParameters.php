@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Templates\Games;
 
 use App\GameModels\Game\Game;
+use App\GameModels\Game\GameModes\CustomPlayerResultsMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Today;
 use App\Models\Achievements\PlayerAchievement;
@@ -19,4 +20,6 @@ class GamePlayerParameters extends TemplateParameters
 	public Today $today;
 	/** @var PlayerAchievement[] */
 	public array $achievements = [];
+
+	public ?CustomPlayerResultsMode $mode = null;
 }

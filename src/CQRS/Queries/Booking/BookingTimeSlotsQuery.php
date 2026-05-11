@@ -103,9 +103,10 @@ class BookingTimeSlotsQuery implements QueryInterface
 						$this->cacheService::Expire => '1 day',
 						$this->cacheService::Tags   => [
 							'booking',
-							'times',
-							'times/' . $this->type->id,
-							'times/' . $this->date->format('Y-m-d'),
+							'booking/times',
+							'booking/times/' . $this->type->id,
+							'booking/times/' . $this->date->format('Y-m-d'),
+							'booking/times/' . $this->type->id. '/'. $this->date->format('Y-m-d'),
 						],
 					]
 				);
@@ -165,6 +166,11 @@ class BookingTimeSlotsQuery implements QueryInterface
 
 		$globalStart = null;
 
+		$slotLimit = $this->type->slotLimit;
+		if ($this->subType?->slotMax > 0) {
+			$slotLimit = $this->subType->slotMax;
+		}
+
 		// Generate slots for each time interval
 		foreach ($times as $time) {
 			// Store the first start time globally to use it for all intervals.
@@ -184,9 +190,10 @@ class BookingTimeSlotsQuery implements QueryInterface
 			foreach ($this->makeSlotsForInterval($time, $globalStart) as $slot) {
 				$isPast = $this->includePast && $this->now !== null && $slot < $this->now;
 				$slots[$slot->format('Y-m-d H:i')] = new BookingTimeStatus(
+					$slot,
 					$slot->format('H:i'),
 					$isPast || $closed ? TimeStatus::CLOSED : ($onCall ? TimeStatus::ON_CALL : TimeStatus::AVAILABLE),
-					$this->subType->slotMax ?? $this->type->slotLimit,
+					$slotLimit,
 				);
 			}
 		}
@@ -194,12 +201,12 @@ class BookingTimeSlotsQuery implements QueryInterface
 		// Check bookings for generated slots
 		$bookings = $this->getBookings();
 		foreach ($bookings as $booking) {
-			foreach ($booking->filledSlots as $slot => $filled) {
-				if (!$filled || !isset($slots[$slot])) {
+			foreach ($booking->filledSlots as $slot => $playerCount) {
+				if ($playerCount < 1 || !isset($slots[$slot])) {
 					continue;
 				}
 
-				$slots[$slot]->availableSpots -= $booking->playerCount;
+				$slots[$slot]->availableSpots -= $playerCount;
 				if ($this->includeBookings) {
 					$slots[$slot]->bookings[] = $booking;
 				}
@@ -210,8 +217,10 @@ class BookingTimeSlotsQuery implements QueryInterface
 					$slots[$slot]->status = TimeStatus::FILLED;
 					$slots[$slot]->availableSpots = 0;
 				}
-				elseif ($slots[$slot]->availableSpots < $this->type->slotLimit && !$slots[$slot]->status->isFinalStatus(
-					)) {
+				elseif (
+					$slots[$slot]->availableSpots < $this->type->slotLimit
+					&& !$slots[$slot]->status->isFinalStatus()
+				) {
 					$slots[$slot]->status = TimeStatus::PARTIALLY_FILLED;
 				}
 			}

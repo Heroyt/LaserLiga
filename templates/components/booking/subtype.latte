@@ -1,0 +1,12 @@
+{parameters
+    App\Models\Booking\BookingSubType $subtype,
+    App\Models\Booking\BookingSubtypeField[] $fields,
+    App\Models\Booking\Booking|null $booking = null,
+}
+{if !empty($fields)}
+    <h3>{lang 'Dodatečné informace'}</h3>
+    {foreach $fields as $field}
+        {var $value = $booking?->getSubTypeField($field->getName())}
+        {$field->renderToString($value)|noescape}
+    {/foreach}
+{/if}

@@ -17,6 +17,7 @@ use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 
 class Arenas extends Controller
@@ -42,6 +43,14 @@ class Arenas extends Controller
 
 		$this->params->arenas = Arena::getAllVisible();
 		return $this->view('pages/arenas/index');
+	}
+
+	public function showSlug(string $slug, Request $request): ResponseInterface {
+		$arena = Arena::getBySlug($slug);
+		if ($arena === null) {
+			throw new ModelNotFoundException('Arena not found');
+		}
+		return $this->show($arena, $request);
 	}
 
 	public function show(Arena $arena, Request $request): ResponseInterface {
@@ -104,11 +113,27 @@ class Arenas extends Controller
 		return $this->view('pages/arenas/arena');
 	}
 
+	public function gamesSlug(string $slug, Request $request): ResponseInterface {
+		$arena = Arena::getBySlug($slug);
+		if ($arena === null) {
+			throw new ModelNotFoundException('Arena not found');
+		}
+		return $this->games($arena, $request);
+	}
+
 	public function games(Arena $arena, Request $request): ResponseInterface {
 		$this->params = new ArenaGamesParameters($this->params);
 		$this->params->arena = $arena;
 		$this->getArenaGames($arena, $request);
 		return $this->view('partials/arena/games');
+	}
+
+	public function gameModesStatsSlug(string $slug, Request $request): ResponseInterface {
+		$arena = Arena::getBySlug($slug);
+		if ($arena === null) {
+			throw new ModelNotFoundException('Arena not found');
+		}
+		return $this->gameModesStats($arena, $request);
 	}
 
 
@@ -170,6 +195,14 @@ class Arenas extends Controller
 			} catch (Exception) {
 			}
 		}
+	}
+
+	public function musicModesStatsSlug(string $slug, Request $request): ResponseInterface {
+		$arena = Arena::getBySlug($slug);
+		if ($arena === null) {
+			throw new ModelNotFoundException('Arena not found');
+		}
+		return $this->musicModesStats($arena, $request);
 	}
 
 	public function musicModesStats(Arena $arena, Request $request): ResponseInterface {

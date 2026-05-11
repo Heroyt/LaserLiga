@@ -334,7 +334,7 @@ class Tournament extends EventBase implements EventRegistrationInterface, WithSc
 	}
 
 	public function getRegistrationUrl(): string {
-		if ($this->league !== null && $this->league->registrationType === RegistrationType::LEAGUE) {
+		if ($this->league !== null && $this->league->registrationType !== RegistrationType::TOURNAMENT) {
 			return $this->league->getUrl('register');
 		}
 		return $this->getUrl('register');

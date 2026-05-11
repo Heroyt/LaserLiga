@@ -5,8 +5,10 @@ namespace App\Services\Google;
 
 use App\Models\Arena;
 use Google\Client;
+use Google\Exception;
 use Google\Service\Calendar;
 use Lsr\Core\Links\Generator;
+use Lsr\Logging\Logger;
 
 final class GoogleClientFactory
 {
@@ -35,10 +37,12 @@ final class GoogleClientFactory
 	) {
 	}
 
-	public function getClient(Arena $arena, bool $recreate = false): Client {
+	public function getClient(Arena $arena, bool $recreate = false, bool $skipAuth = false): Client {
 		if (!$recreate && isset($this->clients[$arena->id])) {
 			return $this->clients[$arena->id];
 		}
+
+		$logger = new Logger(LOG_DIR.'google/', 'client');
 
 		$client = new Client();
 		$client->setApplicationName($this->applicationName);
@@ -47,7 +51,7 @@ final class GoogleClientFactory
 			                   Calendar::CALENDAR_CALENDARLIST,
 			                   Calendar::CALENDAR_EVENTS,
 		                   ]);
-		$client->setAccessToken('offline');
+		$client->setAccessType('offline');
 		$client->setPrompt('consent');
 		$client->setIncludeGrantedScopes(true);
 
@@ -55,15 +59,32 @@ final class GoogleClientFactory
 		$auth = $this->authConfig;
 		$auth['redirect_uris'][] = $redirectUri;
 
-		$client->setAuthConfig($auth);
+		try {
+			$client->setAuthConfig($auth);
+		} catch (Exception $e) {
+			$logger->exception($e);
+			throw $e;
+		}
 		$client->setRedirectUri($redirectUri);
 
-		if ($arena->googleSettings->isReady()) {
+		if (!$skipAuth && $arena->googleSettings->isReady()) {
 			$client->setAccessToken($arena->googleSettings->accessToken);
 		}
 
 		$this->clients[(int)$arena->id] = $client;
 		return $client;
+	}
+
+	public function maybeRefreshToken(Arena $arena, Client $client) : bool {
+		/** @var array{access_token:string,expires_in:int,refresh_token:string,scope:string,token_type:string,refresh_token_expires_in:int,created:int} $clientToken */
+		$clientToken = $client->getAccessToken();
+		// If saved token is null or is younger than the client token, we need to update it
+		if ($arena->googleSettings->accessToken !== null && $arena->googleSettings->accessToken['created'] >= $clientToken['created']) {
+			return true;
+		}
+
+		$arena->googleSettings->accessToken = $clientToken;
+		return $arena->save();
 	}
 
 }

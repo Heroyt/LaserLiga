@@ -13,6 +13,7 @@ use App\CQRS\Commands\SyncArenaImagesCommand;
 use App\Models\Photos\Photo;
 use App\Services\Dropbox\TokenProvider;
 use App\Services\ImageService;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
 use Lsr\CQRS\CommandBus;
 use Lsr\CQRS\CommandHandlerInterface;
@@ -20,6 +21,7 @@ use Lsr\CQRS\CommandInterface;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Logger;
 use Spatie\Dropbox\Client;
+use Spatie\Dropbox\Exceptions\BadRequest;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -79,7 +81,7 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 					['jpg', 'jpeg', 'png', 'heic', 'heif']
 				)
 			);
-		} catch (GuzzleException $e) {
+		} catch (GuzzleException|ConnectException $e) {
 			$logger->error('Failed to list dropbox files: ' . $e->getMessage());
 			$response->errors[] = 'Failed to list dropbox files: ' . $e->getMessage();
 			$lock->release();
@@ -137,9 +139,16 @@ final readonly class SyncArenaImagesCommandHandler implements CommandHandlerInte
 
 				// Delete the file from Dropbox after successful processing
 				$logger->debug('deleting dropbox file ' . $entry->pathDisplay);
-				$deleteResponse = $this->commandBus->dispatch(
-					new DeleteDropboxFileCommand($client, $entry->pathDisplay)
-				);
+				try {
+					$deleteResponse = $this->commandBus->dispatch(
+						new DeleteDropboxFileCommand($client, $entry->pathDisplay)
+					);
+				} catch (GuzzleException|ConnectException|BadRequest $e) {
+					$logger->error('Failed to delete dropbox file ' . $entry->pathDisplay);
+					$logger->exception($e);
+					$response->errors[] = 'Failed to delete dropbox file ' . $entry->pathDisplay . ': ' . $e->getMessage();
+					continue;
+				}
 				if (!$deleteResponse->isOk()) {
 					$logger->error('Failed to delete dropbox file ' . $entry->pathDisplay);
 					$response->errors[] = 'Failed to delete dropbox file ' . $entry->pathDisplay;

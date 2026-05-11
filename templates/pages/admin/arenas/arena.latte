@@ -263,7 +263,9 @@
                     {_'Umožňuje propojení rezervací s google kalendářem.'}
                 </p>
                 <h4>OAuth</h4>
-                {if $arena->googleSettings->isReady()}
+                {if $googleIsExpired}
+                    <div class="alert alert-danger">{_'Propojení vypršelo'}</div>
+                {elseif $googleIsReady}
                     <div class="alert alert-success">{_'Propojení je aktivní'}</div>
                 {else}
                     <div class="alert alert-warning">{_'Propojení není aktivní'}</div>

@@ -1,7 +1,7 @@
-import {ArcElement, Chart, Colors, DoughnutController, Legend, Tooltip as ChartTooltip} from "chart.js";
-import {Tooltip} from "bootstrap";
-import {initDataTableForm} from "../components/dataTable";
-import {getArenaStatsModes, getArenaStatsMusic} from "../api/endpoints/arena";
+import { ArcElement, Chart, Colors, DoughnutController, Legend, Tooltip as ChartTooltip } from "chart.js";
+import { Tooltip } from "bootstrap";
+import { initDataTableForm } from "../components/dataTable";
+import { getArenaStatsModes, getArenaStatsMusic } from "../api/endpoints/arena";
 
 Chart.register(Colors, Legend, DoughnutController, ArcElement, ChartTooltip);
 
@@ -13,12 +13,11 @@ interface PageInfo {
 }
 
 declare global {
-    const page: PageInfo
+    const page: PageInfo;
+    const arenaId: number;
 }
 
 export default function initArena() {
-    const arenaId = typeof (page.params.id) === 'string' ? parseInt(page.params.id) : page.params.id;
-
     const gameModesCanvas = document.getElementById('gameModes') as HTMLCanvasElement;
     const musicModesCanvas = document.getElementById('musicModes') as HTMLCanvasElement;
 
@@ -72,7 +71,7 @@ export default function initArena() {
             const stopLabel = playBtn.dataset.stop;
             const media = playBtn.dataset.file;
             let audio: HTMLAudioElement;
-            const tooltip = Tooltip.getInstance(playBtn);
+            const tooltip = Tooltip.getOrCreateInstance(playBtn);
             playBtn.addEventListener('click', () => {
                 playBtn.classList.add('loading');
                 console.log(media);
@@ -99,7 +98,7 @@ export default function initArena() {
             function pause() {
                 playBtn.classList.add('btn-success');
                 playBtn.classList.remove('btn-danger', 'loading', 'playing');
-                tooltip.setContent({
+                tooltip?.setContent({
                     '.tooltip-inner': playLabel,
                 });
                 // Stop
@@ -114,7 +113,7 @@ export default function initArena() {
                     });
                     playBtn.classList.remove('btn-success', 'loading');
                     playBtn.classList.add('btn-danger', 'playing');
-                    tooltip.setContent({
+                    tooltip?.setContent({
                         '.tooltip-inner': stopLabel,
                     });
                     // Play

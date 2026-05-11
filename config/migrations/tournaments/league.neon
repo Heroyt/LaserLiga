@@ -20,6 +20,28 @@ tables:
 				refColumn: id_arena
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
+	leagues_arenas:
+		order: 4
+		definition: '''
+		(
+		  `id_league` int(11) unsigned NOT NULL,
+		  `id_arena` int(11) unsigned NOT NULL,
+		  PRIMARY KEY (`id_league`,`id_arena`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		foreignKeys:
+			-
+				column: id_league
+				refTable: App\Models\Tournament\League\League
+				refColumn: id_league
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_arena
+				refTable: App\Models\Arena
+				refColumn: id_arena
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
 	App\Models\Tournament\League\LeagueCategory:
 		order: 4
 		definition: '''

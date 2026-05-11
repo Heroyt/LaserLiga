@@ -18,6 +18,9 @@ class TagTranslation extends BaseModel
 	public string $language;
 	public string $name;
 
+	/** @var array<int, array<string, TagTranslation|null>> */
+	private static array $cache = [];
+
 	/**
 	 * Get the translation for a specific tag and language.
 	 *
@@ -25,9 +28,12 @@ class TagTranslation extends BaseModel
 	 * @param string $language
 	 * @return static|null
 	 */
-	public static function getForTagAndLanguage(Tag $tag, string $language): ?self
+	public static function getForTagAndLanguage(Tag $tag, string $language, bool $cache = true): ?self
 	{
-		return self::query()->where('[id_tag] = %i AND [language] = %s', $tag->id, $language)->first();
+		if (!$cache || !isset(self::$cache[$tag->id][$language])) {
+			self::$cache[(int) $tag->id][$language] = self::query()->where('[id_tag] = %i AND [language] = %s', $tag->id, $language)->first($cache);
+		}
+		return self::$cache[$tag->id][$language];
 	}
 
 }

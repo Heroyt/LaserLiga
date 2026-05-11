@@ -24,6 +24,7 @@ function setMatomoConsent(granted: boolean) {
             _paq.push(['forgetConsentGiven']);
             _paq.push(['forgetCookieConsentGiven']);
         }
+        console.log('Matomo consent set to', granted);
     }
 }
 
@@ -63,13 +64,16 @@ export function getRememberedConsent(): ConsentValues {
 function saveConsent(consent: ConsentValues) : void {
     try {
         localStorage.setItem(consentKey, JSON.stringify(consent));
+        console.log('Saved consent:', consent);
     } catch (e) {
         console.error('Failed to save consent:', e);
     }
 }
 
 export function initCookieConsent() {
+    const dialogInfo = document.getElementById('cookieConsentInfo') as HTMLDialogElement;
     const dialog = document.getElementById('cookieConsentDialog') as HTMLDialogElement;
+    const infoAcceptBtn = document.getElementById('cookieConsentInfoAccept') as HTMLButtonElement;
     const acceptBtn = document.getElementById('cookieConsentAccept') as HTMLButtonElement;
     const rejectBtn = document.getElementById('cookieConsentReject') as HTMLButtonElement;
     const saveBtn = document.getElementById('cookieConsentSave') as HTMLButtonElement;
@@ -80,10 +84,12 @@ export function initCookieConsent() {
     const statisticsCheckbox = document.getElementById('statistics-cookies') as HTMLInputElement;
     const marketingCheckbox = document.getElementById('marketing-cookies') as HTMLInputElement;
 
-    if (!dialog || !acceptBtn || !rejectBtn || !saveBtn || !necessaryCheckbox || !preferencesCheckbox || !statisticsCheckbox || !marketingCheckbox) {
+    if (!dialog || !acceptBtn || !rejectBtn || !saveBtn || !necessaryCheckbox || !preferencesCheckbox || !statisticsCheckbox || !marketingCheckbox || !dialogInfo || !infoAcceptBtn) {
         console.error('Failed to initialize cookie consent dialog. Missing elements.');
         return;
     }
+
+    console.log(infoAcceptBtn, dialogInfo);
 
     // Set initial checkbox states based on remembered consent
     const rememberedConsent = getRememberedConsent();
@@ -91,12 +97,13 @@ export function initCookieConsent() {
 
     const hasConsent = isConsentSet();
     if (!hasConsent) {
-        dialog.showModal();
+        setTimeout(() => dialogInfo.show(), 2000);
     } else {
         setMatomoConsent(rememberedConsent.statistics);
     }
 
-    acceptBtn.addEventListener('click', () => {
+    const accept = () => {
+        console.log('accept cookies');
         const consent : ConsentValues = {
             necessary: true,
             preferences: true,
@@ -106,8 +113,11 @@ export function initCookieConsent() {
         updateCheckboxes(consent);
         saveConsent(consent);
         setMatomoConsent(true);
+        dialogInfo.close();
         dialog.close();
-    });
+    };
+    infoAcceptBtn.addEventListener('click', accept);
+    acceptBtn.addEventListener('click', accept);
     rejectBtn.addEventListener('click', () => {
         const consent : ConsentValues = {
             necessary: true,
@@ -118,6 +128,7 @@ export function initCookieConsent() {
         updateCheckboxes(consent);
         saveConsent(consent);
         setMatomoConsent(false);
+        dialogInfo.close();
         dialog.close();
     });
     saveBtn.addEventListener('click', () => {
@@ -130,6 +141,7 @@ export function initCookieConsent() {
         updateCheckboxes(consent);
         saveConsent(consent);
         setMatomoConsent(consent.statistics);
+        dialogInfo.close();
         dialog.close();
     })
 
@@ -144,6 +156,7 @@ export function initCookieConsent() {
         preferencesCheckbox.checked = consent.preferences;
         statisticsCheckbox.checked = consent.statistics;
         marketingCheckbox.checked = consent.marketing;
+        console.log('Updated checkboxes', consent);
     }
 }
 

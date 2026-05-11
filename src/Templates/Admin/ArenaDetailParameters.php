@@ -17,6 +17,10 @@ class ArenaDetailParameters extends TemplateParameters
 	use WithUserParameters;
 
 	public Arena $arena;
+
+	public bool $googleIsReady = false;
+	public bool $googleIsExpired = false;
+
 	/** @var ArenaApiKeyRow[]  */
 	public array $apiKeys = [];
 

@@ -4,51 +4,39 @@ declare(strict_types=1);
 namespace App\Models\Blog;
 
 use App\Models\BaseModel;
+use App\Models\WithSlug;
 use App\Services\FontAwesomeManager;
 use Lsr\Core\App;
-use Lsr\Helpers\Tools\Strings;
-use Lsr\Orm\Attributes\Hooks\BeforeInsert;
-use Lsr\Orm\Attributes\Hooks\BeforeUpdate;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\ModelQuery;
 
 #[PrimaryKey('id_tag')]
 class Tag extends BaseModel
 {
+	use WithSlug;
 
 	public const string TABLE = 'blog_tags';
 
 	public string  $name;
-	public string  $slug;
 	public ?string $icon = null;
 
 	#[ManyToOne(foreignKey: 'id_tag', localKey: 'id_parent_tag')]
 	public ?Tag $parent = null;
 
-	#[BeforeInsert, BeforeUpdate]
-	public function generateSlug(): string {
-		if (!empty($this->slug)) {
-			return $this->slug;
-		}
-		$slug = Strings::webalize($this->name);
-		$counter = 0;
-		// Check if the slug already exists
-		do {
-			$mergedSlug = $slug . ($counter > 0 ? '-' . $counter : '');
-			$test = self::getBySlug($mergedSlug);
-			$counter++;
-		} while ($test !== null && $test->id !== $this->id);
-		$this->slug = $mergedSlug;
-		return $this->slug;
-	}
+	private string $translatedName;
 
-	public static function getBySlug(string $slug): ?self {
-		return self::query()->where('[slug] = %s', $slug)->first();
+	protected function getSlugName(): string {
+		return $this->name;
 	}
 
 	public function getTranslatedName(): string {
+		if (isset($this->translatedName)) {
+			return $this->translatedName;
+		}
 		$language = App::getInstance()->getLanguage()->id;
-		return TagTranslation::getForTagAndLanguage($this, $language)->name ?? $this->name;
+		$this->translatedName = TagTranslation::getForTagAndLanguage($this, $language)->name ?? $this->name;
+		return $this->translatedName;
 	}
 
 	public function getIconHtml() : string {
@@ -67,6 +55,31 @@ class Tag extends BaseModel
 
 	public function getUrl() : string {
 		return App::getLink(['blog', 'tag', $this->slug]);
+	}
+
+	/**
+	 * @return ModelQuery<Tag>
+	 */
+	public static function querySorted() : ModelQuery {
+		return self::query()
+		           ->orderBy('[order], [id_parent_tag], [id_tag]');
+	}
+
+	/**
+	 * @return Tag[]
+	 */
+	public static function getSorted() : array {
+		return self::querySorted()->get();
+	}
+
+	public function getHierarchyIds() : array {
+		$hierarchy = [];
+		$parent = $this->parent;
+		while ($parent !== null) {
+			$hierarchy[] = $parent->id;
+			$parent = $parent->parent;
+		}
+		return $hierarchy;
 	}
 
 }

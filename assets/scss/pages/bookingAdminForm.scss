@@ -1,0 +1,13 @@
+$booking-status: (
+				"active": rgb(59 199 245 / 40%),
+				"approved": rgb(21 62 245 / 40%),
+				"finished": rgb(49 231 61 / 40%),
+				"canceled": rgb(220 26 26 / 40%),
+);
+
+@import "../components/booking/timeSelect";
+@import "../components/booking/types";
+
+.form-group {
+	margin-bottom: 1rem;
+}

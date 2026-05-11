@@ -51,6 +51,10 @@
     <head>
         <!-- Matomo Tag Manager -->
         <link rel="dns-prefetch" href="https://analytics.laserliga.cz">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="preload" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}" as="style">
+        <link rel="preload" href="/assets/fonts/fa-solid-900.woff2?v=5" as="font" type="font/woff2">
         <script>
             let _mtm = window._mtm = window._mtm || [];
             _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
@@ -61,18 +65,19 @@
         </script>
         <!-- End Matomo Tag Manager -->
         <meta charset="UTF-8">
-        <meta name="viewport"
-              content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <meta name="seobility" content="36aefeb049a215aadb2892ba279d1f71">
         <meta name="ahrefs-site-verification" content="c919fb2a02d4d73c4e1743bd3630bd8b9365e404259383b0df5ddb06069872ac">
-        {var array $path = $page->app->getRequest()->getPath()}
-        {do $path['lang'] = $page->app->translations->getDefaultLangId()}
-       <link rel="alternate" hreflang="x-default" href="{link $path}">
-        {foreach $page->app->translations->supportedLanguages as $lang => $country}
-            {do $path['lang'] = $lang}
-            <link rel="alternate" hreflang="{$lang}" href="{link $path}">
-        {/foreach}
+        {block alternateLinks}
+            {var array $path = $page->app->getRequest()->getPath()}
+            {do $path['lang'] = $page->app->translations->getDefaultLangId()}
+           <link rel="alternate" hreflang="x-default" href="{link $path}">
+            {foreach $page->app->translations->supportedLanguages as $lang => $country}
+                {do $path['lang'] = $lang}
+                <link rel="alternate" hreflang="{$lang}" href="{link $path}">
+            {/foreach}
+        {/block}
         <!-- Favicon -->
         <link rel="apple-touch-icon" sizes="180x180" href="{getUrl}assets/favicon/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="192x192" href="{getUrl}assets/favicon/android-chrome-192x192.png">
@@ -88,18 +93,13 @@
 
         <title>{$page->getTitle()}</title>
         <meta name="description" content="{$page->getDescription()}">
-
-        <link rel="preload" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}" as="style">
         <link rel="stylesheet" href="{getUrl}dist/main.css?v={$page->app->getCacheVersion()}">
         {foreach $addCss as $file}
-            <link rel="preload" as="style" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
             <link rel="stylesheet" href="{getUrl}dist/{$file}?v={$page->app->getCacheVersion()}">
         {/foreach}
 
         <!-- Non-critical assets -->
         <!-- Google Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
               href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300;1,400;1,500;1,700;1,900&display=swap"/>
         <noscript>
@@ -112,7 +112,6 @@
             <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap"
                   rel="stylesheet">
         </noscript>
-        <link rel="preload" href="/assets/fonts/fa-solid-900.woff2?v=5" as="font" type="font/woff2">
         <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'"
               href="{getUrl}dist/fontawesome.css?v={$page->app->getCacheVersion()}">
         <noscript>
@@ -124,7 +123,7 @@
             <link rel="stylesheet" href="{getUrl}dist/bootstrap.css?v={$page->app->getCacheVersion()}">
         </noscript>
 
-        {\Tracy\Debugger::renderLoader()|noescape}
+{*        {\Tracy\Debugger::renderLoader()|noescape}*}
 
         <script type="application/ld+json">
             {
@@ -239,20 +238,10 @@
                 {do $content = $notice['content'] ?? ''}
                 {do $title = $notice['title'] ?? ''}
             {/if}
-            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <svg class="bd-placeholder-img rounded me-2 text-{$type}" width="20" height="20"
-                         xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"
-                         focusable="false">
-                        <rect width="100%" height="100%" style="fill: currentcolor;"></rect>
-                    </svg>
-                    <strong class="me-auto" n:if="!empty($title)">{$title}</strong>
-                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    {$content}
-                </div>
-            </div>
+            {include toast, $type, $content, $title}
+        {/foreach}
+        {foreach $page->getApp()->session->getFlashMessages() as $notice}
+            {include toast, $notice->type->value, $notice->message, $notice->detail, $notice->uri}
         {/foreach}
     </div>
 
@@ -311,3 +300,21 @@
     </body>
     </html>
 {/if}
+
+{define toast, string $type, string $content, string $title = '', string|null|\Psr\Http\Message\UriInterface $uri = null}
+    {if $type === 'error'} {do $type = 'danger'} {/if}
+    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" n:tag="$uri !== null ? 'a' : 'div'" n:attr="href => $uri">
+        <div class="toast-header">
+            <svg class="bd-placeholder-img rounded me-2 text-{$type}" width="20" height="20"
+                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"
+                 focusable="false">
+                <rect width="100%" height="100%" style="fill: currentcolor;"></rect>
+            </svg>
+            <strong class="me-auto" n:if="!empty($title)">{$title}</strong>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            {$content}
+        </div>
+    </div>
+{/define}

@@ -1,0 +1,194 @@
+{layout '../../../@layout.latte'}
+{templateType App\Templates\Admin\BookingParameters}
+
+{block addHead}
+    <script>
+        const arenaId = {$arena->id};
+        const canView = {$canView};
+        const canEdit = {$canEdit};
+        const messages = {
+            edit: {_'Upravit'},
+            delete: {_'Smazat'},
+            confirmDelete: {_'Rezervace odstraněna', domain: 'booking'},
+            playerCount: {_'Počet hráčů', domain: 'booking'},
+            isLocked: {_'Uzavřená', domain: 'booking'},
+        }
+    </script>
+{/block}
+
+{block content}
+    <p class="d-flex justify-content-between">
+        <a href="{link ['admin', 'arenas']}" class="btn btn-warning">
+            {faSolid 'angle-left'}
+            <span>{_'Zpět'}</span>
+        </a>
+        <a n:if="$canSettings" href="{link ['admin', 'arenas', $arena->id, 'booking-settings']}"
+                               class="btn btn-warning">
+            {faSolid 'wrench'}
+            <span>{_'Nastavení'}</span>
+        </a>
+    </p>
+
+    <h1 class="mb-4">{_'Rezervace'} - {$arena->name}</h1>
+    <div id="booking-wrapper">
+        <aside id="booking-filters">
+            <div class="form-check form-switch mt-3">
+                <input class="form-check-input" type="checkbox" value="" id="show-all-details" switch>
+                <label class="form-check-label" for="show-all-details">
+                    {_'Rozbalit všechny', domain: 'booking'}
+                </label>
+            </div>
+            <div class="form-group mt-3">
+                <label for="filter-type" class="form-label">{_'Typ rezervace', domain: 'booking'}</label>
+                <select id="filter-type" class="form-select" aria-label="{_'Typ rezervace', domain: 'booking'}">
+                    <option n:foreach="$types as $type"
+                            value="{$type->id}" n:attr="selected: $selectedTypeId === $type->id">
+                        {$type->getTranslatedName()}
+                    </option>
+                </select>
+            </div>
+            <div class="mt-3">
+                <label for="filter-date" class="form-label">{_'Datum'}</label>
+                <input type="text" class="form-control date-picker" value="{$date->format('d.m.Y')}" id="filter-date">
+            </div>
+        </aside>
+        <section id="booking-calendar">
+
+        </section>
+    </div>
+
+    <div class="modal fade" id="booking-note-modal" tabindex="-1" aria-hidden="true"
+         aria-labelledby="booking-note-title" data-bs-focus="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="booking-note-title">
+                        {_'Poznámka ke dni', domain: 'booking'}: <span class="date"></span>
+                    </h5>
+                    <button type="button" class="text-dark btn btn-lg ms-auto" data-bs-dismiss="modal"
+                            aria-label="{_'Zavřít', context: 'actions'}">
+                        {faSolid 'xmark'}
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mt-3">
+                        <label for="booking-day-note" class="form-label">
+                            {_'Poznámka', domain: 'booking'}
+                        </label>
+                        <textarea class="form-control" id="booking-day-note" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        {faSolid 'save'}
+                         {_'Uložit', domain: 'booking'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="booking-delete-modal" tabindex="-1" aria-hidden="true"
+         aria-labelledby="booking-delete-title" data-bs-focus="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="booking-delete-title">
+                        <span class="text-danger">{faSolid 'circle-exclamation'}</span>
+                        {_'Odstranit rezervaci', domain: 'booking'}
+                    </h5>
+                    <button type="button" class="text-dark btn btn-lg ms-auto" data-bs-dismiss="modal"
+                            aria-label="{_'Zavřít', context: 'actions'}">
+                        {faSolid 'xmark'}
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        {_'Opravdu chcete odstranit rezervaci?', domain: 'booking'}
+                    </p>
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" value="" id="booking-delete-notification"
+                               switch>
+                        <label class="form-check-label" for="booking-delete-notification">
+                            {_'Odeslat potvrzovací e-mail o zrušení zákazníkovi', domain: 'booking'}
+                        </label>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="booking-delete-reason" class="form-label">
+                            {_'Důvod zrušení (volitelně)', domain: 'booking'}
+                        </label>
+                        <textarea class="form-control" id="booking-delete-reason" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning cancel" data-bs-dismiss="modal">
+                        {faSolid 'xmark'}
+                        {_'Zrušit', domain: 'booking'}
+                    </button>
+                    <button type="button" class="btn btn-danger delete">
+                        {faSolid 'trash'}
+                         {_'Odstranit', domain: 'booking'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="booking-delete-slots-modal" tabindex="-1" aria-hidden="true"
+         aria-labelledby="booking-delete-slots-title" data-bs-focus="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="booking-delete-slots-title">
+                        <span class="text-danger">{faSolid 'circle-exclamation'}</span>
+                        {_'Odstranit rezervaci', domain: 'booking'} - {_'Rezervace obsahuje více času', domain: 'booking'}
+                    </h5>
+                    <button type="button" class="text-dark btn btn-lg ms-auto" data-bs-dismiss="modal"
+                            aria-label="{_'Zavřít', context: 'actions'}">
+                        {faSolid 'xmark'}
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        {_'Opravdu chcete odstranit rezervaci?', domain: 'booking'}
+                    </p>
+                    <p>
+                        {_'Tato rezervace obsahuje více časů. Můžete odstranit celou rezervaci nebo pouze vybraný čas.', domain: 'booking'}
+                    </p>
+                    <p>
+                        {_'Časy rezervace', domain: 'booking'}:
+                    </p>
+                    <ul id="booking-delete-slots-list">
+                    </ul>
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" value="" id="booking-delete-slots-notification"
+                               switch>
+                        <label class="form-check-label" for="booking-delete-slots-notification">
+                            {_'Odeslat potvrzovací e-mail o zrušení zákazníkovi', domain: 'booking'}
+                        </label>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="booking-delete-slots-reason" class="form-label">
+                            {_'Důvod zrušení (volitelně)', domain: 'booking'}
+                        </label>
+                        <textarea class="form-control" id="booking-delete-slots-reason" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning cancel" data-bs-dismiss="modal">
+                        {faSolid 'xmark'}
+                        {_'Zrušit', domain: 'booking'}
+                    </button>
+                    <button type="button" class="btn btn-danger delete">
+                        {faSolid 'dumpster'}
+                         {_'Odstranit celou rezervaci', domain: 'booking'}
+                    </button>
+                    <button type="button" class="btn btn-danger delete-slot">
+                        {faSolid 'trash'}
+                         {_'Odstranit jen zvolený čas', domain: 'booking'}: <span id="booking-delete-slots-time"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{/block}

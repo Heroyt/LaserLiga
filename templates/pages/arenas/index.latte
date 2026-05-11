@@ -7,7 +7,7 @@
 	<div class="d-flex flex-wrap g-3 align-items-center justify-content-evenly">
 		{var \DateTime $today = new \DateTimeImmutable}
         <a n:foreach="$arenas as $arena" class="card bg-background-1 text-center p-2 m-3 text-decoration-none"
-                                         href="{link ['arena', $arena->id]}">
+                                         href="{link $arena->getLink()}">
 			{$arena->getLogoHtml()|noescape}
             <h2 class="visually-hidden">{$arena->name}</h2>
 			<div class="card-body text-text">

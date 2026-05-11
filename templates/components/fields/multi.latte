@@ -1,0 +1,34 @@
+{parameters
+    App\Models\Booking\BookingSubtypeField $field,
+    App\Models\Booking\DataObjects\BookingSubtypeFieldValue[] $values,
+    array|null $value = null,
+}
+{var string $id = $field->getId()}
+
+<div class="form-group">
+    <div n:if="$field->label" class="form-label">{$field->getTranslatedLabel()}</div>
+    {foreach $values as $key => $val}
+        <div class="form-check">
+            <input class="form-check-input"
+                   value="{$val->value}"
+                    n:attr="required: $field->required, name: 'sub[' . $field->getName() . '][]', checked: $value !== null && in_array($val->value, $value, true)"
+                   type="checkbox"
+                   id="{$id}-{$key}">
+            <label class="form-check-label" for="{$id}-{$key}">
+                {$val->label|noescape}
+				{if !empty($val->info)}
+                    {if $val->isInfoUrl()}
+                        <a href="{$val->info}" target="_blank" rel="nofollow" class="text-blue-400">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </a>
+                    {else}
+                        <i class="fa-solid fa-circle-question text-blue-300" data-toggle="tooltip"
+                           title="{$value->info}"></i>
+                    {/if}
+                {/if}
+            </label>
+            <div class="invalid-feedback"></div>
+        </div>
+    {/foreach}
+    <div n:if="$field->description" id="{$id}-description" class="form-text">{$field->getTranslatedDescription()}</div>
+</div>

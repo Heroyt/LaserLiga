@@ -10,6 +10,7 @@ use App\Models\Booking\BookingType;
 use App\Models\Booking\Enums\TimeStatus;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Lsr\Logging\Logger;
 
 class BookingCalendarProvider
 {
@@ -51,31 +52,38 @@ class BookingCalendarProvider
 		bool $allowAll = false,
 		bool $allowOverbooking = false,
 	): bool {
+		$logger = new Logger(LOG_DIR . 'booking/', 'new-bookings');
 		// Check if the date is open for bookings
 		if (!$this->isDateOpen($slot, $type)) {
+			$logger->debug('Date is not open for bookings', ['date' => $slot->format('Y-m-d H:i:s'), 'type' => $type->id, 'subtype' => $subType?->id]);
 			return false;
 		}
 
 		$query = new BookingTimeSlotsQuery($type, $slot);
 		$query->subtype($subType);
+		$query->includeBookings();
 
 		$slots = $query->get();
 		$time = $slot->format('Y-m-d H:i');
 		if (!isset($slots[$time])) {
+			$logger->debug('Slot does not exist', ['date' => $slot->format('Y-m-d H:i:s'), 'type' => $type->id, 'subtype' => $subType?->id, 'slots' => $slots]);
 			return false; // Slot does not exist
 		}
 
 		if ($slots[$time]->status === TimeStatus::FILLED) {
+			$logger->debug('Slot is filled', ['date' => $slot->format('Y-m-d H:i:s'), 'type' => $type->id, 'subtype' => $subType?->id, 'slot' => $slots[$time]]);
 			return false;
 		}
 
 		// Arena staff can book closed or on-call slots
 		if (!$allowAll && ($slots[$time]->status === TimeStatus::CLOSED || $slots[$time]->status === TimeStatus::ON_CALL)) {
+			$logger->debug('Slot is closed', ['date' => $slot->format('Y-m-d H:i:s'), 'type' => $type->id, 'subtype' => $subType?->id, 'slot' => $slots[$time]]);
 			return false;
 		}
 
-		if ($playerCount !== null && !$allowOverbooking) {
-			return $slots[$time]->availableSpots >= $playerCount;
+		if ($playerCount !== null && !$allowOverbooking && $slots[$time]->availableSpots < $playerCount) {
+			$logger->debug('Slot does not have enough spots', ['date' => $slot->format('Y-m-d H:i:s'), 'type' => ['id' => $type->id, 'slotLimit' => $type->slotLimit], 'subtype' => ['id' => $subType?->id, 'slotMax' => $subType?->slotMax], 'playerCount' => $playerCount, 'slot' => $slots[$time]]);
+			return false;
 		}
 
 		return true;

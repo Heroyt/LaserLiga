@@ -63,6 +63,22 @@ export class ResponseError extends Error {
 
 }
 
+export function memo<T extends unknown[], A>(fn: (...args: T) => Promise<A>) : (...args: T) => Promise<A> {
+    const cache = new Map();
+
+    return async function (...args: T) : Promise<A> {
+        const key = args.map((arg) => `${arg}_${typeof arg}`).join("|");
+
+        if (cache.has(key)) {
+            return cache.get(key);
+        }
+        const result = await fn(...args);
+
+        cache.set(key, result);
+        return result;
+    };
+}
+
 /**
  * Call a fetch method with some pre-processing
  * @param path
@@ -70,13 +86,13 @@ export class ResponseError extends Error {
  * @param options
  * @throws ResponseError
  */
-export async function customFetch(path: string, method: RequestMethod, options: CustomFetchOptions = {}) {
+export async function customFetch<ResponseType = any>(path: string, method: RequestMethod, options: CustomFetchOptions = {}) : Promise<ResponseType> {
     const response = await prepareFetch(path, method, options);
     if (!response.ok) {
         throw new ResponseError(response);
     }
     const type = response.headers.get('Content-Type');
-    return processResponse(type, response);
+    return processResponse<ResponseType>(type, response);
 }
 
 
@@ -86,7 +102,7 @@ export async function customFetch(path: string, method: RequestMethod, options: 
  * @param body
  * @throws ResponseError
  */
-export async function fetchPost(path: string, body: string | FormData | object | URLSearchParams = '') {
+export async function fetchPost<ResponseType = any>(path: string, body: string | FormData | object | URLSearchParams = '') : Promise<ResponseType> {
     const options: RequestInit = {
         method: 'POST',
         headers: {
@@ -109,7 +125,7 @@ export async function fetchPost(path: string, body: string | FormData | object |
         throw new ResponseError(response);
     }
     const type = response.headers.get('Content-Type');
-    return processResponse(type, response);
+    return processResponse<ResponseType>(type, response);
 }
 
 
@@ -119,7 +135,7 @@ export async function fetchPost(path: string, body: string | FormData | object |
  * @param body
  * @throws ResponseError
  */
-export async function fetchDelete(path: string, body: string | FormData | object | URLSearchParams = '') {
+export async function fetchDelete<ResponseType = any>(path: string, body: string | FormData | object | URLSearchParams = '') : Promise<ResponseType> {
     const options: RequestInit = {
         method: 'DELETE',
         headers: {
@@ -142,7 +158,7 @@ export async function fetchDelete(path: string, body: string | FormData | object
         throw new ResponseError(response);
     }
     const type = response.headers.get('Content-Type');
-    return processResponse(type, response);
+    return processResponse<ResponseType>(type, response);
 }
 
 /**
@@ -152,7 +168,7 @@ export async function fetchDelete(path: string, body: string | FormData | object
  * @param params
  * @throws ResponseError
  */
-export async function fetchGet(path: string, params: { [key: string]: any } | URLSearchParams | string = {}) {
+export async function fetchGet<ResponseType = any>(path: string, params: { [key: string]: any } | URLSearchParams | string = {}) : Promise<ResponseType> {
     if (params) {
         const searchParams = new URLSearchParams(params);
         path += '?' + searchParams.toString();
@@ -169,15 +185,15 @@ export async function fetchGet(path: string, params: { [key: string]: any } | UR
         throw new ResponseError(response);
     }
     const type = response.headers.get('Content-Type');
-    return processResponse(type, response);
+    return processResponse<ResponseType>(type, response);
 }
 
-export async function processResponse(type: string, response: Response) {
+export async function processResponse<ResponseType = any>(type: string, response: Response) : Promise<ResponseType> {
     switch (type) {
         case 'application/json':
             return response.json();
         default:
-            return response.text();
+            return response.text() as Promise<ResponseType>;
     }
 }
 

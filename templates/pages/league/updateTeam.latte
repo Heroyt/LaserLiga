@@ -46,12 +46,49 @@
                     <label for="team-category" class="form-label required">
                         {lang 'Kategorie'}:
                     </label>
-                    <select name="category" id="team-category" class="form-select">
+                    <select name="category" id="team-category" n:class="'form-select', 'mb-3', isset($errors['category']) ? is-invalid">
                         <option n:foreach="$league->getCategories() as $category" n:attr="selected: ((int)($values['category'] ?? '')) === $category->id"
                                 value="{$category->id}">
                             {$category->name}
                         </option>
                     </select>
+                    <div n:ifset="$errors['category']" id="category-feedback" class="invalid-feedback">
+                        {if is_array($errors['category'])}
+                            <ul>
+                                <li n:foreach="$errors['category'] as $error">{$error}</li>
+                            </ul>
+                        {else}
+                            {$errors['category']}
+                        {/if}
+                    </div>
+                {/if}
+                {if $league->registrationType === App\Models\Tournament\RegistrationType::BOTH}
+                    <label for="team-tournaments" class="form-label required">
+                        {lang 'Turnaje'}:
+                    </label>
+                    {foreach $league->getTournaments() as $tournament}
+                        <div class="form-check tournament-check" data-category="{$tournament->category?->id}">
+                            <input n:class="form-check-input, isset($errors['tournament-'.$tournament->id]) ? is-invalid"
+                                    type="checkbox" value="{$tournament->id}"
+                                    id="tournament-{$tournament->id}"
+                                    name="tournament[]"
+                                    n:attr="checked: isset($values['tournament']) && is_array($values['tournament']) && in_array($tournament->id, $values['tournament'])">
+                            <label class="form-check-label" for="tournament-{$tournament->id}">
+                                {$tournament->name} ({$tournament->start->format('j. n. Y')})
+                            </label>
+                            <div n:ifset="$errors['tournament-'.$tournament->id]"
+                                    id="tournament-{$tournament->id}-feedback" class="invalid-feedback">
+                                {if is_array($errors['tournament-'.$tournament->id])}
+                                    <ul>
+                                        <li n:foreach="$errors['tournament-'.$tournament->id] as $error">{$error}</li>
+                                    </ul>
+                                {else}
+                                    {$errors['tournament-'.$tournament->id]}
+                                {/if}
+                            </div>
+                        </div>
+                    {/foreach}
+                    <hr class="mb-4">
                 {/if}
             {/block}
         {/embed}

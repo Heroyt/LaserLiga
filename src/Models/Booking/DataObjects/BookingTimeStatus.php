@@ -6,6 +6,7 @@ namespace App\Models\Booking\DataObjects;
 
 use App\Models\Booking\Booking;
 use App\Models\Booking\Enums\TimeStatus;
+use DateTimeInterface;
 
 class BookingTimeStatus
 {
@@ -15,6 +16,7 @@ class BookingTimeStatus
 	 * @param Booking[] $bookings       List of bookings that are associated with this time slot
 	 */
 	public function __construct(
+		public DateTimeInterface $datetime,
 		public string     $time,
 		public TimeStatus $status,
 		public int        $availableSpots,

@@ -181,9 +181,7 @@ class PushController extends Controller
 				$notification->title = 'Test Notifikace';
 				$notification->body = 'Tohle je testovací notifikace';
 
-				$this->pushService->send($notification);
-
-				$notification->save();
+				$this->pushService->sendAndSave($notification);
 		}
 
 		return $this->respond(['status' => 'ok']);

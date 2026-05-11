@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Templates\Blog;
 
 use App\Models\Blog\Post;
+use App\Models\Blog\PostTranslation;
 use App\Models\Blog\Tag;
 use App\Templates\AutoFillParameters;
 use App\Templates\PageTemplateParameters;
@@ -15,7 +16,11 @@ class EditParameters extends TemplateParameters
 	use PageTemplateParameters;
 
 	public Post $post;
+	/** @var PostTranslation[] */
+	public array $translations = [];
 	/** @var Tag[] */
 	public array $tags;
+
+	public bool $canApprove = false;
 
 }

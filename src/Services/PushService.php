@@ -58,8 +58,9 @@ class PushService
 				$notification->body .= sprintf(lang('%.2f k herní úrovni'), $diff);
 			}
 
-			$this->send($notification);
-			$notification->save();
+			$notification->key = 'new_game_' . $player->game->code.'_' . $user->id;
+
+			$this->sendAndSave($notification);
 		} catch (Throwable) {
 		}
 	}
@@ -75,6 +76,19 @@ class PushService
 			return $player->user;
 		}
 		return User::get($player->id);
+	}
+
+	/**
+	 * Send a notification and save it to database
+	 *
+	 * Checks for duplicate notification by key
+	 */
+	public function sendAndSave(Notification $notification): void {
+		if ($notification->key !== null && Notification::keyExists($notification->key)) {
+			return; // Do not send duplicate notification
+		}
+		$this->send($notification);
+		$notification->save();
 	}
 
 	public function send(Notification $notification): void {
@@ -209,8 +223,7 @@ class PushService
 				$position
 			);
 
-			$this->send($notification);
-			$notification->save();
+			$this->sendAndSave($notification);
 		} catch (Throwable) {
 		}
 	}
@@ -245,20 +258,24 @@ class PushService
 				count($achievements)
 			);
 			$names = [];
+			$achievementIds = [];
 			foreach ($achievements as $achievement) {
+				$achievementIds[] = $achievement->achievement->id;
 				$names[] = $achievement->achievement->rarity->getReadableName() . ': ' .
 					lang(
 						        $achievement->achievement->name,
 						domain: 'achievements'
 					);
 			}
+			sort($achievementIds);
 			$notification->body = implode(', ', $names);
 			$notification->action = App::getLink(
 				['user', $achievements[0]->player->getCode(), 'tab' => 'achievements-stats-tab', 'mtm_campaign' => 'push']
 			);
 
-			$this->send($notification);
-			$notification->save();
+			$notification->key = 'achievement_'.$notification->user->id.'_'.md5(implode(',', $achievementIds));
+
+			$this->sendAndSave($notification);
 		} catch (Throwable) {
 		}
 	}
@@ -280,8 +297,8 @@ class PushService
 				context: 'notification',
 				format : [$game->start->format('j. n. Y')]
 			);
-			$this->send($notification);
-			$notification->save();
+			$notification->key = 'photos_'.$notification->user->id.'_'.$game->code;
+			$this->sendAndSave($notification);
 		} catch (Throwable) {
 		}
 	}

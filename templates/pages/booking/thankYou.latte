@@ -1,0 +1,81 @@
+{templateType \App\Templates\Booking\BookingThankYouParameters}
+{layout '../../@layout.latte'}
+
+{define content}
+    <div class="text-center">
+        <h1>{_'Děkujeme za Vaši rezervaci!', domain: 'booking'}</h1>
+        <p class="lead">{_'Vaše rezervace byla úspěšně přijata a je nyní v procesu zpracování.', domain: 'booking'}</p>
+        <p>{_'Brzy Vás budeme kontaktovat s potvrzením a dalšími informacemi ohledně Vaší rezervace.', domain: 'booking'}</p>
+    </div>
+
+    <div class="booking-summary" n:ifset="$booking">
+        {var \App\Models\Booking\BookingType $type = $booking->type}
+        {var \App\Models\Booking\BookingSubType|null $subtype = $booking->subtype}
+        <h2 class="mb-3">
+                {_'Shrnutí rezervace', domain: 'booking'}:
+                {$type->name}
+            {if isset($subtype) && count($type->subtypes) > 1}
+                    - {lang $subtype->name}
+                {/if}
+        </h2>
+        <h3>{$booking->datetime|localDate:date:long}</h3>
+
+
+        <div n:foreach="$booking->slots as $slot" class="booking-slot-summary my-3">
+                <h4>
+                    {foreach $slot->allTimes as $time}
+                        {$time|localDate:time:short}{if !$iterator->last}, {/if}
+                    {/foreach}
+                </h4>
+                <p>
+                    <strong>{_'Počet hráčů', domain:'booking'}:</strong> {$slot->playerCount}
+                </p>
+                <p>
+                    <strong>{_'Uzavřená', domain:'booking'}:</strong> {if $booking->locked}{_'Ano'}{else}{_'Ne'}{/if}
+                </p>
+        </div>
+        <h2>{lang 'Ostatní údaje'}</h2>
+        <div n:foreach="$booking->users as $bookingUser" class="my-2">
+        <p>
+                <strong>{lang 'Jméno'}:</strong> {$bookingUser->personalDetails->firstName} {$bookingUser->personalDetails->lastName}
+        </p>
+        <p>
+                <strong>{lang 'E-mail'}:</strong> {$bookingUser->email}
+        </p>
+        <p>
+                <strong>{lang 'Telefon'}:</strong> {$bookingUser->personalDetails->phone}
+        </p>
+        </div>
+        <p>
+                <strong>{lang 'Poznámka'}:</strong> {$booking->note}
+        </p>
+        <p n:ifset="$booking->discovery">
+                <strong>{lang 'Jak jste se o nás dozvěděli?'}:</strong> {$booking->discovery->name}
+        </p>
+
+        {if isset($subtype)}
+            {foreach $subtype->fields as $field}
+                {var $value = $booking->getSubTypeField($field->getName())}
+                {skipIf empty($value) && $value !== false}
+                <p>
+                    <strong>{lang $field->getTranslatedLabel()}:</strong>
+                    {switch $field->type}
+                        {case App\Models\Booking\Enums\FieldType::BOOL}
+                        {if $value}{_'Ano'}{else}{_'Ne'}{/if}
+                        {case App\Models\Booking\Enums\FieldType::SELECT}
+                        {$field->getTranslatedLabelForValue($value)}
+                        {case App\Models\Booking\Enums\FieldType::MULTI}
+                        {$field->getTranslatedLabelsForValues(null, ...$value)|join:', '}
+                        {default}
+                        {$value}
+                    {/switch}
+                </p>
+            {/foreach}
+        {/if}
+    </div>
+    <p class="text-center">
+        <a href="{link ['rezervace', $arena->slug]}" class="btn btn-secondary">
+            {faSolid 'angle-left'} {_'Zpět na rezervace', domain: 'booking'}
+        </a>
+    </p>
+{/define}

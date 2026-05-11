@@ -6,6 +6,7 @@ tables:
             	`id_arena` int(11) unsigned NOT NULL AUTO_INCREMENT,
             	`id_user` int(11) unsigned DEFAULT NULL,
             	`name` varchar(50) NOT NULL DEFAULT '',
+            	`slug` varchar(50) NOT NULL DEFAULT '',
             	`lat` double DEFAULT NULL,
             	`lng` double DEFAULT NULL,
 				`address_street` varchar(100) DEFAULT NULL,
@@ -31,6 +32,9 @@ tables:
 				`photos_unassigned_photo_ttl` varchar(20) DEFAULT NULL,
 				`photos_assigned_photo_ttl` varchar(20) DEFAULT NULL,
 				`google_access_token` text DEFAULT NULL,
+				`booking_emails` varchar(500) DEFAULT NULL,
+				`booking_reply_to` varchar(50) DEFAULT NULL,
+				`booking_enabled` bool DEFAULT false,
             	PRIMARY KEY (`id_arena`),
             	KEY `id_user` (`id_user`),
             	CONSTRAINT `arenas_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -69,6 +73,14 @@ tables:
 				- 'ADD `photos_assigned_photo_ttl` varchar(20) DEFAULT NULL'
 			0.5.0:
 				- 'ADD `google_access_token` text DEFAULT NULL'
+			0.6.0:
+				- 'ADD `slug` varchar(50) NOT NULL DEFAULT '''' AFTER `name`'
+			0.7.0:
+				- 'ADD `booking_emails` varchar(500) DEFAULT NULL'
+			0.7.1:
+				- 'ADD `booking_reply_to` varchar(50) DEFAULT NULL'
+			0.7.2:
+				- 'ADD `booking_enabled` bool DEFAULT false'
 		foreignKeys:
 			-
 				column: id_user
@@ -76,6 +88,11 @@ tables:
 				refColumn: id_user
 				onUpdate: 'CASCADE'
 				onDelete: 'SET NULL'
+		indexes:
+			-
+				name: 'slug'
+				columns: ['slug']
+				unique: true
 	api_keys:
 		order: 3
 		definition: '''

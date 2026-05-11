@@ -2,7 +2,11 @@
 {layout '../../@layout.latte'}
 
 {define addHead}
+    <link rel="canonical" href="{$arena->getUrl()}">
     {\App\Tools\Color::getGamesColor($games)|noescape}
+    <script>
+        const arenaId = {$arena->id};
+    </script>
 {/define}
 
 {define containerClasses}
@@ -32,7 +36,7 @@
         'type' => 'tab',
         'piece' => 'Stats',
         'template' => './arena/tabs/stats.latte',
-        'link' => ['arena', $arena->id, 'tab', 'stats'],
+        'link' => ['arena', $arena->slug, 'tab', 'stats'],
         'params' => [
         'arena' => $arena,
         'players' => $players,
@@ -49,7 +53,7 @@
         'type' => 'tab',
         'piece' => 'Music',
         'template' => './arena/tabs/music.latte',
-        'link' => ['arena', $arena->id, 'tab', 'music'],
+        'link' => ['arena', $arena->slug, 'tab', 'music'],
         'params' => [
         'arena' => $arena,
         'music' => $music,
@@ -62,7 +66,7 @@
         'type' => 'tab',
         'piece' => 'Games',
         'template' => './arena/tabs/games.latte',
-        'link' => ['arena', $arena->id, 'tab', 'games'],
+        'link' => ['arena', $arena->slug, 'tab', 'games'],
         'params' => [
         'arena' => $arena,
         'games' => $games,
@@ -83,7 +87,7 @@
         'iconClasses' => ['me-1'],
         'type' => 'link',
         'piece' => 'Leaderboard',
-        'link' => ['user', 'leaderboard', $arena->id],
+        'link' => ['user', 'leaderboard', $arena->slug],
         ],
         'tournaments' => [
         'name' => 'Plánované turnaje',
@@ -93,7 +97,7 @@
         'type' => 'tab',
         'piece' => 'Tournaments',
         'template' => './arena/tabs/tournaments.latte',
-        'link' => ['arena', $arena->id, 'tab', 'tournaments'],
+        'link' => ['arena', $arena->slug, 'tab', 'tournaments'],
         'params' => [
         'arena' => $arena
         ],
@@ -105,7 +109,7 @@
         'type' => 'tab',
         'piece' => 'Info',
         'template' => './arena/tabs/info.latte',
-        'link' => ['arena', $arena->id, 'tab', 'info'],
+        'link' => ['arena', $arena->slug, 'tab', 'info'],
         'params' => [
         'arena' => $arena
         ],

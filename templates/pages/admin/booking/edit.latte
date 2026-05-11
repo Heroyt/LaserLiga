@@ -1,0 +1,59 @@
+{layout '../../../@layout.latte'}
+{templateType App\Templates\Admin\EditBookingParameters}
+
+{block addHead}
+    <script>
+        const arenaId = {$arena->id};
+        const messages = {
+            edit: {_'Upravit'},
+            delete: {_'Smazat'},
+            confirmDelete: {_'Rezervace odstraněna', domain: 'booking'},
+            playerCount: {_'Počet hráčů', domain: 'booking'},
+            isLocked: {_'Uzavřená', domain: 'booking'},
+        }
+    </script>
+{/block}
+
+{block content}
+    <p>
+        <a href="{link ['admin', 'arenas', $arena->id, 'booking', 'type' => $type->id, 'date' => $booking->datetime->format('Y-m-d')]}" class="btn btn-warning">
+            {faSolid 'angle-left'}
+            <span>{_'Zpět'}</span>
+        </a>
+    </p>
+
+    <h1>{_'Upravit rezervaci', domain: 'booking'}</h1>
+    <h2 class="mb-4">{$booking->title}</h2>
+
+    {include './components/bookingForm.latte',
+        arena: $arena,
+        datetime: $booking->datetime,
+        slots: $slots,
+        type: $type,
+        action: ['admin', 'arenas', $arena->id, 'booking', $booking->id, 'edit'],
+        subtypes: $subtypes,
+        booking: $booking
+    }
+
+    <section id="logs" class="mt-4">
+        <h3>{_'Protokol změn', domain: 'booking'}</h3>
+        <div class="list-group list-group-flush">
+            <div n:foreach="$logs as $log" class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="">
+                    <strong>{$log->createdAt|localDate:date:long, time:short}:</strong>
+                    <span class="fs-5 text-{$log->action->getColor()}">{$log->action->getVerb()}</span>
+                </div>
+                {$log->changes}
+                {if $log->user !== null}
+                <a class="badge text-bg-primary" href="{link ['user', $log->user->player->getCode()]}" target="_blank">
+                    {$log->user->name}
+                </a>
+                    {else}
+                    <span class="badge text-bg-secondary">
+                        {$log->user->name}
+                    </span>
+                    {/if}
+            </div>
+        </div>
+    </section>
+{/block}

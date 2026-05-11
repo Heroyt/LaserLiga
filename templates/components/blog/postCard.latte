@@ -1,12 +1,13 @@
-{parameters App\Models\Blog\Post $post}
+{parameters App\Models\Blog\Post $post, App\Models\Auth\User|null $user = null}
 
 {var string $lang = Lsr\Core\App::getInstance()->translations->getLangId()}
-{cache 'blog-post-card-' . $post->id . '-' . $lang, tags: [App\Models\Blog\Post::TABLE . '/' . $post->id, 'blog-post-card', 'schema']}
-    <article class="blog-post-card card my-3 w-100">
+{var bool $canEdit = $user !== null && $post->canByEditedBy($user)}
+{cache 'blog-post-card-' . $post->id . '-' . $lang . ($canEdit ? '-editable' : ''), tags: [App\Models\Blog\Post::TABLE . '/' . $post->id, 'blog-post-card', 'schema']}
+    <article class="blog-post-card card my-3 w-100" data-cache-key="blog-post-card-{$post->id}-{$lang}">
         <script type="application/ld+json">{$post->getSchema()|json|noescape}</script>
         <div class="row g-0">
             <a n:if="$post->image !== null" href="{$post->getUrl()}" class="col-md-4">
-                {img $post->image, 400, null, [], ['alt' => $post->getTranslatedImageAlt(), 'class' => 'post-image', 'loading' => 'lazy',  'style' => 'view-transition-name: blog-post-published-'.$post->id.';']}
+                {img $post->image, 400, null, [], ['alt' => $post->getTranslatedImageAlt(), 'class' => 'post-image', 'loading' => 'lazy',  'style' => 'view-transition-name: blog-post-published-' . $post->id . ';']}
             </a>
             <div n:class="$post->image !== null ? col-md-8, $post->image === null ? col-12, d-flex, align-items-center">
                 <div class="card-body px-5">
@@ -20,7 +21,8 @@
                                 {$post->getPublishedAt()|localDate: date: 'long'}
                             </time>
                         </div>
-                        <div n:if="$post->tags->count() > 0" class="tags" style="view-transition-name: blog-post-tags-{$post->id};">
+                        <div n:if="$post->tags->count() > 0" class="tags"
+                                                             style="view-transition-name: blog-post-tags-{$post->id};">
                             <span class="visually-hidden">
                                 {_'Značky', context: 'blog'}:
                             </span>
@@ -37,6 +39,17 @@
                             {$post->getTranslatedTitle()}
                         </a>
                     </h2>
+                    {if $post->status !== App\Models\Blog\PostStatus::PUBLISHED}
+                        <div class="badge text-bg-warning fs-6 mb-3">
+                            {faSolid 'exclamation-triangle'}
+                            {$post->status->getReadableName()}
+                        </div>
+                    {elseif !$post->approved}
+                        <div class="badge text-bg-danger fs-6 mb-3">
+                            {faSolid 'exclamation-triangle'}
+                            {_'Příspěvek není schválený.'}
+                        </div>
+                    {/if}
                     <div class="author" style="view-transition-name: blog-post-author-{$post->id};">
                             <span class="visually-hidden">
                                 {_'Autor', context: 'blog'}:
@@ -47,6 +60,7 @@
                             {if !empty($post->author->personalDetails->firstName)}
                             {$post->author->personalDetails->firstName}
                         {/if}
+
 
                         <span n:class="!empty($post->author->personalDetails->firstName) || !empty($post->author->personalDetails->lastName) ? fst-italic">
                                 {$post->author->name}
@@ -59,6 +73,12 @@
                         {$post->getTranslatedAbstract()}
                     </p>
                     <p class="text-end">
+                        <a n:if="$canEdit"
+                           href="{link ['blog', 'admin', $post->id]}"
+                           class="btn btn-secondary">
+                            {faSolid 'pen-to-square'}
+                            {_'Upravit', context: 'blog'}
+                        </a>
                         <a href="{$post->getUrl()}" class="btn btn-primary">
                             {faSolid 'eye'}
                             {_'Číst', context: 'blog'}

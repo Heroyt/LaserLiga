@@ -73,6 +73,7 @@ tables:
 			`default` varchar(255) DEFAULT NULL,
 			`type` enum('text','bool','select','multi','number') NOT NULL DEFAULT 'text',
 			`deleted` bool NOT NULL DEFAULT false,
+			`private` bool NOT NULL DEFAULT false,
 			PRIMARY KEY (`id_field`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 		'''
@@ -80,6 +81,9 @@ tables:
 			-
 				name: 'deleted'
 				columns: ['deleted']
+		modifications:
+			0.1:
+				- 'ADD `private` bool NOT NULL DEFAULT false'
 	'booking_subtype_fields_assoc':
 		order: 5
 		definition: '''
@@ -135,7 +139,6 @@ tables:
 			`id_discovery` int(11) unsigned DEFAULT NULL,
 			`datetime` datetime NOT NULL,
 			`status` enum('active','complete') NOT NULL DEFAULT 'active',
-			`player_count` smallint(5) unsigned NOT NULL DEFAULT 1,
 			`slots` smallint(5) unsigned NOT NULL DEFAULT 1,
 			`locked` bool NOT NULL DEFAULT false,
 			`note` text DEFAULT NULL,
@@ -367,3 +370,178 @@ tables:
 				refColumn: id_term
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
+	App\Models\Booking\BookingSlot:
+		order: 6
+		definition: '''
+		(
+			`id_booking_slot` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_booking` int(11) unsigned NOT NULL,
+			`time` time NOT NULL,
+			`span` smallint(5) unsigned NOT NULL DEFAULT 1,
+			`player_count` smallint(5) unsigned NOT NULL DEFAULT 1,
+			`event_id` varchar(255) DEFAULT NULL,
+			PRIMARY KEY (`id_booking_slot`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'id_booking_time'
+				columns: ['id_booking', 'time']
+		foreignKeys:
+			-
+				column: id_booking
+				refTable: App\Models\Booking\Booking
+				refColumn: id_booking
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+		modifications:
+			0.1:
+				- 'ADD `event_id` varchar(255) DEFAULT NULL'
+	App\Models\Booking\Translations\BookingTypeTranslation:
+		order: 4
+		definition: '''
+		(
+			`id_type_translation` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_type` int(11) unsigned NOT NULL,
+			`language` varchar(5) NOT NULL,
+			`name` varchar(50) NOT NULL DEFAULT '',
+			PRIMARY KEY (`id_type_translation`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'id_type_language'
+				columns: ['id_type', 'language']
+				unique: true
+		foreignKeys:
+			-
+				column: id_type
+				refTable: App\Models\Booking\BookingType
+				refColumn: id_type
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Booking\Translations\BookingSubTypeTranslation:
+		order: 5
+		definition: '''
+		(
+			`id_subtype_translation` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_subtype` int(11) unsigned NOT NULL,
+			`language` varchar(5) NOT NULL,
+			`name` varchar(50) NOT NULL DEFAULT '',
+			`description` text DEFAULT NULL,
+			`datetime_description` text DEFAULT NULL,
+			`info_description` text DEFAULT NULL,
+			PRIMARY KEY (`id_subtype_translation`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'id_subtype_language'
+				columns: ['id_subtype', 'language']
+				unique: true
+		foreignKeys:
+			-
+				column: id_subtype
+				refTable: App\Models\Booking\BookingSubType
+				refColumn: id_subtype
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Booking\Translations\TermAndConditionTranslation:
+		order: 4
+		definition: '''
+		(
+			`id_term_translation` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_term` int(11) unsigned NOT NULL,
+			`language` varchar(5) NOT NULL,
+			`label` varchar(255) NOT NULL DEFAULT '',
+			`link` varchar(255) DEFAULT NULL,
+			PRIMARY KEY (`id_term_translation`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'id_term_language'
+				columns: ['id_term', 'language']
+				unique: true
+		foreignKeys:
+			-
+				column: id_term
+				refTable: App\Models\Booking\TermAndCondition
+				refColumn: id_term
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Booking\Translations\BookingSubtypeFieldTranslation:
+		order: 5
+		definition: '''
+		(
+			`id_field_translation` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_field` int(11) unsigned NOT NULL,
+			`language` varchar(5) NOT NULL,
+			`label` varchar(255) NOT NULL DEFAULT '',
+			`description` text DEFAULT NULL,
+			`values` text DEFAULT NULL,
+			`default` text DEFAULT NULL,
+			PRIMARY KEY (`id_field_translation`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		indexes:
+			-
+				name: 'id_field_language'
+				columns: ['id_field', 'language']
+				unique: true
+		foreignKeys:
+			-
+				column: id_field
+				refTable: App\Models\Booking\BookingSubtypeField
+				refColumn: id_field
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+	App\Models\Booking\BookingLog:
+		order: 6
+		definition: '''
+		(
+			`id_booking_log` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_booking` int(11) unsigned NOT NULL,
+			`id_user` int(11) unsigned DEFAULT NULL,
+			`action` enum('created','updated','deleted','status_changed','restored','slot_changed','notification_sent') NOT NULL,
+			`changes` text DEFAULT NULL,
+			`created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (`id_booking_log`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_booking
+				refTable: App\Models\Booking\Booking
+				refColumn: id_booking
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+			-
+				column: id_user
+				refTable: App\Models\Auth\User
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
+	App\Models\Booking\DayNote:
+		order: 4
+		definition: '''
+		(
+			`id_day_note` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`id_type` int(11) unsigned NOT NULL,
+			`date` date NOT NULL,
+			`note` text NOT NULL,
+			PRIMARY KEY (`id_day_note`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+		'''
+		foreignKeys:
+			-
+				column: id_type
+				refTable: App\Models\Booking\BookingType
+				refColumn: id_type
+				onUpdate: 'CASCADE'
+				onDelete: 'CASCADE'
+		indexes:
+			-
+				name: 'id_type_date'
+				columns: ['id_type', 'date']
+				unique: true

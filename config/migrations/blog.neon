@@ -13,7 +13,8 @@ tables:
         `html_content` longtext NOT NULL,
         `image` varchar(255) DEFAULT NULL,
         `image_alt` varchar(255) DEFAULT NULL,
-        `status` enum('draft','published','archived') NOT NULL DEFAULT 'draft',
+        `status` enum('draft','published','archived','hidden') NOT NULL DEFAULT 'draft',
+        `approved` tinyint(1) NOT NULL DEFAULT 0,
         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
         `updated_at` datetime DEFAULT NULL,
         `published_at` datetime DEFAULT NULL,
@@ -25,6 +26,10 @@ tables:
         - 'ADD COLUMN `id_arena` int(11) unsigned DEFAULT NULL AFTER `id_post`'
       0.2:
         - 'ADD COLUMN `published_at` datetime DEFAULT NULL'
+      0.3:
+        - 'MODIFY COLUMN `status` enum(''draft'',''published'',''archived'',''hidden'') NOT NULL DEFAULT ''draft'''
+      0.4:
+        - 'ADD COLUMN `approved` tinyint(1) NOT NULL DEFAULT 0 AFTER `status`'
     indexes:
       -
         name: 'slug'
@@ -55,6 +60,9 @@ tables:
         PRIMARY KEY (`id_tag`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     '''
+    modifications:
+      0.1:
+        - 'ADD COLUMN `order` int(11) unsigned GENERATED ALWAYS AS (COALESCE(`id_parent_tag`, `id_tag`)) VIRTUAL AFTER `icon`'
     indexes:
       -
         name: 'slug'
@@ -82,13 +90,21 @@ tables:
         `markdown_content` longtext NOT NULL,
         `html_content` longtext NOT NULL,
         `image_alt` varchar(255) DEFAULT NULL,
+        `slug` varchar(255) NOT NULL,
         PRIMARY KEY (`id_post_translation`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     '''
+    modifications:
+      0.2:
+        - 'ADD COLUMN `slug` varchar(255) NOT NULL'
     indexes:
       -
         name: 'post_language'
         columns: ['id_post', 'language']
+        unique: true
+      -
+        name: 'slug_language'
+        columns: ['slug', 'language']
         unique: true
     foreignKeys:
       -

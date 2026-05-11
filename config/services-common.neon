@@ -24,6 +24,13 @@ parameters:
 	commonmark:
 		html_input: 'strip'
 		allow_unsafe_links: false
+		smartpunct:
+			double_quote_opener: „
+			double_quote_closer: “
+		mentions:
+			user:
+				prefix: '@'
+				pattern: '(?:\d+-[a-zA-T\d]{5})|\d+'
 extensions:
 	cache: Lsr\Caching\DI\CacheExtension
 	decorator: Nette\DI\Extensions\DecoratorExtension
@@ -33,6 +40,7 @@ extensions:
 	search: Nette\DI\Extensions\SearchExtension(%constants.tempDir%)
 	request: Lsr\Core\Requests\DI\RequestExtension
 	lsr: Lsr\Core\DI\LsrExtension
+	tracy: Lsr\Core\DI\TracyExtension
 di:
 	lazy: true
 lsr:
@@ -58,6 +66,7 @@ lsr:
 			- 'titles'
 			- 'achievements'
 			- 'gameModes'
+			- 'booking'
 	links:
 		modifiers:
 			- @lang.prefixer
@@ -66,15 +75,35 @@ lsr:
 			- App\Core\ExceptionHandlers\NotFoundHandler
 			- App\Core\ExceptionHandlers\AccessDeniedHandler
 			- App\Core\ExceptionHandlers\MethodNotAllowedHandler
+			- App\Core\ExceptionHandlers\ValidationErrorHandler
 			- Lsr\Core\Http\TracyExceptionHandler
 		asyncHandlers:
 			- App\Core\AsyncHandlers\FontawesomeUpdater
 			- App\Core\AsyncHandlers\TranslationsUpdater
 			- App\Core\AsyncHandlers\CqrsDispatcher
+tracy:
+	debug: @runtimeConfig
+	email: true
+	editor: 'phpstorm://open?file=%file&line=%line'
+	dumpTheme: 'dark'
+	bar:
+		- Lsr\Core\Tracy\TranslationTracyPanel
+		- Lsr\Core\Tracy\RoutingTracyPanel
+		- Lsr\Caching\Tracy\CacheTracyPanel
+		- Nette\Bridges\DITracy\ContainerPanel
+		- Nette\Bridges\HttpTracy\SessionPanel
+		'Dibi\Bridges\Tracy\Panel': @tracy.dibi
 services:
 	# Core
 	lang.prefixer: Lsr\Core\Links\LanguagePrefixer
 	db.connection: Lsr\Db\Connection(config: %db%)
+	runtimeConfig: App\Core\RuntimeConfigProvider
+
+	tracy.dibi:
+		create: Dibi\Bridges\Tracy\Panel
+		lazy: false
+		setup:
+			- register(@db.connection::connection)
 
 	lsr.session:
 		create: App\Core\RedisSession(@redis)
@@ -93,12 +122,14 @@ services:
 
 	regression.evo5: App\GameModels\Tools\Lasermaxx\RegressionStatCalculator
 
-	cache.journal: Lsr\Caching\Redis\RedisJournal(@redis)
+#	cache.journal: Lsr\Caching\Redis\RedisJournal(@redis)
 	cache.storage: Lsr\Caching\Redis\RedisStorage(@redis, '', @cache.journal)
 
 	avatars: App\Services\Avatar\AvatarService
 
 	user: App\Models\Auth\User
+	ranking.rankDeltaCalculator: App\Services\Player\Ranking\RankDeltaCalculator
+	ranking.modelInputProvider: App\Services\Player\Ranking\ModelGameCalculationInputProvider
 	rankCalculator: App\Services\Player\RankCalculator
 
 	userRegistration: App\Services\UserRegistrationService
@@ -160,9 +191,11 @@ services:
 		create: App\Latte\LacExtension
 		tags:
 			- templating
+	templating.latte.tracy: Latte\Bridges\Tracy\TracyExtension
 	templating.latte.engine:
 		setup:
 			- addExtension(@templating.latte.lac)
+			- addExtension(@templating.latte.tracy)
 	requestValidationMapper: Lsr\Core\Requests\Validation\RequestValidationMapper
 
 	matomo:
@@ -176,6 +209,8 @@ services:
 	commonmark.extension.tables: League\CommonMark\Extension\Table\TableExtension
 	commonmark.extension.emoji: ElGigi\CommonMarkEmoji\EmojiExtension
 	commonmark.renderer.image: App\Commonmark\Renderer\ImageRenderer
+	commonmark.extension.typography: App\Commonmark\Extension\TypographyExtension
+	commonmark.extension.mentions: League\CommonMark\Extension\Mention\MentionExtension
 
 	commonmark.environment:
 		create: League\CommonMark\Environment\Environment(%commonmark%)
@@ -185,12 +220,17 @@ services:
 			- addExtension(@commonmark.extension.punctuation)
 			- addExtension(@commonmark.extension.tables)
 			- addExtension(@commonmark.extension.emoji)
+			- addExtension(@commonmark.extension.typography)
+			- addExtension(@commonmark.extension.mentions)
 			- addRenderer('League\CommonMark\Extension\CommonMark\Node\Inline\Image', @commonmark.renderer.image, 1)
 	commonmark: League\CommonMark\MarkdownConverter(@commonmark.environment)
 
 	reporting: App\Services\Reporting
 
 	booking.calendar: App\Services\Booking\BookingCalendarProvider
+	booking.logger: App\Services\Booking\BookingLogger
+
+	widget.factory.calendar: App\Widget\Factory\CalendarWidgetFactory
 
 search:
 	controllers:

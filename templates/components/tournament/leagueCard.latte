@@ -17,7 +17,9 @@
         <div class="col-md-8 d-flex align-items-center">
             <div class="card-body text-center">
                 <div>
-                    {$league->arena->getLogoHtml()|noescape}
+                    {foreach $league->arenas as $arena}
+                        {$arena->getLogoHtml()|noescape}
+                    {/foreach}
                 </div>
                 <h3 class="card-title">{$league->name}</h3>
                 <p n:ifset="$league->shortDescription">{$league->shortDescription}</p>

@@ -1,0 +1,82 @@
+{layout '../../../@layout.latte'}
+{templateType App\Templates\Admin\BookingSettingsParameters}
+
+{block content}
+    <p class="text-start">
+        <a href="{link ['admin', 'arenas', $arena->id, 'booking']}" class="btn btn-warning">
+            {faSolid 'angle-left'}
+            <span>{_'Zpět'}</span>
+        </a>
+    </p>
+    <div class="me-4 last-save-wrapper text-end position-fixed end-0">
+        {_'Naposledy uloženo:'} <span class="last-save" data-target="#arena-form">{_'nikdy'}</span>
+    </div>
+    <form action="{link ['admin', 'arenas', $arena->id, 'booking-settings']}"
+          method="post"
+          enctype="multipart/form-data"
+          id="booking-form"
+          class="autosave"
+          data-arena="{$arena->id}"
+          data-create-type-url="{link ['admin', 'arenas', $arena->id, 'booking-settings', 'booking-type']}"
+          data-delete-type-url="{link ['admin', 'arenas', $arena->id, 'booking-settings', 'booking-type', '&id&']}"
+          >
+        {embed
+            '../../../partials/tabs.latte',
+            tabs: [
+            'info' => [
+            'name' => 'Obecné nastavení',
+            'type' => 'tab',
+            ],
+            'types' => [
+            'name' => 'Typy rezervací',
+            'type' => 'tab',
+            ],
+            ]
+        }
+            {block info-content}
+                <div class="form-group my-3">
+                    <label for="booking-emails" class="form-label">{_'Emaily pro potvrzení rezervace', domain: 'booking'}:</label>
+                    <input type="text"
+                           class="form-control"
+                           id="booking-emails"
+                           name="bookingEmails"
+                           value="{$arena->bookingSettings->emails}"/>
+                    <div class="form-text">
+                        {_'Pokud chcete zadat více emailů, oddělte je čárkou.', domain: 'booking'}
+                    </div>
+                </div>
+                <div class="form-group my-3">
+                    <label for="booking-reply-to" class="form-label">{_'Email pro odpovědi', domain: 'booking'}:</label>
+                    <input type="email"
+                           class="form-control"
+                           id="booking-reply-to"
+                           name="replyToEmail"
+                           value="{$arena->bookingSettings->replyTo}"/>
+                    <div class="form-text">
+                        {_'Pokud zákazník odpoví na potvrzovací e-mail s rezervací.', domain: 'booking'}
+                    </div>
+                </div>
+            {/block}
+            {block types-content}
+                <div id="booking-types">
+                    {foreach $bookingTypes as $type}
+                        {include './components/typeForm.latte', $type->id, $type, $googleCalendars}
+                    {/foreach}
+                </div>
+                <p class="text-center">
+                    <button type="button" class="btn btn-success" id="add-type">
+                        {faSolid 'plus'}
+                    </button>
+                </p>
+                <template id="type-template">
+                    {include './components/typeForm.latte', '&id&', null, $googleCalendars}
+                </template>
+            {/block}
+        {/embed}
+        <p class="text-center mt-4">
+            <button type="submit" class="btn btn-success btn-lg">
+                {faSolid 'save'} <span>{_'Uložit', context: 'actions'}</span>
+            </button>
+        </p>
+    </form>
+{/block}

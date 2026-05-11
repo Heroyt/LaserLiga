@@ -1,0 +1,180 @@
+#booking-wrapper {
+	display: grid;
+	grid-template-columns: 250px 1fr;
+	grid-gap: 1rem;
+	grid-template-areas: 'filters calendar';
+
+	#booking-filters {
+		grid-area: filters;
+		background: var(--background-1);
+		padding: 2rem 1rem;
+		border-radius: 10px;
+	}
+
+	#booking-calendar {
+		grid-area: calendar;
+		max-height: 90dvh;
+		overflow-y: auto;
+
+		.calendar-day {
+			display: grid;
+			grid-template-columns: [time-start] 5rem [time-end bookings-start] 1fr [bookings-end add-start] 3rem [add-end];
+			grid-gap: .25rem .5rem;
+			margin-top: 1.5rem;
+
+			.day-header {
+				content: attr(data-day);
+				font-weight: bold;
+				text-align: center;
+				display: block;
+				margin-bottom: .5rem;
+				grid-column: time-start / add-end;
+				position: sticky;
+				top: 0;
+				background: color-mix(in srgb, var(--background) 80%, transparent);
+				backdrop-filter: blur(4px);
+				font-size: 1.2rem;
+				padding: .3rem;
+
+				.note {
+					font-size: .8rem;
+					margin-top: .25rem;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					position: relative;
+					padding-bottom: .5rem;
+
+					.edit-note {
+						position: absolute;
+						right: 0;
+					}
+				}
+			}
+		}
+
+		.slot {
+			padding: .25rem .5rem;
+			border-radius: 5px;
+			border: 1px solid var(--background-2);
+			grid-column: time-start / add-end;
+			display: grid;
+			grid-template-columns: subgrid;
+			align-items: center;
+
+			.time {
+				grid-column: time;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: .5rem;
+
+				.fa-solid {
+					display: block;
+				}
+			}
+
+			&.on-call {
+				border-color: var(--bs-light);
+			}
+
+			&.closed {
+				border-color: var(--bs-dark);
+			}
+
+			&.partially-filled {
+				border-color: var(--bs-warning);
+			}
+
+			&.filled {
+				border-color: var(--bs-danger);
+			}
+
+			.bookings {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				grid-gap: .5rem;
+				grid-column: bookings;
+			}
+
+			.add {
+				grid-column: add;
+			}
+		}
+
+		.booking {
+			border: 1px solid var(--background-1);
+			border-radius: 2px;
+			padding: .25rem .5rem;
+			z-index: 1;
+			cursor: pointer;
+			container: booking / inline-size;
+
+			> .inner {
+				display: grid;
+				grid-gap: 0.5rem 1rem;
+				grid-template-columns: [booking-start] repeat(auto-fit, minmax(200px, 1fr)) [booking-end];
+			}
+
+			.header {
+				grid-column: booking; // Fill the entire booking width
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+
+				.type {
+					font-size: 1.5rem;
+				}
+
+				.actions {
+					display: flex;
+					justify-content: flex-end;
+					gap: .5rem;
+				}
+			}
+
+			.details {
+				.inner {
+					overflow-y: hidden;
+					transition: max-height 200ms ease;
+					max-height: 100%;
+
+					> div, .field {
+						margin-bottom: .25rem;
+
+						.fa-xmark, .fa-check {
+							font-size: 1.3em;
+							margin-left: .25em;
+							bottom: -.15em;
+							position: relative;
+						}
+					}
+				}
+
+				.collapse-indicator {
+					margin: 0 auto;
+				}
+
+				@container booking (min-width: 400px) {
+					grid-column: 2 / booking-end;
+				}
+			}
+
+			&.collapsed {
+				.details .inner {
+					max-height: 3rem;
+				}
+			}
+
+			&.hover {
+				background: var(--background-1);
+			}
+		}
+
+		&.uncollapse-all {
+			.booking.collapsed .details .inner {
+				max-height: 100%;
+			}
+		}
+	}
+}

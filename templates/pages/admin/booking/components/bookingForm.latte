@@ -1,0 +1,239 @@
+{parameters
+    App\Models\Arena $arena,
+    \DateTimeImmutable $datetime,
+    App\Models\Booking\DataObjects\BookingTimeStatus[] $slots,
+    App\Models\Booking\BookingType $type,
+    string[] $action,
+    App\Models\Booking\BookingSubType[] $subtypes = [],
+    App\Models\Booking\Booking|null $booking = null,
+}
+
+{var int $slotLimit = $type->slotLimit}
+
+<script>
+    const playersRangeLabel = {_'Počet hráčů pro čas %s', domain: 'booking'};
+    const errorAlertMsg = {_'Formulář obsahuje chyby', domain: 'booking'};
+    const missingPlayerCount = {_'Vyplňte prosím počet hráčů', context: 'errors', domain: 'booking'};
+    const requiredTime = {_'Vyberte prosím alespoň jeden čas rezervace', context: 'errors', domain: 'booking'};
+    const requiredField = {_'Toto pole je povinné', context: 'errors', domain: 'booking'};
+    const emailError = {_'E-mail musí být platný', context: 'errors', domain: 'booking'};
+    const phoneError = {_'Telefon musí být platný', context: 'errors', domain: 'booking'};
+    const numberError = {_'Hodnota musí být číslo', context: 'errors', domain: 'booking'};
+    const numberMinError = {_'Číslo nesmí být menší než %d', context: 'errors', domain: 'booking'};
+    const numberMaxError = {_'Číslo nesmí být větší než %d', context: 'errors', domain: 'booking'};
+    const bookingType = {$type->id};
+    const fieldValues = {if $booking !== null && !empty($booking->subtypeFieldsParsed)}
+            {
+                subtype: {$booking->subtype->id},
+                values: {$booking->subtypeFieldsParsed}
+            }
+    {else}
+        null
+    {/if};
+</script>
+
+<form action="{link $action}" method="post" class="mb-5" id="booking-form" data-arena="{$arena->slug}">
+    <input type="hidden" name="date" value="{$datetime->format('Y-m-d')}">
+
+    <div id="errors"></div>
+
+    <section class="mb-3" id="booking-form-type"
+             data-id="{$type->id}" data-limit="{$type->slotLimit}" data-name="{$type->getTranslatedName()}"
+             data-openable="{$type->openable ? '1' : '0'}" data-openable-min="{$type->openableMin}"
+             data-openable-description="{{sprintf(lang('Pro méně jak %d hráče není možné rezervaci uzavřít.', 'Pro méně jak %d hráčů není možné rezervaci uzavřít.', $type->openableMin), $type->openableMin)}}">
+        <input type="hidden" name="type" value="{$type->id}" class="type-input">
+        <div class="errors"></div>
+        {var int $subTypeCount = count($subtypes)}
+        <div n:if="$subTypeCount > 1" class="subtype-select-wrapper my-3">
+            <h3>{_'Podtyp', domain: 'booking'}:</h3>
+            {var int $i = 0}
+            <div n:class="subtype-container, $subTypeCount <= 1 ? d-none">
+                <div class="subtype-group" n:foreach="$subtypes as $subtype">
+                    <input type="radio" class="subtype-input" name="subtype"
+                           data-name="{$subtype->getTranslatedName()}" id="subtype-{$subtype->id}"
+                           value="{$subtype->id}"
+                            n:attr="checked: ($booking === null && $i === 0) || ($booking?->subtype?->id === $subtype->id), data-min: $subtype->slotMin, data-max: $subtype->slotMax, data-single-input: $subtype->singlePlayerInput, data-slot-preset: $subtype->slotPreset">
+                    {do $i++}
+                    <label class="p-3 shadow rounded d-flex flex-column justify-content-center align-items-center bg-background-1"
+                           for="subtype-{$subtype->id}">
+                        {$subtype->getIconHTML('', '3rem')|noescape}
+                        <span class="name">{$subtype->getTranslatedName()}</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="mb-3" id="booking-form-times">
+        <h3>{_'Časy', domain: 'booking'}:</h3>
+        <div class="errors"></div>
+        {var array $configuration = ['year' => $datetime->format('Y'), 'month' => $datetime->format('m'), 'day' => $datetime->format('d'), 'selectedDate' => $datetime->format('Y-m-d'), 'type' => $type, 'subtype' => $booking?->subtype]}
+
+        <div class="calendar" data-date="{$datetime|localDate:date:long}" data-arena="{$arena->slug}"
+             data-configuration="{$configuration|json|replace:'"','\"'}">
+                <div class="time my-3" {if count($slots) === 0}style="display:none;"{/if}>
+                    {foreach $slots as $time => $status}
+                        {var bool $checked = $datetime->format('Y-m-d H:i') === $time || ($booking !== null && $booking->fillsSlot($status->datetime))}
+                        {var int $slotCount = $booking?->getSlot($status->time)?->playerCount ?? 0}
+                        {if $checked}
+                            {do $status->availableSpots = $booking?->subtype?->slotFill ? $slotLimit : $status->availableSpots + $slotCount}
+                            {do $status->status = $status->availableSpots >= $slotLimit ? App\Models\Booking\Enums\TimeStatus::AVAILABLE : App\Models\Booking\Enums\TimeStatus::PARTIALLY_FILLED}
+                        {/if}
+                        {switch $status->status}
+                            {case App\Models\Booking\Enums\TimeStatus::FILLED, App\Models\Booking\Enums\TimeStatus::CLOSED}
+                            <input type="checkbox"
+                                   name="time[]"
+                                   class="timeSelect"
+                                    n:attr="checked: $checked, disabled: !$checked"
+                                   value="{$status->time}"
+                                   id="{$status->time|replace:':','_'}"
+                                   data-available="{$status->availableSpots}">
+                            <label for="{$status->time|replace:':','_'}" class="time-label filled text-bg-danger">
+                                <span>{$status->datetime|localDate:time:short}</span>
+                                <span>0/{$slotLimit}</span>
+                            </label>
+                        {case App\Models\Booking\Enums\TimeStatus::AVAILABLE}
+                            <input type="checkbox"
+                                   name="time[]"
+                                   class="timeSelect"
+                                    n:attr="checked: $checked"
+                                   value="{$status->time}"
+                                   id="{$status->time|replace:':','_'}"
+                                   data-available="{$status->availableSpots}">
+                            <label for="{$status->time|replace:':','_'}" class="text-bg-green">
+                                <span>{$status->datetime|localDate:time:short}</span>
+                                <span>{$status->availableSpots}/{$slotLimit}</span>
+                            </label>
+                        {case App\Models\Booking\Enums\TimeStatus::ON_CALL}
+                            <input type="checkbox"
+                                   name="time[]"
+                                   class="timeSelect"
+                                    n:attr="checked: $checked"
+                                   value="{$status->time}"
+                                   id="{$status->time|replace:':','_'}"
+                                   data-available="{$status->availableSpots}">
+                            <label for="{$status->time|replace:':','_'}" class="time-label on-call text-bg-light">
+                                {faSolid 'phone'}
+                                <span>{$status->datetime|localDate:time:short}</span>
+                                <span>{$status->availableSpots}/{$slotLimit}</span>
+                            </label>
+                        {case App\Models\Booking\Enums\TimeStatus::PARTIALLY_FILLED}
+                            <input type="checkbox"
+                                   name="time[]"
+                                   class="timeSelect"
+                                    n:attr="checked: $checked"
+                                   value="{$status->time}"
+                                   id="{$status->time}"
+                                   data-available="{$status->availableSpots}">
+                            <label class="partially-filled text-bg-warning" for="{$status->time}">
+                                <span>{$status->datetime|localDate:time:short}</span>
+                                <span>{$status->availableSpots}/{$slotLimit}</span>
+                            </label>
+                        {/switch}
+                    {/foreach}
+                </div>
+        </div>
+
+        <h3>{_'Počet hráčů', domain: 'booking'}:</h3>
+
+        <div class="form-group player-unlock-wrapper mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="unlocked"
+                           name="unlocked" n:attr="checked: $booking === null || !$booking->locked" value="1">
+                    <label class="form-check-label" for="unlocked">{_'Mohou se k vám přidávat další hráči?'}</label>
+                    <div class="invalid-feedback"></div>
+                </div>
+                <div id="unlocked-description" class="form-text"></div>
+        </div>
+
+        {var bool $playersSingle = $booking === null || $booking->isPlayerCountSame()}
+
+        <div class="players-single" {if !$playersSingle}style="display: none;"{/if}>
+            {var string $id = uniqid('playerCount_')}
+            <label for="{$id}" class="form-label">{lang 'Počet hráčů'}:</label>
+            <input type="number" class="form-control" min="1" max="{$type->slotLimit}" name="playerCount" id="{$id}"
+                   value="{$booking?->playerCount ?? 1}">
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <div class="players-single-toggle my-2">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch"
+                       id="single-player-input-toggle" n:attr="checked: !$playersSingle">
+                <label class="form-check-label"
+                       for="single-player-input-toggle">{_'Rozdílný počet hráčů pro dané časy'}</label>
+            </div>
+        </div>
+        <div class="players">
+            {if !$playersSingle}
+                {foreach ($booking?->slots ?? []) as $slot}
+                    {var string $time = $slot->time->format('H:i')}
+                    <div class="time-players form-group found" id="players-{$time}" data-time="{$time}">
+                        <label for="players-{$time}-input" class="d-block form-label">
+                            {_'Počet hráčů pro čas %s', domain: 'booking', format:[$time]}:
+                        </label>
+                        <input required type="number" class="form-control" min="1" max="{$type->slotLimit}"
+                               id="players-{$time}-input" name="players[{$time}]" value="{$slot->playerCount}">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                {/foreach}
+            {/if}
+        </div>
+    </section>
+    <section class="mb-3" id="booking-form-details">
+        <h3>{_'Osobní údaje', domain: 'booking'}:</h3>
+        <div class="errors"></div>
+        <input n:if="$booking?->user !== null" type="hidden" name="users[0][id]" value="{$booking->user->id}">
+        <div class="form-group">
+            <label for="name" class="form-label required">{lang 'Jméno'}</label>
+            <input required maxlength="100" type="text" name="users[0][name]" id="name"
+                   class="form-control" autocomplete="given-name"
+                   data-required-message="{lang 'Jméno je povinné', context: 'errors'}"
+                   value="{$booking?->user?->personalDetails?->firstName ?? ''}">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="surname" class="form-label required">{lang 'Příjmení'}</label>
+            <input required maxlength="100" type="text" name="users[0][surname]" id="surname" class="form-control"
+                   data-required-message="{lang 'Příjmení je povinné', context: 'errors'}"
+                   value="{$booking?->user?->personalDetails?->lastName ?? ''}"
+                   autocomplete="family-name">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="email" class="form-label required">{lang 'E-mail'}</label>
+            <input required maxlength="100" type="email" name="users[0][email]" id="email" class="form-control"
+                   autocomplete="email" data-required-message="{lang 'E-mail je povinný', context: 'errors'}"
+                   value="{$booking?->user?->email ?? ''}">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="phone" class="form-label required">{lang 'Telefon'}</label>
+            <input required type="tel" maxlength="20" name="users[0][phone]" id="phone" class="form-control"
+                   autocomplete="tel" data-required-message="{lang 'Telefon je povinný', context: 'errors'}"
+                   value="{$booking?->user?->personalDetails?->phone ?? ''}">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="note" class="form-label">{lang 'Poznámka'}</label>
+            <textarea name="note" id="note" class="form-control">{$booking?->note}</textarea>
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="privateNote" class="form-label">{lang 'Interní poznámka'}</label>
+            <textarea name="privateNote" id="privateNote" class="form-control">{$booking?->privateNote}</textarea>
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="mb-3 subtype-info" id="booking-form-subtype-details">
+            {if $booking !== null && $booking->subtype !== null}
+                {include '../../../../components/booking/subtype.latte', $booking->subtype, $booking->subtype->fields, $booking}
+            {/if}
+        </div>
+    </section>
+    <div class="mt-4">
+        <button type="submit" class="btn btn-success">
+            {faSolid 'save'}
+            <span>{_'Odeslat'}</span>
+        </button>
+    </div>
+</form>

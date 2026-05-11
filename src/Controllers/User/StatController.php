@@ -332,20 +332,29 @@ class StatController extends AbstractUserController
 			DistributionParam::accuracy,
 			$player->stats->averageAccuracy
 		);
-		$hitsPercentile = $this->distributionService->getPercentile(
-			DistributionParam::hits,
-			(15 * $player->stats->hits / $player->stats->totalMinutes)
-		);
-		$deathsPercentile = $this->distributionService->getPercentile(
-			DistributionParam::deaths,
-			(15 * $player->stats->deaths / $player->stats->totalMinutes)
-		);
+		if ($player->stats->totalMinutes > 0) {
+			$hitsPercentile = $this->distributionService->getPercentile(
+				DistributionParam::hits,
+				(15 * $player->stats->hits / $player->stats->totalMinutes)
+			);
+			$deathsPercentile = $this->distributionService->getPercentile(
+				DistributionParam::deaths,
+				(15 * $player->stats->deaths / $player->stats->totalMinutes)
+			);
+			$hitsLabel = $player->stats->hits / $player->stats->totalMinutes;
+			$deathsLabel = $player->stats->deaths / $player->stats->totalMinutes;
+		}
+		else {
+			// Division by zero
+			$hitsPercentile = 0;
+			$deathsPercentile = 0;
+			$hitsLabel = 0;
+			$deathsLabel = 0;
+		}
 		$kdPercentile = $this->distributionService->getPercentile(
 			DistributionParam::kd,
 			$player->stats->kd
 		);
-		$hitsLabel = $player->stats->hits / $player->stats->totalMinutes;
-		$deathsLabel = $player->stats->deaths / $player->stats->totalMinutes;
 		return new PlayerRadarData(
 			PlayerRadarValue::createAutoLabel(
 				$rankPercentile,

@@ -7,13 +7,13 @@ use App\Models\Arena;
 use App\Models\BaseModel;
 use App\Models\Booking\Enums\BookingStatus;
 use App\Models\WithSoftDelete;
-use DateTime;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Lsr\ObjectValidation\Attributes\IntRange;
+use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToMany;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Attributes\Relations\OneToMany;
 use Lsr\Orm\ModelCollection;
 use Lsr\Orm\ModelTraits\WithCreatedAt;
 use Lsr\Orm\ModelTraits\WithUpdatedAt;
@@ -44,12 +44,10 @@ class Booking extends BaseModel
 	public BookingStatus     $status = BookingStatus::ACTIVE;
 	public DateTimeImmutable $datetime;
 
-	/** @var int<1,max> How many players are in this booking? */
-	#[IntRange(min: 1)]
-	public int $playerCount = 1;
-	/** @var int<1, max> How many slots does this booking cover? */
-	#[IntRange(min: 1)]
-	public int     $slots         = 1;
+	/** @var ModelCollection<BookingSlot> */
+	#[OneToMany(class: BookingSlot::class)]
+	public ModelCollection $slots;
+
 	public bool    $locked        = false;
 	public ?string $note          = null;
 	public ?string $privateNote   = null;
@@ -62,84 +60,26 @@ class Booking extends BaseModel
 
 	public ?string $eventId = null;
 
-	/** @var array<string,bool> */
+	/** @var array<string,int> */
+	#[NoDB]
 	public array $filledSlots {
 		get {
 			if (empty($this->filledSlots)) {
-				$length = $this->type->getLength();
-				$date = new DateTime($this->datetime->format('Y-m-d H:i:s'));
-
-				// Generate all slot times that this booking fills
-				for ($i = 0; $i < $this->slots; $i++) {
-					$this->filledSlots[$date->format('Y-m-d H:i')] = true;
-					$date->add($length);
+				$this->filledSlots = [];
+				foreach ($this->slots as $slot) {
+					foreach ($slot->allTimes as $time) {
+						$this->filledSlots[$time->format('Y-m-d H:i')] = $slot->playerCount;
+					}
 				}
 			}
 			return $this->filledSlots;
 		}
 	}
 
-	public DateTimeImmutable $end {
-		get {
-			return $this->datetime->add($this->type->getLength($this->slots));
-		}
-	}
-
-	public string $summary {
-		get {
-			/** @var BookingUser|null $mainUser */
-			$mainUser = $this->users->first();
-			if ($mainUser === null) {
-				throw new \RuntimeException('Booking must have at least one user.');
-			}
-			return $mainUser->personalDetails->firstName . ' ' . $mainUser->personalDetails->lastName
-				. ' (' . $mainUser->personalDetails->phone . ') - '
-				. lang('%d hráč', '%d hráčů', $this->playerCount, format: [$this->playerCount]);
-		}
-	}
-
-	public string $description {
-		get {
-			$description = 'Rezervace ' . $this->type->name . "\n";
-			if (isset($this->bookingSubtype)) {
-				$description .= 'Typ: ' . $this->bookingSubtype->name . "\n";
-			}
-			$description .= 'Hráčů: ' . $this->playerCount . "\n";
-
-			foreach ($this->users as $user) {
-				$description .= 'Hráč: ' . $user->personalDetails->firstName . ' ' . $user->personalDetails->lastName . "\n";
-				$description .= 'Telefon: ' . $user->personalDetails->phone . "\n";
-				$description .= 'E-mail: ' . $user->email . "\n";
-				$description .= "----------------------------------\n";
-			}
-
-			if (isset($this->bookingSubtype)) {
-				foreach ($this->bookingSubtype->getFields() as $field) {
-					$value = $this->getSubTypeField($field->getName());
-					if (empty($value) && $value !== false) {
-						continue;
-					}
-					$description .= $field->label . ': ' . match ($field->type) {
-							Enums\FieldType::BOOL   => $value ? 'Ano' : 'Ne',
-							Enums\FieldType::SELECT => $field->getLabelForValue($value),
-							Enums\FieldType::MULTI  => implode(', ', $field->getLabelsForValues(...$value)),
-							default                 => $value,
-						} . "\n";
-				}
-			}
-			if (!empty($this->note)) {
-				$description .= "\nPoznámka:\n" . $this->note . "\n";
-			}
-			if (!empty($this->privateNote)) {
-				$description .= "\nPoznámka obsluhy:\n" . $this->privateNote . "\n";
-			}
-			return $description;
-		}
-	}
-
 	/**
 	 * @var array<string, mixed>|null
 	 */
+	#[NoDB]
 	public ?array $subtypeFieldsParsed {
 		get {
 			if (!isset($this->subtypeFieldsParsed)) {
@@ -156,13 +96,31 @@ class Booking extends BaseModel
 		}
 	}
 
+	#[NoDB]
+	public string $title {
+		get => $this->type->getTranslatedName() . ' - ' . $this->datetime->format(
+				'j. n. Y'
+			) . ' - ' . $this->user->personalDetails->firstName . ' ' . $this->user->personalDetails->lastName;
+	}
+
+	#[NoDB]
+	public BookingUser $user {
+		get => $this->users->first();
+	}
+
+	#[NoDB]
+	public int $playerCount {
+		get => $this->slots->first()?->playerCount ?? 0;
+	}
+
 	/**
 	 * @param DateTimeInterface $slot
 	 *
 	 * @return bool
 	 */
 	public function fillsSlot(DateTimeInterface $slot): bool {
-		return isset($this->filledSlots[$slot->format('Y-m-d H:i')]);
+		$datetime = $slot->format('Y-m-d H:i');
+		return isset($this->filledSlots[$datetime]) && $this->filledSlots[$datetime] > 0;
 	}
 
 	/**
@@ -182,14 +140,11 @@ class Booking extends BaseModel
 	 * @return DateTimeImmutable[]
 	 */
 	public function getAllTimes(): array {
-		$start = $this->datetime;
-		$interval = $this->type->getLength($this->bookingSubtype->mergeSlots ?? 1);
-		$slots = $this->slots / ($this->bookingSubtype->mergeSlots ?? 1);
-
 		$times = [];
-		for ($i = 0; $i < $slots; ++$i) {
-			$times[] = $start;
-			$start = $start->add($interval);
+		foreach ($this->slots as $slot) {
+			foreach ($slot->allTimes as $date) {
+				$times[] = $date;
+			}
 		}
 		return $times;
 	}
@@ -212,4 +167,43 @@ class Booking extends BaseModel
 		return $data;
 	}
 
+	public function addSlots(BookingSlot ...$slots): void {
+		foreach ($slots as $slot) {
+			$slot->booking = $this;
+			$this->slots->push($slot);
+		}
+	}
+
+	public function saveBookingSlots(): bool {
+		foreach ($this->slots as $slot) {
+			if (!$slot->save()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public function getCacheTags(): array {
+		$tags = parent::getCacheTags();
+		if (isset($this->type, $this->datetime)) {
+			$tags[] = 'booking/times/' . $this->type->id . '/' . $this->datetime->format('Y-m-d');
+			$tags[] = 'booking/bookings/' . $this->type->id . '/' . $this->datetime->format('Y-m-d');
+		}
+		return $tags;
+	}
+
+	public function isPlayerCountSame(): bool {
+		$count = null;
+		foreach ($this->slots as $slot) {
+			$count ??= $slot->playerCount;
+			if ($slot->playerCount !== $count) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public function getSlot(string $time) : ?BookingSlot {
+		return $this->slots->first(fn(BookingSlot $slot) => $slot->time->format('H:i') === $time) ?: null;
+	}
 }

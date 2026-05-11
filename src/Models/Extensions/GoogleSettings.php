@@ -13,7 +13,7 @@ class GoogleSettings implements InsertExtendInterface
 {
 
 	/**
-	 * @param array{access_token:string,refresh_token:string}|null $accessToken
+	 * @param array{access_token:string,expires_in:int,refresh_token:string,scope:string,token_type:string,refresh_token_expires_in:int,created:int}|null $accessToken
 	 */
 	public function __construct(
 		#[\SensitiveParameter, JsonExclude]

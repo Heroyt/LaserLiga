@@ -19,26 +19,33 @@ use Lsr\Core\App;
 
 class ImageRenderer implements NodeRendererInterface, ConfigurationAwareInterface, XmlNodeRendererInterface
 {
+
+	private const int IMAGE_WIDTH = 900;
+
 	private ConfigurationInterface $config;
 
 	/**
 	 * @param Image $node
+	 *
 	 * @inheritDoc
 	 */
-	public function render(Node $node, ChildNodeRendererInterface $childRenderer) : \Stringable {
+	public function render(Node $node, ChildNodeRendererInterface $childRenderer): \Stringable {
 		bdump($node);
 		Image::assertInstanceOf($node);
 
 		$attrs = $node->data->get('attributes');
 
-		$forbidUnsafeLinks = ! $this->config->get('allow_unsafe_links');
+		$forbidUnsafeLinks = !$this->config->get('allow_unsafe_links');
 		if ($forbidUnsafeLinks && RegexHelper::isLinkPotentiallyUnsafe($node->getUrl())) {
 			$attrs['src'] = '';
-		} else {
+		}
+		else {
 			$attrs['src'] = $node->getUrl();
 		}
 
 		$attrs['alt'] = $this->getAltText($node);
+		$attrs['class'] = ($attrs['class'] ?? '') . ' figure-img';
+		$attrs['loading'] = 'lazy';
 
 		if (($title = $node->getTitle()) !== null) {
 			$attrs['title'] = $title;
@@ -48,33 +55,52 @@ class ImageRenderer implements NodeRendererInterface, ConfigurationAwareInterfac
 		$baseUrl = App::getInstance()->getBaseUrl();
 		bdump($attrs);
 		if (str_starts_with($attrs['src'], $baseUrl)) {
-			$imageUrl = ROOT.substr($attrs['src'], strlen($baseUrl));
+			$imageUrl = ROOT . substr($attrs['src'], strlen($baseUrl));
 			$imageObj = new \App\Models\DataObjects\Image($imageUrl);
-			$urls = $imageObj->getResized();
+			$urls = $imageObj->getResized(width: self::IMAGE_WIDTH);
 			assert(isset($urls['webp'], $urls['original']));
 			$attrs['src'] = $urls['original'];
+			$attrs['data-webp'] = $imageObj->getWebp();
+			$attrs['data-full'] = $imageObj->getUrl();
 
 			return new HTMLElement(
-				'picture',
+				'figure',
 				[
 					'class' => 'figure',
 				],
 				[
-					new HtmlElement(
-						'source',
+					new HTMLElement(
+						'picture',
 						[
-							'srcset' => $urls['webp'],
-							'type' => 'image/webp',
+							'class' => 'figure',
 						],
-						'',
-						true
+						[
+							new HtmlElement(
+								'source',
+								[
+									'srcset' => $urls['webp'],
+									'type'   => 'image/webp',
+								],
+								'',
+								true
+							),
+							new HtmlElement(
+								'img',
+								$attrs,
+								'',
+								true
+							),
+						],
+						false
 					),
-					new HtmlElement(
-						'img',
-						$attrs,
-						'',
-						true
-					),
+					new HTMLElement(
+						'figcaption',
+						[
+							'class' => 'figure-caption',
+						],
+						$this->getAltText($node),
+						false
+					)
 				],
 				false
 			);
@@ -84,14 +110,14 @@ class ImageRenderer implements NodeRendererInterface, ConfigurationAwareInterfac
 		return new HtmlElement('img', $attrs, '', true);
 	}
 
-	private function getAltText(Image $node): string
-	{
+	private function getAltText(Image $node): string {
 		$altText = '';
 
 		foreach ((new NodeIterator($node)) as $n) {
 			if ($n instanceof StringContainerInterface) {
 				$altText .= $n->getLiteral();
-			} elseif ($n instanceof Newline) {
+			}
+			elseif ($n instanceof Newline) {
 				$altText .= "\n";
 			}
 		}
@@ -115,7 +141,7 @@ class ImageRenderer implements NodeRendererInterface, ConfigurationAwareInterfac
 
 		return [
 			'destination' => $node->getUrl(),
-			'title' => $node->getTitle() ?? '',
+			'title'       => $node->getTitle() ?? '',
 		];
 	}
 }

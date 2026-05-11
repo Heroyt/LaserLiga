@@ -10,13 +10,13 @@ scheduler:
 			callback: [@cron.logArchive, 'run']
 		arenaReport:
 			expression: 0 23 * * *
-			callback: [@cron.arenaReport, 'run']
+			callback: [@cron.reports.arenaReport, 'run']
 		arenaWeekly:
 			expression: 0 7 * * 1
-			callback: [@cron.arenaWeeklyReport, 'run']
+			callback: [@cron.reports.arenaWeeklyReport, 'run']
 		arenaMonthly:
 			expression: 2 7 1 * *
-			callback: [@cron.arenaMonthlyReport, 'run']
+			callback: [@cron.reports.arenaMonthlyReport, 'run']
 		regressionUpdate:
 			expression: 0 3 * * *
 			callback: [@cron.regressionUpdate, 'run']
@@ -40,19 +40,22 @@ scheduler:
 			callback: [@cron.confirmEmail, 'run']
 		syncPhotos:
 			expression: */5 8-23 * * *
-			callback: [@cron.syncPhotos, 'run']
+			callback: [@cron.photos.syncPhotos, 'run']
 		clearTempPhotos:
 			expression: */30 * * * *
-			callback: [@cron.clearTempPhotos, 'run']
+			callback: [@cron.photos.clearTempPhotos, 'run']
 		preparePhotoArchive:
 			expression: 0 * * * *
-			callback: [@cron.preparePhotoArchive, 'run']
+			callback: [@cron.photos.preparePhotoArchive, 'run']
 		recreatePhotoArchive:
 			expression: */10 * * * *
-			callback: [@cron.recreatePhotoArchive, 'run']
+			callback: [@cron.photos.recreatePhotoArchive, 'run']
 		deleteOldPhotos:
 			expression: 0 1 * * *
-			callback: [@cron.deleteOldPhotos, 'run']
+			callback: [@cron.photos.deleteOldPhotos, 'run']
+		googleRefreshTokens:
+			expression: 0 4 * * *
+			callback: [@cron.google.refreshTokens, 'run']
 services:
 	# Core scheduler
 	scheduler.logger: Lsr\Logging\Logger(%logger.dir%, 'scheduler')
@@ -66,9 +69,9 @@ services:
 		alteration: true
 
 	# Cron jobs
-	cron.arenaReport: App\Cron\ArenaReportJob
-	cron.arenaWeeklyReport: App\Cron\ArenaWeeklyReportJob
-	cron.arenaMonthlyReport: App\Cron\ArenaMonthlyReportJob
+	cron.reports.arenaReport: App\Cron\Reports\ArenaReportJob
+	cron.reports.arenaWeeklyReport: App\Cron\Reports\ArenaWeeklyReportJob
+	cron.reports.arenaMonthlyReport: App\Cron\Reports\ArenaMonthlyReportJob
 
 	cron.logArchive: App\Cron\LogArchiveJob
 	cron.regressionUpdate: App\Cron\RegressionUpdateJob
@@ -78,8 +81,11 @@ services:
 	cron.gamemodes: App\Cron\CheckGameModesJob
 	cron.privacy: App\Cron\PrivacyUpdateNotificationJob
 	cron.confirmEmail: App\Cron\UserConfirmationEmailsJob
-	cron.syncPhotos: App\Cron\SyncPhotosJob
-	cron.clearTempPhotos: App\Cron\ClearTempPhotosJob
-	cron.preparePhotoArchive: App\Cron\PreparePhotoArchiveJob
-	cron.recreatePhotoArchive: App\Cron\RecreatePhotoArchiveJob
-	cron.deleteOldPhotos: App\Cron\DeleteOldPhotosJob
+
+	cron.photos.syncPhotos: App\Cron\Photos\SyncPhotosJob
+	cron.photos.clearTempPhotos: App\Cron\Photos\ClearTempPhotosJob
+	cron.photos.preparePhotoArchive: App\Cron\Photos\PreparePhotoArchiveJob
+	cron.photos.recreatePhotoArchive: App\Cron\Photos\RecreatePhotoArchiveJob
+	cron.photos.deleteOldPhotos: App\Cron\Photos\DeleteOldPhotosJob
+
+	cron.google.refreshTokens: App\Cron\Google\RefreshGoogleAccessJob

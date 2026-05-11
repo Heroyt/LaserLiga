@@ -1,0 +1,14 @@
+{varType App\Models\Booking\BookingType $type}
+
+<div n:foreach="$type->conditions as $term" class="form-group">
+    <div class="form-check">
+        <input class="form-check-input"
+               value="1" n:attr="required: $term->required, name: 'terms-' . $term->id . ''"
+               type="checkbox"
+               id="term-{$term->id}">
+        <label class="form-check-label" for="term-{$term->id}">
+            {$term->getTranslatedLabel()|noescape}
+        </label>
+        <div class="invalid-feedback"></div>
+    </div>
+</div>

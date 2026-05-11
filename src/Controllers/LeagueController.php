@@ -19,6 +19,8 @@ use App\Models\Tournament\League\Player;
 use App\Models\Tournament\PlayerSkill;
 use App\Models\Tournament\RegistrationType;
 use App\Models\Tournament\Stats;
+use App\Models\Tournament\Team;
+use App\Models\Tournament\Tournament;
 use App\Services\EventRegistrationService;
 use App\Services\Turnstile;
 use Dibi\DriverException;
@@ -30,13 +32,13 @@ use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 use Lsr\Db\DB;
 use Lsr\Exceptions\TemplateDoesNotExistException;
-use Lsr\Helpers\Files\UploadedFile;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Logging\Logger;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
+use Nyholm\Psr7\UploadedFile;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -211,9 +213,9 @@ class LeagueController extends Controller
 			$league->name                 => $league->getUrlPath(),
 			lang('Registrace náhradníka') => $league->getUrlPath('substitute'),
 		];
-		$this->title = '%s - Registrace na ligu';
+		$this->title = '%s - Registrace náhradníka na ligu';
 		$this->titleParams[] = $league->name;
-		$this->description = 'Registrace na ligu %s v %s.';
+		$this->description = 'Registrace náhradníka na ligu %s v %s.';
 		$this->descriptionParams[] = $league->name;
 		$this->descriptionParams[] = $league->arena->name;
 	}
@@ -465,7 +467,7 @@ class LeagueController extends Controller
 			$data = new TeamRegistrationDTO(
 				(string)($previousTeam?->name ?? $request->getPost('team-name')) // @phpstan-ignore-line
 			);
-			$data->image = $this->processLogoUpload();
+			$data->image = $this->processLogoUpload($request);
 			if (isset($previousTeam)) {
 				$data->image = isset($previousTeam->image) ? new Image($previousTeam->image) : null;
 				foreach ($previousTeam->players as $previousPlayer) {
@@ -475,8 +477,8 @@ class LeagueController extends Controller
 						$previousPlayer->surname ?? '',
 						$previousPlayer->email,
 						$previousPlayer->phone,
-						$previousPlayer->parentEmail,
-						$previousPlayer->parentPhone,
+						empty($previousPlayer->parentEmail) ? null : $previousPlayer->parentEmail,
+						empty($previousPlayer->parentPhone) ? null : $previousPlayer->parentPhone,
 						$previousPlayer->birthYear,
 						$previousPlayer->skill,
 						$previousPlayer->user,
@@ -545,13 +547,9 @@ class LeagueController extends Controller
 				$data->image = $team->getImageObj();
 				bdump($data);
 
-				// Register teams for tournaments
-				if (isset($category)) {
-					foreach ($category->getTournaments() as $tournament) {
-						// Skip finished tournaments
-						if ($tournament->isFinished()) {
-							continue;
-						}
+				$tournaments = $this->getSelectedRegistrationTournaments($league, $request, $category);
+				if (empty($this->params['errors'])) {
+					foreach ($tournaments as $tournament) {
 						$this->eventRegistrationService->registerTeam($tournament, $data); // @phpstan-ignore argument.templateType
 					}
 				}
@@ -612,19 +610,79 @@ class LeagueController extends Controller
 		return $this->view('pages/league/registerTeam');
 	}
 
-	private function processLogoUpload(): ?UploadedFile {
+	private function processLogoUpload(Request $request): ?UploadedFile {
 		if (!isset($_FILES['team-image'])) {
 			return null;
 		}
-		$image = UploadedFile::parseUploaded('team-image');
-		if (!isset($image) || $image->getError() === UPLOAD_ERR_NO_FILE) {
+		$files = $request->getUploadedFiles();
+		$image = $files['team-image'] ?? null;
+		if (!($image instanceof UploadedFile)) {
+			return null;
+		}
+		if ($image->getError() === UPLOAD_ERR_NO_FILE) {
 			return null;
 		}
 		if ($image->getError() !== UPLOAD_ERR_OK) {
-			$this->params['errors'][] = $image->getErrorMessage();
+			$name = basename($image->getClientFilename());
+			$this->params['errors'][] = match ($image->getError()) {
+				UPLOAD_ERR_INI_SIZE   => lang('Nahraný soubor je příliš velký', context: 'errors').' - '.$name,
+				UPLOAD_ERR_FORM_SIZE  => lang('Form size is to large', context: 'errors').' - '.$name,
+				UPLOAD_ERR_PARTIAL    => lang(
+						         'The uploaded file was only partially uploaded.',
+						context: 'errors'
+					).' - '.$name,
+				UPLOAD_ERR_CANT_WRITE => lang('Failed to write file to disk.', context: 'errors').' - '.$name,
+				default               => lang('Error while uploading a file.', context: 'errors').' - '.$name,
+			};
+			$this->params['errors'][] = $image->getError();
 			return null;
 		}
 		return $image;
+	}
+
+	/**
+	 * @return Tournament[]
+	 */
+	private function getSelectedRegistrationTournaments(League $league, Request $request, ?LeagueCategory $category): array {
+		if (!isset($category)) {
+			return [];
+		}
+
+		/** @var array<int,Tournament> $availableTournaments */
+		$availableTournaments = [];
+		foreach ($category->getTournaments() as $tournament) {
+			if ($tournament->isFinished()) {
+				continue;
+			}
+			$availableTournaments[$tournament->id] = $tournament;
+		}
+
+		if ($league->registrationType !== RegistrationType::BOTH) {
+			return array_values($availableTournaments);
+		}
+
+		/** @var mixed $selectedTournamentIds */
+		$selectedTournamentIds = $request->getPost('tournament', []);
+		if (!is_array($selectedTournamentIds)) {
+			$selectedTournamentIds = [$selectedTournamentIds];
+		}
+
+		$tournaments = [];
+		foreach ($selectedTournamentIds as $selectedTournamentId) {
+			if (!is_numeric($selectedTournamentId)) {
+				$this->params['errors']['tournament'] = lang('Vybraný turnaj neexistuje');
+				continue;
+			}
+
+			$tournamentId = (int)$selectedTournamentId;
+			if (!isset($availableTournaments[$tournamentId])) {
+				continue; // Skip
+			}
+
+			$tournaments[$tournamentId] = $availableTournaments[$tournamentId];
+		}
+
+		return array_values($tournaments);
 	}
 
 	/**
@@ -708,10 +766,11 @@ class LeagueController extends Controller
 		$this->params['league'] = $team->league;
 
 		$this->params['values'] = [
-			'id'        => $team->id,
-			'team-name' => $team->name,
-			'category'  => $team->category?->id,
-			'players'   => [],
+			'id'         => $team->id,
+			'team-name'  => $team->name,
+			'category'   => $team->category?->id,
+			'tournament' => array_map(static fn(Team $tournamentTeam) => $tournamentTeam->tournament->id, $team->teams),
+			'players'    => [],
 		];
 		bdump($team->players);
 		foreach ($team->players as $player) {
@@ -787,15 +846,27 @@ class LeagueController extends Controller
 				$category = $team->category;
 				/** @var numeric|null $categoryId */
 				$categoryId = $request->getPost('category');
-				if (empty($this->params['errors']['category']) && !empty($categoryId) && count($league->getCategories()) > 0) {
-					$category = LeagueCategory::get((int)$categoryId);
+				if (count($league->getCategories()) > 0) {
+					if (empty($categoryId)) {
+						$this->params['errors']['category'] = lang('Vyberte kategorii');
+					}
+					else if (!LeagueCategory::exists((int)$categoryId) || !isset($league->getCategories()[(int)$categoryId])) {
+						$this->params['errors']['category'] = lang('Kategorie neexistuje');
+					}
+					else {
+						$category = $league->getCategories()[(int)$categoryId];
+					}
 				}
 
+				$selectedTournaments = $this->getSelectedRegistrationTournaments($league, $request, $category);
+			}
+
+			if (empty($this->params['errors'])) {
 				DB::getConnection()->begin();
 				$data = new TeamRegistrationDTO(
 					(string)$request->getPost('team-name') // @phpstan-ignore-line
 				);
-				$data->image = $this->processLogoUpload() ?? $team->getImageObj();
+				$data->image = $this->processLogoUpload($request) ?? $team->getImageObj();
 
 				/** @var PlayerData[] $players */
 				$players = $request->getPost('players', []);
@@ -843,6 +914,10 @@ class LeagueController extends Controller
 					$data->leagueTeam = $team->id;
 					$data->image = $team->getImageObj();
 					$tournaments = [];
+					$selectedTournamentIds = array_fill_keys(
+						array_map(static fn(Tournament $tournament) => $tournament->id, $selectedTournaments),
+						true
+					);
 					foreach ($team->teams as $tournamentTeam) {
 						// Skip finished tournaments
 						if ($tournamentTeam->tournament->isFinished()) {
@@ -850,7 +925,10 @@ class LeagueController extends Controller
 						}
 
 						// Update existing tournament teams
-						if ($tournamentTeam->tournament->category?->id === $category?->id) {
+						if (
+							$tournamentTeam->tournament->category?->id === $category?->id &&
+							isset($selectedTournamentIds[$tournamentTeam->tournament->id])
+						) {
 							foreach ($data->players as $player) {
 								$player->playerId = null;
 								if ($player->leaguePlayer?->id === null) {
@@ -881,14 +959,11 @@ class LeagueController extends Controller
 					}
 
 					// Create new tournament registrations
-					if (isset($category)) {
-						foreach ($category->getTournaments() as $tournament) {
-							// Skip finished or processed tournaments
-							if ($tournament->isFinished() || in_array($tournament->id, $tournaments, true)) {
-								continue;
-							}
-							$this->eventRegistrationService->registerTeam($tournament, $data); // @phpstan-ignore  argument.templateType
+					foreach ($selectedTournaments as $tournament) {
+						if (in_array($tournament->id, $tournaments, true)) {
+							continue;
 						}
+						$this->eventRegistrationService->registerTeam($tournament, $data); // @phpstan-ignore  argument.templateType
 					}
 
 					foreach ($data->players as $player) {

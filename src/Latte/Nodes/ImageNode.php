@@ -176,12 +176,14 @@ class ImageNode extends StatementNode
 					if (is_string(\$ʟ_tmp)) {
 						\$ʟ_tmp = [\$ʟ_tmp];
 					}
-					echo '<picture class="'.(\$ʟ_tmp ? ' '.LR\\Filters::escapeHtmlAttr(implode(" ", array_unique(\$ʟ_tmp))) : '').'"><source srcset="'.LR\\Filters::escapeHtmlAttr(%dump).'" type="image/webp"/><img src="'.LR\\Filters::escapeHtmlAttr(%dump).'" '.%raw::attrs(isset(\$ʟ_attrs[0]) && is_array(\$ʟ_attrs[0]) ? \$ʟ_attrs[0] : \$ʟ_attrs, %dump).' /></picture>'; %line
+					echo '<picture class="'.(\$ʟ_tmp ? ' '.LR\\Filters::escapeHtmlAttr(implode(" ", array_unique(\$ʟ_tmp))) : '').'"><source srcset="'.LR\\Filters::escapeHtmlAttr(%dump).'" type="image/webp"/><img src="'.LR\\Filters::escapeHtmlAttr(%dump).'" data-full="'.LR\Filters::escapeHtmlAttr(%dump).'" data-webp="'.LR\Filters::escapeHtmlAttr(%dump).'" '.%raw::attrs(isset(\$ʟ_attrs[0]) && is_array(\$ʟ_attrs[0]) ? \$ʟ_attrs[0] : \$ʟ_attrs, %dump).' /></picture>'; %line
 					PHP,
 				$this->classes,
 				$this->attributes,
 				$urls['webp'],
 				$urls['original'],
+				$this->image->getUrl(),
+				$this->image->getWebp(),
 				self::class,
 				$context->getEscaper()->getContentType() === ContentType::Xml,
 				$this->position,
@@ -195,17 +197,20 @@ class ImageNode extends StatementNode
 		else {
 			$return .= $context->format("\$ʟ_width = %dump;\n", $this->width);
 		}
+
 		if ($this->height instanceof Node) {
 			$return .= $context->format("\$ʟ_height = %node;\n", $this->height);
 		}
 		else {
 			$return .= $context->format("\$ʟ_height = %dump;\n", $this->height);
 		}
+
 		$return .= $context->format(
 			<<<PHP
-			\$ʟ_img = (new \App\Models\DataObjects\Image(%node))->getResized(\$ʟ_width, \$ʟ_height);
-			\$ʟ_original = \$ʟ_img['original'];
-			\$ʟ_webp = \$ʟ_img['webp'];
+			\$ʟ_img = new \App\Models\DataObjects\Image(%node);
+			\$ʟ_urls = \$ʟ_img->getResized(\$ʟ_width, \$ʟ_height);
+			\$ʟ_original = \$ʟ_urls['original'];
+			\$ʟ_webp = \$ʟ_urls['webp'];
 			\$ʟ_tmp = %node;
 			\$ʟ_attrs = %node;
 			if (is_string(\$ʟ_tmp)) {
@@ -213,7 +218,7 @@ class ImageNode extends StatementNode
 			}
 			echo '<picture class="'.(\$ʟ_tmp ? ' '.LR\Filters::escapeHtmlAttr(implode(' ', array_unique(\$ʟ_tmp))) : '').'">';
 			echo '<source srcset="'.LR\Filters::escapeHtmlAttr(\$ʟ_webp).'" type="image/webp" />';
-			echo '<img src="'.LR\Filters::escapeHtmlAttr(\$ʟ_original).'" '.%raw::attrs(isset(\$ʟ_attrs[0]) && is_array(\$ʟ_attrs[0]) ? \$ʟ_attrs[0] : \$ʟ_attrs, %dump).' />';
+			echo '<img src="'.LR\Filters::escapeHtmlAttr(\$ʟ_original).'" data-full="'.LR\Filters::escapeHtmlAttr(\$ʟ_img->getUrl()).'" data-webp="'.LR\Filters::escapeHtmlAttr(\$ʟ_img->getWebp()).'" '.%raw::attrs(isset(\$ʟ_attrs[0]) && is_array(\$ʟ_attrs[0]) ? \$ʟ_attrs[0] : \$ʟ_attrs, %dump).' />';
 			echo '</picture>'; %line
 			PHP,
 			$this->path,

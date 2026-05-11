@@ -2,11 +2,35 @@
 {templateType App\Templates\Blog\EditParameters}
 
 {block content}
+    <p>
+        <a href="{link 'blog'}" class="btn btn-secondary">
+            {faSolid 'angle-left'}
+            {_'Zpět'}
+        </a>
+    </p>
     <h2>
         {_'Editace příspěvku', context: 'blog'} #{$post->id}
     </h2>
     <p>
         <a href="{$post->getUrl()}">{$post->getUrl()}</a>
     </p>
-    {include 'form.latte', $post, $tags}
+    <p>
+        {if !$post->approved}
+            <div class="alert alert-danger">{_'Příspěvek ještě není schválený.'}</div>
+            {if $canApprove}
+                <button id="approve-post" class="btn btn-success" data-id="{$post->id}">
+                    {faSolid 'check'}
+                    <span>{lang 'Schválit příspěvek', context: 'blog'}</span>
+                </button>
+            {/if}
+        {elseif !$canApprove}
+            <div class="alert alert-success">{_'Příspěvek je schválený.'}</div>
+        {else}
+            <button id="disapprove-post" class="btn btn-danger" data-id="{$post->id}">
+                {faSolid 'xmark'}
+                <span>{lang 'Zrušit schválení příspěvku', context: 'blog'}</span>
+            </button>
+        {/if}
+    </p>
+    {include 'form.latte', $post, $tags, $translations}
 {/block}

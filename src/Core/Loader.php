@@ -22,7 +22,6 @@ use Dibi\Exception;
 use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
-use Lsr\Core\Session;
 use Lsr\Db\Connection;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
@@ -32,7 +31,6 @@ use Lsr\Orm\Exceptions\ValidationException;
 use Nette\Security\Passwords;
 use ReflectionException;
 use RuntimeException;
-use Tracy\Debugger;
 
 /**
  * @class   Loader
@@ -70,12 +68,6 @@ class Loader
 		App::setupDi();
 		Timer::stop('core.init.app');
 
-		// Start session
-		$session = App::getService('session');
-		assert($session instanceof Session, 'Invalid service from DI');
-		Debugger::setSessionStorage($session);
-		Debugger::enable(PRODUCTION ? Debugger::Production : Debugger::Development, LOG_DIR);
-
 		// Setup database connection
 		Timer::start('core.init.db');
 		self::initDB();
@@ -99,6 +91,8 @@ class Loader
 				}
 			}
 		}
+
+		App::getContainer()->initialize();
 
 	}
 

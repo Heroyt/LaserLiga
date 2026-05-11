@@ -14,6 +14,9 @@ use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\CSRFCheck;
 use App\Core\Middleware\LoggedIn;
 use App\Core\Middleware\NoCacheControl;
+use App\Core\ParamValidators\ModelIdValidator;
+use App\Core\ParamValidators\ModelSlugValidator;
+use App\Models\Arena;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Middleware\DefaultLanguageRedirect;
@@ -38,11 +41,14 @@ $routes = $langGroup->group('')
 $privacyGroup = $routes->group('user/privacy')
                        ->get('agree', [UserPrivacyController::class, 'agree']);
 
-$publicUserRoutes = $langGroup->group('/user')
-                              ->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard')
-                              ->get('/leaderboard/{arenaId}', [LeaderboardController::class, 'show'])->name(
-		'player-leaderboard-arena'
-	);
+$publicUserRoutes = $langGroup->group('/user');
+$publicUserRoutes->get('/leaderboard', [LeaderboardController::class, 'show'])->name('player-leaderboard');
+$publicUserRoutes->get('/leaderboard/{arenaid}', [LeaderboardController::class, 'show'])
+                 ->name('player-leaderboard-arena')
+                 ->param('arenaid', new ModelIdValidator(Arena::class));
+$publicUserRoutes->get('/leaderboard/{arenaslug}', [LeaderboardController::class, 'showSlug'])
+	->param('arenaslug', new ModelSlugValidator(Arena::class))
+	->name('player-leaderboard-arena-slug');
 
 $publicUserIdGroup = $publicUserRoutes
 	->group('/{code}')

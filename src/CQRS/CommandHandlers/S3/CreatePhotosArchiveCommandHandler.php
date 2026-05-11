@@ -41,7 +41,7 @@ final readonly class CreatePhotosArchiveCommandHandler implements CommandHandler
 			}
 		}
 
-		$downloadDir = TMP_DIR . '/download/';
+		$downloadDir = TMP_DIR . 'download/';
 		if (!is_dir($downloadDir) && !mkdir($downloadDir, 0777, true) && !is_dir($downloadDir)) {
 			$logger->error('Failed to create download directory');
 			return null;
@@ -96,6 +96,12 @@ final readonly class CreatePhotosArchiveCommandHandler implements CommandHandler
 		}
 		if (!$zip->close()) {
 			$logger->error('Failed to close zip file');
+			$this->cleanup($tempFiles);
+			return null;
+		}
+
+		if (!file_exists($tmpZip) || !is_readable($tmpZip)) {
+			$logger->error('Failed to create a readable zip file: ' . $tmpZip);
 			$this->cleanup($tempFiles);
 			return null;
 		}

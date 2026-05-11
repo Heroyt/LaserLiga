@@ -22,6 +22,8 @@ class BlogSaveRequest
 
 	public PostStatus $status = PostStatus::DRAFT;
 
+	public bool $approved = false;
+
 	/** @var numeric[] */
 	public array $tagIds = [];
 

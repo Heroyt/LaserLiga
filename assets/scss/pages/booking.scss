@@ -1,0 +1,211 @@
+$booking-status: (
+				"active": rgb(59 199 245 / 40%),
+				"approved": rgb(21 62 245 / 40%),
+				"finished": rgb(49 231 61 / 40%),
+				"canceled": rgb(220 26 26 / 40%),
+);
+
+@import "../components/booking/timeSelect";
+@import "../components/booking/types";
+
+.loading {
+	align-items: center;
+	background: rgb(0 0 0 / 40%);
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 100%;
+	z-index: 999;
+}
+
+.calendar {
+	--cell-gap: .5rem;
+	--cell-size: 45px;
+	--padding-y: 4rem;
+	--padding-x: min(4rem, 5vw);
+
+	display: flex;
+	height: auto;
+	margin: 2em auto;
+	max-width: 850px;
+	position: relative;
+	width: 100%;
+	flex-direction: column;
+	align-items: center;
+
+	@media screen and (width <= 400px) {
+		--cell-gap: .3rem;
+		--cell-size: 40px;
+	}
+
+	.calRow {
+		display: flex;
+		gap: var(--cell-gap);
+		justify-content: space-around;
+	}
+
+	.date {
+		width: calc(7 * var(--cell-size) + 6 * var(--cell-gap) + 2 * var(--padding));
+		border-radius: 8px;
+		padding: var(--padding-y) var(--padding-x);
+		box-shadow: var(--black-shadow) 0 2px 20px 0;
+		background-color: var(--background-1);
+	}
+
+	.dateHeader {
+		display: flex;
+		margin-bottom: 40px;
+
+		.session {
+			display: flex;
+			font-weight: bold;
+			width: 70%;
+
+			p {
+				font-weight: bold;
+				padding: 0 .5em;
+			}
+		}
+
+		.day {
+			display: flex;
+			justify-content: flex-end;
+			width: 30%;
+
+			// padding-right: 2em;
+
+			p {
+				font-weight: bold;
+				padding: 0 .5em;
+			}
+
+			a {
+				color: var(--black);
+				font-weight: bold;
+			}
+
+			svg {
+				height: 1.2em;
+			}
+
+			.btn.disabled {
+				background: none;
+
+				path {
+					fill: var(--light-grey);
+				}
+			}
+		}
+	}
+
+	.daysHeader {
+		margin-bottom: 1em;
+		width: calc(7 * var(--cell-size) + 6 * var(--cell-gap));
+
+		p {
+			margin-bottom: 0;
+			text-align: center;
+			width: 14%;
+		}
+	}
+
+	.daysPicker {
+		display: flex;
+		flex-direction: column;
+		gap: var(--cell-gap);
+
+		label {
+			font-size: 16px;
+			height: var(--cell-size);
+			line-height: 1.4;
+			max-width: 14%;
+			padding-top: .65em;
+			text-align: center;
+
+			// margin: .62em;
+			width: var(--cell-size);
+		}
+
+		input {
+			display: none;
+
+			&:checked + label {
+				background-color: var(--bs-primary) !important;
+				color: var(--bs-primary-text, var(--text)) !important;
+				border-radius: 50%;
+				font-weight: bold;
+				margin-bottom: 0;
+				padding-bottom: 0;
+			}
+		}
+	}
+
+	.today {
+		display: block;
+		font-size: .5em;
+	}
+
+	.daysFree {
+		background-color: var(--background-2);
+		border-radius: 50%;
+		cursor: pointer;
+		margin-bottom: 0;
+		padding-bottom: 0;
+		box-shadow: var(--black-shadow) 0 2px 20px 0;
+
+		&.notEmpty {
+			color: #000;
+			background-color: var(--bs-warning);
+		}
+
+		&.full {
+			background-color: var(--bs-danger);
+		}
+
+		&.onCallOnly {
+			background-color: var(--bs-light);
+			color: #000;
+		}
+	}
+}
+
+#booking-form {
+	h2 {
+		.fa-solid {
+			display: none;
+		}
+
+		&.is-invalid {
+			color: var(--bs-danger);
+
+			.fa-solid {
+				display: inline-block;
+			}
+		}
+	}
+
+	section {
+		margin-bottom: 2rem;
+
+		&.is-invalid {
+			h2 {
+				color: var(--bs-danger);
+
+				.fa-solid {
+					display: inline-block;
+				}
+			}
+		}
+	}
+}
+
+.time-players {
+	margin-top: 1rem;
+}
+
+.form-group {
+	margin-bottom: 1rem;
+}

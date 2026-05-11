@@ -16,10 +16,13 @@ use App\Models\WithSchema;
 use Lsr\Core\App;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToMany;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Exceptions\ValidationException;
+use Lsr\Orm\ModelCollection;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_league'), OA\Schema]
@@ -50,9 +53,16 @@ class League extends BaseModel implements EventRegistrationInterface, WithSchema
 	#[OA\Property, ManyToOne]
 	public ?EventPriceGroup $eventPriceGroup = null;
 
-	#[ManyToOne]
-	#[OA\Property]
-	public Arena $arena;
+	#[OA\Property, NoDB]
+	public ?Arena $arena {
+		get {
+			return $this->arenas->first();
+		}
+	}
+
+	/** @var ModelCollection<Arena>  */
+	#[ManyToMany(through: 'leagues_arenas', class: Arena::class)]
+	public ModelCollection $arenas;
 
 	/** @var Tournament[] */
 	private array $tournaments = [];
@@ -64,6 +74,18 @@ class League extends BaseModel implements EventRegistrationInterface, WithSchema
 
 	/** @var Event[] */
 	private array $events;
+
+	#[NoDB]
+	public string $arenaJoinedNames {
+		get {
+			if ($this->arenas->count() < 2) {
+				return $this->arenas->first()->name ?? '';
+			}
+			$last = $this->arenas->last()->name;
+			$rest = array_slice($this->arenas->map(static fn(Arena $arena) => $arena->name), 0, -1);
+			return implode(', ', $rest).' '.lang('a', context: 'spojka').' '.$last;
+		}
+	}
 
 	public static function getBySlug(string $slug): ?League {
 		return self::query()->where('slug = %s', $slug)->first();
@@ -121,7 +143,7 @@ class League extends BaseModel implements EventRegistrationInterface, WithSchema
 	 */
 	public function getTournaments(): array {
 		if (empty($this->tournaments)) {
-			$this->tournaments = Tournament::query()->where('id_league = %i AND active = 1', $this->id)->get();
+			$this->tournaments = Tournament::query()->where('id_league = %i AND active = 1', $this->id)->orderBy('start')->get();
 		}
 		return $this->tournaments;
 	}

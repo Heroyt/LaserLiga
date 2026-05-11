@@ -1,3 +1,19 @@
+<dialog id="cookieConsentInfo">
+    {faSolid 'cookie-bite'}
+    <h2 class="fs-6 m-0">
+        {_'Tento web využívá soubory cookie', context: 'cookies', domain: 'privacy'}
+    </h2>
+    <div class="buttons">
+        <button id="cookieConsentInfoAccept" class="btn btn-success">
+            {faSolid 'check'}
+            {_'Přijmout', context: 'cookies', domain: 'privacy'}
+        </button>
+        <button class="btn btn-info" data-toggle="cookieConsent">
+            {faSolid 'circle-info'}
+            {_'Více', context: 'cookies', domain: 'privacy'}
+        </button>
+    </div>
+</dialog>
 <dialog id="cookieConsentDialog" class="cookie-consent-dialog px-5 py-4">
     <form method="dialog">
         <h2>{_'Zpracování souborů cookies', domain: 'privacy', context: 'cookies'}</h2>
@@ -55,7 +71,7 @@
                 </button>
             </p>
         </div>
-        <div class="text-end border-top mt-3 pt-3">
+        <div class="border-top mt-3 pt-3 buttons">
             <button id="cookieConsentAccept" class="btn btn-success" value="accept" type="submit">
                 {faSolid 'check'}
                 {_'Přijmout vše', context: 'cookies', domain: 'privacy'}

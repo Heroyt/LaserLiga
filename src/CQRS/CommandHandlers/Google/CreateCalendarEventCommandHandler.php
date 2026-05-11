@@ -11,6 +11,7 @@ use Google\Service\Calendar\Event as CalendarEvent;
 use Google\Service\Exception;
 use Lsr\CQRS\CommandHandlerInterface;
 use Lsr\CQRS\CommandInterface;
+use Lsr\Logging\Logger;
 
 final readonly class CreateCalendarEventCommandHandler implements CommandHandlerInterface
 {
@@ -19,17 +20,26 @@ final readonly class CreateCalendarEventCommandHandler implements CommandHandler
 	 */
 	public function handle(CommandInterface $command): CreateCalendarEventCommandResponse
 	{
+		$logger = new Logger(LOG_DIR.'google/', 'calendar');
+
 		$data = [
 			'summary' => $command->summary,
 			'start' => [
-				'dateTime' => $command->start->format('Y-m-d\TH:i:s'),
 				'timeZone' => $command->start->getTimezone()->getName(),
 			],
 			'end' => [
-				'dateTime' => $command->end->format('Y-m-d\TH:i:s'),
 				'timeZone' => $command->end->getTimezone()->getName(),
 			],
 		];
+
+		if ($command->wholeDay) {
+			$data['start']['date'] = $command->start->format('Y-m-d');
+			$data['end']['date'] = $command->end->format('Y-m-d');
+		}
+		else {
+			$data['start']['dateTime'] = $command->start->format('Y-m-d\TH:i:s');
+			$data['end']['dateTime'] = $command->end->format('Y-m-d\TH:i:s');
+		}
 
 		if (!empty($command->description)) {
 			$data['description'] = $command->description;
@@ -44,12 +54,15 @@ final readonly class CreateCalendarEventCommandHandler implements CommandHandler
 			);
 		}
 
+		$logger->info('Sending new calendar event to Google', $data);
+
 		$event = new CalendarEvent($data);
 
 		$service = new CalendarService($command->client);
 		try {
 			$response = $service->events->insert($command->calendarId, $event);
 		} catch (Exception $e) {
+			$logger->exception($e);
 			return new CreateCalendarEventCommandResponse(
 				success: false,
 				error: $e->getMessage(),

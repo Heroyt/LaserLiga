@@ -11,7 +11,7 @@
     <link rel="canonical" href="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}"/>
     <meta property="og:title" content="{$league->name} - {lang 'Liga turnajů laser game'}"/>
     <meta property="og:description"
-          content="{if $categoryCount < 2}{sprintf(lang('Liga laser game v %s'), $league->arena->name)}{else}{sprintf(lang('Liga laser game v %s rozdělená do %d kategorie', 'Liga laser game v aréně: %s rozdělená do %d kategorií', $categoryCount), $league->arena->name, $categoryCount)}{/if}"/>
+          content="{if $categoryCount < 2}{sprintf(lang('Liga laser game v %s'), $league->arenaJoinedNames)}{else}{sprintf(lang('Liga laser game v %s rozdělená do %d kategorie', 'Liga laser game v aréně: %s rozdělená do %d kategorií', $categoryCount), $league->arenaJoinedNames, $categoryCount)}{/if}"/>
     <meta property="og:site_name" content="LaserLiga"/>
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="{link isset($league->slug) ? ['liga', $league->slug] : ['league', $league->id]}"/>
@@ -41,9 +41,9 @@
 
     <p class="text-center text-muted">
         {if $categoryCount < 2}
-            {sprintf(lang('Liga laser game v %s'), $league->arena->name)}
+            {sprintf(lang('Liga laser game v %s'), $league->arenaJoinedNames)}
         {else}
-            {sprintf(lang('Liga laser game v %s rozdělená do %d kategorie', 'Liga laser game v aréně: %s rozdělená do %d kategorií', $categoryCount), $league->arena->name, $categoryCount)}
+            {sprintf(lang('Liga laser game v %s rozdělená do %d kategorie', 'Liga laser game v aréně: %s rozdělená do %d kategorií', $categoryCount), $league->arenaJoinedNames, $categoryCount)}
         {/if}
     </p>
     <div n:if="$league->registrationType !== App\Models\Tournament\RegistrationType::TOURNAMENT" class="text-center">
@@ -163,6 +163,16 @@
                             <section class="card-body text-center" id="league-prices">
                                 <h3 class="card-title mb-3">{lang 'Cena'}</h3>
                                 {$league->price|noescape}
+                            </section>
+                        </div>
+                        <div class="card mt-3">
+                            <section class="card-body text-center" id="league-tournaments-summary">
+                                <h3 class="card-title mb-3">{lang 'Turnaje'}</h3>
+                                <div class="list-group">
+                                    <a n:foreach="$league->getTournaments() as $tournament" href="{$tournament->getUrl()}" class="list-group-item list-group-item-action text-text">
+                                        {$tournament->start->format('j. n. Y H:i')}:<br>{$tournament->name}
+                                    </a>
+                                </div>
                             </section>
                         </div>
                     </div>
@@ -366,9 +376,11 @@
     </section>
     <section id="league-arena" class="mt-5">
         <h3>{lang 'Organizuje'}:</h3>
-        <a href="{link 'arena', $league->arena->id}">
-            {$league->arena->getLogoHtml()|noescape}
-            <h4>{$league->arena->name}</h4>
-        </a>
+        <div class="d-flex flex-wrap justify-content-center">
+            <a n:foreach="$league->arenas as $arena" href="{link 'arena', $arena->id}" class="m-3">
+                {$arena->getLogoHtml()|noescape}
+                <h4>{$arena->name}</h4>
+            </a>
+        </div>
     </section>
 {/define}

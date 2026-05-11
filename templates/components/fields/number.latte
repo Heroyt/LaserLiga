@@ -1,0 +1,18 @@
+{parameters
+    App\Models\Booking\BookingSubtypeField $field,
+    int|null $value = null,
+}
+{var string $id = $field->getId()}
+
+<div class="form-group">
+    <label n:if="$field->label" n:class="form-label, $field->required ? required" for="{$id}">
+        {$field->getTranslatedLabel()}
+    </label>
+    <input type="number"
+           class="form-control"
+            n:attr="required: $field->required, name: 'sub[' . $field->getName() . ']', value: ($value ?? $field->default)"
+           id="{$id}"
+            {if $field->description}aria-describedby="{$id}-description"{/if} />
+    <div n:if="$field->description" id="{$id}-description" class="form-text">{$field->getTranslatedDescription()}</div>
+    <div class="invalid-feedback"></div>
+</div>

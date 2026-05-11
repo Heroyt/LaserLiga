@@ -27,6 +27,7 @@ class GenerateSitemapCommand extends Command
 		$this->addOption('games', 'g', InputOption::VALUE_NONE, 'Generate games sitemap');
 		$this->addOption('users', 'u', InputOption::VALUE_NONE, 'Generate users sitemap');
 		$this->addOption('blog', 'b', InputOption::VALUE_NONE, 'Generate blog sitemap');
+		$this->addOption('semrush', 'S', InputOption::VALUE_NONE, 'Generate semrush sitemap');
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -35,13 +36,15 @@ class GenerateSitemapCommand extends Command
 		$games = $input->getOption('games');
 		$users = $input->getOption('users');
 		$blog = $input->getOption('blog');
+		$semrush = $input->getOption('semrush');
 
-		if (!$index && !$sitemap && !$games && !$users && !$blog) {
+		if (!$index && !$sitemap && !$games && !$users && !$blog && !$semrush) {
 			$index = true;
 			$sitemap = true;
 			$games = true;
 			$users = true;
 			$blog = true;
+			$semrush = true;
 		}
 
 		$progressIndicator = new ProgressIndicator($output);
@@ -70,6 +73,11 @@ class GenerateSitemapCommand extends Command
 			$progressIndicator->start('Generating blog sitemap...');
 			SitemapGenerator::generateBlogSitemap();
 			$progressIndicator->finish('Blog sitemap generated');
+		}
+		if ($semrush) {
+			$progressIndicator->start('Generating semrush sitemap...');
+			SitemapGenerator::generateSemrushSitemap();
+			$progressIndicator->finish('Semrush sitemap generated');
 		}
 		return Command::SUCCESS;
 	}

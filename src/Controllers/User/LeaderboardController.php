@@ -36,6 +36,18 @@ class LeaderboardController extends AbstractUserController
 		$this->params = new LeaderboardParameters();
 	}
 
+	public function showSlug(Request $request, ?string $arenaslug = null): ResponseInterface {
+		if ($arenaslug === null) {
+			return $this->show($request, null);
+		}
+		$arena = Arena::getBySlug($arenaslug);
+		if ($arena === null) {
+			bdump($arenaslug);
+			throw new ModelNotFoundException('Arena not found');
+		}
+		return $this->show($request, $arena);
+	}
+
 	/**
 	 * @throws Exception
 	 * @throws ModelNotFoundException

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\CQRS\Commands\Google;
 
 use App\CQRS\CommandHandlers\Google\UpdateCalendarEventCommandHandler;
+use App\CQRS\CommandResponses\Google\UpdateCalendarEventCommandResponse;
 use DateTimeInterface;
 use Google\Client;
 use Lsr\CQRS\CommandInterface;
 
 /**
- * @implements CommandInterface<UpdateCalendarEventCommandHandler>
+ * @implements CommandInterface<UpdateCalendarEventCommandResponse>
  */
 final readonly class UpdateCalendarEventCommand implements CommandInterface
 {

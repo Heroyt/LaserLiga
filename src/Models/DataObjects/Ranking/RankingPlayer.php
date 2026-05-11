@@ -22,7 +22,7 @@ class RankingPlayer
 		} catch (Throwable) {
 			$rankingPlayer->skill = $player->skill;
 		}
-		$rankingPlayer->id_team = $player->team->id;
+		$rankingPlayer->id_team = $player->team?->id;
 		$rankingPlayer->id_user = $player->user?->id;
 		return $rankingPlayer;
 	}

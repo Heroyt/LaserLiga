@@ -6,14 +6,14 @@ namespace App\Core\ParamValidators;
 use Lsr\Core\Routing\Interfaces\RouteParamValidatorInterface;
 use Lsr\Orm\Model;
 
-class ModelIdValidator implements RouteParamValidatorInterface
+readonly class ModelIdValidator implements RouteParamValidatorInterface
 {
 
 	/**
 	 * @param class-string<Model>|null $model
 	 */
 	public function __construct(
-		private readonly ?string $model = null,
+		private ?string $model = null,
 	) {}
 
 	/**

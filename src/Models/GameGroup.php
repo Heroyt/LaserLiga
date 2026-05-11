@@ -469,7 +469,7 @@ class GameGroup extends BaseModel implements GameGroupInterface
 	}
 
 	/**
-	 * @return string[]
+	 * @return non-empty-string[]
 	 * @throws Throwable
 	 */
 	public function getGamesCodes(): array {

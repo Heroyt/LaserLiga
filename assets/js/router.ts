@@ -47,6 +47,12 @@ export default function route(pageInfo: PageInfo): void {
         case "arena-detail-games":
         case "arena-detail-tournaments":
         case "arena-detail-info":
+        case "arenas-detail-slug":
+        case "arena-detail-stats-slug":
+        case "arena-detail-music-slug":
+        case "arena-detail-games-slug":
+        case "arena-detail-tournaments-slug":
+        case "arena-detail-info-slug":
             import(
                 /* webpackChunkName: "arenas-detail" */
                 "./pages/arena"
@@ -90,6 +96,7 @@ export default function route(pageInfo: PageInfo): void {
             break;
         case "player-leaderboard":
         case "player-leaderboard-arena":
+        case "player-leaderboard-arena-slug":
             import(
                 /* webpackChunkName: "player-leaderboard" */
                 "./pages/user/leaderboard"
@@ -158,7 +165,39 @@ export default function route(pageInfo: PageInfo): void {
             break;
         case "blog_create":
         case "blog_edit":
+        case "blog_edit_translation":
             import("./pages/blog/edit")
+                .then(module => {
+                    module.default();
+                });
+            break;
+        case "blog_post":
+            import("./pages/blog/post")
+                .then(module => {
+                    module.default();
+                });
+            break;
+        case 'booking-settings':
+            import('./pages/admin/bookingSettings')
+                .then(module => {
+                    module.default();
+                });
+            break;
+        case 'booking':
+            import('./pages/booking/booking')
+                .then(module => {
+                    module.default();
+                });
+            break;
+        case 'admin-booking':
+            import('./pages/admin/bookings')
+                .then(module => {
+                    module.default();
+                });
+            break;
+        case 'admin-booking-edit':
+        case 'admin-booking-create':
+            import('./pages/admin/bookingForm')
                 .then(module => {
                     module.default();
                 });

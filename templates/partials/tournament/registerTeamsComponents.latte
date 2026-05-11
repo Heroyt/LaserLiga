@@ -1,8 +1,4 @@
-{define playerFields, App\Models\Events\EventBase $event, int $i, array $values, array $playerNames, int $playerNameCount, array $nickNames, int $nickNameCount, bool $sub = false, string[] $errors = [], string $captainTitle = 'Kapitán'}
-    {dump $event}
-    {dump $i}
-    {dump $values}
-    {dump $errors}
+{define playerFields, App\Models\Events\EventBase $event, int $i = 0, array $values = [], array $playerNames = [], int $playerNameCount = 0, array $nickNames = [], int $nickNameCount = 0, bool $sub = false, string[] $errors = [], string $captainTitle = 'Kapitán'}
     {var bool $captain = $i === 0}
     <fieldset class="player-row my-3 pb-3 border-bottom">
         <legend n:if="$captain" class="text-start fs-5">

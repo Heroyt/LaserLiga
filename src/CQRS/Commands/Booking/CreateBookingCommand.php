@@ -21,21 +21,19 @@ final readonly class CreateBookingCommand implements CommandInterface
 {
 
 	/**
-	 * @param non-empty-array<BookingUserData> $users
-	 * @param int<1, max>                      $playerCount
-	 * @param int<1, max>                      $slots
-	 * @param null|array<string,mixed>         $subtypeFields
-	 * @param bool                             $allowAllTimes    Whether to allow booking at any time, ignoring the arena's open hours.
-	 * @param bool                             $allowOverbooking Whether to allow overbooking the slot (more players than the slot allows).
+	 * @param non-empty-array<BookingUserData>             $users
+	 * @param non-empty-array<non-empty-string,int<1,max>> $slots
+	 * @param null|array<string,mixed>                     $subtypeFields
+	 * @param bool                                         $allowAllTimes    Whether to allow booking at any time, ignoring the arena's open hours.
+	 * @param bool                                         $allowOverbooking Whether to allow overbooking the slot (more players than the slot allows).
 	 */
 	public function __construct(
 		public Arena              $arena,
 		public BookingType        $type,
 		public array              $users,
 		public \DateTimeImmutable $datetime,
+		public array              $slots,
 		public ?BookingSubType    $subtype = null,
-		public int                $playerCount = 1,
-		public int                $slots = 1,
 		public bool               $locked = false,
 		public ?string            $note = null,
 		public ?Discovery         $discovery = null,
@@ -45,6 +43,9 @@ final readonly class CreateBookingCommand implements CommandInterface
 		public ?string            $terms = null,
 		public bool               $allowAllTimes = false,
 		public bool               $allowOverbooking = false,
+		public bool               $sendCustomerNotification = true,
+		public bool               $sendAdminNotification = true,
+		public bool               $isAdmin = false,
 	) {
 		// Validate users
 		/** @phpstan-ignore instanceof.alwaysTrue */
@@ -77,7 +78,6 @@ final readonly class CreateBookingCommand implements CommandInterface
 				$this->users
 			),
 			'datetime'               => $this->datetime->format('Y-m-d H:i:s'),
-			'playerCount'            => $this->playerCount,
 			'slots'                  => $this->slots,
 			'note'                   => $this->note,
 			'privateNote'            => $this->privateNote,

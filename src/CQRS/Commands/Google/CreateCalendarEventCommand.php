@@ -27,6 +27,7 @@ final readonly class CreateCalendarEventCommand implements CommandInterface
 		public string            $description = '',
 		public ?string           $location = null,
 		public ?array            $attendees = null,
+		public bool              $wholeDay = false,
 	) {
 	}
 

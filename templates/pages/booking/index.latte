@@ -1,0 +1,219 @@
+{templateType App\Templates\Booking\BookingShowParameters}
+{layout '../../@layout.latte'}
+
+{block content}
+    {$arena->getLogoHtml('d-flex justify-content-center')|noescape}
+    <h1 class="text-center mb-5">{_'Rezervace', domain: 'booking'} {$arena->name}</h1>
+    <form action="{link ['booking']}" method="post" id="booking-form" class="needs-validation" novalidate data-arena="{$arena->slug}">
+        <div id="errors"></div>
+        <section id="types" data-key="type">
+            {include types}
+        </section>
+        <section id="dateTime" data-key="calendar">
+            {include dateTime}
+        </section>
+        <section id="personalInfo" data-key="info">
+            {include personalInfo}
+        </section>
+    </form>
+    <script>
+        const playersRangeLabel = {_'Počet hráčů pro čas %s', domain: 'booking'};
+        const errorAlertMsg = {_'Formulář obsahuje chyby', domain: 'booking'};
+        const missingPlayerCount = {_'Vyplňte prosím počet hráčů', context: 'errors', domain: 'booking'};
+        const requiredTime = {_'Vyberte prosím alespoň jeden čas rezervace', context: 'errors', domain: 'booking'};
+        const requiredField = {_'Toto pole je povinné', context: 'errors', domain: 'booking'};
+        const emailError = {_'E-mail musí být platný', context: 'errors', domain: 'booking'};
+        const phoneError = {_'Telefon musí být platný', context: 'errors', domain: 'booking'};
+        const numberError = {_'Hodnota musí být číslo', context: 'errors', domain: 'booking'};
+        const numberMinError = {_'Číslo nesmí být menší než %d', context: 'errors', domain: 'booking'};
+        const numberMaxError = {_'Číslo nesmí být větší než %d', context: 'errors', domain: 'booking'};
+    </script>
+{/block}
+
+{define types}
+    <h2>
+		<span class="text-center d-inline-block text-bg-primary rounded-circle"
+              style="width: 1.6em;height:1.6em;line-height:1.6;">
+				1
+		</span>
+		{_'Typ rezervace', context: 'booking.step', domain: 'booking'}
+        <i class="fa-solid fa-circle-exclamation"></i>
+    </h2>
+    <div class="collapse step-select" id="type-select">
+        <div class="errors"></div>
+        <div class="type-container">
+            <div class="type-group" n:foreach="$types as $type">
+                <input type="radio" class="type-input" name="type" id="type-{$type->id}" value="{$type->id}"
+                       data-limit="{$type->slotLimit}"
+                       data-openable="{$type->openable}"
+                       data-openable-min="{$type->openableMin}"
+                       data-openable-description="{sprintf(lang('Pro méně jak %d hráče není možné rezervaci uzavřít.', 'Pro méně jak %d hráčů není možné rezervaci uzavřít.', $type->openableMin), $type->openableMin)}"
+                       data-name="{$type->getTranslatedName()}">
+                <label class="p-3 shadow rounded d-flex flex-column justify-content-center align-items-center bg-background-1"
+                       for="type-{$type->id}">
+                    {$type->getIconHTML('', '3rem')|noescape}
+                    <span class="name">{$type->getTranslatedName()}</span>
+                </label>
+            </div>
+        </div>
+        <div class="subtype-select-wrapper my-3">
+            <div n:foreach="$types as $type"
+                    class="subtype-select collapse {if count($type->activeSubtypes) === 0}d-none{/if}"
+                    id="subtypes-{$type->id}"
+                    data-id="{$type->id}">
+                {var int $subTypeCount = count($type->activeSubtypes)}
+				<h3 n:if="$subTypeCount > 1" class="text-center">{lang 'Podtyp'}:</h3>
+				{var int $i = 0}
+                <div n:class="subtype-container, $subTypeCount <= 1 ? d-none">
+                    <div class="subtype-group" n:foreach="$type->activeSubtypes as $subtype">
+                        <input type="radio" class="subtype-input" name="subtype"
+                               data-name="{$subtype->getTranslatedName()}" id="subtype-{$subtype->id}"
+                               value="{$subtype->id}" n:attr="checked: ($i === 0), data-min: $subtype->slotMin, data-max: $subtype->slotMax, data-single-input: $subtype->singlePlayerInput, data-slot-preset: $subtype->slotPreset">
+                        {do $i++}
+                        <label class="p-3 shadow rounded d-flex flex-column justify-content-center align-items-center bg-background-1"
+                               for="subtype-{$subtype->id}">
+                            {$subtype->getIconHTML('', '3rem')|noescape}
+                            <span class="name">{$subtype->getTranslatedName()}</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="description text-center mt-3">
+                    {foreach $type->activeSubtypes as $subtype}
+                        <div id="description-{$subtype->id}" class="collapse subtype-description" data-id="{$subtype->id}">
+                            {ifset $subtype->description}
+                                {$subtype->getTranslatedDescription()|noescape}
+                            {/ifset}
+                        </div>
+                    {/foreach}
+                </div>
+            </div>
+        </div>
+        <p class="continue text-center d-none mt-3">
+            <button type="button" class="btn btn-primary next-step btn-lg"
+                    data-step="type">{lang 'Pokračovat', context: 'actions'}</button>
+        </p>
+    </div>
+    <div class="collapse step-result" id="type-result">
+        <div class="selected"></div>
+        <button type="button" class="btn btn-secondary edit mt-2">{lang 'Změnit', context: 'actions'}</button>
+    </div>
+{/define}
+
+{define dateTime}
+    <h2>
+		<span class="text-center d-inline-block text-bg-primary rounded-circle"
+              style="width: 1.6em;height:1.6em;line-height:1.6;">
+				2
+		</span>
+        {*{sprintf(lang('Krok %d', context: 'booking.step'), 2)}: *}
+		{lang 'Datum a čas', context: 'booking.step'}
+        <i class="fa-solid fa-circle-exclamation"></i>
+    </h2>
+    <div class="collapse step-select" id="calendar-select">
+        <div class="errors"></div>
+        <div class="description"></div>
+        {$calendar->render()|noescape}
+        <div class="form-group player-unlock-wrapper mb-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="unlocked" name="unlocked" checked value="1">
+                <label class="form-check-label" for="unlocked">{_'Mohou se k vám přidávat další hráči?'}</label>
+                <div class="invalid-feedback"></div>
+            </div>
+            <div id="unlocked-description" class="form-text"></div>
+        </div>
+        <div class="players-single" style="display: none;">
+            {var string $id = uniqid('playerCount_')}
+            <label for="{$id}" class="form-label">{lang 'Počet hráčů'}:</label>
+            <input type="number" class="form-control" min="" max="" name="playerCount" id="{$id}">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="players-single-toggle my-2">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="single-player-input-toggle">
+                <label class="form-check-label" for="single-player-input-toggle">{_'Rozdílný počet hráčů pro dané časy'}</label>
+            </div>
+        </div>
+        <div class="players"></div>
+        <p class="continue d-none mt-3 text-center">
+            <button type="button" class="btn btn-primary btn-lg next-step" data-step="calendar">
+                {lang 'Pokračovat', context: 'actions'}
+            </button>
+        </p>
+    </div>
+    <div class="collapse step-result" id="calendar-result">
+        <div class="selected"></div>
+        <button type="button" class="btn btn-secondary edit mt-2">{lang 'Změnit', context: 'actions'}</button>
+    </div>
+{/define}
+
+{define personalInfo}
+    <h2>
+		<span class="text-center d-inline-block text-bg-primary rounded-circle"
+              style="width: 1.6em;height:1.6em;line-height:1.6;">
+				3
+		</span>
+        {*{sprintf(lang('Krok %d', context: 'booking.step'), 3)}:*}
+		{lang 'Osobní údaje', context: 'booking.step'}
+        <i class="fa-solid fa-circle-exclamation"></i>
+    </h2>
+    <div class="collapse step-select" id="info-select">
+        <p class="continue d-none">
+            <button type="button" class="btn btn-primary next-step"
+                    data-step="info">{lang 'Pokračovat', context: 'actions'}</button>
+        </p>
+        <div class="description"></div>
+        <input n:ifset="$user" type="hidden" name="users[0][user]" value="{$user->id}">
+        <div class="form-group">
+            <label for="name" class="form-label required">{lang 'Jméno'}</label>
+            <input required maxlength="100" type="text" name="users[0][name]" id="name"
+                   class="form-control" autocomplete="given-name"
+                   data-required-message="{lang 'Jméno je povinné', context: 'errors'}"
+                   value="{$user?->personalDetails?->firstName ?? ''}">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="surname" class="form-label required">{lang 'Příjmení'}</label>
+            <input required maxlength="100" type="text" name="users[0][surname]" id="surname" class="form-control"
+                   data-required-message="{lang 'Příjmení je povinné', context: 'errors'}"
+                   value="{$user?->personalDetails?->lastName ?? ''}"
+                   autocomplete="family-name">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="email" class="form-label required">{lang 'E-mail'}</label>
+            <input required maxlength="100" type="email" name="users[0][email]" id="email" class="form-control"
+                   autocomplete="email" data-required-message="{lang 'E-mail je povinný', context: 'errors'}"
+                   value="{$user?->email ?? ''}">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="phone" class="form-label required">{lang 'Telefon'}</label>
+            <input required type="tel" maxlength="20" name="users[0][phone]" id="phone" class="form-control"
+                   autocomplete="tel" data-required-message="{lang 'Telefon je povinný', context: 'errors'}"
+                   value="{$user?->personalDetails?->phone ?? ''}">
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="note" class="form-label">{lang 'Poznámka'}</label>
+            <textarea name="note" id="note" class="form-control"></textarea>
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="form-group" n:if="count($discoveries) > 0">
+            <label for="discovery" class="form-label">{lang 'Jak jste se o nás dozvěděli?'}</label>
+            <select name="discovery" id="discovery" class="form-select">
+                <option value="" selected>{lang 'Vyberte...'}</option>
+                <option n:foreach="$discoveries as $discovery" value="{$discovery->id}">{lang $discovery->name}</option>
+            </select>
+            <div class="invalid-feedback"></div>
+        </div>
+        <div class="subtype-info"></div>
+        <div class="terms-and-conditions"></div>
+        <p class="text-center mt-3">
+            <button type="submit" class="btn btn-primary btn-lg">{lang 'Odeslat'}</button>
+        </p>
+    </div>
+    <div class="collapse step-result" id="info-result">
+        <div class="selected"></div>
+        <button type="button" class="btn btn-secondary edit mt-2">{lang 'Změnit', context: 'actions'}</button>
+    </div>
+{/define}

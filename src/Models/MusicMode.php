@@ -20,7 +20,7 @@ class MusicMode extends BaseModel implements MusicModeInterface
 	public const string TABLE = 'music';
 
 	#[Required]
-	#[StringLength(min: 1, max: 20)]
+	#[StringLength(min: 1, max: 80)]
 	#[OA\Property]
 	public string  $name;
 	public ?string $group        = null;

@@ -1,0 +1,37 @@
+{layout '../../../@layout.latte'}
+{templateType App\Templates\Admin\CreateBookingParameters}
+
+{block addHead}
+    <script>
+        const arenaId = {$arena->id};
+        const messages = {
+            edit: {_'Upravit'},
+            delete: {_'Smazat'},
+            confirmDelete: {_'Rezervace odstraněna', domain: 'booking'},
+            playerCount: {_'Počet hráčů', domain: 'booking'},
+            isLocked: {_'Uzavřená', domain: 'booking'},
+        }
+    </script>
+{/block}
+
+{block content}
+    <p>
+        <a href="{link ['admin', 'arenas', $arena->id, 'booking', 'type' => $type->id, 'date' => $datetime->format('Y-m-d')]}"
+           class="btn btn-warning">
+            {faSolid 'angle-left'}
+            <span>{_'Zpět'}</span>
+        </a>
+    </p>
+
+    <h1>{_'Vytvořit rezervaci', domain: 'booking'} - {$arena->name}, {$type->getTranslatedName()}</h1>
+    <h2 class="mb-4">{$datetime|localDate:date:long}</h2>
+
+    {include './components/bookingForm.latte',
+        arena: $arena,
+        datetime: $datetime,
+        slots: $slots,
+        type: $type,
+        action: ['admin', 'arenas', $arena->id, 'booking', 'create', $type->id],
+        subtypes: $subtypes
+    }
+{/block}

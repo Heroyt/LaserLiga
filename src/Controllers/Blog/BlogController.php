@@ -6,6 +6,7 @@ namespace App\Controllers\Blog;
 use App\Models\Auth\User;
 use App\Models\Blog\Post;
 use App\Models\Blog\PostStatus;
+use App\Models\Blog\PostTranslation;
 use App\Models\Blog\Tag;
 use App\Request\Blog\BlogIndexRequest;
 use App\Templates\Blog\BlogIndexParameters;
@@ -15,6 +16,7 @@ use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Requests\Request;
 use Lsr\Core\Requests\Validation\RequestValidationMapper;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -81,7 +83,15 @@ class BlogController extends Controller
 				)
 			),
 		];
-		$this->params->tags = Tag::getAll();
+		$this->params->tags = Tag::querySorted()
+			->where(
+				'[id_tag] IN %sql',
+				DB::select(['blog_post_tags', 't'], 'id_tag')
+				->join(Post::TABLE, 'p')
+				->on('t.[id_post] = p.[id_post]')
+				->where('p.[status] = %s AND p.[approved] = true', PostStatus::PUBLISHED->value)
+			)
+		->get();
 		$this->params->user = $this->auth->getLoggedIn();
 
 		return $this->view('pages/blog/index');
@@ -117,10 +127,27 @@ class BlogController extends Controller
 		             ->limit($limit)
 		             ->offset(($page - 1) * $limit);
 		if ($currentUser !== null) {
-			$query->where('a.[status] = %s OR a.[id_author] = %i', PostStatus::PUBLISHED->value, $currentUser->id);
+			$canManage = $currentUser->hasRight('manage-blog');
+			if (!$canManage) { // Users that can manage blog can see all posts
+				$canApprove = $currentUser->hasRight('approve-blog');
+				if ($canApprove) { // Users that can approve posts can see all posts that are published regardless if they have been approved or not.
+					$query->where(
+						'([a].[status] = %s OR [a].[id_author] = %i)',
+						PostStatus::PUBLISHED->value,
+						$currentUser->id
+					);
+				}
+				else { // Normal uses see only published, approved and their own posts.
+					$query->where(
+						'([a].[status] = %s OR [a].[id_author] = %i) AND [a].[approved] = true',
+						PostStatus::PUBLISHED->value,
+						$currentUser->id
+					);
+				}
+			}
 		}
-		else {
-			$query->where('a.[status] = %s', PostStatus::PUBLISHED->value);
+		else { // Not logged in users can see only published and approved posts.
+			$query->where('[a].[status] = %s AND [a].[approved] = true', PostStatus::PUBLISHED->value);
 		}
 
 		if ($tag !== null) {
@@ -152,11 +179,27 @@ class BlogController extends Controller
 	}
 
 	public function show(string $slug): ResponseInterface {
+		$language = $this->app->translations->getLangId();
+		$isDefaultLanguage = $this->app->translations->getDefaultLangId() === $language;
 		// Find post
-		$post = Post::getBySlug($slug);
+		if (!$isDefaultLanguage) {
+			$postTranslation = PostTranslation::getBySlug($slug, $language);
+			$post = $postTranslation?->post;
+		}
+		$post ??= Post::getBySlug($slug); // fallback to default language
 		if ($post === null) {
 			return $this->view('pages/blog/notFound')->withStatus(404);
 		}
+
+		if ($post->status !== PostStatus::PUBLISHED && $post->status !== PostStatus::HIDDEN) {
+			// If the post is not published or hidden, check if the user can manage blog.
+			$currentUser = $this->auth->getLoggedIn();
+			if ($currentUser === null || !$post->canByEditedBy($currentUser)) {
+				// Post exists, but it's not accessible to the current user.
+				return $this->view('pages/blog/notFound')->withStatus(404);
+			}
+		}
+
 		$this->params = new BlogPostParameters($this->params);
 		$this->params->post = $post;
 		$this->title = $post->getTranslatedTitle();
@@ -229,7 +272,10 @@ class BlogController extends Controller
 		];
 		$this->params->user = $this->auth->getLoggedIn();
 
-		$this->params->tags = Tag::query()->where('id_parent_tag = %i', $tag->id)->get();
+		$this->params->tags = Tag::query()
+		                         ->where('id_parent_tag = %i', $tag->id)
+		                         ->orderBy('[order], [id_parent_tag], [id_tag]')
+		                         ->get();
 
 		return $this->view('pages/blog/tag');
 	}

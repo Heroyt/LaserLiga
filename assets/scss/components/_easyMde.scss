@@ -1,7 +1,16 @@
 @import 'easymde/dist/easymde.min.css';
+@import 'codemirror/addon/hint/show-hint.css';
 
 .cm-s-easymde {
 	.cm-link, .cm-url {
 		color: var(--bs-link-color);
+	}
+
+	.cm-emoji {
+		color: var(--bs-pink);
+	}
+
+	.cm-math {
+		color: var(--bs-purple);
 	}
 }

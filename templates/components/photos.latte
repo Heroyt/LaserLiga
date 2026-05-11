@@ -74,6 +74,9 @@
     </p>
     <p class="text-muted" n:if="$canDownloadPhotos">
         {_'Stahování fotek může chvíli trvat. Pokud se stahování nespustí, počkejte několik minut a zkuste to znovu.', domain: 'results'}
+        {if $game->arena->photosSettings->assignedPhotoTTL !== null}
+            <br>{_'Fotky ukládáme jen po dobu %d měsíců. Poté jsou automaticky odstraněny.', domain: 'results', format: [$game->arena->photosSettings->assignedPhotoTTL?->format('%m')]}
+        {/if}
     </p>
 
     <dialog id="photo-dialog">

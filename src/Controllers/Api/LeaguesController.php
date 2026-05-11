@@ -69,7 +69,7 @@ class LeaguesController extends ApiController
 		ref: '#/components/schemas/ErrorResponse'
 	),)]
 	public function get(League $league): ResponseInterface {
-		if ($league->arena->id !== $this->arena->id) {
+		if ($league->arenas->filter(fn(Arena $arena) => $arena->id === $this->arena->id)->count() === 0) {
 			return $this->respond(new ErrorResponse('Access denied', ErrorType::ACCESS), 403);
 		}
 
@@ -95,7 +95,7 @@ class LeaguesController extends ApiController
 		ref: '#/components/schemas/ErrorResponse'
 	),)]
 	public function getTournaments(League $league): ResponseInterface {
-		if ($league->arena->id !== $this->arena->id) {
+		if ($league->arenas->filter(fn(Arena $arena) => $arena->id === $this->arena->id)->count() === 0) {
 			return $this->respond(new ErrorResponse('Access denied', ErrorType::ACCESS), 403);
 		}
 

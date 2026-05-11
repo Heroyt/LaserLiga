@@ -1,5 +1,5 @@
-import {initUserAutocomplete} from "../../components/userPlayerSearch";
-import {Collapse} from "bootstrap";
+import { initUserAutocomplete } from "../../components/userPlayerSearch";
+import { Collapse } from "bootstrap";
 
 export default function initRegister() {
 	const playerRows = document.querySelectorAll('.player-row') as NodeListOf<HTMLDivElement>;
@@ -62,5 +62,29 @@ export default function initRegister() {
                 newTeamCollapse.hide();
             }
         });
+    }
+
+    const categorySelect = document.getElementById('team-category') as HTMLSelectElement;
+    const tournamentCheckboxes = document.querySelectorAll<HTMLDivElement>('.tournament-check');
+
+    if (categorySelect) {
+        const hideDifferentCategoryTournaments = () => {
+            const selectedCategory = categorySelect.value;
+            // Hide tournaments from different categories
+            for (const checkbox of tournamentCheckboxes) {
+                const tournamentCategory = checkbox.dataset.category;
+                const input = checkbox.querySelector('input[type="checkbox"]') as HTMLInputElement;
+                if (tournamentCategory === selectedCategory) {
+                    checkbox.classList.remove("d-none");
+                    input.checked = true;
+                } else {
+                    checkbox.classList.add("d-none");
+                    input.checked = false;
+                }
+            }
+        };
+
+        categorySelect.addEventListener('change', hideDifferentCategoryTournaments);
+        hideDifferentCategoryTournaments();
     }
 }

@@ -10,6 +10,12 @@ dialog {
 }
 
 #photo-dialog {
+	width: 100%;
+	padding: 1rem .5rem;
+	margin-left: .5rem;
+	margin-right: .5rem;
+	max-width: calc(100% - 1rem);
+
 	.dialog-content {
 		display: flex;
 		justify-content: center;
@@ -52,8 +58,8 @@ dialog {
 	}
 
 	img {
-		max-width: 80vw;
-		max-height: 80vh;
+		max-width: 95vw;
+		max-height: 95vh;
 		width: auto;
 		min-width: 200px;
 		min-height: 150px;

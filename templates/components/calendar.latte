@@ -1,0 +1,170 @@
+{templateType App\Templates\Widget\CalendarParameters}
+
+{var bool $slotFill = isset($subType) && $subType->slotFill}
+
+<section class="calendar" data-configuration="{$configuration}" data-selected="{$selected}" data-arena="{$type->arena->slug}">
+    <div class="loading d-none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100px" height="100px" viewBox="0 0 100 100"
+             preserveAspectRatio="xMidYMid">
+            <circle cx="75" cy="50" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.9166666666666666s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.9166666666666666s"></animate>
+            </circle>
+            <circle cx="71.65063509461098" cy="62.5" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.8333333333333334s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.8333333333333334s"></animate>
+            </circle>
+            <circle cx="62.5" cy="71.65063509461096" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.75s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.75s"></animate>
+            </circle>
+            <circle cx="50" cy="75" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.6666666666666666s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.6666666666666666s"></animate>
+            </circle>
+            <circle cx="37.5" cy="71.65063509461098" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.5833333333333334s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.5833333333333334s"></animate>
+            </circle>
+            <circle cx="28.34936490538903" cy="62.5" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.5s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.5s"></animate>
+            </circle>
+            <circle cx="25" cy="50" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.4166666666666667s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.4166666666666667s"></animate>
+            </circle>
+            <circle cx="28.34936490538903" cy="37.50000000000001" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.3333333333333333s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.3333333333333333s"></animate>
+            </circle>
+            <circle cx="37.499999999999986" cy="28.34936490538904" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.25s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.25s"></animate>
+            </circle>
+            <circle cx="49.99999999999999" cy="25" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.16666666666666666s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.16666666666666666s"></animate>
+            </circle>
+            <circle cx="62.5" cy="28.349364905389034" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="-0.08333333333333333s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="-0.08333333333333333s"></animate>
+            </circle>
+            <circle cx="71.65063509461096" cy="37.499999999999986" fill="#ffffff" r="5">
+                <animate attributeName="r" values="3;3;5;3;3" times="0;0.1;0.2;0.3;1" dur="1s" repeatCount="indefinite"
+                         begin="0s"></animate>
+                <animate attributeName="fill" values="#ffffff;#ffffff;#139cd9;#ffffff;#ffffff" repeatCount="indefinite"
+                         times="0;0.1;0.2;0.3;1" dur="1s" begin="0s"></animate>
+            </circle>
+        </svg>
+    </div>
+    <div class="date">
+        <div class="dateHeader">
+            <div class="session">
+                <p>{lang $months[$month], context: 'months'}</p>
+                <p>{$year}</p>
+            </div>
+            <div class="day">
+                <div class="btn btn-link p-0 {if $previousMonthDisabled}disabled{else}changeDate{/if}"
+                        {if !$previousMonthDisabled} data-month="{$previousMonth}" data-year="{$previousMonthYear}" data-day="0" {/if}>
+                    {faSolid 'caret-left'}
+                </div>
+                <p class="btn btn-link changeDate" data-year="{$todayYear}" data-month="{$todayMonth}"
+                   data-day="{$todayDay}">{lang 'Dnes', context: 'calendar'}</p>
+                <div class="btn btn-link p-0 changeDate" data-month="{$nextMonth}" data-year="{$nextMonthYear}"
+                     data-day="0">
+                    {faSolid 'caret-right'}
+                </div>
+            </div>
+        </div>
+        <div class="daysHeader">
+            <div class="calRow">
+                {foreach $days as $dayName}
+                    <p>{$dayName}</p>
+                {/foreach}
+            </div>
+        </div>
+        <div class="daysPicker">
+            {foreach $weeks as $week}
+                <div class="calRow">
+                    {foreach $week as $dayInfo}
+                        {if is_null($dayInfo)}
+                            <label></label>
+                        {else}
+                            <input type="radio" name="date" class="dateSelect"
+                                   value="{$dayInfo->value}"
+                                   id="{$dayInfo->value}"
+                                   data-formatted="{date('d.m.Y', strtotime($dayInfo->value))}"
+                                   n:attr="disabled: !$dayInfo->available, checked: $dayInfo->value === $selected">
+                            <label n:class="...$dayInfo->classes" for="{$dayInfo->value}">
+                                {$dayInfo->label}
+								{if $dayInfo->today}
+                                    <span class="today">{faSolid 'circle'}</span>
+                                {/if}
+                            </label>
+                        {/if}
+                    {/foreach}
+                </div>
+            {/foreach}
+        </div>
+    </div>
+    <div class="time" {if count($times) === 0}style="display:none;"{/if}>
+        {foreach $times as $time => $status}
+            {switch $status->status}
+                {case App\Models\Booking\Enums\TimeStatus::FILLED}
+                <div class="time-label filled text-bg-danger">
+                    <span>{$status->datetime|localDate:time:short}</span>
+                    {if !$slotFill}
+                        <span>0/{$slotLimit}</span>
+                    {/if}
+                </div>
+            {case App\Models\Booking\Enums\TimeStatus::AVAILABLE}
+                <input type="checkbox" name="time[]" class="timeSelect" value="{$status->time}" id="{$status->time|replace:':','_'}"
+                       data-available="{$status->availableSpots}">
+                <label for="{$status->time|replace:':','_'}" class="text-bg-green">
+                    <span>{$status->datetime|localDate:time:short}</span>
+                    {if !$slotFill}
+                        <span>{$status->availableSpots}/{$slotLimit}</span>
+                    {/if}
+                </label>
+            {case App\Models\Booking\Enums\TimeStatus::ON_CALL}
+                <div class="time-label on-call text-bg-light" data-toggle="tooltip"
+                     title="{_'V případě zájmu o tento čas nás prosím kontaktujte na telefonu %s.', context: 'calendar', domain: 'booking', format: [$arena->contactPhone]}">
+                    {faSolid 'phone'}
+                    <span>{$status->datetime|localDate:time:short}</span>
+                </div>
+            {case App\Models\Booking\Enums\TimeStatus::PARTIALLY_FILLED}
+                <input type="checkbox" name="time[]" class="timeSelect" value="{$status->time}" id="{$status->time}"
+                       data-available="{$status->availableSpots}">
+                <label class="partially-filled text-bg-warning" for="{$status->time}">
+                    <span>{$status->datetime|localDate:time:short}</span>
+                    {if !$slotFill}
+                        <span>{$status->availableSpots}/{$slotLimit}</span>
+                    {/if}
+                </label>
+            {/switch}
+        {/foreach}
+    </div>
+</section>

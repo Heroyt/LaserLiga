@@ -16,7 +16,7 @@ class CreatePhotosArchiveCommand implements CommandInterface
 {
 
 	/**
-	 * @param non-empty-list<Photo> $photos
+	 * @param non-empty-array<Photo> $photos
 	 */
 	public function __construct(
 		public array $photos,

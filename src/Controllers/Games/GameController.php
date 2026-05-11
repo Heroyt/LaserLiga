@@ -28,7 +28,6 @@ use Lsr\Core\Routing\Exceptions\AccessDeniedException;
 use Lsr\CQRS\CommandBus;
 use Lsr\Interfaces\RequestInterface;
 use Lsr\Interfaces\SessionInterface;
-use Netpromotion\Profiler\Profiler;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 
@@ -58,9 +57,7 @@ class GameController extends Controller
 	}
 
 	public function show(Request $request, string $code, ?string $user = null): ResponseInterface {
-		Profiler::start('Game');
 		$this->params->addCss[] = 'pages/result.css';
-		Profiler::start('Game load');
 		$game = GameFactory::getByCode($code);
 		if (!isset($game)) {
 			$this->title = 'Hra nenalezena';
@@ -70,11 +67,9 @@ class GameController extends Controller
 			            ->withStatus(404);
 		}
 		$this->params->game = $game;
-		Profiler::finish('Game load');
 
 		$this->prepareGameSEODetails($game);
 
-		Profiler::start('Game group');
 		if (isset($game->group)) {
 			// Get all game codes for the same group
 			$codes = $game->group->getGamesCodes();
@@ -92,9 +87,7 @@ class GameController extends Controller
 				$this->params->prevGame = $gameCode;
 			}
 		}
-		Profiler::finish('Game group');
 
-		Profiler::start('User');
 		$player = null;
 		if (!empty($user)) {
 			try {
@@ -114,7 +107,6 @@ class GameController extends Controller
 
 		if (isset($player)) {
 			$this->params->activeUser = $player;
-			Profiler::start('User\'s previous game');
 			$prevGameRow = PlayerFactory::queryPlayerGames()
 			                            ->where('id_user = %i AND start < %dt', $player->id, $game->start)
 			                            ->orderBy('start')
@@ -123,8 +115,6 @@ class GameController extends Controller
 			if (isset($prevGameRow)) {
 				$this->params->prevUserGame = $prevGameRow->code;
 			}
-			Profiler::finish('User\'s previous game');
-			Profiler::start('User\'s next game');
 			$nextGameRow = PlayerFactory::queryPlayerGames()
 			                            ->where('id_user = %i AND start > %dt', $player->id, $game->start)
 			                            ->orderBy('start')
@@ -132,20 +122,13 @@ class GameController extends Controller
 			if (isset($nextGameRow)) {
 				$this->params->nextUserGame = $nextGameRow->code;
 			}
-			Profiler::finish('User\'s next game');
 		}
-		Profiler::finish('User');
 
-		Profiler::start('Photos');
 		$this->findPhotos($game, $request);
-		Profiler::finish('Photos');
 
-		Profiler::start('Render');
 		$response = $this->view('pages/game/index')
 		                 ->withAddedHeader('Cache-Control', 'max-age=2592000,public');
-		Profiler::finish('Render');
 
-		Profiler::finish('Game');
 
 		return $response;
 	}
@@ -156,7 +139,6 @@ class GameController extends Controller
 	 * @return void
 	 */
 	public function prepareGameSEODetails(Game $game): void {
-		Profiler::start('Game SEO');
 		$this->params->gameDescription = $this->getGameDescription($game);
 		$this->params->schema = $this->getSchema($game, $this->params['gameDescription']);
 
@@ -176,7 +158,6 @@ class GameController extends Controller
 		];
 		$this->description = 'Výsledky ze hry laser game z data %s z arény %s v herním módu %s.';
 		$this->descriptionParams = $this->getDescriptionParams($game);
-		Profiler::finish('Game SEO');
 	}
 
 	private function getGameDescription(Game $game): string {

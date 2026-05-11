@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\CQRS\Commands\Google;
 
 use App\CQRS\CommandHandlers\Google\RemoveCalendarEventCommandHandler;
+use App\CQRS\CommandResponses\Google\RemoveCalendarEventCommandResponse;
 use Google\Client;
 use Lsr\CQRS\CommandInterface;
 
 /**
- * @implements CommandInterface<RemoveCalendarEventCommandHandler>
+ * @implements CommandInterface<RemoveCalendarEventCommandResponse>
  */
 final readonly class RemoveCalendarEventCommand implements CommandInterface
 {

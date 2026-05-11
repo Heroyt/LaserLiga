@@ -4,7 +4,7 @@
 
 {define header}
     {var bool $loggedIn = \Lsr\Core\App::getService('auth')->loggedIn()}
-    <nav id="mobile-menu" class="d-lg-none bg-background-1 {if $loggedIn}icons-only{/if}">
+    <nav id="mobile-menu" class="d-lg-none bg-background-1">
         {include mobileMenu, 'mobileMain'}
         <button type="button" class="mobile-nav-item" id="triggerMainNav" aria-label="{lang 'Toggle navigation'}">
             <span class="menu-icon"><span></span></span>

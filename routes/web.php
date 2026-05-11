@@ -21,6 +21,9 @@ use App\Core\Middleware\ContentLanguageHeader;
 use App\Core\Middleware\CSRFCheck;
 use App\Core\Middleware\NoCacheControl;
 use App\Core\ParamValidators\LangParamValidator;
+use App\Core\ParamValidators\ModelIdValidator;
+use App\Core\ParamValidators\ModelSlugValidator;
+use App\Models\Arena;
 use Lsr\Core\App;
 use Lsr\Core\Auth\Middleware\LoggedOut;
 use Lsr\Core\Auth\Services\Auth;
@@ -88,25 +91,34 @@ $routes->group('questionnaire')
        ->post('dont_show', [Questionnaire::class, 'dontShowAgain']);
 
 // Arena
-$routes->group('arena')
-       ->get('', [Arenas::class, 'list'])
-       ->name('arenas-list')
-       ->group('{id}')
-       ->get('', [Arenas::class, 'show'])
-       ->name('arenas-detail')
-       ->group('tab')
-       ->get('stats', [Arenas::class, 'show'])->name('arena-detail-stats')
-       ->get('music', [Arenas::class, 'show'])->name('arena-detail-music')
-       ->get('games', [Arenas::class, 'show'])->name('arena-detail-games')
-       ->get('tournaments', [Arenas::class, 'show'])->name('arena-detail-tournaments')
-       ->get('info', [Arenas::class, 'show'])->name('arena-detail-info')
-       ->endGroup()
-       ->get('games', [Arenas::class, 'games'])
-       ->group('stats')
-       ->get('modes', [Arenas::class, 'gameModesStats'])
-       ->get('music', [Arenas::class, 'musicModesStats'])
-       ->endGroup()
-       ->endGroup();
+$arenaGroup = $routes->group('arena');
+$arenaGroup->get('', [Arenas::class, 'list'])->name('arenas-list');
+
+$arenaIdGroup = $arenaGroup->group('{id}')
+                           ->param('id', new ModelIdValidator(Arena::class));
+$arenaSlugGroup = $arenaGroup->group('{slug}')
+                             ->param('slug', new ModelSlugValidator(Arena::class));
+
+foreach (['' => $arenaIdGroup, 'slug' => $arenaSlugGroup] as $suffix => $group) {
+	$nameSuffix = empty($suffix) ? '' : '-' . $suffix;
+	$methodSuffix = ucfirst($suffix);
+
+	$group->get('', [Arenas::class, 'show' . $methodSuffix])->name('arenas-detail' . $nameSuffix);
+	$group->get('games', [Arenas::class, 'games' . $methodSuffix])->name('arenas-games' . $nameSuffix);
+
+	$arenaTabGroup = $group->group('tab');
+	$arenaTabGroup->get('stats', [Arenas::class, 'show' . $methodSuffix])->name('arena-detail-stats' . $nameSuffix);
+	$arenaTabGroup->get('music', [Arenas::class, 'show' . $methodSuffix])->name('arena-detail-music' . $nameSuffix);
+	$arenaTabGroup->get('games', [Arenas::class, 'show' . $methodSuffix])->name('arena-detail-games' . $nameSuffix);
+	$arenaTabGroup->get('tournaments', [Arenas::class, 'show' . $methodSuffix])->name(
+		'arena-detail-tournaments' . $nameSuffix
+	);
+	$arenaTabGroup->get('info', [Arenas::class, 'show' . $methodSuffix])->name('arena-detail-info' . $nameSuffix);
+
+	$arenaStatsGroup = $group->group('stats');
+	$arenaStatsGroup->get('modes', [Arenas::class, 'gameModesStats' . $methodSuffix]);
+	$arenaStatsGroup->get('music', [Arenas::class, 'musicModesStats' . $methodSuffix]);
+}
 
 // Login
 $loggedOut = new LoggedOut($auth, 'dashboard');
@@ -150,59 +162,33 @@ $tournamentGroup->get('registration/{tournamentId}/{registration}', [TournamentC
                 ->name('tournament-register-update-process')
                 ->middleware(new CSRFCheck('tournament-update-register'));
 
-$routes->group('league')
-       ->get('', [LeagueController::class, 'show'])
-       ->name('leagues')
-       ->get(
-	       '{id}',
-	       [
-		       LeagueController::class,
-		       'detail',
-	       ]
-       )
-       ->get('{id}/register', [LeagueController::class, 'register'])
-       ->name('league-register')
-       ->post(
-	       '{id}/register',
-	       [
-		       LeagueController::class,
-		       'processRegister',
-	       ]
-       )
-       ->name('league-register-process')
-       ->middleware(new CSRFCheck('league-register'))
-       ->get(
-	       'team/{id}',
-	       [
-		       LeagueController::class,
-		       'teamDetail',
-	       ]
-       )
-       ->get('registration/{leagueId}/{registration}', [LeagueController::class, 'updateRegistration'])
-       ->name(
-	       'league-register-update'
-       )
-       ->get('registration/{leagueId}/{registration}/{hash}', [LeagueController::class, 'updateRegistration'])
-       ->name(
-	       'league-register-update-2'
-       )
-       ->post('registration/{leagueId}/{registration}', [LeagueController::class, 'processUpdateRegister'])
-       ->name(
-	       'league-register-update-process'
-       )
-       ->middleware(new CSRFCheck('league-update-register'))
-       ->get(
-	       '{id}/substitute',
-	       [LeagueController::class, 'registerSubstitute']
-       )
-       ->name('league-register-substitute')
-       ->post('{id}/substitute', [LeagueController::class, 'processSubstitute'])
-       ->name('league-register-substitute-process')
-       ->middleware(new CSRFCheck('league-register-substitute'));
+$leagueGroup = $routes->group('league');
+$leagueGroup->get('', [LeagueController::class, 'show'])
+            ->name('leagues');
+$leagueGroup->get('{id}', [LeagueController::class, 'detail']);
+$leagueGroup->get('{id}/register', [LeagueController::class, 'register'])
+            ->name('league-register');
+$leagueGroup->post('{id}/register', [LeagueController::class, 'processRegister'])
+            ->name('league-register-process')
+            ->middleware(new CSRFCheck('league-register'));
+$leagueGroup->get('team/{id}', [LeagueController::class, 'teamDetail']);
+$leagueGroup->get('registration/{leagueId}/{registration}', [LeagueController::class, 'updateRegistration'])
+            ->name('league-register-update');
+$leagueGroup->get('registration/{leagueId}/{registration}/{hash}', [LeagueController::class, 'updateRegistration'])
+            ->name('league-register-update-2');
+$leagueGroup->post('registration/{leagueId}/{registration}', [LeagueController::class, 'processUpdateRegister'])
+            ->name('league-register-update-process')
+            ->middleware(new CSRFCheck('league-update-register'));
+$leagueGroup->get('{id}/substitute', [LeagueController::class, 'registerSubstitute'])
+            ->name('league-register-substitute');
+$leagueGroup->post('{id}/substitute', [LeagueController::class, 'processSubstitute'])
+            ->name('league-register-substitute-process')
+            ->middleware(new CSRFCheck('league-register-substitute'));
 
 // League - alias
 $routes->group('liga')
        ->get('', [LeagueController::class, 'show'])
+       ->get('team/{id}', [LeagueController::class, 'teamDetail'])
        ->get('{slug}', [LeagueController::class, 'detailSlug'])
        ->get('{slug}/register', [LeagueController::class, 'registerSlug'])
        ->name('league-register-slug')

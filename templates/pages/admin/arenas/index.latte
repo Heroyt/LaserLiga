@@ -4,27 +4,34 @@
 {block content}
     <div class="d-flex flex-wrap justify-content-evenly">
         <div n:foreach="$arenas as $arena" class="card p-3 m-3">
-            <div class="card-img-top d-flex justify-content-center">
-                {$arena->getLogoHtml()|noescape}
-            </div>
-            <div class="card-body text-center">
-                <h5 class="card-title">{$arena->name}</h5>
-                <div class="btn-group mt-3">
-                    <a n:if="$arena->photosSettings->enabled && ($user->hasRight('view-photos') || $user->hasRight('manage-photos')) && $user->managesArena($arena)"
-                            href="{link ['admin', 'arenas', $arena->id, 'photos']}"
-                            class="btn btn-primary btn">
-                        {faSolid 'images'} <span>{_'Fotky'}</span>
-                    </a>
-                    <a n:if="$user->hasRight('edit-arena-users') && $user->managesArena($arena)"
-                            href="{link ['admin', 'arenas', $arena->id, 'users']}"
-                            class="btn btn-secondary">
-                        {faSolid 'user'} <span>{_'Uživatelé'}</span>
-                    </a>
-                    <a n:if="($user->hasRight('edit-arena') || $user->hasRight('manage-arena')) && $user->managesArena($arena)"
-                            href="{link ['admin', 'arenas', $arena->id, 'edit']}"
-                            class="btn btn-info">
-                        {faSolid 'pencil'} <span>{_'Upravit'}</span>
-                    </a>
+            <div class="d-flex gap-3">
+                <div class="d-flex flex-column align-items-center justify-content-center">
+                    {$arena->getLogoHtml()|noescape}
+                    <h5 class="card-title mt-3">{$arena->name}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav flex-column">
+                        <li class="nav-item" n:if="$arena->photosSettings->enabled && ($user->hasRight('view-photos') || $user->hasRight('manage-photos')) && $user->managesArena($arena)">
+                            <a href="{link ['admin', 'arenas', $arena->id, 'photos']}" class="nav-link">
+                            {faSolid 'images'} <span>{_'Fotky'}</span>
+                        </a>
+                        </li>
+                        <li class="nav-item" n:if="$user->hasRight('edit-arena-users') && $user->managesArena($arena)">
+                            <a href="{link ['admin', 'arenas', $arena->id, 'users']}" class="nav-link">
+                            {faSolid 'user'} <span>{_'Uživatelé'}</span>
+                        </a>
+                        </li>
+                        <li class="nav-item" n:if="($user->hasRight('edit-arena') || $user->hasRight('manage-arena')) && $user->managesArena($arena)">
+                            <a href="{link ['admin', 'arenas', $arena->id, 'edit']}" class="nav-link">
+                            {faSolid 'pencil'} <span>{_'Upravit'}</span>
+                        </a>
+                        </li>
+                        <li class="nav-item" n:if="$arena->bookingSettings->enabled && $user->hasRight('view-booking') && $user->managesArena($arena)">
+                            <a href="{link ['admin', 'arenas', $arena->id, 'booking']}" class="nav-link">
+                            {faSolid 'calendar'} <span>{_'Rezervace'}</span>
+                        </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
