@@ -23,6 +23,9 @@ scheduler:
 		playerRankUpdate:
 			expression: 11 * * * *
 			callback: [@cron.playerRankUpdate, 'run']
+		playerRankRecalculation:
+			expression: 21 * * * *
+			callback: [@cron.playerRankRecalculation, 'run']
 		playerAchievementCheck:
 			expression: 59 * * * *
 			callback: [@cron.playerAchievementCheck, 'run']
@@ -76,6 +79,7 @@ services:
 	cron.logArchive: App\Cron\LogArchiveJob
 	cron.regressionUpdate: App\Cron\RegressionUpdateJob
 	cron.playerRankUpdate: App\Cron\PlayerRankUpdateJob
+	cron.playerRankRecalculation: App\Cron\PlayerRankRecalculationJob
 	cron.playerAchievementCheck: App\Cron\PlayerAchievementCheckJob
 	cron.sitemap: App\Cron\GenerateSitemapJob
 	cron.gamemodes: App\Cron\CheckGameModesJob

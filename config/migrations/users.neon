@@ -350,6 +350,41 @@ tables:
 				refColumn: id_user
 				onUpdate: 'CASCADE'
 				onDelete: 'CASCADE'
+	App\Models\PlayerRankRecalculationQueue:
+		order: 4
+		definition: '''
+		(
+          `id_queue` int(11) unsigned NOT NULL AUTO_INCREMENT,
+          `recalculate_from` datetime NOT NULL,
+          `reason` varchar(100) NOT NULL,
+          `code` varchar(50) DEFAULT NULL,
+          `id_user` int(11) unsigned DEFAULT NULL,
+          `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+          `processed_at` datetime DEFAULT NULL,
+          PRIMARY KEY (`id_queue`),
+          KEY `processed_from` (`processed_at`,`recalculate_from`),
+          KEY `code` (`code`),
+          KEY `id_user` (`id_user`),
+          CONSTRAINT `player_rank_recalculation_queue_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `players` (`id_user`) ON DELETE SET NULL ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+		'''
+		indexes:
+			-
+				name: 'processed_from'
+				columns: ['processed_at', 'recalculate_from']
+			-
+				name: 'code'
+				columns: ['code']
+			-
+				name: 'id_user'
+				columns: ['id_user']
+		foreignKeys:
+			-
+				column: id_user
+				refTable: App\Models\Auth\LigaPlayer
+				refColumn: id_user
+				onUpdate: 'CASCADE'
+				onDelete: 'SET NULL'
 	player_trophies_count:
 		order: 4
 		definition: '''

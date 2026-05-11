@@ -133,6 +133,7 @@ services:
 	ranking.sqlInputProvider: App\Services\Player\Ranking\SqlGameCalculationInputProvider
 	ranking.ratingRepository: App\Services\Player\Ranking\DbRatingRepository
 	ranking.recalculationService: App\Services\Player\Ranking\RankRecalculationService
+	ranking.queue: App\Services\Player\Ranking\RankRecalculationQueueService
 	rankCalculator: App\Services\Player\RankCalculator
 
 	userRegistration: App\Services\UserRegistrationService

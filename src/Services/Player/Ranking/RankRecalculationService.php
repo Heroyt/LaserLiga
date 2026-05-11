@@ -31,9 +31,44 @@ final readonly class RankRecalculationService
 	}
 
 	/**
+	 * @param string[] $codes
+	 */
+	public function recalculateGames(array $codes, bool $useSqlInput = true): RecalculationSummary {
+		$gamesProcessed = 0;
+		$ratingDeltasWritten = 0;
+		$affectedUserIds = [];
+		$rankState = [];
+		$lastProcessedAt = null;
+
+		foreach ($codes as $code) {
+			$input = ($useSqlInput ? $this->sqlInputProvider : $this->modelInputProvider)->getByCode($code);
+			if (!isset($input)) {
+				continue;
+			}
+
+			$summary = $this->recalculateInput($input, $rankState, false);
+			$gamesProcessed += $summary->gamesProcessed;
+			$ratingDeltasWritten += $summary->ratingDeltasWritten;
+			foreach ($summary->affectedUserIds as $userId) {
+				$affectedUserIds[$userId] = $userId;
+			}
+			$lastProcessedAt = $summary->lastProcessedAt ?? $lastProcessedAt;
+		}
+
+		$this->ratingRepository->recalculateUserRanks(array_values($affectedUserIds));
+
+		return new RecalculationSummary(
+			$gamesProcessed,
+			$ratingDeltasWritten,
+			array_values($affectedUserIds),
+			$lastProcessedAt,
+		);
+	}
+
+	/**
 	 * @param array<int, int>|null $rankState userId => rank before this game
 	 */
-	public function recalculateInput(GameCalculationInput $input, ?array &$rankState = null): RecalculationSummary {
+	public function recalculateInput(GameCalculationInput $input, ?array &$rankState = null, bool $refreshUserRanks = true): RecalculationSummary {
 		if (!$input->rankable) {
 			return new RecalculationSummary(0, 0, []);
 		}
@@ -49,12 +84,15 @@ final readonly class RankRecalculationService
 			$affectedUserIds[$rankDelta->userId] = $rankDelta->userId;
 		}
 
-		$this->ratingRepository->recalculateUserRanks(array_values($affectedUserIds));
+		if ($refreshUserRanks) {
+			$this->ratingRepository->recalculateUserRanks(array_values($affectedUserIds));
+		}
 
 		return new RecalculationSummary(
 			1,
 			count($rankDeltas),
 			array_values($affectedUserIds),
+			$input->startedAt,
 		);
 	}
 
@@ -118,7 +156,7 @@ final readonly class RankRecalculationService
 				}
 			}
 
-			$rankDeltas[] = $this->rankDeltaCalculator->calculateForPlayer(
+			$rankDeltas[$player->userId] = $this->rankDeltaCalculator->calculateForPlayer(
 				$player->skill,
 				$minSkill,
 				$maxSkill,
@@ -132,7 +170,7 @@ final readonly class RankRecalculationService
 			);
 		}
 
-		return $rankDeltas;
+		return array_values($rankDeltas);
 	}
 
 	private function createRankingPlayer(PlayerCalculationInput $player, ?int $rank): RankingPlayer {
@@ -162,6 +200,7 @@ final readonly class RankRecalculationService
 		$ratingDeltasWritten = 0;
 		$affectedUserIds = [];
 		$rankState = null;
+		$lastProcessedAt = null;
 
 		foreach ($this->sqlInputProvider->iterateRankableGames($selection) as $input) {
 			if ($rankState === null) {
@@ -179,6 +218,7 @@ final readonly class RankRecalculationService
 
 			$gamesProcessed++;
 			$ratingDeltasWritten += count($rankDeltas);
+			$lastProcessedAt = $input->startedAt;
 		}
 
 		$this->ratingRepository->recalculateUserRanks(array_values($affectedUserIds));
@@ -187,6 +227,7 @@ final readonly class RankRecalculationService
 			$gamesProcessed,
 			$ratingDeltasWritten,
 			array_values($affectedUserIds),
+			$lastProcessedAt,
 		);
 	}
 

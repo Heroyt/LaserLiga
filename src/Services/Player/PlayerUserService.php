@@ -12,6 +12,7 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Models\PossibleMatch;
+use App\Services\Player\Ranking\RankRecalculationQueueService;
 use Dibi\Exception;
 use Lsr\Caching\Cache;
 use Lsr\Db\DB;
@@ -31,6 +32,7 @@ readonly class PlayerUserService
 		private Cache               $cache,
 		private RankCalculator      $rankCalculator,
 		private PlayerStatsProvider $playerStatsProvider,
+		private RankRecalculationQueueService $rankRecalculationQueueService,
 	) {
 	}
 
@@ -61,6 +63,7 @@ readonly class PlayerUserService
 				]
 			);
 			$this->updatePlayerStats($user);
+			$this->markRankDirty($player, $user->id, RankRecalculationQueueService::REASON_PLAYER_GAME_LINKED);
 			try {
 				/** @var PossibleMatch|null $possibleMatch */
 				$possibleMatch = PossibleMatch::query()->where(
@@ -209,6 +212,7 @@ readonly class PlayerUserService
 				return false;
 			}
 			$this->updatePlayerStats($user->user);
+			$this->markRankDirty($player, $user->id, RankRecalculationQueueService::REASON_PLAYER_GAME_REMOVED);
 
 			return true;
 		}
@@ -252,6 +256,23 @@ readonly class PlayerUserService
 		$this->cache->clean([CacheParent::Tags => ['user/' . $user->id . '/possibleMatches',],]);
 
 		return PossibleMatch::getForUser($user);
+	}
+
+	private function markRankDirty(Player $player, int $userId, string $reason): void {
+		if (!isset($player->game->start)) {
+			return;
+		}
+
+		try {
+			$this->rankRecalculationQueueService->markDirty(
+				$player->game->start,
+				$reason,
+				$player->game->code,
+				$userId
+			);
+		} catch (Throwable) {
+			// Queue writes must not break user-facing profile edits.
+		}
 	}
 
 }
