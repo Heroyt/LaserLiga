@@ -10,14 +10,13 @@ use App\GameModels\Game\Team;
 use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\Player;
 use App\Models\Auth\User;
-use App\Models\DataObjects\Ranking\PlayerGameRating;
 use App\Models\DataObjects\Ranking\RankingPlayer;
 use App\Models\GameGroup;
 use App\Services\Player\Ranking\RankDeltaCalculator;
+use App\Services\Player\Ranking\RatingRepository;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Dibi\Exception;
-use Lsr\Caching\Cache;
 use Lsr\Db\DB;
 use Lsr\LaserLiga\PlayerInterface;
 use Lsr\Orm\Exceptions\ValidationException;
@@ -50,9 +49,9 @@ class RankCalculator
 	public const float TEAMMATE_WEIGHT = 0.5;
 
 	public function __construct(
-		private readonly Cache               $cache,
 		private readonly Serializer          $serializer,
 		private readonly RankDeltaCalculator $rankDeltaCalculator,
+		private readonly RatingRepository    $ratingRepository,
 	) {
 	}
 
@@ -224,11 +223,6 @@ class RankCalculator
 			$currentDateRank,
 		);
 
-		// Save difference
-		$test = DB::select('player_game_rating', 'COUNT(*)')
-		          ->where('[code] = %s AND [id_user] = %i', $code, $user->id)
-		          ->fetchSingle(false);
-
 		$expectedResultsJson = $this->serializer->serialize($rankDelta->debug, 'json');
 		$ratingDiff = $rankDelta->difference;
 
@@ -246,22 +240,7 @@ class RankCalculator
 			$user->stats->rank = -100;
 		}
 
-		$insertData = [
-			'code'             => $code,
-			'id_user'          => $user->id,
-			'difference'       => $ratingDiff,
-			'date'             => $date,
-			'expected_results' => $expectedResultsJson,
-			'normalized_skill' => $rankDelta->normalizedSkill,
-			'max_skill'        => $rankDelta->maxSkill,
-			'min_skill'        => $rankDelta->minSkill,
-		];
-		if ($test > 0) {
-			DB::update('player_game_rating', $insertData, ['[code] = %s AND [id_user] = %i', $code, $user->id]);
-		}
-		else {
-			DB::insertIgnore('player_game_rating', $insertData);
-		}
+		$this->ratingRepository->saveGameRating($rankDelta, $expectedResultsJson);
 
 		return $user->stats->rank;
 	}
@@ -275,16 +254,7 @@ class RankCalculator
 	 * @return int
 	 */
 	public function getPlayerRankOnDate(int $userId, DateTimeInterface $date): int {
-		return max(
-			0,
-			(int)round(
-				DB::select('player_game_rating', '100 + SUM([difference])')->where(
-					'[id_user] = %i AND [date] < %dt',
-					$userId,
-					$date
-				)->fetchSingle(false) ?? 100
-			)
-		);
+		return $this->ratingRepository->getPlayerRankOnDate($userId, $date);
 	}
 
 	/**
@@ -431,15 +401,7 @@ class RankCalculator
 	 * @throws Exception
 	 */
 	public function recalculateUsersRanksFromDifference(): void {
-		DB::getConnection()->query(
-			"UPDATE %n [a] SET [rank] = 100 + COALESCE((SELECT SUM([b].[difference]) FROM [player_game_rating] [b] WHERE [a].[id_user] = [b].[id_user]),0)",
-			Player::TABLE
-		);
-		DB::getConnection()->query(
-			"UPDATE %n [a] SET [rank] = 0 WHERE [rank] < 0",
-			Player::TABLE
-		);
-		$this->cache->clean([$this->cache::Tags => [Player::TABLE, Player::TABLE . '/query']]);
+		$this->ratingRepository->recalculateUserRanks();
 	}
 
 	/**
@@ -466,13 +428,11 @@ class RankCalculator
 
 		$game = $player->game;
 
-		$rating = DB::select('player_game_rating', '*')
-		            ->where('[code] = %s AND [id_user] = %i', $game->code, $user->id)
-		            ->fetchDto(PlayerGameRating::class, cache: false);
+		$rating = $this->ratingRepository->findGameRating($game->code, $user->id);
 		if (isset($rating)) {
 			// Reset already calculated rating
 			$user->stats->rank = (int)round($user->stats->rank - $rating->difference);
-			DB::delete('player_game_rating', ['[code] = %s AND [id_user] = %i', $game->code, $user->id]);
+			$this->ratingRepository->deleteGameRating($game->code, $user->id);
 		}
 
 

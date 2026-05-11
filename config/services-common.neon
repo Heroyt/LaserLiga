@@ -130,6 +130,9 @@ services:
 	user: App\Models\Auth\User
 	ranking.rankDeltaCalculator: App\Services\Player\Ranking\RankDeltaCalculator
 	ranking.modelInputProvider: App\Services\Player\Ranking\ModelGameCalculationInputProvider
+	ranking.sqlInputProvider: App\Services\Player\Ranking\SqlGameCalculationInputProvider
+	ranking.ratingRepository: App\Services\Player\Ranking\DbRatingRepository
+	ranking.recalculationService: App\Services\Player\Ranking\RankRecalculationService
 	rankCalculator: App\Services\Player\RankCalculator
 
 	userRegistration: App\Services\UserRegistrationService
