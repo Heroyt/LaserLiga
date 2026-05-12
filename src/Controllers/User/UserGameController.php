@@ -9,9 +9,9 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\User;
 use App\Models\GameGroup;
 use App\Models\PossibleMatch;
+use App\Services\Player\Leaderboard\PlayerDateRankRecalculationService;
 use App\Services\Player\PlayerRankOrderService;
 use App\Services\Player\PlayerUserService;
-use DateInterval;
 use DateTimeImmutable;
 use Lsr\Core\Auth\Services\Auth;
 use Lsr\Core\Requests\Dto\ErrorResponse;
@@ -34,9 +34,10 @@ class UserGameController extends AbstractUserController
 	 * @param Auth<User> $auth
 	 */
 	public function __construct(
-		protected readonly Auth                 $auth,
-		protected readonly PlayerUserService    $playerUserService,
-		private readonly PlayerRankOrderService $rankOrderService,
+		protected readonly Auth                             $auth,
+		protected readonly PlayerUserService                $playerUserService,
+		private readonly PlayerRankOrderService             $rankOrderService,
+		private readonly PlayerDateRankRecalculationService $dateRankRecalculationService,
 	) {
 		
 		$this->user = $this->auth->getLoggedIn();
@@ -306,13 +307,7 @@ class UserGameController extends AbstractUserController
 
 		$date = new DateTimeImmutable($fromString);
 		$today = new DateTimeImmutable('00:00:00');
-		$day = new DateInterval('P1D');
-
-		$response = [];
-		while ($date <= $today) {
-			$response = $this->rankOrderService->getDateRanks($date);
-			$date = $date->add($day);
-		}
-		return $this->respond(array_values($response));
+		$summary = $this->dateRankRecalculationService->recalculateRange($date, $today);
+		return $this->respond(array_values($summary->lastRanks));
 	}
 }

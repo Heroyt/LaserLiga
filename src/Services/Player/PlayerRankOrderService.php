@@ -4,6 +4,7 @@ namespace App\Services\Player;
 
 use App\Models\Auth\LigaPlayer;
 use App\Models\DataObjects\Player\PlayerRank;
+use App\Services\Player\Leaderboard\PlayerDateRankPositionCalculator;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Dibi\Exception;
@@ -21,6 +22,7 @@ class PlayerRankOrderService
 
 	public function __construct(
 		private readonly Cache $cache,
+		private readonly PlayerDateRankPositionCalculator $positionCalculator,
 	) {
 	}
 
@@ -78,39 +80,10 @@ class PlayerRankOrderService
 		           ->fetchPairs('id_user', 'rank', false);
 
 		$dateString = $date->format('Y-m-d');
-
-		/** @var array{id_user:int,date:DateTimeInterface|string,rank:int,position:int,position_text:string}[] $rows */
-		$rows = [];
-
-		$order = 0;
-		$realOrder = 0;
-		$lastRank = 0;
-		$sameRank = 0;
-		foreach ($ranks as $id => $rank) {
-			$realOrder++;
-			if ($lastRank !== $rank) {
-				if ($sameRank > 0) {
-					$rowCount = count($rows);
-					for ($i = $rowCount - $sameRank - 1; $i < $rowCount; $i++) {
-						$rows[$i]['position_text'] = $order . '-' . ($order + $sameRank) . '.';
-					}
-				}
-
-				$sameRank = 0;
-				$order = $realOrder;
-				$lastRank = $rank;
-			}
-			else {
-				$sameRank++;
-			}
-			$rows[] = [
-				'id_user'       => $id,
-				'date'          => $dateString,
-				'rank'          => $rank,
-				'position'      => $order,
-				'position_text' => $order . '.',
-			];
-		}
+		$rows = array_map(
+			static fn($row) => $row->toArray(),
+			$this->positionCalculator->calculateRows($date, $ranks)
+		);
 
 		DB::replace('player_date_rank', $rows);
 		$this->cache->clean([
