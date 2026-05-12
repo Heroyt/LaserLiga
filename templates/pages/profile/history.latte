@@ -7,6 +7,7 @@
 'modeName' => ['name' => lang('Herní mód'), 'sortable' => true],
 'players' => ['name' => lang('Hráči'), 'sortable' => false],
 'skill' => ['name' => lang('Herní úroveň'), 'sortable' => true],
+'rank_difference' => ['name' => lang('Změna ranku'), 'sortable' => true],
 ]}
 
 {block content}
@@ -30,6 +31,7 @@
 		fields: $fields,
 		user: $user,
 		games: $games,
+		rankDifferences: $rankDifferences,
 		p: $p,
 		pages: $pages,
 		limit: $limit,

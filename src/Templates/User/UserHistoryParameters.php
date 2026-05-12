@@ -29,4 +29,6 @@ class UserHistoryParameters extends TemplateParameters
 	public array $arenas = [];
 	/** @var Game[] */
 	public array $games = [];
+	/** @var array<string,float|null> */
+	public array $rankDifferences = [];
 }

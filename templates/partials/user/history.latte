@@ -6,6 +6,7 @@
 'modeName' => ['name' => lang('Herní mód'), 'sortable' => true],
 'players' => ['name' => lang('Hráči'), 'sortable' => false],
 'skill' => ['name' => lang('Herní úroveň'), 'sortable' => true],
+'rank_difference' => ['name' => lang('Změna ranku'), 'sortable' => true],
 ]}
 
 {\App\Tools\Color::getGamesColor($games)|noescape}
@@ -14,6 +15,7 @@
 {embed '../gameList.latte',
 user: $user,
 games: $games,
+rankDifferences: $rankDifferences,
 p: $p,
 pages: $pages,
 limit: $limit,

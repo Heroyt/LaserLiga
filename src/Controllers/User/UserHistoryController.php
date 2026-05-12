@@ -59,9 +59,12 @@ class UserHistoryController extends AbstractUserController
 				              'shots',
 				              'skill',
 				              'kd' => ['first' => 'hits', 'second' => 'deaths', 'operation' => '/'],
-			              ]
+			              ],
+			select: '[t].*, [rating].[difference] as [rank_difference]'
 		)
-		                      ->where('[id_user] = %i', $user->id)
+		                      ->leftJoin('[player_game_rating]', '[rating]')
+		                      ->on('[rating].[code] = [t].[code] AND [rating].[id_user] = [t].[id_user]')
+		                      ->where('[t].[id_user] = %i', $user->id)
 		                      ->cacheTags('user/' . $user->id . '/games');
 
 		// Filter fields to display
@@ -77,12 +80,13 @@ class UserHistoryController extends AbstractUserController
 			'deaths'   => ['name' => lang('Smrti'), 'mandatory' => false, 'sortable' => true],
 			'kd'       => ['name' => lang('K:D'), 'mandatory' => false, 'sortable' => true],
 			'skill'    => ['name' => lang('Herní úroveň'), 'mandatory' => false, 'sortable' => true],
+			'rank_difference' => ['name' => lang('Změna ranku'), 'mandatory' => false, 'sortable' => true],
 		];
 
 		$allowedOrderFields = [];
 
 		/** @var string|string[] $selectedFields */
-		$selectedFields = $request->getGet('fields', ['players', 'skill']);
+		$selectedFields = $request->getGet('fields', ['players', 'skill', 'rank_difference']);
 		if (is_string($selectedFields)) {
 			if (empty($selectedFields)) {
 				$selectedFields = ['players', 'skill'];
@@ -131,10 +135,12 @@ class UserHistoryController extends AbstractUserController
 		/** @var array<string|Row> $rows */
 		$rows = $query->fetchAssoc('code');
 		$games = [];
+		$rankDifferences = [];
 		foreach ($rows as $gameCode => $row) {
 			/** @var Game $game */
 			$game = GameFactory::getByCode($gameCode);
 			$games[$gameCode] = $game;
+			$rankDifferences[$gameCode] = $row->rank_difference !== null ? (float) $row->rank_difference : null;
 		}
 
 		// Available dates
@@ -152,6 +158,7 @@ class UserHistoryController extends AbstractUserController
 		$this->params->user = $user;
 		$player = $user->player;
 		$this->params->games = $games;
+		$this->params->rankDifferences = $rankDifferences;
 		$this->params->p = $page;
 		$this->params->pages = $pages;
 		$this->params->limit = $limit;

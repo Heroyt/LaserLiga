@@ -14,6 +14,7 @@
 {default string[] $dates = []}
 {default bool $currentUser = false}
 {default App\Models\Auth\User|null $user = null}
+{default array $rankDifferences = []}
 
 
 {default int[] $modeIds = []}
@@ -30,6 +31,7 @@
 'deaths'   => ['name' => lang('Smrti'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
 'kd'       => ['name' => lang('K:D'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
 'skill'    => ['name' => lang('Herní úroveň'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'rank_difference' => ['name' => lang('Změna ranku'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
 ]}
 {default array $fields = [
 'start' => ['name' => lang('Datum'), 'sortable' => true],
@@ -222,6 +224,16 @@
                         <td n:ifset="$fields['skill']">
                             {$userPlayer->skill} {faSolid 'medal'}
                         </td>
+                        <td n:ifset="$fields['rank_difference']">
+                            {var float|null $rankDifference = $rankDifferences[$game->code] ?? null}
+                            {if $rankDifference !== null}
+                                <span n:class="$rankDifference > 0 ? 'text-success', $rankDifference < 0 ? 'text-danger'">
+                                    {if $rankDifference > 0}+{/if}{$rankDifference|number:2,',',' '}
+                                </span>
+                            {else}
+                                -
+                            {/if}
+                        </td>
                         <td>
                         <span class="btn-group">
                             <a href="{link $link}" class="btn btn-secondary" data-toggle="tooltip"
@@ -325,6 +337,17 @@
                             <div n:ifset="$fields['skill']" class="skill" data-toggle="tooltip"
                                                             title="{lang 'Herní úroveň'}">
                                 {$userPlayer->skill} {faSolid 'medal'}
+                            </div>
+                            <div n:ifset="$fields['rank_difference']" class="rank-difference" data-toggle="tooltip"
+                                                                     title="{lang 'Změna ranku'}">
+                                {var float|null $rankDifference = $rankDifferences[$game->code] ?? null}
+                                {if $rankDifference !== null}
+                                    <span n:class="$rankDifference > 0 ? 'text-success', $rankDifference < 0 ? 'text-danger'">
+                                        {if $rankDifference > 0}+{/if}{$rankDifference|number:2,',',' '}
+                                    </span>
+                                {else}
+                                    -
+                                {/if}
                             </div>
                         </div>
                     </div>
