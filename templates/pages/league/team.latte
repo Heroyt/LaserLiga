@@ -86,7 +86,7 @@
 							{/if}
 							<div class="d-flex flex-wrap justify-content-evenly" style="gap: 1rem;">
 								<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
-									 data-toggle="tooltip" title="{lang 'Průměrná herní úroveň'}">
+									 data-toggle="tooltip" title="{lang 'Průměrný herní výkon'}">
 									<div class="fs-1">{faSolid 'medal'}</div>
 									<div>
 										{$team->skill|number:2,',','&nbsp;'|noescape}
@@ -247,7 +247,7 @@
 					</div>
 				</div>
 				<div class="rounded d-flex flex-column justify-content-between px-3 pt-2 pb-3 border text-center"
-					 data-toggle="tooltip" title="{lang 'Průměrná herní úroveň'}">
+					 data-toggle="tooltip" title="{lang 'Průměrný herní výkon'}">
 					<div class="fs-1">{faSolid 'medal'}</div>
 					<div>
 						( {$player->getGameSkillPosition()}. )

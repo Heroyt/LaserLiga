@@ -101,7 +101,7 @@
                 </div>
                 <div class="col-12 col-md-6">
                     <h5 class="border-bottom py-2 mt-3">
-                        {lang 'Herní úroveň', domain: 'results'}: {$player->getSkill()|number:0,',','&nbsp;'|noescape}
+                        {lang 'Herní výkon', domain: 'results'}: {$player->getSkill()|number:0,',','&nbsp;'|noescape}
                         {faSolid 'medal'}
                         {ifset $diff}
                             <br>
@@ -547,7 +547,7 @@
             {case 'accuracy'} {_'Přesnost', domain: 'results'}:
             {case 'bonuses'} {_'Bonusy', domain: 'results'}:
             {case 'gun_penalty'} {_'Postih za použití zbraně', domain: 'results'}:
-            {case 'rounding'} {faSolid 'circle-question', '', ['data-toggle' => 'tooltip', 'title' => lang('Zohlednění vašich protihráčů. Pokud hrajete proti slabším, vaše herní úroveň se sníží. Naopak, pokud hrajete proti silným hráčům, vaše herní úroveň se zvýší.', domain: 'results')]}
+            {case 'rounding'} {faSolid 'circle-question', '', ['data-toggle' => 'tooltip', 'title' => lang('Zohlednění vašich protihráčů. Pokud hrajete proti slabším, váš herní výkon se sníží. Naopak, pokud hrajete proti silným hráčům, váš herní výkon se zvýší.', domain: 'results')]}
             {_'Srovnání s protihráči', domain: 'results'}:
         {/switch}
         <span n:class="$skill > 0 ? text-success, $skill < 0 ? text-danger">

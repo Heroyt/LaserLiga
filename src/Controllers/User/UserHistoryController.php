@@ -79,8 +79,8 @@ class UserHistoryController extends AbstractUserController
 			'hits'     => ['name' => lang('Zásahy'), 'mandatory' => false, 'sortable' => true],
 			'deaths'   => ['name' => lang('Smrti'), 'mandatory' => false, 'sortable' => true],
 			'kd'       => ['name' => lang('K:D'), 'mandatory' => false, 'sortable' => true],
-			'skill'    => ['name' => lang('Herní úroveň'), 'mandatory' => false, 'sortable' => true],
-			'rank_difference' => ['name' => lang('Změna ranku'), 'mandatory' => false, 'sortable' => true],
+			'skill'    => ['name' => lang('Herní výkon'), 'mandatory' => false, 'sortable' => true],
+			'rank_difference' => ['name' => lang('Změna herní úrovně'), 'mandatory' => false, 'sortable' => true],
 		];
 
 		$allowedOrderFields = [];

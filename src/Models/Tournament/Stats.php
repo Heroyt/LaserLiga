@@ -90,7 +90,7 @@ class Stats extends BaseModel
 
 	public function getFieldDescription(): string {
 		return match ($this->field) {
-			'skill'      => lang('Herní úroveň'),
+			'skill'      => lang('Herní výkon'),
 			'shots'      => lang('Výstřely'),
 			'accuracy'   => lang('Přesnost'),
 			'hits_own'   => lang('Zásahy spoluhráčů'),

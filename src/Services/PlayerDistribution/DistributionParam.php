@@ -24,7 +24,7 @@ enum DistributionParam: string
 			self::hits     => lang('Zásahy', domain: 'results'),
 			self::deaths   => lang('Smrti', domain: 'results'),
 			self::shots    => lang('Výstřely', domain: 'results'),
-			self::rank => lang('Herní úroveň', domain: 'results'),
+			self::rank => lang('Herní výkon', domain: 'results'),
 			self::kd   => lang('Zásahy:Smrti', domain: 'results'),
 		};
 	}

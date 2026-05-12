@@ -30,8 +30,8 @@
 'hits'     => ['name' => lang('Zásahy'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
 'deaths'   => ['name' => lang('Smrti'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
 'kd'       => ['name' => lang('K:D'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
-'skill'    => ['name' => lang('Herní úroveň'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
-'rank_difference' => ['name' => lang('Změna ranku'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'skill'    => ['name' => lang('Herní výkon'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
+'rank_difference' => ['name' => lang('Změna herní úrovně'), 'personal' => true, 'mandatory' => false, 'sortable' => true],
 ]}
 {default array $fields = [
 'start' => ['name' => lang('Datum'), 'sortable' => true],
@@ -335,11 +335,11 @@
                                 K:D
                             </div>
                             <div n:ifset="$fields['skill']" class="skill" data-toggle="tooltip"
-                                                            title="{lang 'Herní úroveň'}">
+                                                            title="{lang 'Herní výkon'}">
                                 {$userPlayer->skill} {faSolid 'medal'}
                             </div>
                             <div n:ifset="$fields['rank_difference']" class="rank-difference" data-toggle="tooltip"
-                                                                     title="{lang 'Změna ranku'}">
+                                                                     title="{lang 'Změna herní úrovně'}">
                                 {var float|null $rankDifference = $rankDifferences[$game->code] ?? null}
                                 {if $rankDifference !== null}
                                     <span n:class="$rankDifference > 0 ? 'text-success', $rankDifference < 0 ? 'text-danger'">

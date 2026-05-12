@@ -301,7 +301,7 @@
                             {svgIcon 'star', '', '1em'} - {_'Skóre', domain: 'results'}
                         </div>
                         <div class="legend m-3">
-                            {faSolid 'medal'} - {_'Herní úroveň'}
+                            {faSolid 'medal'} - {_'Herní výkon'}
                         </div>
                         <div class="legend m-3">
                             {svgIcon 'bullets', '', '1em'} - {_'Výstřely', domain: 'results'}
@@ -532,9 +532,9 @@
             <span class="visually-hidden">{_'Skóre', domain: 'results'}:</span>
             <b>{$player->score|number:0,',','&nbsp;'|noescape}</b>
         </div>
-        <div class="skill text-end ps-1" style="max-width:4.5rem;" data-toggle="tooltip" title="{_'Herní úroveň'}">
+        <div class="skill text-end ps-1" style="max-width:4.5rem;" data-toggle="tooltip" title="{_'Herní výkon'}">
             {faSolid 'medal'}
-            <span class="visually-hidden">{_'Herní úroveň', domain: 'results'}:</span>
+            <span class="visually-hidden">{_'Herní výkon', domain: 'results'}:</span>
             {$player->getSkill()|number:0,',','&nbsp;'|noescape}
         </div>
     </div>
