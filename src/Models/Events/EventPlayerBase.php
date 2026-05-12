@@ -32,7 +32,7 @@ abstract class EventPlayerBase extends BaseModel
 	public bool    $sub         = false;
 	#[Email]
 	public ?string $email       = null;
-	#[Email]
+	#[Email(allowEmpty: true)]
 	public ?string $parentEmail = null;
 	public ?string $phone       = null;
 	public ?string $parentPhone = null;
