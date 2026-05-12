@@ -7,7 +7,9 @@ use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\DataObjects\Game\MinimalGameRow;
+use App\Services\Player\PlayerRankOrderService;
 use App\Services\Player\Ranking\RankRecalculationService;
+use App\Services\PushService;
 use DateTimeImmutable;
 use Lsr\Db\DB;
 use Symfony\Component\Console\Command\Command;
@@ -23,6 +25,8 @@ final class RecalculateRanksCommand extends Command
 
 	public function __construct(
 		private readonly RankRecalculationService $recalculationService,
+		private readonly PlayerRankOrderService  $rankOrderService,
+		private readonly PushService             $pushService,
 	) {
 		parent::__construct();
 	}
@@ -43,6 +47,7 @@ final class RecalculateRanksCommand extends Command
 		$this->addOption('to', null, InputOption::VALUE_REQUIRED, 'Only games starting before this datetime');
 		$this->addOption('batch-size', 'b', InputOption::VALUE_REQUIRED, 'Number of games processed per transaction batch', 100);
 		$this->addOption('dry-run', null, InputOption::VALUE_NONE, 'Run inside rolled back transactions');
+		$this->addOption('no-notifications', null, InputOption::VALUE_NONE, 'Do not send rank-change notifications after recalculation');
 		$this->addArgument('offset', InputArgument::OPTIONAL, 'Games DB offset');
 		$this->addArgument('limit', InputArgument::OPTIONAL, 'Games DB limit');
 	}
@@ -56,6 +61,8 @@ final class RecalculateRanksCommand extends Command
 
 		$batchSize = max(1, (int)$input->getOption('batch-size'));
 		$dryRun = (bool)$input->getOption('dry-run');
+		$sendNotifications = !$dryRun && !(bool)$input->getOption('no-notifications');
+		$ranksBefore = $sendNotifications ? $this->rankOrderService->getTodayRanks() : [];
 		$progress = new ProgressBar($output, count($codes));
 		$progress->setFormat('debug');
 		$progress->start();
@@ -92,11 +99,19 @@ final class RecalculateRanksCommand extends Command
 
 		$progress->finish();
 		$output->writeln('');
+		$notificationsSent = false;
+		if ($sendNotifications && !empty($affectedUserIds)) {
+			$ranksNow = $this->rankOrderService->getDateRanks(new DateTimeImmutable());
+			$this->pushService->sendRankChangeNotifications($ranksBefore, $ranksNow);
+			$notificationsSent = true;
+		}
+
 		$output->writeln(
 			[
 				sprintf('<info>Games processed: %d</info>', $gamesProcessed),
 				sprintf('<info>Rating deltas written: %d</info>', $ratingDeltasWritten),
 				sprintf('<info>Affected users: %d</info>', count($affectedUserIds)),
+				$notificationsSent ? '<info>Rank-change notifications processed.</info>' : '<comment>Rank-change notifications skipped.</comment>',
 				$dryRun ? '<comment>Dry-run enabled: changes were rolled back.</comment>' : '<info>Changes committed.</info>',
 			]
 		);

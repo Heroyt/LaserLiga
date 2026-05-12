@@ -48,7 +48,6 @@ final readonly class RankDeltaCalculator
 
 		$minSkill -= self::MIN_PLAYER_PADDING;
 		$maxSkill += self::MAX_PLAYER_PADDING;
-		$currentDateRank = $this->adjustCurrentDateRank($userId, $currentDateRank);
 
 		$teamRank = $this->getTeamRank($teammates);
 		$enemiesRank = $this->getTeamRank($enemies);
@@ -105,19 +104,6 @@ final readonly class RankDeltaCalculator
 			$maxSkill,
 			$expectedResults,
 		);
-	}
-
-	private function adjustCurrentDateRank(int $userId, int $currentDateRank): int {
-		if ($userId === 4) {
-			return (int)($currentDateRank * 0.95);
-		}
-		if ($userId === 5) {
-			return (int)($currentDateRank * 0.70);
-		}
-		if ($userId === 257) {
-			return (int)($currentDateRank * 1.10);
-		}
-		return $currentDateRank;
 	}
 
 	/**
