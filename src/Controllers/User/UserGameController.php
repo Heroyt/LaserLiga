@@ -56,6 +56,9 @@ class UserGameController extends AbstractUserController
 		if (!isset($game)) {
 			return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND), 404);
 		}
+		if (!PlayerUserService::canModifyGame($this->user, $game->start)) {
+			return $this->respond(new ErrorResponse(PlayerUserService::MODIFICATION_ERROR, ErrorType::ACCESS), 403);
+		}
 
 		$player = null;
 		/** @var Player $gamePlayer */
@@ -103,6 +106,9 @@ class UserGameController extends AbstractUserController
 		if (!isset($player)) {
 			return $this->respond(new ErrorResponse('Player not found', ErrorType::NOT_FOUND), 404);
 		}
+		if (!PlayerUserService::canModifyGame($this->user, $player->game->start)) {
+			return $this->respond(new ErrorResponse(PlayerUserService::MODIFICATION_ERROR, ErrorType::ACCESS), 403);
+		}
 
 		if (isset($player->user) && $player->user->id !== $this->user->id) {
 			return $this->respond(new ErrorResponse('Cannot overwrite a player\'s user.', ErrorType::VALIDATION), 400);
@@ -132,6 +138,9 @@ class UserGameController extends AbstractUserController
 			}
 
 			$game = $match->game;
+			if (!PlayerUserService::canModifyGame($this->user, $game->start)) {
+				continue;
+			}
 
 			// Find player object
 			/** @var Player $player */
@@ -173,6 +182,9 @@ class UserGameController extends AbstractUserController
 		foreach ($games as $gameCode) {
 			$game = $group->getGames()[$gameCode] ?? null;
 			if (!isset($game)) {
+				continue;
+			}
+			if (!PlayerUserService::canModifyGame($this->user, $game->start)) {
 				continue;
 			}
 

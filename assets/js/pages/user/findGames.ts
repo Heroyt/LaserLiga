@@ -1,5 +1,5 @@
-import {startLoading, stopLoading} from "../../loaders";
-import {userSetAllMe, userSetMe, userSetNotMe} from "../../api/endpoints/user";
+import { startLoading, stopLoading } from "../../loaders";
+import { userSetAllMe, userSetMe, userSetNotMe } from "../../api/endpoints/user";
 
 export default function initFindGames(): void {
 	const lines = document.querySelectorAll('#user-possible-matches-table tbody tr') as NodeListOf<HTMLTableRowElement>;
@@ -30,6 +30,9 @@ export default function initFindGames(): void {
 		const setMe = line.querySelector('.setMe') as HTMLButtonElement;
 		const setNotMe = line.querySelector('.setNotMe') as HTMLButtonElement;
         const matchId = parseInt(line.dataset.id);
+		if (!setMe || !setNotMe) {
+			return;
+		}
         const playerId = parseInt(setMe.dataset.id);
 		const system = setMe.dataset.system;
 		console.log(matchId, playerId, system, setMe, setNotMe)

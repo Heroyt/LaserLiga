@@ -13,6 +13,8 @@ use App\Models\Auth\User;
 use App\Models\DataObjects\Game\PlayerGamesGame;
 use App\Models\PossibleMatch;
 use App\Services\Player\Ranking\RankRecalculationQueueService;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Dibi\Exception;
 use Lsr\Caching\Cache;
 use Lsr\Db\DB;
@@ -27,6 +29,7 @@ use Throwable;
  */
 readonly class PlayerUserService
 {
+	public const string MODIFICATION_ERROR = 'Game can no longer be modified for this account.';
 
 	public function __construct(
 		private Cache               $cache,
@@ -34,6 +37,17 @@ readonly class PlayerUserService
 		private PlayerStatsProvider $playerStatsProvider,
 		private RankRecalculationQueueService $rankRecalculationQueueService,
 	) {
+	}
+
+	public static function canModifyGame(User $user, ?DateTimeInterface $gameStart): bool {
+		$now = new DateTimeImmutable();
+		if ($user->createdAt >= $now->modify('-1 month')) {
+			return true;
+		}
+		if (!isset($gameStart)) {
+			return false;
+		}
+		return $gameStart >= $now->modify('-2 weeks');
 	}
 
 	/**
@@ -247,6 +261,9 @@ readonly class PlayerUserService
 		$possibleMatches = $possibleMatchesQuery->fetchAllDto(PlayerGamesGame::class, cache: false);
 
 		foreach ($possibleMatches as $possibleMatch) {
+			if (!self::canModifyGame($user, $possibleMatch->start)) {
+				continue;
+			}
 			$match = new PossibleMatch();
 			$match->user = $user;
 			$match->code = $possibleMatch->code;
@@ -255,7 +272,10 @@ readonly class PlayerUserService
 
 		$this->cache->clean([CacheParent::Tags => ['user/' . $user->id . '/possibleMatches',],]);
 
-		return PossibleMatch::getForUser($user);
+		return array_values(array_filter(
+			PossibleMatch::getForUser($user),
+			static fn(PossibleMatch $match) => self::canModifyGame($user, $match->game->start)
+		));
 	}
 
 	private function markRankDirty(Player $player, int $userId, string $reason): void {

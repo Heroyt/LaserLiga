@@ -13,6 +13,9 @@
 	</p>
     <h2 class="text-center">{lang 'Najít mé hry'} ({count($possibleMatches)})</h2>
     <p class="my-5 text-center">{lang 'Zde se zobrazují všechny hry, které nemáte přiřazené k účtu, ale mohli by být vaše. Hry se párují podle domovské arény a přezdívky.'}</p>
+    <p class="alert alert-info text-center">
+        {_'Hry si můžete sami přiřadit nebo odebrat pouze první měsíc po vytvoření účtu. Poté lze upravovat jen hry z posledních 2 týdnů. Jakoukoliv jinou změnu musí vyřešit podpora na <a href="https://discord.gg/2ZM6VMuGBY" target="_blank">Discord</a> serveru nebo přes e-mail <a href="mailto:info@laserliga.cz">info@laserliga.cz</a>.'|noescape}
+    </p>
 
 	{if empty($possibleMatches)}
 		<p class="text-center my-5 fs-3">{lang 'Žádné další hry nebyli nalezeny'}</p>
@@ -64,7 +67,7 @@
 					</td>
 					<td>
 					<span class="btn-group">
-                        {if $playerMatch !== null}
+                        {if $playerMatch !== null && App\Services\Player\PlayerUserService::canModifyGame($loggedInUser, $game->start)}
                             <button class="setMe btn btn-success" data-id="{$playerMatch->id}"
                                     data-system="{$game::SYSTEM}"
                                     title="{lang 'Přivlastnit'}"
