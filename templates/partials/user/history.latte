@@ -31,15 +31,17 @@ date: $date,
 dates: $dates,
 allFields: $allFields,
 currentUser: $currentUser,
+canManageGames: $canManageGames,
 fields: $fields
 }
     {block tableId}user-history-table{/block}
     {block additionalActions}
         {varType App\GameModels\Game\Game $game}
-        <button n:if="$currentUser && App\Services\Player\PlayerUserService::canModifyGame($user, $game->start)" class="btn btn-danger unset-me" data-toggle="tooltip"
+        {var string $removeTitle = $currentUser ? lang('To nejsem já') : lang('Odebrat hru z profilu')}
+        <button n:if="$canManageGames || ($currentUser && App\Services\Player\PlayerUserService::canModifyGame($user, $game->start))" class="btn btn-danger remove-game-from-profile" data-toggle="tooltip"
                                     data-code="{$game->code}" data-user="{$user->id}"
                                     data-confirm="{lang 'Opravdu chcete hru odstranit z profilu?'}"
-                                    title="{lang 'To nejsem já'}" type="button">
+                                    title="{$removeTitle}" type="button">
             {faSolid 'cancel'}
         </button>
     {/block}

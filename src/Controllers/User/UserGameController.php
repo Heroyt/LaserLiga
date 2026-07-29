@@ -43,7 +43,7 @@ class UserGameController extends AbstractUserController
 		$this->user = $this->auth->getLoggedIn();
 	}
 
-	public function unsetMe(Request $request): ResponseInterface {
+	public function removeGameFromProfile(Request $request): ResponseInterface {
 		if (!isset($this->user)) {
 			return $this->respond(new ErrorResponse('User is not logged in', ErrorType::ACCESS), 401);
 		}
@@ -56,20 +56,27 @@ class UserGameController extends AbstractUserController
 		if (!isset($game)) {
 			return $this->respond(new ErrorResponse('Game not found', ErrorType::NOT_FOUND), 404);
 		}
-		if (!PlayerUserService::canModifyGame($this->user, $game->start)) {
+		$canManageGames = $this->user->hasRight('manage-games');
+		$targetUserId = (int)$request->getPost('user', $this->user->id);
+		if ($targetUserId !== $this->user->id && !$canManageGames) {
+			return $this->respond(new ErrorResponse('Cannot remove another user\'s game.', ErrorType::ACCESS), 403);
+		}
+		if (!$canManageGames && !PlayerUserService::canModifyGame($this->user, $game->start)) {
 			return $this->respond(new ErrorResponse(PlayerUserService::MODIFICATION_ERROR, ErrorType::ACCESS), 403);
 		}
 
 		$player = null;
 		/** @var Player $gamePlayer */
 		foreach ($game->players as $gamePlayer) {
-			if (isset($gamePlayer->user) && $gamePlayer->user->id === $this->user->id) {
+			if (isset($gamePlayer->user) && $gamePlayer->user->id === $targetUserId) {
 				$player = $gamePlayer;
 				break;
 			}
 		}
 		if (isset($player)) {
-			$this->playerUserService->unsetPlayerUser($player);
+			if (!$this->playerUserService->unsetPlayerUser($player)) {
+				return $this->respond(new ErrorResponse('Removing the game from the profile failed.', ErrorType::INTERNAL), 500);
+			}
 		}
 		return $this->respond(new SuccessResponse());
 	}

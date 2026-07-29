@@ -47,7 +47,9 @@ class UserHistoryController extends AbstractUserController
 			return $this->app->redirect([], $request);
 		}
 		assert($user->player !== null, 'User is not a player');
-		$this->params->currentUser = $this->auth->getLoggedIn()?->id === $user->id;
+		$loggedInUser = $this->auth->getLoggedIn();
+		$this->params->currentUser = $loggedInUser?->id === $user->id;
+		$this->params->canManageGames = $loggedInUser?->hasRight('manage-games') ?? false;
 		$player = $user->createOrGetPlayer();
 		$query = PlayerFactory::queryPlayersWithGames(
 			playerFields: [

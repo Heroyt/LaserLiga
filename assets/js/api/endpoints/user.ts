@@ -18,7 +18,7 @@ export type UserCompareResponse = {
     deathsTogether: number
 };
 
-export type UserUnsetMeResponse = { status: string };
+export type RemoveGameFromProfileResponse = { status: string };
 export type UserSetMeResponse = { status: string };
 export type UserSetGroupMeResponse = { status: string };
 export type UserSetAllMeResponse = { status: string };
@@ -28,8 +28,8 @@ export async function getUserCompare(userCode: string): Promise<UserCompareRespo
     return fetchGet(`/user/${userCode}/compare`);
 }
 
-export async function userUnsetMe(gameCode: string): Promise<UserUnsetMeResponse> {
-    return fetchPost('/user/player/unsetme', {code: gameCode})
+export async function removeGameFromProfile(gameCode: string, userId: number, csrfToken: string): Promise<RemoveGameFromProfileResponse> {
+    return fetchPost('/user/player/unsetme', {code: gameCode, user: userId, _csrf_token: csrfToken})
 }
 
 export async function userSetMe(playerId: number, system: string): Promise<UserSetMeResponse> {

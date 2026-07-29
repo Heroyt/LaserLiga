@@ -24,6 +24,9 @@
 		</a>
 	</p>
 
+	<div id="user-game-remove-csrf" hidden>
+		{csrfInput 'user-game-remove'}
+	</div>
 	<form action="{link ['user', $user->player->getCode(), 'history']}" method="get" id="user-history-form"
 		  class="player-history data-table-form">
 		{embed '../../partials/user/history.latte',
@@ -41,7 +44,8 @@
 		modeIds: $modeIds,
 		date: $date,
         dates: $dates,
-        currentUser: $currentUser
+        currentUser: $currentUser,
+        canManageGames: $canManageGames
 		}
 		{/embed}
 	</form>

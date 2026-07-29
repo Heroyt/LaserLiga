@@ -21,6 +21,7 @@ class UserHistoryParameters extends TemplateParameters
 	public User $user;
 	public ?User $loggedInUser;
 	public bool $currentUser = false;
+	public bool $canManageGames = false;
 	/** @var array<string, FilterField>  */
 	public array $allFields = [];
 	/** @var array<string, FilterField>  */
